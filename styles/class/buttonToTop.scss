@@ -1,0 +1,48 @@
+// ------------------------------------------------------------------------------
+// Author: GuilhermeSantos001
+// Updated: 21/09/2021
+//
+
+#buttonToTop.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+#buttonMenu:hover {
+  cursor: pointer;
+  color: map-get($theme-colors, "secondary");
+}
+
+#buttonToTop {
+  display: inline-block;
+  background-color: map-get($theme-colors, "primary");
+  color: #ffffff;
+  width: 50px;
+  height: 50px;
+  text-align: center;
+  border-radius: 10px;
+  position: fixed;
+  bottom: -20px;
+  right: 10px;
+  transition: background-color 0.3s, opacity 0.5s, visibility 0.5s;
+  opacity: 0;
+  visibility: hidden;
+  z-index: 999;
+}
+
+#buttonToTop::after {
+  font-weight: normal;
+  font-style: normal;
+  font-size: 5em;
+  line-height: 50px;
+  color: #fff;
+}
+
+#buttonToTop:hover {
+  cursor: pointer;
+  background-color: map-get($theme-colors, "secondary");
+}
+
+#buttonToTop:active {
+  background-color: map-get($theme-colors, "secondary");
+}

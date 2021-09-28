@@ -1,0 +1,36 @@
+// ------------------------------------------------------------------------------
+// Author: GuilhermeSantos001
+// Updated: 21/09/2021
+//
+
+div#sidebar {
+  position: fixed;
+  height: 100%;
+  width: 200px;
+  left: 0;
+  display: none;
+
+  &.fullwidth {
+    width: 0%;
+    left: -100%;
+  }
+}
+
+div#content {
+  width: auto;
+  height: 100%;
+}
+
+@include media-breakpoint-up(md) {
+  div#sidebar {
+    display: block;
+  }
+
+  div#content {
+    margin-left: 200px;
+
+    &.fullwidth {
+      margin-left: 0px;
+    }
+  }
+}

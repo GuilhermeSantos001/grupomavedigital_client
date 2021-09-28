@@ -1,0 +1,143 @@
+// ------------------------------------------------------------------------------
+// Author: GuilhermeSantos001
+// Updated: 21/09/2021
+//
+
+button:disabled,
+a:disabled,
+textarea:disabled,
+input:disabled {
+  cursor: not-allowed;
+}
+
+input[type="file"] {
+  cursor: pointer;
+}
+
+html {
+  -webkit-transition: all 5s ease;
+  -moz-transition: all 5s ease;
+  -o-transition: all 5s ease;
+  transition: all 5s ease;
+}
+
+.bg-light-gray {
+  background-color: map-get($theme-colors, "light-gray");
+}
+.bg-dark-gray {
+  background-color: map-get($theme-colors, "dark-gray");
+}
+
+.text-light-gray {
+  color: map-get($theme-colors, "light-gray");
+}
+.text-dark-gray {
+  color: map-get($theme-colors, "dark-gray");
+}
+
+.animation-delay {
+  -webkit-transition: 100ms ease-in; /* Safari */
+  transition: 100ms ease-in;
+  -webkit-transition-delay: 100ms; /* Safari */
+  transition-delay: 100ms;
+}
+
+.hover-color {
+  cursor: pointer;
+
+  &.active {
+    color: map-get($theme-colors, "secondary");
+  }
+
+  &:hover {
+    color: map-get($theme-colors, "secondary");
+  }
+}
+
+.feather {
+  width: 16px;
+  height: 16px;
+  vertical-align: text-bottom;
+}
+
+.avatar {
+  vertical-align: middle;
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+}
+
+.bd-placeholder-img {
+  font-size: 1.125rem;
+  text-anchor: middle;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
+
+@media (min-width: 768px) {
+  .bd-placeholder-img-lg {
+    font-size: 3.5rem;
+  }
+}
+
+.pg-loading-screen.pg-loading .pg-loading-logo-header,
+.pg-loading-screen.pg-loading .pg-loading-html:not(.pg-loaded) {
+  -webkit-animation: pgAnimLoading 0.5s cubic-bezier(0.7, 0, 0.3, 1) both;
+  animation: pgAnimLoading 0.5s cubic-bezier(0.7, 0, 0.3, 1) both;
+}
+
+.transition {
+  -webkit-transition: all 0.5s ease;
+  -moz-transition: all 0.5s ease;
+  -o-transition: all 0.5s ease;
+  transition: all 0.5s ease;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.zoom {
+  transition: transform 0.2s; /* Animation */
+}
+
+.zoom:hover {
+  transform: scale(1.5); /* (150% zoom - Note: if the zoom is too large, it will go outside of the viewport) */
+}
+
+.list-style-none {
+  list-style: none;
+  list-style-type: none;
+  padding-left: 0px;
+}
+
+.menuItem {
+  cursor: pointer;
+  text-decoration: none;
+  color: map-get($theme-colors, "primary");
+
+  &.active {
+    color: map-get($theme-colors, "secondary");
+  }
+}
+
+/* ===== Scrollbar CSS ===== */
+/* Firefox */
+* {
+  scrollbar-width: auto;
+  scrollbar-color: $primary;
+}
+
+/* Chrome, Edge, and Safari */
+*::-webkit-scrollbar {
+  width: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: $gray-300;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: $primary;
+}

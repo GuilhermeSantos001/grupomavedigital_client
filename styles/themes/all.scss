@@ -1,0 +1,48 @@
+// ------------------------------------------------------------------------------
+// Author: GuilhermeSantos001
+// Updated: 28/08/2021
+//
+
+$primary: #004a6e;
+$secondary: #f6d816;
+$light-gray: #f1f1f1;
+$dark-gray: #414141;
+
+$body-bg: #f5f5f5;
+$body-color: #004a6e;
+
+$input-bg: #fafafa;
+
+$component-active-color: $dark-gray;
+$component-active-bg: #e0e0e0;
+
+$link-hover-color: #ebcd0f;
+$nav-tabs-link-active-color: #ebcd0f;
+$nav-pills-link-active-color: #ebcd0f;
+$nav-link-font-size: 14px;
+$nav-link-font-weight: bold;
+
+$offcanvas-bg-color: $light-gray;
+
+$accordion-button-active-bg: $primary;
+$accordion-button-active-color: $secondary;
+
+@import "../../node_modules/bootstrap/scss/bootstrap.scss";
+
+// Bootstrap custom variables
+$colors-custom: (
+  "light-gray": $light-gray,
+  "dark-gray": $dark-gray,
+);
+
+$theme-colors: map-merge($theme-colors, $colors-custom);
+
+@import "../plugins/please-wait/margin.scss";
+@import "../plugins/spinkit/all.scss";
+@import "../plugins/file-explore/all.scss";
+
+// Themes
+@import "dark.scss";
+
+// Class
+@import "../class/all.scss";
