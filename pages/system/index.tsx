@@ -349,38 +349,45 @@ const System = (): JSX.Element => {
   useEffect(() => {
     const timer = setTimeout(async () => {
       const variables = new Variables(1, 'IndexedDB'),
-        token = await variables.get<string>('token')
+        auth = await variables.get<string>('authorization'),
+        token = await variables.get<string>('token'),
+        signature = await variables.get<string>('signature')
 
       let allowViewPage = false
 
-      const auth = await fetch(
-          `${process.env.NEXT_PUBLIC_EXPRESS_HOST}/system`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              authorization: compressToEncodedURIComponent(
-                createHash('sha256')
-                  .update(process.env.NEXT_PUBLIC_EXPRESS_AUTHORIZATION)
-                  .digest('hex')
-              ),
-              token,
-            },
+      const validate = await fetch(`${process.env.NEXT_PUBLIC_GRAPHQL_HOST}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            authorization:
+              '4VMYcqF77yRfA9dmzVcD9JPZFycmN5dZdtDZww49ENHW4H97nY7RuzWa6jTkAMY3',
+            encodeuri: 'true',
+          },
+          body: JSON.stringify({
+            query: `
+          query authUserFromSystem($auth: String!, $token: String!, $signature: String!) {
+            is_valid: authValidate(auth: $auth, token: $token, signature: $signature)
           }
-        ),
-        { success, data } = await auth.json()
+          `,
+            variables: {
+              auth: compressToEncodedURIComponent(auth),
+              token: compressToEncodedURIComponent(token),
+              signature: compressToEncodedURIComponent(signature),
+            },
+          }),
+        }),
+        { data, errors } = await validate.json()
 
-      if (success) allowViewPage = true
+      if (!errors && data['is_valid']) allowViewPage = true
 
       if (!allowViewPage) {
         setNotAuth(true)
         setLoading(false)
       } else {
-        const { privileges } = data
-
         await Promise.all([
           await variables.get<string>('username'),
           await variables.get<string>('name'),
+          await variables.get<string[]>('privileges'),
         ])
           .then((values: any) => {
             if (values.includes(undefined)) {
@@ -391,7 +398,7 @@ const System = (): JSX.Element => {
             setData({
               username: values[0],
               name: values[1],
-              privilege: privileges[0],
+              privilege: values[2][0],
             })
 
             setReady(true)

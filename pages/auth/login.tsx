@@ -151,8 +151,7 @@ const Login = (): JSX.Element => {
       </h1>
       <hr data-testid="separator" className="text-muted" />
       <InputLogin
-        apiURI={process.env.NEXT_PUBLIC_GRAPHQL_HOST}
-        backendURI={process.env.NEXT_PUBLIC_EXPRESS_HOST}
+        api={process.env.NEXT_PUBLIC_GRAPHQL_HOST}
       />
     </div>
   )

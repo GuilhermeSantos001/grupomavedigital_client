@@ -19,8 +19,7 @@ import Alert from '@/src/utils/alerting'
 import Variables from '@/src/db/variables'
 
 type MyProps = {
-  apiURI: string
-  backendURI: string
+  api: string
 }
 
 type MyState = {
@@ -88,7 +87,7 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
   handleClickAccess() {
     this.setState({ progress: this.state.progress + 50 })
 
-    fetch(`${this.props.apiURI}`, {
+    fetch(`${this.props.api}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -100,7 +99,7 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
         query: `
           query ConnectUserToSystem($auth: String!, $pwd: String!, $twofactortoken: String) {
             user: authLogin(auth: $auth, pwd: $pwd, twofactortoken: $twofactortoken) {
-              authorization privileges email username name token
+              authorization privileges email username name token signature
             }
           }
           `,
@@ -132,9 +131,13 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
         try {
           await Promise.all([
             await this.variables.clear(),
+            await this.variables.define('authorization', user['authorization']),
+            await this.variables.define('privileges', user['privileges']),
+            await this.variables.define('email', user['email']),
             await this.variables.define('username', user['username']),
             await this.variables.define('name', user['name']),
             await this.variables.define('token', user['token']),
+            await this.variables.define('signature', user['signature']),
           ])
         } catch (error) {
           console.error(error)
@@ -144,7 +147,7 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
           )
         }
 
-        return (document.location = `${location.origin}/system?token=${user['token']}`)
+        return (document.location = `${location.origin}/system`)
       })
       .catch((err) => {
         this.setState({ progress: this.state.progress + 50 })
@@ -171,7 +174,7 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
   handleTwofactorRetrieve() {
     this.setState({ progress: this.state.progress + 50 })
 
-    fetch(`${this.props.apiURI}`, {
+    fetch(`${this.props.api}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
