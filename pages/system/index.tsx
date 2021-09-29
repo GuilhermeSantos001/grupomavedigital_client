@@ -1,8 +1,7 @@
 /**
  * @description Pagina inicial do sistema
  * @author @GuilhermeSantos001
- * @update 21/09/2021
- * @version 1.0.0
+ * @update 29/09/2021
  */
 
 import { DocumentContext } from 'next/document'
@@ -22,7 +21,6 @@ import NoAuth from '@/components/noAuth'
 
 import Sugar from 'sugar'
 import { compressToEncodedURIComponent } from 'lz-string'
-import { createHash } from 'crypto'
 
 import { PageProps } from '@/pages/_app'
 
@@ -85,6 +83,13 @@ const serverSideProps: PageProps = {
           link: '/help/docs',
         },
       ],
+    },
+    {
+      id: 'mn-logout',
+      active: false,
+      icon: 'power-off',
+      name: 'Desconectar',
+      link: '/auth/logout',
     },
   ],
 }
@@ -340,7 +345,7 @@ const System = (): JSX.Element => {
 
     if (path === '/auth/login') {
       const variables = new Variables(1, 'IndexedDB')
-      await Promise.all([await variables.remove('token')]).then(() => {
+      await Promise.all([await variables.clear()]).then(() => {
         router.push(path)
       })
     }
@@ -349,7 +354,7 @@ const System = (): JSX.Element => {
   useEffect(() => {
     const timer = setTimeout(async () => {
       const variables = new Variables(1, 'IndexedDB'),
-        auth = await variables.get<string>('authorization'),
+        auth = await variables.get<string>('auth'),
         token = await variables.get<string>('token'),
         signature = await variables.get<string>('signature')
 

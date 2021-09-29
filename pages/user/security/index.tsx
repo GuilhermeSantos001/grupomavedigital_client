@@ -1,8 +1,7 @@
 /**
  * @description Pagina inicial do sistema
  * @author @GuilhermeSantos001
- * @update 28/09/2021
- * @version 1.0.0
+ * @update 29/09/2021
  */
 
 import { DocumentContext } from 'next/document'
@@ -19,7 +18,6 @@ import * as icons from '@fortawesome/free-solid-svg-icons'
 
 import Sugar from 'sugar'
 import { compressToEncodedURIComponent } from 'lz-string'
-import { createHash } from 'crypto'
 
 import RenderPageError from '@/components/renderPageError'
 import NoAuth from '@/components/noAuth'
@@ -85,6 +83,13 @@ const serverSideProps: PageProps = {
           link: '/help/docs',
         },
       ],
+    },
+    {
+      id: 'mn-logout',
+      active: false,
+      icon: 'power-off',
+      name: 'Desconectar',
+      link: '/auth/logout',
     },
   ],
 }
@@ -333,7 +338,7 @@ const Security = (): JSX.Element => {
 
     if (path === '/auth/login') {
       const variables = new Variables(1, 'IndexedDB')
-      await Promise.all([await variables.remove('token')]).then(() => {
+      await Promise.all([await variables.clear()]).then(() => {
         router.push(path)
       })
     }
@@ -342,7 +347,7 @@ const Security = (): JSX.Element => {
   useEffect(() => {
     const timer = setTimeout(async () => {
       const variables = new Variables(1, 'IndexedDB'),
-        auth = await variables.get<string>('authorization'),
+        auth = await variables.get<string>('auth'),
         token = await variables.get<string>('token'),
         signature = await variables.get<string>('signature')
 
