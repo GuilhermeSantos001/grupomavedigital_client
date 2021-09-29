@@ -1,8 +1,7 @@
 /**
  * @description Pagina de login
  * @author @GuilhermeSantos001
- * @update 27/09/2021
- * @version 1.0.0
+ * @update 29/09/2021
  */
 
 import React, { useEffect, useState } from 'react'

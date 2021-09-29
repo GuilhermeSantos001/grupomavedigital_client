@@ -14,9 +14,12 @@ import * as icons from '@fortawesome/free-solid-svg-icons'
 
 import Sugar from 'sugar'
 
+import { Menu } from '@/pages/_app'
+
 type MyProps = {
-  menu: any
+  menu: Menu[]
   menuShow: boolean
+  fullwidth: boolean
 }
 
 type MyState = {}
@@ -123,16 +126,16 @@ export default class GridContent extends React.Component<MyProps, MyState> {
         <div
           id="sidebar"
           className={`p-2 border-3 border-end animation-delay ${
-            this.props.menuShow ? 'fullwidth' : ''
-          }`}
+            this.props.fullwidth ? 'fullwidth' : ''
+          } ${this.props.menuShow ? 'fullwidth' : ''}`}
         >
           <ul className={`list-style-none`}>{menu}</ul>
         </div>
         <div
           id="content"
           className={`p-2 animation-delay ${
-            this.props.menuShow ? 'fullwidth' : ''
-          }`}
+            this.props.fullwidth ? 'fullwidth' : ''
+          }${this.props.menuShow ? 'fullwidth' : ''}`}
         >
           <a id="buttonToTop">
             <span className="material-icons" style={{ fontSize: '2rem' }}>

@@ -85,7 +85,7 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
   }
 
   handleClickAccess() {
-    this.setState({ progress: this.state.progress + 50 })
+    this.setState({ progress: this.state.progress + 100 })
 
     fetch(`${this.props.api}`, {
       method: 'POST',
@@ -114,8 +114,6 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
     })
       .then((response) => response.json())
       .then(async ({ data, errors }) => {
-        this.setState({ progress: this.state.progress + 50 })
-
         if (errors)
           return errors.forEach((error) => Alert.create(error.message))
 
@@ -131,7 +129,7 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
         try {
           await Promise.all([
             await this.variables.clear(),
-            await this.variables.define('authorization', user['authorization']),
+            await this.variables.define('auth', user['authorization']),
             await this.variables.define('privileges', user['privileges']),
             await this.variables.define('email', user['email']),
             await this.variables.define('username', user['username']),
@@ -150,8 +148,6 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
         return (document.location = `${location.origin}/system`)
       })
       .catch((err) => {
-        this.setState({ progress: this.state.progress + 50 })
-
         Alert.create(
           'Ocorreu um erro com o servidor. Tente novamente mais tarde!'
         )
@@ -172,7 +168,7 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
   }
 
   handleTwofactorRetrieve() {
-    this.setState({ progress: this.state.progress + 50 })
+    this.setState({ progress: this.state.progress + 100 })
 
     fetch(`${this.props.api}`, {
       method: 'POST',
@@ -188,8 +184,6 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
     })
       .then((response) => response.json())
       .then(({ data, errors }) => {
-        this.setState({ progress: this.state.progress + 50 })
-
         if (errors)
           return errors.forEach((error) => Alert.create(error.message))
 

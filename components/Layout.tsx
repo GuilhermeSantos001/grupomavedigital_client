@@ -4,8 +4,11 @@ import Alerting from '@/components/Alerting'
 import Navbar from '@/components/Navbar'
 import GridContent from '@/components/GridContent'
 
+import { Menu } from '@/pages/_app'
+
 type MyProps = {
-  menu: any
+  menu: Menu[]
+  fullwidth: boolean
 }
 
 type myStates = {
@@ -34,8 +37,13 @@ class Layout extends React.Component<MyProps, myStates> {
         <Navbar
           menuShow={this.state.menuShow}
           setMenuShow={this.handleMenuShowClick}
+          fullwidth={this.props.fullwidth}
         />
-        <GridContent menuShow={this.state.menuShow} menu={this.props.menu}>
+        <GridContent
+          menuShow={this.state.menuShow}
+          menu={this.props.menu}
+          fullwidth={this.props.fullwidth}
+        >
           {children}
         </GridContent>
       </>

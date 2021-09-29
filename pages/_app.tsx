@@ -19,6 +19,7 @@ export interface PageProps {
   description: string
   themeColor: string
   menu: Menu[]
+  fullwidth?: boolean
 }
 
 interface MenuItem {
@@ -39,7 +40,7 @@ interface MenuItemSeparator extends Pick<MenuItem, 'id'> {
   type: 'separator'
 }
 
-type Menu = MenuItem | MenuItemDropdown | MenuItemSeparator
+export type Menu = MenuItem | MenuItemDropdown | MenuItemSeparator
 type Content = Omit<MenuItem, 'active'> | MenuItemDropdown | MenuItemSeparator
 
 function MyApp({ Component, pageProps }: AppProps) {
@@ -49,7 +50,8 @@ function MyApp({ Component, pageProps }: AppProps) {
       props.description ??
       'Olá, venha conhecer o ambiente digital interativo do Grupo Mave. Tenha todas as informações a um clique. Acesse o link e saiba mais!',
     themeColor = props.themeColor ?? '#004a6e',
-    menu = props.menu ?? []
+    menu = props.menu ?? [],
+    fullwidth = props.fullwidth
 
   return (
     <>
@@ -199,7 +201,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         src="/javascripts/plugins/file_explore.js"
         strategy="beforeInteractive"
       />
-      <Layout menu={menu}>
+      <Layout fullwidth={fullwidth} menu={menu}>
         <Component {...pageProps} />
       </Layout>
     </>

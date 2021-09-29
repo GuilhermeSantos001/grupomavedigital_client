@@ -14,6 +14,7 @@ import MobileMenu from '@/components/MobileMenu'
 type MyProps = {
   menuShow: boolean
   setMenuShow: any
+  fullwidth: boolean
 }
 
 type MyState = {}
@@ -39,17 +40,21 @@ export default class Navbar extends React.Component<MyProps, MyState> {
       <>
         <header className="navbar navbar-dark bg-primary bg-gradient sticky-top flex-md-nowrap p-2 shadow">
           <a className="navbar-brand d-md-flex flex-row col-12 me-0 px-3 disabled">
-            <div className="col-1 d-none d-lg-flex justify-content-center">
-              <p className="my-auto">
-                <span
-                  id="buttonMenu"
-                  className="material-icons fs-1"
-                  onClick={this.props.setMenuShow}
-                >
-                  {`${this.props.menuShow ? 'menu_open' : 'menu'}`}
-                </span>
-              </p>
-            </div>
+            {!this.props.fullwidth ? (
+              <div className="col-1 d-none d-lg-flex justify-content-center">
+                <p className="my-auto">
+                  <span
+                    id="buttonMenu"
+                    className="material-icons fs-1"
+                    onClick={this.props.setMenuShow}
+                  >
+                    {`${this.props.menuShow ? 'menu_open' : 'menu'}`}
+                  </span>
+                </p>
+              </div>
+            ) : (
+              <></>
+            )}
             <Image
               className="cursor-pointer"
               src="/assets/logo.png"
