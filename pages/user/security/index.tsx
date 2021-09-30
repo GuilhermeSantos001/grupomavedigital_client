@@ -17,13 +17,13 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import * as icons from '@fortawesome/free-solid-svg-icons'
 
 import Sugar from 'sugar'
-import { compressToEncodedURIComponent } from 'lz-string'
 
 import RenderPageError from '@/components/renderPageError'
 import NoAuth from '@/components/noAuth'
 
 import { PageProps } from '@/pages/_app'
 
+import Fetch from '@/src/utils/fetch'
 import Variables from '@/src/db/variables'
 
 interface PageData {
@@ -332,6 +332,7 @@ const Security = (): JSX.Element => {
   const [loading, setLoading] = useState<boolean>(true)
 
   const router = useRouter()
+  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
 
   const handleClick = async (e, path) => {
     e.preventDefault()
@@ -346,37 +347,22 @@ const Security = (): JSX.Element => {
 
   useEffect(() => {
     const timer = setTimeout(async () => {
-      const variables = new Variables(1, 'IndexedDB'),
-        auth = await variables.get<string>('auth'),
-        token = await variables.get<string>('token'),
-        signature = await variables.get<string>('signature')
+      const variables = new Variables(1, 'IndexedDB')
 
       let allowViewPage = false
 
-      const validate = await fetch(`${process.env.NEXT_PUBLIC_GRAPHQL_HOST}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            authorization:
-              '4VMYcqF77yRfA9dmzVcD9JPZFycmN5dZdtDZww49ENHW4H97nY7RuzWa6jTkAMY3',
-            encodeuri: 'true',
-          },
-          body: JSON.stringify({
-            query: `
-          query authUserFromSystem($auth: String!, $token: String!, $signature: String!) {
-            is_valid: authValidate(auth: $auth, token: $token, signature: $signature)
-          }
-          `,
-            variables: {
-              auth: compressToEncodedURIComponent(auth),
-              token: compressToEncodedURIComponent(token),
-              signature: compressToEncodedURIComponent(signature),
-            },
-          }),
-        }),
-        { data, errors } = await validate.json()
+      const validate = await _fetch.tokenValidate(),
+        { errors, data } = validate
 
-      if (!errors && data['is_valid']) allowViewPage = true
+      if (!errors && data.authValidate.success) allowViewPage = true
+
+      if (data && data.authValidate.token) {
+        const newSignature = data.authValidate.signature,
+          newToken = data.authValidate.token
+
+        if (newSignature) await variables.define('signature', newSignature)
+        if (newToken) await variables.define('token', newToken)
+      }
 
       if (!allowViewPage) {
         setNotAuth(true)

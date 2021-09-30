@@ -15,6 +15,7 @@ import * as icons from '@fortawesome/free-solid-svg-icons'
 import { compressToEncodedURIComponent } from 'lz-string'
 import Sugar from 'sugar'
 
+import Fetch from '@/src/utils/fetch'
 import Alert from '@/src/utils/alerting'
 import Variables from '@/src/db/variables'
 
@@ -35,9 +36,12 @@ type MyState = {
 
 export default class InputLogin extends React.Component<MyProps, MyState> {
   variables: Variables
+  fetch: Fetch
 
   constructor(props) {
     super(props)
+
+    this.fetch = new Fetch(this.props.api)
 
     this.state = {
       eyeIcon: 'faLowVision',
@@ -87,41 +91,60 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
   handleClickAccess() {
     this.setState({ progress: this.state.progress + 100 })
 
-    fetch(`${this.props.api}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        authorization:
-          'SweteNlPut4uqlBiwIchiXafe1ld1bRICriBra7iPRazOs0ItRAtiwriyoyuyo-u',
-        encodeuri: 'true',
-      },
-      body: JSON.stringify({
-        query: `
+    this.fetch
+      .exec<{
+        data: {
+          user: {
+            authorization: string
+            privileges: string[]
+            email: string
+            username: string
+            name: string
+            token: string
+            signature: string
+            refreshToken: {
+              signature: string
+              value: string
+            }
+          }
+        }
+        errors: Error[]
+      }>(
+        {
+          query: `
           query ConnectUserToSystem($auth: String!, $pwd: String!, $twofactortoken: String) {
             user: authLogin(auth: $auth, pwd: $pwd, twofactortoken: $twofactortoken) {
               authorization privileges email username name token signature
+              refreshToken {
+                signature
+                value
+              }
             }
           }
-          `,
-        variables: {
-          auth: compressToEncodedURIComponent(this.state.username),
-          pwd: compressToEncodedURIComponent(this.state.password),
-          twofactortoken: compressToEncodedURIComponent(
-            this.state.twofactorValue
-          ),
+        `,
+          variables: {
+            auth: compressToEncodedURIComponent(this.state.username),
+            pwd: compressToEncodedURIComponent(this.state.password),
+            twofactortoken: compressToEncodedURIComponent(
+              this.state.twofactorValue
+            ),
+          },
         },
-      }),
-    })
-      .then((response) => response.json())
+        {
+          authorization:
+            'SweteNlPut4uqlBiwIchiXafe1ld1bRICriBra7iPRazOs0ItRAtiwriyoyuyo-u',
+          encodeuri: 'true',
+        }
+      )
       .then(async ({ data, errors }) => {
         if (errors)
           return errors.forEach((error) => Alert.create(error.message))
 
         const { user } = data || {}
 
-        if (user['token'] === 'twofactorVerify')
+        if (user.token === 'twofactorVerify')
           return this.setState({ twofactorRequest: true })
-        else if (user['token'] === 'twofactorDenied')
+        else if (user.token === 'twofactorDenied')
           return Alert.create(
             'O código informado está inválido. Tente Novamente!'
           )
@@ -129,13 +152,14 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
         try {
           await Promise.all([
             await this.variables.clear(),
-            await this.variables.define('auth', user['authorization']),
-            await this.variables.define('privileges', user['privileges']),
-            await this.variables.define('email', user['email']),
-            await this.variables.define('username', user['username']),
-            await this.variables.define('name', user['name']),
-            await this.variables.define('token', user['token']),
-            await this.variables.define('signature', user['signature']),
+            await this.variables.define('auth', user.authorization),
+            await this.variables.define('privileges', user.privileges),
+            await this.variables.define('email', user.email),
+            await this.variables.define('username', user.username),
+            await this.variables.define('name', user.name),
+            await this.variables.define('token', user.token),
+            await this.variables.define('refreshToken', user.refreshToken),
+            await this.variables.define('signature', user.signature),
           ])
         } catch (error) {
           console.error(error)
@@ -147,12 +171,12 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
 
         return (document.location = `${location.origin}/system`)
       })
-      .catch((err) => {
+      .catch((error) => {
         Alert.create(
           'Ocorreu um erro com o servidor. Tente novamente mais tarde!'
         )
 
-        throw new Error(err)
+        throw new Error(error)
       })
   }
 
@@ -170,24 +194,34 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
   handleTwofactorRetrieve() {
     this.setState({ progress: this.state.progress + 100 })
 
-    fetch(`${this.props.api}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        authorization:
-          'nlyachaglswisifrufrod0stEpec@UwlvizestAtr1xajanegaswa@remopheWip',
-        encodeuri: 'false',
-      },
-      body: `{"query":"mutation {
-        authRetrieveTwofactor(auth: "${this.state.username}")
-      }"}`,
-    })
-      .then((response) => response.json())
+    this.fetch
+      .exec<{
+        data: {
+          authRetrieveTwofactor: boolean
+        }
+        errors: Error[]
+      }>(
+        {
+          query: `
+          mutation RemoveTwofactorForUser($auth: String!) {
+            authRetrieveTwofactor(auth: $auth)
+          }
+        `,
+          variables: {
+            auth: compressToEncodedURIComponent(this.state.username),
+          },
+        },
+        {
+          authorization:
+            'nlyachaglswisifrufrod0stEpec@UwlvizestAtr1xajanegaswa@remopheWip',
+          encodeuri: 'true',
+        }
+      )
       .then(({ data, errors }) => {
         if (errors)
           return errors.forEach((error) => Alert.create(error.message))
 
-        if (data['authRetrieveTwofactor']) {
+        if (data.authRetrieveTwofactor) {
           this.handleTwofactorBack()
 
           return Alert.create(`Email de recuperação da conta enviado!`)
@@ -197,12 +231,12 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
           )
         }
       })
-      .catch((err) => {
+      .catch((error) => {
         Alert.create(
           'Ocorreu um erro com o servidor. Tente novamente mais tarde!'
         )
 
-        throw new Error(err)
+        throw new Error(error)
       })
   }
 
