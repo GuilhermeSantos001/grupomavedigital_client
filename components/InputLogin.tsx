@@ -1,8 +1,7 @@
 /**
  * @description Componente do input para login
  * @author @GuilhermeSantos001
- * @update 21/09/2021
- * @version 1.0.0
+ * @update 30/09/2021
  */
 
 import React from 'react'
@@ -10,7 +9,7 @@ import React from 'react'
 import LoadingBar from 'react-top-loading-bar'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import * as icons from '@fortawesome/free-solid-svg-icons'
+import Icon, { iconsName } from '@/src/utils/fontAwesomeIcons'
 
 import { compressToEncodedURIComponent } from 'lz-string'
 import Sugar from 'sugar'
@@ -24,7 +23,7 @@ type MyProps = {
 }
 
 type MyState = {
-  eyeIcon: string
+  eyeIcon: iconsName
   passView: string
   username: string
   password: string
@@ -44,7 +43,7 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
     this.fetch = new Fetch(this.props.api)
 
     this.state = {
-      eyeIcon: 'faLowVision',
+      eyeIcon: 'low-vision',
       passView: 'password',
       username: '',
       password: '',
@@ -70,9 +69,9 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
 
   handlePasswordEyeClick() {
     if (this.state.passView === 'password') {
-      this.setState({ passView: 'text', eyeIcon: 'faEye' })
+      this.setState({ passView: 'text', eyeIcon: 'eye' })
     } else if (this.state.passView === 'text') {
-      this.setState({ passView: 'password', eyeIcon: 'faLowVision' })
+      this.setState({ passView: 'password', eyeIcon: 'low-vision' })
     }
   }
 
@@ -266,7 +265,7 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
             id="username-addon"
           >
             <FontAwesomeIcon
-              icon={icons['faUser']}
+              icon={Icon.render('fas', 'user')}
               className="fs-6 flex-shrink-1 text-primary my-auto"
             />
           </span>
@@ -289,7 +288,7 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
             id="password-addon"
           >
             <FontAwesomeIcon
-              icon={icons['faKey']}
+              icon={Icon.render('fas', 'key')}
               className="fs-6 flex-shrink-1 text-primary my-auto"
             />
           </span>
@@ -311,7 +310,7 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
             onClick={this.handlePasswordEyeClick}
           >
             <FontAwesomeIcon
-              icon={icons[this.state.eyeIcon]}
+              icon={Icon.render('fas', this.state.eyeIcon)}
               className="fs-6 flex-shrink-1 my-auto"
             />
           </span>

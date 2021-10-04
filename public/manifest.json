@@ -1,11 +1,14 @@
 {
     "name": "Grupo Mave Digital",
     "short_name": "Grupo Mave",
-    "display": "standalone",
+    "theme_color": "#004a6e",
+    "background_color": "#004a6e",
+    "display": "fullscreen",
+    "orientation": "portrait",
     "manifest_version": 3,
     "version": "1.0.0",
-    "background_color": "#004a6e",
-    "theme_color": "#004a6e",
+    "scope": "/",
+    "start_url": "/",
     "description": "Ambiente Digital Interativo.",
     "categories": [
         "website",
@@ -56,11 +59,7 @@
             "type": "image/png"
         }
     ],
-    "url": "http://localhost:3000/",
-    "manifestUrl": "http://localhost:3000/manifest.json",
+    "splash_pages": null,
     "lang": "pt-BR",
-    "screenshots": [],
-    "orientation": "any",
-    "scope": "http://localhost:3000/",
-    "start_url": "/"
+    "screenshots": []
 }

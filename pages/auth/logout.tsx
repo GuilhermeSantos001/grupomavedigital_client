@@ -1,7 +1,7 @@
 /**
- * @description Pagina de login
+ * @description Pagina usada quando o usuario deseja encerrar a sessão
  * @author @GuilhermeSantos001
- * @update 29/09/2021
+ * @update 01/10/2021
  */
 
 import React, { useEffect, useState } from 'react'

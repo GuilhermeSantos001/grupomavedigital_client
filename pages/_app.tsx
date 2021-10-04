@@ -10,9 +10,7 @@ import Script from 'next/script'
 import Layout from '@/components/Layout'
 import Loading from '@/components/Loading'
 
-import * as iconsBrands from '@fortawesome/free-brands-svg-icons'
-import * as iconsRegular from '@fortawesome/free-regular-svg-icons'
-import * as iconsSolid from '@fortawesome/free-solid-svg-icons'
+import { iconsFamily, iconsName } from '@/src/utils/fontAwesomeIcons'
 
 export interface PageProps {
   title: string
@@ -25,7 +23,10 @@ export interface PageProps {
 interface MenuItem {
   id: string
   active: boolean
-  icon: iconsBrands.IconName | iconsRegular.IconName | iconsSolid.IconName
+  icon: {
+    family: iconsFamily
+    name: iconsName
+  }
   name: string
   link: string
 }

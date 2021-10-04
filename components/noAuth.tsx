@@ -1,14 +1,13 @@
 /**
  * @description Componentes do cabeçalho
  * @author @GuilhermeSantos001
- * @update 22/09/2021
- * @version 1.0.0
+ * @update 30/09/2021
  */
 
 import React from 'react'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import * as icons from '@fortawesome/free-solid-svg-icons'
+import Icon from '@/src/utils/fontAwesomeIcons'
 
 type handleClickFunction = (
   event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
@@ -32,7 +31,7 @@ export default class NoAuth extends React.Component<MyProps, MyState> {
         <div className="col-12 p-2" style={{ fontFamily: 'Fira Code' }}>
           <p className="text-center my-2">
             <FontAwesomeIcon
-              icon={icons[`faPowerOff`]}
+              icon={Icon.render('fas', 'power-off')}
               className="fs-1 flex-shrink-1 text-primary my-auto"
             />
             <br />

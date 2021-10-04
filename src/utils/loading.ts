@@ -6,17 +6,23 @@
  */
 
 class Loading {
-  private loading: boolean;
+  static updateWindow(value: boolean) {
+    const win: any = window;
 
-  constructor() {
-    this.loading = false;
+    win.loading = value;
+  }
+
+  static windowLoading() {
+    const win: any = window;
+
+    return win.loading;
   }
 
   /**
    * @description Verifica se o loading está ativado
    */
   isLoading(): boolean {
-    return this.loading;
+    return Loading.windowLoading();
   }
 
   /**
@@ -24,7 +30,7 @@ class Loading {
    */
   start(): void {
     if (!this.isLoading()) {
-      this.loading = true;
+      Loading.updateWindow(true);
     }
   }
 
@@ -33,7 +39,7 @@ class Loading {
    */
   stop(): void {
     if (this.isLoading()) {
-      this.loading = false;
+      Loading.updateWindow(false);
     }
   }
 }

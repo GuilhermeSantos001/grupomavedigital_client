@@ -1,6 +1,8 @@
+const withPWA = require('next-pwa')
+const runtimeCaching = require('next-pwa/cache')
 const path = require("path");
 
-const nextConfig = {
+module.exports = withPWA({
   reactStrictMode: true,
   sassOptions: {
     includePaths: [path.join(__dirname, "styles")],
@@ -9,7 +11,11 @@ const nextConfig = {
     // Warning: This allows production builds to successfully complete even if
     // your project has ESLint errors.
     ignoreDuringBuilds: false
-  }
-};
-
-module.exports = nextConfig;
+  },
+  pwa: {
+    dest: 'public',
+    disable: process.env.NODE_ENV === 'development',
+    register: true,
+    runtimeCaching,
+  },
+})

@@ -32,7 +32,7 @@ export default class Fetch {
 
   public tokenValidate(): Promise<{
     data: {
-      authValidate: {
+      response: {
         success: boolean
         signature?: string
         token?: string
@@ -61,7 +61,7 @@ export default class Fetch {
         body: JSON.stringify({
           query: `
             query authUserFromSystem($auth: String!, $token: String!, $signature: String!, $refreshToken: InputRefreshToken) {
-              authValidate(
+              response: authValidate(
                 auth: $auth,
                 token: $token,
                 signature: $signature

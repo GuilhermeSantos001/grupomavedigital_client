@@ -1,8 +1,7 @@
 /**
  * @description Componentes da grade do layout da pagina
  * @author @GuilhermeSantos001
- * @update 22/09/2021
- * @version 1.0.0
+ * @update 30/09/2021
  */
 
 import React from 'react'
@@ -10,9 +9,7 @@ import React from 'react'
 import Link from 'next/link'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import * as icons from '@fortawesome/free-solid-svg-icons'
-
-import Sugar from 'sugar'
+import Icon from '@/src/utils/fontAwesomeIcons'
 
 import { Menu } from '@/pages/_app'
 
@@ -51,7 +48,7 @@ export default class GridContent extends React.Component<MyProps, MyState> {
               </ul>
             </div>
             <FontAwesomeIcon
-              icon={icons[`fa${Sugar.String.camelize(item.icon)}`]}
+              icon={Icon.render(item.icon.family, item.icon.name)}
               className="fs-6 flex-shrink-1 text-muted opacity-50 my-auto"
             />
           </li>
@@ -79,7 +76,7 @@ export default class GridContent extends React.Component<MyProps, MyState> {
               </a>
             </Link>
             <FontAwesomeIcon
-              icon={icons[`fa${Sugar.String.camelize(item.icon)}`]}
+              icon={Icon.render(item.icon.family, item.icon.name)}
               className="fs-6 flex-shrink-1 text-muted opacity-50 my-auto"
             />
           </li>
@@ -108,7 +105,7 @@ export default class GridContent extends React.Component<MyProps, MyState> {
               </a>
             </Link>
             <FontAwesomeIcon
-              icon={icons[`fa${Sugar.String.camelize(item.icon)}`]}
+              icon={Icon.render(item.icon.family, item.icon.name)}
               className="fs-6 flex-shrink-1 text-muted opacity-50 my-auto"
             />
           </li>

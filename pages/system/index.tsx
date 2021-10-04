@@ -1,7 +1,7 @@
 /**
- * @description Pagina inicial do sistema
+ * @description Pagina principal do sistema
  * @author @GuilhermeSantos001
- * @update 29/09/2021
+ * @update 01/10/2021
  */
 
 import { DocumentContext } from 'next/document'
@@ -14,7 +14,7 @@ import { useRouter } from 'next/router'
 import SkeletonLoader from 'tiny-skeleton-loader-react'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import * as icons from '@fortawesome/free-solid-svg-icons'
+import Icon from '@/src/utils/fontAwesomeIcons'
 
 import RenderPageError from '@/components/renderPageError'
 import NoAuth from '@/components/noAuth'
@@ -25,6 +25,7 @@ import { PageProps } from '@/pages/_app'
 
 import Fetch from '@/src/utils/fetch'
 import Variables from '@/src/db/variables'
+import tokenValidate from '@/src/functions/tokenValidate'
 
 interface PageData {
   username: string
@@ -40,35 +41,50 @@ const serverSideProps: PageProps = {
     {
       id: 'mn-home',
       active: false,
-      icon: 'home',
+      icon: {
+        family: 'fas',
+        name: 'home',
+      },
       name: 'Home',
       link: '/',
     },
     {
       id: 'mn-login',
       active: true,
-      icon: 'sign-in-alt',
+      icon: {
+        family: 'fas',
+        name: 'sign-in-alt',
+      },
       name: 'Conectado',
       link: '/system',
     },
     {
       id: 'mn-security',
       active: false,
-      icon: 'shield-alt',
+      icon: {
+        family: 'fas',
+        name: 'shield-alt',
+      },
       name: 'Segurança',
       link: '/user/security',
     },
     {
       id: 'mn-helping',
       active: false,
-      icon: 'question-circle',
+      icon: {
+        family: 'fas',
+        name: 'question-circle',
+      },
       type: 'dropdown',
       name: 'Precisa de Ajuda?',
       dropdownId: 'navbarDropdown',
       content: [
         {
           id: 'md-helpdesk',
-          icon: 'headset',
+          icon: {
+            family: 'fas',
+            name: 'headset',
+          },
           name: 'HelpDesk',
           link: '/help/helpdesk',
         },
@@ -78,7 +94,10 @@ const serverSideProps: PageProps = {
         },
         {
           id: 'md-docs',
-          icon: 'book-reader',
+          icon: {
+            family: 'fas',
+            name: 'book-reader',
+          },
           name: 'Manuais',
           link: '/help/docs',
         },
@@ -87,7 +106,10 @@ const serverSideProps: PageProps = {
     {
       id: 'mn-logout',
       active: false,
-      icon: 'power-off',
+      icon: {
+        family: 'fas',
+        name: 'power-off',
+      },
       name: 'Desconectar',
       link: '/auth/logout',
     },
@@ -285,7 +307,7 @@ function compose_user_view_1() {
         <div className="p-3 bg-primary bg-gradient rounded">
           <p className="text-center text-secondary fw-bold fs-5 my-2">
             <FontAwesomeIcon
-              icon={icons[`faPaperPlane`]}
+              icon={Icon.render('fas', 'paper-plane')}
               className="me-1 fs-3 flex-shrink-1 text-secondary my-auto"
             />
             Novidades
@@ -295,7 +317,7 @@ function compose_user_view_1() {
           <div className="my-1 text-primary">
             <p className="text-center text-md-start px-2 fs-6 fw-bold">
               <FontAwesomeIcon
-                icon={icons[`faPaintBrush`]}
+                icon={Icon.render('fas', 'paint-brush')}
                 className="me-1 flex-shrink-1 my-auto"
               />
               Estamos com um novo visual, o que você achou?
@@ -308,7 +330,7 @@ function compose_user_view_1() {
         <div className="p-3 bg-primary bg-gradient rounded">
           <p className="text-center text-secondary fw-bold fs-5 my-2">
             <FontAwesomeIcon
-              icon={icons[`faBook`]}
+              icon={Icon.render('fas', 'book')}
               className="me-2 fs-3 flex-shrink-1 text-secondary my-auto"
             />
             Meus Cursos
@@ -318,7 +340,7 @@ function compose_user_view_1() {
           <div className="my-1 text-muted">
             <p className="text-center text-md-start px-2 fs-6 fw-bold">
               <FontAwesomeIcon
-                icon={icons[`faWrench`]}
+                icon={Icon.render('fas', 'wrench')}
                 className="me-1 flex-shrink-1 my-auto"
               />
               Estamos trabalhando nesse recurso.
@@ -354,22 +376,9 @@ const System = (): JSX.Element => {
 
   useEffect(() => {
     const timer = setTimeout(async () => {
-      const variables = new Variables(1, 'IndexedDB');
+      const variables = new Variables(1, 'IndexedDB')
 
-      let allowViewPage = false
-
-      const validate = await _fetch.tokenValidate(),
-        { errors, data } = validate
-
-      if (!errors && data.authValidate.success) allowViewPage = true
-
-      if (data && data.authValidate.token) {
-        const newSignature = data.authValidate.signature,
-          newToken = data.authValidate.token
-
-        if (newSignature) await variables.define('signature', newSignature)
-        if (newToken) await variables.define('token', newToken)
-      }
+      let allowViewPage = await tokenValidate(_fetch)
 
       if (!allowViewPage) {
         setNotAuth(true)

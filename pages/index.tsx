@@ -17,28 +17,40 @@ const staticProps: PageProps = {
     {
       id: 'mn-home',
       active: true,
-      icon: 'home',
+      icon: {
+        family: 'fas',
+        name: 'home',
+      },
       name: 'Home',
       link: '/',
     },
     {
       id: 'mn-login',
       active: false,
-      icon: 'sign-in-alt',
+      icon: {
+        family: 'fas',
+        name: 'sign-in-alt',
+      },
       name: 'Acessar',
-      link: '/auth/login',
+      link: '/system',
     },
     {
       id: 'mn-helping',
       active: false,
-      icon: 'question-circle',
+      icon: {
+        family: 'fas',
+        name: 'question-circle',
+      },
       type: 'dropdown',
       name: 'Precisa de Ajuda?',
       dropdownId: 'navbarDropdown',
       content: [
         {
           id: 'md-helpdesk',
-          icon: 'headset',
+          icon: {
+            family: 'fas',
+            name: 'headset',
+          },
           name: 'HelpDesk',
           link: '/help/helpdesk',
         },
@@ -48,7 +60,10 @@ const staticProps: PageProps = {
         },
         {
           id: 'md-docs',
-          icon: 'book-reader',
+          icon: {
+            family: 'fas',
+            name: 'book-reader',
+          },
           name: 'Manuais',
           link: '/help/docs',
         },
