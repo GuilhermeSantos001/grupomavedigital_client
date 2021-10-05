@@ -1,8 +1,7 @@
 /**
- * @description Pagina inicial do sistema
+ * @description Pagina principal do sistema
  * @author @GuilhermeSantos001
- * @update 21/09/2021
- * @version 1.0.0
+ * @update 05/10/2021
  */
 
 import { DocumentContext } from 'next/document'
@@ -15,22 +14,23 @@ import { useRouter } from 'next/router'
 import SkeletonLoader from 'tiny-skeleton-loader-react'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import * as icons from '@fortawesome/free-solid-svg-icons'
+import Icon from '@/src/utils/fontAwesomeIcons'
 
 import RenderPageError from '@/components/renderPageError'
 import NoAuth from '@/components/noAuth'
 
 import Sugar from 'sugar'
-import { compressToEncodedURIComponent } from 'lz-string'
-import { createHash } from 'crypto'
 
 import { PageProps } from '@/pages/_app'
 
+import Fetch from '@/src/utils/fetch'
 import Variables from '@/src/db/variables'
+import getUserInfo from '@/src/functions/getUserInfo'
+import tokenValidate from '@/src/functions/tokenValidate'
 
 interface PageData {
+  photoProfile: string
   username: string
-  name: string
   privilege: string
 }
 
@@ -42,35 +42,50 @@ const serverSideProps: PageProps = {
     {
       id: 'mn-home',
       active: false,
-      icon: 'home',
+      icon: {
+        family: 'fas',
+        name: 'home',
+      },
       name: 'Home',
       link: '/',
     },
     {
       id: 'mn-login',
       active: true,
-      icon: 'sign-in-alt',
+      icon: {
+        family: 'fas',
+        name: 'sign-in-alt',
+      },
       name: 'Conectado',
       link: '/system',
     },
     {
       id: 'mn-security',
       active: false,
-      icon: 'shield-alt',
+      icon: {
+        family: 'fas',
+        name: 'shield-alt',
+      },
       name: 'Segurança',
       link: '/user/security',
     },
     {
       id: 'mn-helping',
       active: false,
-      icon: 'question-circle',
+      icon: {
+        family: 'fas',
+        name: 'question-circle',
+      },
       type: 'dropdown',
       name: 'Precisa de Ajuda?',
       dropdownId: 'navbarDropdown',
       content: [
         {
           id: 'md-helpdesk',
-          icon: 'headset',
+          icon: {
+            family: 'fas',
+            name: 'headset',
+          },
           name: 'HelpDesk',
           link: '/help/helpdesk',
         },
@@ -80,11 +95,24 @@ const serverSideProps: PageProps = {
         },
         {
           id: 'md-docs',
-          icon: 'book-reader',
-          name: 'Manuais',
+          icon: {
+            family: 'fas',
+            name: 'book-reader',
+          },
+          name: 'Documentação',
           link: '/help/docs',
         },
       ],
+    },
+    {
+      id: 'mn-logout',
+      active: false,
+      icon: {
+        family: 'fas',
+        name: 'power-off',
+      },
+      name: 'Desconectar',
+      link: '/auth/logout',
     },
   ],
 }
@@ -238,7 +266,7 @@ function compose_noAuth(handleClick) {
   return <NoAuth handleClick={handleClick} />
 }
 
-function compose_ready({ username, privilege }: PageData) {
+function compose_ready({ photoProfile, username, privilege }: PageData) {
   return (
     <div className="d-flex flex-column p-2">
       <div
@@ -247,8 +275,9 @@ function compose_ready({ username, privilege }: PageData) {
       >
         <div className="col-4 col-md-1 d-flex flex-column flex-md-row align-self-center justify-content-center">
           <Image
-            src="/uploads/avatar.png"
+            src={`/uploads/${photoProfile}`}
             alt="Você ;)"
+            className="rounded-circle"
             width={100}
             height={100}
           />
@@ -280,7 +309,7 @@ function compose_user_view_1() {
         <div className="p-3 bg-primary bg-gradient rounded">
           <p className="text-center text-secondary fw-bold fs-5 my-2">
             <FontAwesomeIcon
-              icon={icons[`faPaperPlane`]}
+              icon={Icon.render('fas', 'paper-plane')}
               className="me-1 fs-3 flex-shrink-1 text-secondary my-auto"
             />
             Novidades
@@ -290,7 +319,7 @@ function compose_user_view_1() {
           <div className="my-1 text-primary">
             <p className="text-center text-md-start px-2 fs-6 fw-bold">
               <FontAwesomeIcon
-                icon={icons[`faPaintBrush`]}
+                icon={Icon.render('fas', 'paint-brush')}
                 className="me-1 flex-shrink-1 my-auto"
               />
               Estamos com um novo visual, o que você achou?
@@ -303,7 +332,7 @@ function compose_user_view_1() {
         <div className="p-3 bg-primary bg-gradient rounded">
           <p className="text-center text-secondary fw-bold fs-5 my-2">
             <FontAwesomeIcon
-              icon={icons[`faBook`]}
+              icon={Icon.render('fas', 'book')}
               className="me-2 fs-3 flex-shrink-1 text-secondary my-auto"
             />
             Meus Cursos
@@ -313,7 +342,7 @@ function compose_user_view_1() {
           <div className="my-1 text-muted">
             <p className="text-center text-md-start px-2 fs-6 fw-bold">
               <FontAwesomeIcon
-                icon={icons[`faWrench`]}
+                icon={Icon.render('fas', 'wrench')}
                 className="me-1 flex-shrink-1 my-auto"
               />
               Estamos trabalhando nesse recurso.
@@ -334,13 +363,14 @@ const System = (): JSX.Element => {
   const [loading, setLoading] = useState<boolean>(true)
 
   const router = useRouter()
+  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
 
   const handleClick = async (e, path) => {
     e.preventDefault()
 
     if (path === '/auth/login') {
       const variables = new Variables(1, 'IndexedDB')
-      await Promise.all([await variables.remove('token')]).then(() => {
+      await Promise.all([await variables.clear()]).then(() => {
         router.push(path)
       })
     }
@@ -348,61 +378,29 @@ const System = (): JSX.Element => {
 
   useEffect(() => {
     const timer = setTimeout(async () => {
-      const variables = new Variables(1, 'IndexedDB'),
-        token = await variables.get<string>('token')
-
-      let allowViewPage = false
-
-      const auth = await fetch(
-          `${process.env.NEXT_PUBLIC_EXPRESS_HOST}/system`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              authorization: compressToEncodedURIComponent(
-                createHash('sha256')
-                  .update(process.env.NEXT_PUBLIC_EXPRESS_AUTHORIZATION)
-                  .digest('hex')
-              ),
-              token,
-            },
-          }
-        ),
-        { success, data } = await auth.json()
-
-      if (success) allowViewPage = true
+      const allowViewPage = await tokenValidate(_fetch)
 
       if (!allowViewPage) {
         setNotAuth(true)
         setLoading(false)
       } else {
-        const { privileges } = data
+        try {
+          const { photoProfile, username, privileges } = await getUserInfo(
+            _fetch
+          )
 
-        await Promise.all([
-          await variables.get<string>('username'),
-          await variables.get<string>('name'),
-        ])
-          .then((values: any) => {
-            if (values.includes(undefined)) {
-              setError(true)
-              return setLoading(false)
-            }
-
-            setData({
-              username: values[0],
-              name: values[1],
-              privilege: privileges[0],
-            })
-
-            setReady(true)
-            return setLoading(false)
+          setData({
+            photoProfile,
+            username,
+            privilege: privileges[0],
           })
-          .catch((error) => {
-            console.error(error)
 
-            setError(true)
-            setLoading(false)
-          })
+          setReady(true)
+          return setLoading(false)
+        } catch {
+          setError(true)
+          return setLoading(false)
+        }
       }
     })
 

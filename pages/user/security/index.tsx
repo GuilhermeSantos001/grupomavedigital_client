@@ -1,13 +1,13 @@
 /**
- * @description Pagina inicial do sistema
+ * @description Pagina usada para alterar as informações de segurança do usuario
  * @author @GuilhermeSantos001
- * @update 28/09/2021
- * @version 1.0.0
+ * @update 05/10/2021
  */
 
 import { DocumentContext } from 'next/document'
 
 import React, { useEffect, useState } from 'react'
+import { Modal } from 'react-bootstrap'
 
 import Image from 'next/image'
 import { useRouter } from 'next/router'
@@ -15,22 +15,31 @@ import { useRouter } from 'next/router'
 import SkeletonLoader from 'tiny-skeleton-loader-react'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import * as icons from '@fortawesome/free-solid-svg-icons'
+import Icon from '@/src/utils/fontAwesomeIcons'
 
 import Sugar from 'sugar'
-import { compressToEncodedURIComponent } from 'lz-string'
-import { createHash } from 'crypto'
 
 import RenderPageError from '@/components/renderPageError'
 import NoAuth from '@/components/noAuth'
+import Alerting from '@/src/utils/alerting'
 
 import { PageProps } from '@/pages/_app'
 
+import Fetch from '@/src/utils/fetch'
 import Variables from '@/src/db/variables'
+import getUserInfo from '@/src/functions/getUserInfo'
+import tokenValidate from '@/src/functions/tokenValidate'
+import hasConfiguredTwoFactor from '@/src/functions/hasConfiguredTwoFactor'
+import authSignTwofactor from '@/src/functions/authSignTwofactor'
+import authVerifyTwofactor from '@/src/functions/authVerifyTwofactor'
+import authEnabledTwofactor from '@/src/functions/authEnabledTwofactor'
+import authDisableTwofactor from '@/src/functions/authDisableTwofactor'
+import checkPassword from '@/src/utils/checkPassword'
+import changePassword from '@/src/functions/changePassword'
 
 interface PageData {
+  photoProfile: string
   username: string
-  name: string
   privilege: string
 }
 
@@ -42,35 +51,50 @@ const serverSideProps: PageProps = {
     {
       id: 'mn-home',
       active: false,
-      icon: 'home',
+      icon: {
+        family: 'fas',
+        name: 'home',
+      },
       name: 'Home',
       link: '/',
     },
     {
       id: 'mn-login',
       active: false,
-      icon: 'sign-in-alt',
+      icon: {
+        family: 'fas',
+        name: 'sign-in-alt',
+      },
       name: 'Conectado',
       link: '/system',
     },
     {
       id: 'mn-security',
       active: true,
-      icon: 'shield-alt',
+      icon: {
+        family: 'fas',
+        name: 'shield-alt',
+      },
       name: 'Segurança',
       link: '/user/security',
     },
     {
       id: 'mn-helping',
       active: false,
-      icon: 'question-circle',
+      icon: {
+        family: 'fas',
+        name: 'question-circle',
+      },
       type: 'dropdown',
       name: 'Precisa de Ajuda?',
       dropdownId: 'navbarDropdown',
       content: [
         {
           id: 'md-helpdesk',
-          icon: 'headset',
+          icon: {
+            family: 'fas',
+            name: 'headset',
+          },
           name: 'HelpDesk',
           link: '/help/helpdesk',
         },
@@ -80,11 +104,24 @@ const serverSideProps: PageProps = {
         },
         {
           id: 'md-docs',
-          icon: 'book-reader',
-          name: 'Manuais',
+          icon: {
+            family: 'fas',
+            name: 'book-reader',
+          },
+          name: 'Documentação',
           link: '/help/docs',
         },
       ],
+    },
+    {
+      id: 'mn-logout',
+      active: false,
+      icon: {
+        family: 'fas',
+        name: 'power-off',
+      },
+      name: 'Desconectar',
+      link: '/auth/logout',
     },
   ],
 }
@@ -100,9 +137,9 @@ export const getServerSideProps = async (ctx: DocumentContext) => {
 function compose_load() {
   return (
     <div>
-      <div className="d-block d-md-none">
+      <div className="d-flex flex-column">
         <div className="col-12">
-          <div className="d-flex flex-column p-2">
+          <div className="d-flex d-md-none flex-column p-2">
             <div className="col-12 d-flex justify-content-center">
               <SkeletonLoader
                 width={100}
@@ -133,36 +170,8 @@ function compose_load() {
                 }}
               />
             </div>
-            <div className="col-12 my-2 p-2">
-              <SkeletonLoader
-                width={'100%'}
-                height={'0.1rem'}
-                radius={0}
-                circle={false}
-              />
-            </div>
-            <div className="col-12 px-2">
-              <SkeletonLoader
-                width={'100%'}
-                height={'10rem'}
-                radius={10}
-                circle={false}
-                style={{ marginTop: '0.1rem' }}
-              />
-              <SkeletonLoader
-                width={'100%'}
-                height={'10rem'}
-                radius={10}
-                circle={false}
-                style={{ marginTop: '1rem' }}
-              />
-            </div>
           </div>
-        </div>
-      </div>
-      <div className="d-none d-md-flex">
-        <div className="col-12">
-          <div className="d-flex flex-row p-2">
+          <div className="d-none d-md-flex flex-row p-2">
             <div className="col-1 d-flex justify-content-center">
               <SkeletonLoader
                 width={100}
@@ -195,21 +204,65 @@ function compose_load() {
             />
           </div>
           <div className="row g-2">
-            <div className="col-12 col-md-6">
+            <div className="col-12">
               <div className="p-1">
                 <SkeletonLoader
                   width={'100%'}
-                  height={'10rem'}
+                  height={'8rem'}
+                  radius={10}
+                  circle={false}
+                />
+              </div>
+              <div className="p-1">
+                <SkeletonLoader
+                  width={'100%'}
+                  height={'3rem'}
+                  radius={10}
+                  circle={false}
+                />
+              </div>
+              <div className="p-1">
+                <SkeletonLoader
+                  width={'100%'}
+                  height={'3rem'}
+                  radius={10}
+                  circle={false}
+                />
+              </div>
+              <div className="p-1">
+                <SkeletonLoader
+                  width={'100%'}
+                  height={'3rem'}
                   radius={10}
                   circle={false}
                 />
               </div>
             </div>
-            <div className="col-12 col-md-6">
+          </div>
+          <div className="col-12 p-2">
+            <SkeletonLoader
+              width={'100%'}
+              height={'0.1rem'}
+              radius={0}
+              circle={false}
+            />
+          </div>
+        </div>
+        <div className="col-12">
+          <div className="row g-2">
+            <div className="col-12">
               <div className="p-1">
                 <SkeletonLoader
                   width={'100%'}
-                  height={'10rem'}
+                  height={'8rem'}
+                  radius={10}
+                  circle={false}
+                />
+              </div>
+              <div className="p-1">
+                <SkeletonLoader
+                  width={'100%'}
+                  height={'3rem'}
                   radius={10}
                   circle={false}
                 />
@@ -238,7 +291,26 @@ function compose_noAuth(handleClick) {
   return <NoAuth handleClick={handleClick} />
 }
 
-function compose_ready({ username, privilege }: PageData) {
+function compose_ready(
+  { photoProfile, username, privilege }: PageData,
+  password: string,
+  passwordView: boolean,
+  newPassword: string,
+  newPasswordView: boolean,
+  handleChangePassword,
+  handleClickPasswordView,
+  handleChangeNewPassword,
+  handleClickNewPasswordView,
+  handleClickChangePassword,
+  twofactor: boolean,
+  twoFactorModalShow,
+  twoFactorQRCode,
+  handleTriggerTwoFactorModal,
+  twoFactorCode: string,
+  handleChangeTwoFactorCode,
+  handleClickTwoFactorVerify,
+  handleClickTwoFactorDisable
+) {
   return (
     <div className="d-flex flex-column p-2">
       <div
@@ -247,8 +319,9 @@ function compose_ready({ username, privilege }: PageData) {
       >
         <div className="col-4 col-md-1 d-flex flex-column flex-md-row align-self-center justify-content-center">
           <Image
-            src="/uploads/avatar.png"
+            src={`/uploads/${photoProfile}`}
             alt="Você ;)"
+            className="rounded-circle"
             width={100}
             height={100}
           />
@@ -267,54 +340,389 @@ function compose_ready({ username, privilege }: PageData) {
         </div>
       </div>
       <hr className="text-muted" />
-      {compose_user_view_1()}
-      <hr className="text-muted" />
+      {compose_user_view_1(
+        password,
+        passwordView,
+        newPassword,
+        newPasswordView,
+        handleChangePassword,
+        handleClickPasswordView,
+        handleChangeNewPassword,
+        handleClickNewPasswordView,
+        handleClickChangePassword,
+        twoFactorModalShow,
+        twofactor,
+        twoFactorQRCode,
+        twoFactorCode,
+        handleTriggerTwoFactorModal,
+        handleChangeTwoFactorCode,
+        handleClickTwoFactorVerify,
+        handleClickTwoFactorDisable
+      )}
     </div>
   )
 }
 
-function compose_user_view_1() {
+function compose_user_view_1(
+  password: string,
+  passwordView: boolean,
+  newPassword: string,
+  newPasswordView: boolean,
+  handleChangePassword,
+  handleClickPasswordView,
+  handleChangeNewPassword,
+  handleClickNewPasswordView,
+  handleClickChangePassword,
+  twoFactorModalShow: boolean,
+  twofactor: boolean,
+  twoFactorQRCode: string,
+  twoFactorCode: string,
+  handleTriggerTwoFactorModal,
+  handleChangeTwoFactorCode,
+  handleClickTwoFactorVerify,
+  handleClickTwoFactorDisable
+) {
   return (
-    <div className="row g-2">
-      <div className="col-12">
+    <div className="row gx-2">
+      <div className="col-12 h-100">
         <div className="p-3 bg-primary bg-gradient rounded">
           <div className="d-flex bd-highlight">
             <div className="p-2 w-100 bd-highlight">
-              <p className="text-center text-secondary fw-bold fs-5 my-2">
-                Autenticação de duas etapas
+              <p className="text-start text-secondary fw-bold fs-5 my-2">
+                Altera sua senha
               </p>
             </div>
-            <div className="p-2 flex-shrink-1 bd-highlight">
+            <div className="p-2 flex-shrink-1 bd-highlight my-2">
               <FontAwesomeIcon
-                icon={icons[`faUserShield`]}
+                icon={Icon.render('fas', 'lock')}
                 className="ms-2 fs-3 flex-shrink-1 text-secondary my-auto"
               />
             </div>
           </div>
         </div>
         <div className="p-3 bg-light-gray rounded overflow-auto h-50">
-          <div className="my-1 text-primary">
-            <div className="input-group mb-3">
-              <span className="input-group-text" id="basic-addon1">
+          {compose_password_1(
+            password,
+            passwordView,
+            newPassword,
+            newPasswordView,
+            handleChangePassword,
+            handleClickPasswordView,
+            handleChangeNewPassword,
+            handleClickNewPasswordView
+          )}
+          {compose_password_2(newPassword, handleClickChangePassword)}
+          {compose_password_3()}
+        </div>
+      </div>
+      <hr />
+      <div className="col-12 h-100">
+        <div className="p-3 bg-primary bg-gradient rounded">
+          <div className="d-flex bd-highlight">
+            <div className="p-2 w-100 bd-highlight">
+              <p className="text-start text-secondary fw-bold fs-5 my-2">
+                Autenticação de duas etapas
+              </p>
+            </div>
+            <div className="p-2 flex-shrink-1 bd-highlight my-2">
+              <FontAwesomeIcon
+                icon={Icon.render('fas', 'user-shield')}
+                className="ms-2 fs-3 flex-shrink-1 text-secondary my-auto"
+              />
+            </div>
+          </div>
+        </div>
+        <div className="p-3 bg-light-gray rounded overflow-auto h-50">
+          {compose_twoFactor(
+            twoFactorModalShow,
+            twofactor,
+            twoFactorQRCode,
+            twoFactorCode,
+            handleTriggerTwoFactorModal,
+            handleChangeTwoFactorCode,
+            handleClickTwoFactorVerify,
+            handleClickTwoFactorDisable
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function compose_password_1(
+  password: string,
+  passwordView: boolean,
+  newPassword: string,
+  newPasswordView: boolean,
+  handleChangePassword,
+  handleClickPasswordView,
+  handleChangeNewPassword,
+  handleClickNewPasswordView
+) {
+  const newPasswordDisabled = () => {
+    if (password.length <= 0) return true
+  }
+
+  return (
+    <div className="col-12 text-primary px-2">
+      <div className="row gx-5">
+        <div className="col-12">
+          <div className="p-2">
+            <div className="input-group">
+              <span className="input-group-text" id="password-addon">
                 <FontAwesomeIcon
-                  icon={icons[`faUser`]}
-                  className="me-1 flex-shrink-1 my-auto"
+                  icon={Icon.render('fas', 'key')}
+                  className="ms-2 fs-3 flex-shrink-1 text-primary mx-2 my-auto"
                 />
               </span>
               <input
-                type="text"
+                type={passwordView ? 'text' : 'password'}
                 className="form-control"
-                placeholder="Username"
-                aria-label="Username"
-                aria-describedby="basic-addon1"
-                value={"GuilhermeSantos001"}
-                disabled={true}
+                placeholder="Digite sua senha"
+                aria-label="Password"
+                aria-describedby="password-addon"
+                value={password}
+                onChange={handleChangePassword}
               />
+              <span className="input-group-text" id="passwordView-addon">
+                <FontAwesomeIcon
+                  icon={Icon.render('fas', passwordView ? 'low-vision' : 'eye')}
+                  className="ms-2 fs-3 flex-shrink-1 mx-2 my-auto animation-delay hover-color"
+                  onClick={handleClickPasswordView}
+                />
+              </span>
             </div>
-            <hr />
+            <div className="d-flex flex-column flex-md-row">
+              <div className="col-12 col-md-10">
+                <div className="form-text">
+                  Informe sua senha antes de alterá-la.
+                </div>
+              </div>
+              <div className="flex-shrink-1 col-12 col-md-2">
+                <div className="form-text text-start text-md-end">
+                  <a target="_blank" href="/auth/password/forgot">
+                    Esqueceu sua senha?
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="col-12">
+          <div className="p-2">
+            <div className="input-group">
+              <span className="input-group-text" id="newPassword-addon">
+                <FontAwesomeIcon
+                  icon={Icon.render('fas', 'key')}
+                  className="ms-2 fs-3 flex-shrink-1 text-primary mx-2 my-auto"
+                />
+              </span>
+              <input
+                type={newPasswordView ? 'text' : 'password'}
+                className="form-control"
+                placeholder="Digite a nova senha"
+                aria-label="New Password"
+                aria-describedby="newPassword-addon"
+                value={newPassword}
+                onChange={handleChangeNewPassword}
+                disabled={newPasswordDisabled()}
+              />
+              <span className="input-group-text" id="newPasswordView-addon">
+                <FontAwesomeIcon
+                  icon={Icon.render(
+                    'fas',
+                    newPasswordView ? 'low-vision' : 'eye'
+                  )}
+                  className="ms-2 fs-3 flex-shrink-1 mx-2 my-auto animation-delay hover-color"
+                  onClick={handleClickNewPasswordView}
+                />
+              </span>
+            </div>
+            <div className="form-text">
+              Nunca compartilhe sua senha com ninguém.
+            </div>
+            <div className="form-text">
+              Nós criptografamos sua senha para protegê-lo e esperamos que você
+              também se proteja.
+            </div>
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+function compose_password_2(newPassword: string, handleClickChangePassword) {
+  return (
+    <div className="col-12 text-primary px-2">
+      <div className="row gx-5">
+        <div className="col-12">
+          <div className="p-2">
+            <button
+              type="button"
+              className="btn btn-outline-primary col-12"
+              disabled={newPassword.length > 0 ? false : true}
+              onClick={handleClickChangePassword}
+            >
+              Alterar senha
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function compose_password_3() {
+  return (
+    <div className="col-12 text-primary px-2">
+      <div className="row gx-5">
+        <div className="col-12">
+          <div className="p-1">
+            <small className="text-muted">
+              A senha deve conter no mínimo 6 caracteres.
+            </small>
+          </div>
+        </div>
+        <div className="col-12">
+          <div className="p-1">
+            <small className="text-muted">
+              A senha deve conter no máximo 256 caracteres.
+            </small>
+          </div>
+        </div>
+        <div className="col-12">
+          <div className="p-1">
+            <small className="text-muted">
+              A senha deve conter no mínimo uma letra minúscula e maiúscula, um
+              número e um caractere especial: $@#!
+            </small>
+          </div>
+        </div>
+        <div className="col-12">
+          <div className="p-1">
+            <small className="text-muted">
+              A senha não deve conter nenhum desses caracteres especiais:{' '}
+              {`\=\-\(\)\&\¨\"\'\`\{\}\?\/\-\+\.\,\;\|\%\*`}
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function compose_twoFactor(
+  twoFactorModalShow: boolean,
+  twofactor: boolean,
+  twoFactorQRCode: string,
+  twoFactorCode: string,
+  handleTriggerTwoFactorModal,
+  handleChangeTwoFactorCode,
+  handleClickTwoFactorVerify,
+  handleClickTwoFactorDisable
+) {
+  return (
+    <div className="my-1 text-primary">
+      {twofactor ? (
+        <button
+          type="button"
+          className="btn btn-primary col-12"
+          onClick={handleClickTwoFactorDisable}
+        >
+          Desativar
+        </button>
+      ) : (
+        <>
+          <button
+            type="button"
+            className="btn btn-outline-primary col-12"
+            onClick={handleTriggerTwoFactorModal.bind(this, true)}
+          >
+            Ativar
+          </button>
+          <Modal
+            show={twoFactorModalShow}
+            onHide={handleTriggerTwoFactorModal.bind(this, false)}
+          >
+            <Modal.Header
+              className="bg-primary bg-gradient"
+              closeButton={true}
+              closeVariant={'white'}
+            >
+              <Modal.Title className="text-secondary fw-bold">
+                Faça a leitura do seu QRCode
+              </Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              {twoFactorQRCode.length > 0 ? (
+                <>
+                  <div className="d-flex flex-column">
+                    <img
+                      src={twoFactorQRCode}
+                      alt="Escanei com seu aplicativo autenticador"
+                      className="col-6 align-self-center"
+                      height="100%"
+                    />
+                  </div>
+                </>
+              ) : (
+                <p className="fw-bold">
+                  Aguarde, enquanto geramos seu QRCode...
+                </p>
+              )}
+              <hr />
+              <div className="input-group mb-3">
+                <span className="input-group-text" id="codeSecret-addon">
+                  <FontAwesomeIcon
+                    icon={Icon.render('fab', 'keycdn')}
+                    className="ms-2 fs-3 flex-shrink-1 text-primary my-auto"
+                  />
+                </span>
+                <input
+                  type="phone"
+                  className="form-control"
+                  placeholder="Código de senha de uso único"
+                  aria-label="Code Secret"
+                  aria-describedby="codeSecret-addon"
+                  value={twoFactorCode}
+                  onChange={handleChangeTwoFactorCode}
+                />
+              </div>
+              <p className="fw-bold">
+                Faça a leitura do seu QRCode usando um aplicativo autenticador.
+              </p>
+              <small>
+                Microsoft Authenticator, recomendado.
+                <br />
+                <a
+                  target="_blank"
+                  href="https://play.google.com/store/apps/details?id=com.azure.authenticator&hl=pt_BR&gl=US"
+                >
+                  Baixar pela Google Play
+                </a>
+                <br />
+                <a
+                  target="_blank"
+                  href="https://apps.apple.com/br/app/microsoft-authenticator/id983156458"
+                >
+                  Baixar pela Apple Store
+                </a>
+              </small>
+            </Modal.Body>
+            <Modal.Footer>
+              <button
+                type="button"
+                className="btn btn-primary col-12"
+                disabled={twoFactorCode.length > 0 ? false : true}
+                onClick={handleClickTwoFactorVerify}
+              >
+                Verificar
+              </button>
+            </Modal.Footer>
+          </Modal>
+        </>
+      )}
     </div>
   )
 }
@@ -324,78 +732,128 @@ const Security = (): JSX.Element => {
   const [isError, setError] = useState<boolean>(false)
   const [notAuth, setNotAuth] = useState<boolean>(false)
   const [data, setData] = useState<PageData>()
+  const [password, setPassword] = useState<string>('')
+  const [passwordView, setPasswordView] = useState<boolean>(false)
+  const [newPassword, setNewPassword] = useState<string>('')
+  const [newPasswordView, setNewPasswordView] = useState<boolean>(false)
+  const [twoFactorModalShow, setTwoFactorModalShow] = useState<boolean>(false)
+  const [twofactor, setTwofactor] = useState<boolean>(false)
+  const [twoFactorQRCode, setTwoFactorQRCode] = useState<string>('')
+  const [twoFactorCode, setTwoFactorCode] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(true)
 
   const router = useRouter()
+  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
 
   const handleClick = async (e, path) => {
-    e.preventDefault()
+      e.preventDefault()
 
-    if (path === '/auth/login') {
-      const variables = new Variables(1, 'IndexedDB')
-      await Promise.all([await variables.remove('token')]).then(() => {
-        router.push(path)
-      })
+      if (path === '/auth/login') {
+        const variables = new Variables(1, 'IndexedDB')
+        await Promise.all([await variables.clear()]).then(() => {
+          router.push(path)
+        })
+      }
+    },
+    handleChangePassword = async (e) => {
+      setPassword(e.target.value)
+    },
+    handleChangeNewPassword = async (e) => {
+      setNewPassword(e.target.value)
+    },
+    handleClickPasswordView = async (e) => {
+      setPasswordView(passwordView ? false : true)
+    },
+    handleClickNewPasswordView = async (e) => {
+      setNewPasswordView(newPasswordView ? false : true)
+    },
+    handleClickChangePassword = async (e) => {
+      const test = checkPassword(newPassword)
+
+      if (typeof test === 'string') return Alerting.create(test)
+
+      if (test) {
+        if (await changePassword(_fetch, password, newPassword)) {
+          Alerting.create('Senha alterada com sucesso!')
+          setPassword('')
+          setNewPassword('')
+        } else {
+          Alerting.create(
+            'Não foi possível alterar sua senha. Tente novamente!'
+          )
+        }
+      }
+    },
+    handleClickTwoFactorSign = async () => {
+      try {
+        setTwoFactorQRCode(await authSignTwofactor(_fetch))
+      } catch (error) {
+        console.log(error)
+
+        throw new Error(error)
+      }
+    },
+    handleChangeTwoFactorCode = async (e) => {
+      setTwoFactorCode(e.target.value)
+    },
+    handleClickTwoFactorVerify = async (e) => {
+      if (await authVerifyTwofactor(_fetch, twoFactorCode)) {
+        if (await authEnabledTwofactor(_fetch)) {
+          Alerting.create('Sua autenticação de duas etapas está habilitada.')
+          handleTriggerTwoFactorModal(false)
+          setTwofactor(true)
+        } else {
+          Alerting.create(
+            'Não foi possível habilitar sua autenticação de duas etapas. Tente novamente!'
+          )
+        }
+      } else {
+        Alerting.create('Código invalido. Tente novamente!')
+      }
+    },
+    handleClickTwoFactorDisable = async (e) => {
+      if (await authDisableTwofactor(_fetch)) {
+        Alerting.create('Sua autenticação de duas etapas foi desabilitada.')
+        setTwofactor(false)
+      } else {
+        Alerting.create(
+          'Não foi possível desativar sua autenticação de duas etapas. Tente novamente!'
+        )
+      }
+    },
+    handleTriggerTwoFactorModal = async (show: boolean) => {
+      if (show) await handleClickTwoFactorSign()
+
+      setTwoFactorModalShow(show)
     }
-  }
 
   useEffect(() => {
     const timer = setTimeout(async () => {
-      const variables = new Variables(1, 'IndexedDB'),
-        token = await variables.get<string>('token')
-
-      let allowViewPage = false
-
-      const auth = await fetch(
-          `${process.env.NEXT_PUBLIC_EXPRESS_HOST}/system`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              authorization: compressToEncodedURIComponent(
-                createHash('sha256')
-                  .update(process.env.NEXT_PUBLIC_EXPRESS_AUTHORIZATION)
-                  .digest('hex')
-              ),
-              token,
-            },
-          }
-        ),
-        { success, data } = await auth.json()
-
-      if (success) allowViewPage = true
+      const allowViewPage = await tokenValidate(_fetch)
 
       if (!allowViewPage) {
         setNotAuth(true)
         setLoading(false)
       } else {
-        const { privileges } = data
+        try {
+          const { photoProfile, username, privileges } = await getUserInfo(
+            _fetch
+          )
 
-        await Promise.all([
-          await variables.get<string>('username'),
-          await variables.get<string>('name'),
-        ])
-          .then((values: any) => {
-            if (values.includes(undefined)) {
-              setError(true)
-              return setLoading(false)
-            }
+          setTwofactor(await hasConfiguredTwoFactor(_fetch))
 
-            setData({
-              username: values[0],
-              name: values[1],
-              privilege: privileges[0],
-            })
-
-            setReady(true)
-            return setLoading(false)
+          setData({
+            photoProfile,
+            username,
+            privilege: privileges[0],
           })
-          .catch((error) => {
-            console.error(error)
 
-            setError(true)
-            setLoading(false)
-          })
+          setReady(true)
+          return setLoading(false)
+        } catch {
+          setError(true)
+          setLoading(false)
+        }
       }
     })
 
@@ -408,7 +866,27 @@ const Security = (): JSX.Element => {
 
   if (notAuth) return compose_noAuth(handleClick)
 
-  if (isReady) return compose_ready(data)
+  if (isReady)
+    return compose_ready(
+      data,
+      password,
+      passwordView,
+      newPassword,
+      newPasswordView,
+      handleChangePassword,
+      handleClickPasswordView,
+      handleChangeNewPassword,
+      handleClickNewPasswordView,
+      handleClickChangePassword,
+      twofactor,
+      twoFactorModalShow,
+      twoFactorQRCode,
+      handleTriggerTwoFactorModal,
+      twoFactorCode,
+      handleChangeTwoFactorCode,
+      handleClickTwoFactorVerify,
+      handleClickTwoFactorDisable
+    )
 }
 
 export default Security

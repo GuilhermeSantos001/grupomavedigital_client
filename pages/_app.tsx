@@ -10,21 +10,23 @@ import Script from 'next/script'
 import Layout from '@/components/Layout'
 import Loading from '@/components/Loading'
 
-import * as iconsBrands from '@fortawesome/free-brands-svg-icons'
-import * as iconsRegular from '@fortawesome/free-regular-svg-icons'
-import * as iconsSolid from '@fortawesome/free-solid-svg-icons'
+import { iconsFamily, iconsName } from '@/src/utils/fontAwesomeIcons'
 
 export interface PageProps {
   title: string
   description: string
   themeColor: string
   menu: Menu[]
+  fullwidth?: boolean
 }
 
 interface MenuItem {
   id: string
   active: boolean
-  icon: iconsBrands.IconName | iconsRegular.IconName | iconsSolid.IconName
+  icon: {
+    family: iconsFamily
+    name: iconsName
+  }
   name: string
   link: string
 }
@@ -39,7 +41,7 @@ interface MenuItemSeparator extends Pick<MenuItem, 'id'> {
   type: 'separator'
 }
 
-type Menu = MenuItem | MenuItemDropdown | MenuItemSeparator
+export type Menu = MenuItem | MenuItemDropdown | MenuItemSeparator
 type Content = Omit<MenuItem, 'active'> | MenuItemDropdown | MenuItemSeparator
 
 function MyApp({ Component, pageProps }: AppProps) {
@@ -49,7 +51,8 @@ function MyApp({ Component, pageProps }: AppProps) {
       props.description ??
       'Olá, venha conhecer o ambiente digital interativo do Grupo Mave. Tenha todas as informações a um clique. Acesse o link e saiba mais!',
     themeColor = props.themeColor ?? '#004a6e',
-    menu = props.menu ?? []
+    menu = props.menu ?? [],
+    fullwidth = props.fullwidth
 
   return (
     <>
@@ -199,7 +202,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         src="/javascripts/plugins/file_explore.js"
         strategy="beforeInteractive"
       />
-      <Layout menu={menu}>
+      <Layout fullwidth={fullwidth} menu={menu}>
         <Component {...pageProps} />
       </Layout>
     </>

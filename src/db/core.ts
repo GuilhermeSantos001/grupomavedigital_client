@@ -118,12 +118,12 @@ export default class Core_Database {
             let data: any = undefined;
 
             Object.keys(variable).forEach(key => {
-              if (key !== 'id' && key !== 'compress') {
-                if (!data && Number.isNaN(key) !== true)
-                  data = [];
-                else
-                  data = {};
+              if (data === undefined && !Number.isNaN(Number.parseInt(key)))
+                data = [];
+              else if (data === undefined)
+                data = {};
 
+              if (key !== 'id' && key !== 'compress') {
                 if (data instanceof Array)
                   data.push(variable[key]);
                 else

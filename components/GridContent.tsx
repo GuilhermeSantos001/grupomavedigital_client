@@ -1,8 +1,7 @@
 /**
  * @description Componentes da grade do layout da pagina
  * @author @GuilhermeSantos001
- * @update 22/09/2021
- * @version 1.0.0
+ * @update 05/10/2021
  */
 
 import React from 'react'
@@ -10,13 +9,14 @@ import React from 'react'
 import Link from 'next/link'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import * as icons from '@fortawesome/free-solid-svg-icons'
+import Icon from '@/src/utils/fontAwesomeIcons'
 
-import Sugar from 'sugar'
+import { Menu } from '@/pages/_app'
 
 type MyProps = {
-  menu: any
+  menu: Menu[]
   menuShow: boolean
+  fullwidth: boolean
 }
 
 type MyState = {}
@@ -48,7 +48,7 @@ export default class GridContent extends React.Component<MyProps, MyState> {
               </ul>
             </div>
             <FontAwesomeIcon
-              icon={icons[`fa${Sugar.String.camelize(item.icon)}`]}
+              icon={Icon.render(item.icon.family, item.icon.name)}
               className="fs-6 flex-shrink-1 text-muted opacity-50 my-auto"
             />
           </li>
@@ -60,23 +60,35 @@ export default class GridContent extends React.Component<MyProps, MyState> {
               <hr className="dropdown-divider" />
             </li>
           )
-
         return (
           <li
             key={item.id}
             className="d-flex flex-row ps-2 py-2 mb-2 border-bottom"
           >
-            <Link href={item.link}>
+            {item.link.indexOf('http') !== -1 ? (
               <a
-                className={`w-100 menuItem text-truncate animation-delay hover-color ${
+                className={`menuItem w-100 text-truncate animation-delay hover-color ${
                   item.active ? 'active' : ''
                 }`}
+                href={item.link}
+                target="_blank"
               >
                 {item.name}
               </a>
-            </Link>
+            ) : (
+              <Link href={item.link}>
+                <a
+                  className={`menuItem w-100 text-truncate animation-delay hover-color ${
+                    item.active ? 'active' : ''
+                  }`}
+                  href={item.link}
+                >
+                  {item.name}
+                </a>
+              </Link>
+            )}
             <FontAwesomeIcon
-              icon={icons[`fa${Sugar.String.camelize(item.icon)}`]}
+              icon={Icon.render(item.icon.family, item.icon.name)}
               className="fs-6 flex-shrink-1 text-muted opacity-50 my-auto"
             />
           </li>
@@ -96,16 +108,30 @@ export default class GridContent extends React.Component<MyProps, MyState> {
       } else {
         return (
           <li key={item.id} className="d-flex flex-row dropdown-item col-11">
-            <Link href={item.link}>
+            {item.link.indexOf('http') !== -1 ? (
               <a
-                className="menuItem w-100 text-truncate animation-delay hover-color"
-                href="#"
+                className={`menuItem w-100 text-truncate animation-delay hover-color ${
+                  item.active ? 'active' : ''
+                }`}
+                href={item.link}
+                target="_blank"
               >
                 {item.name}
               </a>
-            </Link>
+            ) : (
+              <Link href={item.link}>
+                <a
+                  className={`menuItem w-100 text-truncate animation-delay hover-color ${
+                    item.active ? 'active' : ''
+                  }`}
+                  href={item.link}
+                >
+                  {item.name}
+                </a>
+              </Link>
+            )}
             <FontAwesomeIcon
-              icon={icons[`fa${Sugar.String.camelize(item.icon)}`]}
+              icon={Icon.render(item.icon.family, item.icon.name)}
               className="fs-6 flex-shrink-1 text-muted opacity-50 my-auto"
             />
           </li>
@@ -123,16 +149,16 @@ export default class GridContent extends React.Component<MyProps, MyState> {
         <div
           id="sidebar"
           className={`p-2 border-3 border-end animation-delay ${
-            this.props.menuShow ? 'fullwidth' : ''
-          }`}
+            this.props.fullwidth ? 'fullwidth' : ''
+          } ${this.props.menuShow ? 'fullwidth' : ''}`}
         >
           <ul className={`list-style-none`}>{menu}</ul>
         </div>
         <div
           id="content"
           className={`p-2 animation-delay ${
-            this.props.menuShow ? 'fullwidth' : ''
-          }`}
+            this.props.fullwidth ? 'fullwidth' : ''
+          }${this.props.menuShow ? 'fullwidth' : ''}`}
         >
           <a id="buttonToTop">
             <span className="material-icons" style={{ fontSize: '2rem' }}>

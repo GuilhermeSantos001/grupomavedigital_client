@@ -2,7 +2,6 @@
  * @description Componentes de loading
  * @author @GuilhermeSantos001
  * @update 22/09/2021
- * @version 1.0.0
  */
 
 import React from 'react'
@@ -43,12 +42,13 @@ export default class Loading extends React.Component {
       stopLoading = () => {
         if (myLoading.isLoading()) {
           myLoading.stop()
-          win.loading_screen.finish()
-          win.loading_screen = null
+
+          if (win.loading_screen) {
+            win.loading_screen.finish()
+            win.loading_screen = null
+          }
         }
       }
-
-    renderLoad()
 
     win.$(() => {
       stopLoading()
@@ -61,6 +61,8 @@ export default class Loading extends React.Component {
         stopLoading()
       }
     })
+
+    renderLoad()
   }
 
   componentWillUnmount() {
@@ -68,8 +70,11 @@ export default class Loading extends React.Component {
 
     if (myLoading.isLoading()) {
       myLoading.stop()
-      win.loading_screen.finish()
-      win.loading_screen = null
+
+      if (win.loading_screen) {
+        win.loading_screen.finish()
+        win.loading_screen = null
+      }
     }
   }
 

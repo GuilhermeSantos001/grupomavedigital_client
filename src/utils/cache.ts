@@ -47,7 +47,7 @@ export default class Cache {
 
   constructor(id: string, technology: Technology) {
     this.id = id;
-    this.db = new Caches(technology);
+    this.db = new Caches(1, technology);
   }
 
   /**
@@ -83,8 +83,8 @@ export default class Cache {
   /**
    * @description Armazena em disco os dados do cache
    */
-  private async save(): Promise<boolean> {
-    return await this.db.define<ICache>(this.id, this.cache);
+  private async save(): Promise<void> {
+    return await this.db.define(this.id, this.cache);
   }
 
   /**
