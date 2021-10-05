@@ -1,7 +1,7 @@
 /**
  * @description Pagina usada quando o usuario deseja encerrar a sessão
  * @author @GuilhermeSantos001
- * @update 01/10/2021
+ * @update 05/10/2021
  */
 
 import React, { useEffect, useState } from 'react'
@@ -62,7 +62,6 @@ const Logout = (): JSX.Element => {
     const timer = setTimeout(async () => {
       const variables = new Variables(1, 'IndexedDB'),
         auth = await variables.get<string>('auth'),
-        privileges = await variables.get<string[]>('privileges'),
         token = await variables.get<string>('token'),
         signature = await variables.get<string>('signature')
 
@@ -76,15 +75,12 @@ const Logout = (): JSX.Element => {
         },
         body: JSON.stringify({
           query: `
-          query DisconnectUserToSystem($auth: String!, $privileges: [String!]!, $token: String!, $signature: String!) {
-            success: authLogout(auth: $auth, privileges: $privileges, token: $token, signature: $signature)
+          query DisconnectUserToSystem($auth: String!, $token: String!, $signature: String!) {
+            success: authLogout(auth: $auth, token: $token, signature: $signature)
           }
           `,
           variables: {
             auth: compressToEncodedURIComponent(auth),
-            privileges: compressToEncodedURIComponent(
-              JSON.stringify(privileges)
-            ),
             token: compressToEncodedURIComponent(token),
             signature: compressToEncodedURIComponent(signature),
           },

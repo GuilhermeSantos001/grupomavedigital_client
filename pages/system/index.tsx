@@ -1,7 +1,7 @@
 /**
  * @description Pagina principal do sistema
  * @author @GuilhermeSantos001
- * @update 01/10/2021
+ * @update 05/10/2021
  */
 
 import { DocumentContext } from 'next/document'
@@ -25,11 +25,12 @@ import { PageProps } from '@/pages/_app'
 
 import Fetch from '@/src/utils/fetch'
 import Variables from '@/src/db/variables'
+import getUserInfo from '@/src/functions/getUserInfo'
 import tokenValidate from '@/src/functions/tokenValidate'
 
 interface PageData {
+  photoProfile: string
   username: string
-  name: string
   privilege: string
 }
 
@@ -98,7 +99,7 @@ const serverSideProps: PageProps = {
             family: 'fas',
             name: 'book-reader',
           },
-          name: 'Manuais',
+          name: 'Documentação',
           link: '/help/docs',
         },
       ],
@@ -265,7 +266,7 @@ function compose_noAuth(handleClick) {
   return <NoAuth handleClick={handleClick} />
 }
 
-function compose_ready({ username, privilege }: PageData) {
+function compose_ready({ photoProfile, username, privilege }: PageData) {
   return (
     <div className="d-flex flex-column p-2">
       <div
@@ -274,8 +275,9 @@ function compose_ready({ username, privilege }: PageData) {
       >
         <div className="col-4 col-md-1 d-flex flex-column flex-md-row align-self-center justify-content-center">
           <Image
-            src="/uploads/avatar.png"
+            src={`/uploads/${photoProfile}`}
             alt="Você ;)"
+            className="rounded-circle"
             width={100}
             height={100}
           />
@@ -376,40 +378,29 @@ const System = (): JSX.Element => {
 
   useEffect(() => {
     const timer = setTimeout(async () => {
-      const variables = new Variables(1, 'IndexedDB')
-
-      let allowViewPage = await tokenValidate(_fetch)
+      const allowViewPage = await tokenValidate(_fetch)
 
       if (!allowViewPage) {
         setNotAuth(true)
         setLoading(false)
       } else {
-        await Promise.all([
-          await variables.get<string>('username'),
-          await variables.get<string>('name'),
-          await variables.get<string[]>('privileges'),
-        ])
-          .then((values: any) => {
-            if (values.includes(undefined)) {
-              setError(true)
-              return setLoading(false)
-            }
+        try {
+          const { photoProfile, username, privileges } = await getUserInfo(
+            _fetch
+          )
 
-            setData({
-              username: values[0],
-              name: values[1],
-              privilege: values[2][0],
-            })
-
-            setReady(true)
-            return setLoading(false)
+          setData({
+            photoProfile,
+            username,
+            privilege: privileges[0],
           })
-          .catch((error) => {
-            console.error(error)
 
-            setError(true)
-            setLoading(false)
-          })
+          setReady(true)
+          return setLoading(false)
+        } catch {
+          setError(true)
+          return setLoading(false)
+        }
       }
     })
 

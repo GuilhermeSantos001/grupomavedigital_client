@@ -68,7 +68,8 @@
     "socket.io": "^4.2.0",
     "spinkit": "^2.0.1",
     "sugar": "^2.0.6",
-    "tiny-skeleton-loader-react": "^1.1.6"
+    "tiny-skeleton-loader-react": "^1.1.6",
+    "universal-cookie": "^4.0.4"
   },
   "devDependencies": {
     "@babel/plugin-transform-typescript": "^7.15.4",

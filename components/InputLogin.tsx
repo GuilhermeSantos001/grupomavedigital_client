@@ -1,7 +1,7 @@
 /**
  * @description Componente do input para login
  * @author @GuilhermeSantos001
- * @update 30/09/2021
+ * @update 05/10/2021
  */
 
 import React from 'react'
@@ -95,10 +95,6 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
         data: {
           user: {
             authorization: string
-            privileges: string[]
-            email: string
-            username: string
-            name: string
             token: string
             signature: string
             refreshToken: {
@@ -113,7 +109,7 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
           query: `
           query ConnectUserToSystem($auth: String!, $pwd: String!, $twofactortoken: String) {
             user: authLogin(auth: $auth, pwd: $pwd, twofactortoken: $twofactortoken) {
-              authorization privileges email username name token signature
+              authorization token signature
               refreshToken {
                 signature
                 value
@@ -152,10 +148,6 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
           await Promise.all([
             await this.variables.clear(),
             await this.variables.define('auth', user.authorization),
-            await this.variables.define('privileges', user.privileges),
-            await this.variables.define('email', user.email),
-            await this.variables.define('username', user.username),
-            await this.variables.define('name', user.name),
             await this.variables.define('token', user.token),
             await this.variables.define('refreshToken', user.refreshToken),
             await this.variables.define('signature', user.signature),
