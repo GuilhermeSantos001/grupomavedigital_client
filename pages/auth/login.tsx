@@ -1,7 +1,7 @@
 /**
  * @description Pagina usada quando o usuario deseja efetuar o login
  * @author @GuilhermeSantos001
- * @update 01/10/2021
+ * @update 05/10/2021
  */
 
 import React, { useEffect, useState } from 'react'
@@ -81,7 +81,7 @@ const staticProps: PageProps = {
             family: 'fas',
             name: 'book-reader',
           },
-          name: 'Manuais',
+          name: 'Documentação',
           link: '/help/docs',
         },
       ],

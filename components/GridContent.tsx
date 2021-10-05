@@ -1,7 +1,7 @@
 /**
  * @description Componentes da grade do layout da pagina
  * @author @GuilhermeSantos001
- * @update 30/09/2021
+ * @update 05/10/2021
  */
 
 import React from 'react'
@@ -60,21 +60,33 @@ export default class GridContent extends React.Component<MyProps, MyState> {
               <hr className="dropdown-divider" />
             </li>
           )
-
         return (
           <li
             key={item.id}
             className="d-flex flex-row ps-2 py-2 mb-2 border-bottom"
           >
-            <Link href={item.link}>
+            {item.link.indexOf('http') !== -1 ? (
               <a
-                className={`w-100 menuItem text-truncate animation-delay hover-color ${
+                className={`menuItem w-100 text-truncate animation-delay hover-color ${
                   item.active ? 'active' : ''
                 }`}
+                href={item.link}
+                target="_blank"
               >
                 {item.name}
               </a>
-            </Link>
+            ) : (
+              <Link href={item.link}>
+                <a
+                  className={`menuItem w-100 text-truncate animation-delay hover-color ${
+                    item.active ? 'active' : ''
+                  }`}
+                  href={item.link}
+                >
+                  {item.name}
+                </a>
+              </Link>
+            )}
             <FontAwesomeIcon
               icon={Icon.render(item.icon.family, item.icon.name)}
               className="fs-6 flex-shrink-1 text-muted opacity-50 my-auto"
@@ -96,14 +108,28 @@ export default class GridContent extends React.Component<MyProps, MyState> {
       } else {
         return (
           <li key={item.id} className="d-flex flex-row dropdown-item col-11">
-            <Link href={item.link}>
+            {item.link.indexOf('http') !== -1 ? (
               <a
-                className="menuItem w-100 text-truncate animation-delay hover-color"
-                href="#"
+                className={`menuItem w-100 text-truncate animation-delay hover-color ${
+                  item.active ? 'active' : ''
+                }`}
+                href={item.link}
+                target="_blank"
               >
                 {item.name}
               </a>
-            </Link>
+            ) : (
+              <Link href={item.link}>
+                <a
+                  className={`menuItem w-100 text-truncate animation-delay hover-color ${
+                    item.active ? 'active' : ''
+                  }`}
+                  href={item.link}
+                >
+                  {item.name}
+                </a>
+              </Link>
+            )}
             <FontAwesomeIcon
               icon={Icon.render(item.icon.family, item.icon.name)}
               className="fs-6 flex-shrink-1 text-muted opacity-50 my-auto"

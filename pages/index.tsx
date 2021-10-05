@@ -1,8 +1,7 @@
 /**
- * @description Pagina principal
+ * @description Dashboard do usuario
  * @author @GuilhermeSantos001
- * @update 21/09/2021
- * @version 1.0.0
+ * @update 05/10/2021
  */
 
 import Image from 'next/image'
@@ -52,7 +51,7 @@ const staticProps: PageProps = {
             name: 'headset',
           },
           name: 'HelpDesk',
-          link: '/help/helpdesk',
+          link: 'https://grupomavedigital.com.br/glpi/',
         },
         {
           id: 'md-sp1',
@@ -64,7 +63,7 @@ const staticProps: PageProps = {
             family: 'fas',
             name: 'book-reader',
           },
-          name: 'Manuais',
+          name: 'Documentação',
           link: '/help/docs',
         },
       ],
