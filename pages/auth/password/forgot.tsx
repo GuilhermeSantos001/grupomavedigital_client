@@ -118,7 +118,7 @@ const Forgot = (): JSX.Element => {
   const handleChangeUsername = (e) => {
       setUsername(e.target.value)
     },
-    handleClickChangePassword = async (e) => {
+    handleClickChangePassword = async () => {
       if (await authForgotPassword(_fetch, username)) {
         Alerting.create('Um e-mail será enviado para você em breve.')
         setUsername('')

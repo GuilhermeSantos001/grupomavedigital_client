@@ -5,7 +5,7 @@
  * @update 04/10/2021
  */
 
-import { compress, compressToEncodedURIComponent } from 'lz-string';
+import { compressToEncodedURIComponent } from 'lz-string';
 
 import Fetch from '@/src/utils/fetch';
 

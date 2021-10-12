@@ -211,7 +211,7 @@ const staticProps: PageProps = {
               id: 'password-create-4',
               type: 'p',
               value: `
-              As senhas não devem conter nenhum desses caracteres especiais: =-()&\¨"\'\`{}?/-+.,;|%*
+              As senhas não devem conter nenhum desses caracteres especiais: =-()&¨"'\`{}?/-+.,;|%*
               `,
             },
           ],

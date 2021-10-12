@@ -38,8 +38,6 @@ const authForgotPassword = async (_fetch: Fetch, auth: string): Promise<boolean>
       data,
     } = req
 
-  console.log(req);
-
   if (errors)
     return false;
 

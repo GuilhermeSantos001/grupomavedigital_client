@@ -1,12 +1,13 @@
 /**
- * @description Pagina principal do sistema
+ * @description Painéis do sistema
  * @author @GuilhermeSantos001
- * @update 05/10/2021
+ * @update 06/10/2021
  */
 
 import React, { useEffect, useState } from 'react'
 
-import Image from 'next/image'
+import Link from 'next/link'
+
 import { useRouter } from 'next/router'
 
 import SkeletonLoader from 'tiny-skeleton-loader-react'
@@ -15,26 +16,19 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
 
 import RenderPageError from '@/components/renderPageError'
+import NoPrivilege from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
-
-import Sugar from 'sugar'
 
 import { PageProps } from '@/pages/_app'
 
 import Fetch from '@/src/utils/fetch'
 import Variables from '@/src/db/variables'
-import getUserInfo from '@/src/functions/getUserInfo'
 import tokenValidate from '@/src/functions/tokenValidate'
-
-interface PageData {
-  photoProfile: string
-  username: string
-  privilege: string
-}
+import hasPrivilege from '@/src/functions/hasPrivilege'
 
 const serverSideProps: PageProps = {
-  title: 'System/Home',
-  description: 'Grupo Mave Digital seu ambiente de trabalho integrado',
+  title: 'System/Dashboard',
+  description: 'Painéis de gestão do Grupo Mave',
   themeColor: '#004a6e',
   menu: [
     {
@@ -49,7 +43,7 @@ const serverSideProps: PageProps = {
     },
     {
       id: 'mn-login',
-      active: true,
+      active: false,
       icon: {
         family: 'fas',
         name: 'sign-in-alt',
@@ -69,7 +63,7 @@ const serverSideProps: PageProps = {
     },
     {
       id: 'mn-dashboard',
-      active: false,
+      active: true,
       icon: {
         family: 'fas',
         name: 'chart-line',
@@ -139,44 +133,6 @@ function compose_load() {
       <div className="d-block d-md-none">
         <div className="col-12">
           <div className="d-flex flex-column p-2">
-            <div className="col-12 d-flex justify-content-center">
-              <SkeletonLoader
-                width={100}
-                height={100}
-                radius={10}
-                circle={true}
-              />
-            </div>
-            <div className="col-12 d-flex flex-column">
-              <SkeletonLoader
-                width="70%"
-                height="1rem"
-                circle={false}
-                style={{
-                  marginTop: '1rem',
-                  marginLeft: 'auto',
-                  marginRight: 'auto',
-                }}
-              />
-              <SkeletonLoader
-                width="70%"
-                height="1rem"
-                circle={false}
-                style={{
-                  marginTop: '1rem',
-                  marginLeft: 'auto',
-                  marginRight: 'auto',
-                }}
-              />
-            </div>
-            <div className="col-12 my-2 p-2">
-              <SkeletonLoader
-                width={'100%'}
-                height={'0.1rem'}
-                radius={0}
-                circle={false}
-              />
-            </div>
             <div className="col-12 px-2">
               <SkeletonLoader
                 width={'100%'}
@@ -198,38 +154,6 @@ function compose_load() {
       </div>
       <div className="d-none d-md-flex">
         <div className="col-12">
-          <div className="d-flex flex-row p-2">
-            <div className="col-1 d-flex justify-content-center">
-              <SkeletonLoader
-                width={100}
-                height={100}
-                radius={20}
-                circle={true}
-              />
-            </div>
-            <div className="col-10 d-flex flex-column px-2">
-              <SkeletonLoader
-                width="20%"
-                height="1rem"
-                circle={false}
-                style={{ marginTop: '2rem' }}
-              />
-              <SkeletonLoader
-                width="20%"
-                height="1rem"
-                circle={false}
-                style={{ marginTop: 5 }}
-              />
-            </div>
-          </div>
-          <div className="col-12 p-2">
-            <SkeletonLoader
-              width={'100%'}
-              height={'0.1rem'}
-              radius={0}
-              circle={false}
-            />
-          </div>
           <div className="row g-2">
             <div className="col-12 col-md-6">
               <div className="p-1">
@@ -270,67 +194,37 @@ function compose_error() {
   return <RenderPageError />
 }
 
+function compose_noPrivilege(handleClick) {
+  return <NoPrivilege handleClick={handleClick} />
+}
+
 function compose_noAuth(handleClick) {
   return <NoAuth handleClick={handleClick} />
 }
 
-function compose_ready({ photoProfile, username, privilege }: PageData) {
-  return (
-    <div className="d-flex flex-column p-2">
-      <div
-        className="d-flex flex-column flex-md-row p-2"
-        style={{ fontFamily: 'Fira Code' }}
-      >
-        <div className="col-4 col-md-1 d-flex flex-column flex-md-row align-self-center justify-content-center">
-          <Image
-            src={`/uploads/${photoProfile}`}
-            alt="Você ;)"
-            className="rounded-circle"
-            width={100}
-            height={100}
-          />
-        </div>
-        <div className="col-12 col-md-10 d-flex flex-column align-self-center text-center text-md-start px-2">
-          <p className="mt-2 mb-1 fw-bold">
-            {Sugar.String.capitalize(username)}
-          </p>
-          <p className="mb-1">
-            {
-              <b className="text-primary fw-bold">
-                {Sugar.String.capitalize(privilege)}
-              </b>
-            }
-          </p>
-        </div>
-      </div>
-      <hr className="text-muted" />
-      {compose_user_view_1()}
-      <hr className="text-muted" />
-    </div>
-  )
-}
-
-function compose_user_view_1() {
+function compose_ready() {
   return (
     <div className="row g-2">
       <div className="col-12 col-md-6">
         <div className="p-3 bg-primary bg-gradient rounded">
           <p className="text-center text-secondary fw-bold fs-5 my-2">
             <FontAwesomeIcon
-              icon={Icon.render('fas', 'paper-plane')}
+              icon={Icon.render('fas', 'coins')}
               className="me-1 fs-3 flex-shrink-1 text-secondary my-auto"
             />
-            Novidades
+            Financeiro
           </p>
         </div>
         <div className="p-3 bg-light-gray rounded overflow-auto h-50">
           <div className="my-1 text-primary">
             <p className="text-center text-md-start px-2 fs-6 fw-bold">
               <FontAwesomeIcon
-                icon={Icon.render('fas', 'paint-brush')}
+                icon={Icon.render('fas', 'file-invoice-dollar')}
                 className="me-1 flex-shrink-1 my-auto"
               />
-              Estamos com um novo visual, o que você achou?
+              <Link href="/dashboard/finances/revenues">
+                Faturamento
+              </Link>
             </p>
             <hr />
           </div>
@@ -340,10 +234,10 @@ function compose_user_view_1() {
         <div className="p-3 bg-primary bg-gradient rounded">
           <p className="text-center text-secondary fw-bold fs-5 my-2">
             <FontAwesomeIcon
-              icon={Icon.render('fas', 'book')}
+              icon={Icon.render('fas', 'parachute-box')}
               className="me-2 fs-3 flex-shrink-1 text-secondary my-auto"
             />
-            Meus Cursos
+            Suprimentos
           </p>
         </div>
         <div className="p-3 bg-light-gray rounded overflow-auto h-50">
@@ -363,26 +257,30 @@ function compose_user_view_1() {
   )
 }
 
-const System = (): JSX.Element => {
+const Dashboard = (): JSX.Element => {
   const [isReady, setReady] = useState<boolean>(false)
   const [isError, setError] = useState<boolean>(false)
+  const [notPrivilege, setNotPrivilege] = useState<boolean>(false)
   const [notAuth, setNotAuth] = useState<boolean>(false)
-  const [data, setData] = useState<PageData>()
   const [loading, setLoading] = useState<boolean>(true)
 
   const router = useRouter()
   const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
 
-  const handleClick = async (e, path) => {
-    e.preventDefault()
+  const handleClickNoAuth = async (e, path) => {
+      e.preventDefault()
 
-    if (path === '/auth/login') {
-      const variables = new Variables(1, 'IndexedDB')
-      await Promise.all([await variables.clear()]).then(() => {
-        router.push(path)
-      })
+      if (path === '/auth/login') {
+        const variables = new Variables(1, 'IndexedDB')
+        await Promise.all([await variables.clear()]).then(() => {
+          router.push(path)
+        })
+      }
+    },
+    handleClickNoPrivilege = async (e, path) => {
+      e.preventDefault()
+      router.push(path)
     }
-  }
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -393,15 +291,7 @@ const System = (): JSX.Element => {
         setLoading(false)
       } else {
         try {
-          const { photoProfile, username, privileges } = await getUserInfo(
-            _fetch
-          )
-
-          setData({
-            photoProfile,
-            username,
-            privilege: privileges[0],
-          })
+          if (!(await hasPrivilege('administrador'))) setNotPrivilege(true)
 
           setReady(true)
           return setLoading(false)
@@ -419,9 +309,11 @@ const System = (): JSX.Element => {
 
   if (isError) return compose_error()
 
-  if (notAuth) return compose_noAuth(handleClick)
+  if (notPrivilege) return compose_noPrivilege(handleClickNoPrivilege)
 
-  if (isReady) return compose_ready(data)
+  if (notAuth) return compose_noAuth(handleClickNoAuth)
+
+  if (isReady) return compose_ready()
 }
 
-export default System
+export default Dashboard

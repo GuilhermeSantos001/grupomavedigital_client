@@ -4,8 +4,6 @@
  * @update 05/10/2021
  */
 
-import { DocumentContext } from 'next/document'
-
 import React, { useEffect, useState } from 'react'
 import { Modal } from 'react-bootstrap'
 
@@ -79,6 +77,16 @@ const serverSideProps: PageProps = {
       link: '/user/security',
     },
     {
+      id: 'mn-dashboard',
+      active: false,
+      icon: {
+        family: 'fas',
+        name: 'chart-line',
+      },
+      name: 'Painéis',
+      link: '/dashboard',
+    },
+    {
       id: 'mn-helping',
       active: false,
       icon: {
@@ -126,7 +134,7 @@ const serverSideProps: PageProps = {
   ],
 }
 
-export const getServerSideProps = async (ctx: DocumentContext) => {
+export const getServerSideProps = async () => {
   return {
     props: {
       ...serverSideProps,
@@ -500,7 +508,11 @@ function compose_password_1(
               </div>
               <div className="flex-shrink-1 col-12 col-md-2">
                 <div className="form-text text-start text-md-end">
-                  <a target="_blank" href="/auth/password/forgot">
+                  <a
+                    href="/auth/password/forgot"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
                     Esqueceu sua senha?
                   </a>
                 </div>
@@ -603,7 +615,7 @@ function compose_password_3() {
           <div className="p-1">
             <small className="text-muted">
               A senha não deve conter nenhum desses caracteres especiais:{' '}
-              {`\=\-\(\)\&\¨\"\'\`\{\}\?\/\-\+\.\,\;\|\%\*`}
+              {`=-()&¨"'\`{}?/-+.,;|%*`}
             </small>
           </div>
         </div>
@@ -696,15 +708,17 @@ function compose_twoFactor(
                 Microsoft Authenticator, recomendado.
                 <br />
                 <a
-                  target="_blank"
                   href="https://play.google.com/store/apps/details?id=com.azure.authenticator&hl=pt_BR&gl=US"
+                  target="_blank"
+                  rel="noreferrer"
                 >
                   Baixar pela Google Play
                 </a>
                 <br />
                 <a
-                  target="_blank"
                   href="https://apps.apple.com/br/app/microsoft-authenticator/id983156458"
+                  target="_blank"
+                  rel="noreferrer"
                 >
                   Baixar pela Apple Store
                 </a>
@@ -761,13 +775,13 @@ const Security = (): JSX.Element => {
     handleChangeNewPassword = async (e) => {
       setNewPassword(e.target.value)
     },
-    handleClickPasswordView = async (e) => {
+    handleClickPasswordView = async () => {
       setPasswordView(passwordView ? false : true)
     },
-    handleClickNewPasswordView = async (e) => {
+    handleClickNewPasswordView = async () => {
       setNewPasswordView(newPasswordView ? false : true)
     },
-    handleClickChangePassword = async (e) => {
+    handleClickChangePassword = async () => {
       const test = checkPassword(newPassword)
 
       if (typeof test === 'string') return Alerting.create(test)
@@ -788,15 +802,13 @@ const Security = (): JSX.Element => {
       try {
         setTwoFactorQRCode(await authSignTwofactor(_fetch))
       } catch (error) {
-        console.log(error)
-
         throw new Error(error)
       }
     },
     handleChangeTwoFactorCode = async (e) => {
       setTwoFactorCode(e.target.value)
     },
-    handleClickTwoFactorVerify = async (e) => {
+    handleClickTwoFactorVerify = async () => {
       if (await authVerifyTwofactor(_fetch, twoFactorCode)) {
         if (await authEnabledTwofactor(_fetch)) {
           Alerting.create('Sua autenticação de duas etapas está habilitada.')
@@ -811,7 +823,7 @@ const Security = (): JSX.Element => {
         Alerting.create('Código invalido. Tente novamente!')
       }
     },
-    handleClickTwoFactorDisable = async (e) => {
+    handleClickTwoFactorDisable = async () => {
       if (await authDisableTwofactor(_fetch)) {
         Alerting.create('Sua autenticação de duas etapas foi desabilitada.')
         setTwofactor(false)

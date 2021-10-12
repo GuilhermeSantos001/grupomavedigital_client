@@ -100,7 +100,7 @@ export default class LocalStorageEx implements IDatabaseProvider {
     return new Promise((resolve, reject) => {
       try {
         if (this.data[storeName]) {
-          let data: Type[] = this.data[storeName];
+          const data: Type[] = this.data[storeName];
 
           const updateData = (value: Type) => {
             if (value[keyPath] === key)

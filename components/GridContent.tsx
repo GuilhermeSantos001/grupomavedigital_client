@@ -19,7 +19,7 @@ type MyProps = {
   fullwidth: boolean
 }
 
-type MyState = {}
+type MyState = Record<string, never>
 
 export default class GridContent extends React.Component<MyProps, MyState> {
   composeItemsMenu(items) {
@@ -72,6 +72,7 @@ export default class GridContent extends React.Component<MyProps, MyState> {
                 }`}
                 href={item.link}
                 target="_blank"
+                rel="noreferrer"
               >
                 {item.name}
               </a>
@@ -115,6 +116,7 @@ export default class GridContent extends React.Component<MyProps, MyState> {
                 }`}
                 href={item.link}
                 target="_blank"
+                rel="noreferrer"
               >
                 {item.name}
               </a>

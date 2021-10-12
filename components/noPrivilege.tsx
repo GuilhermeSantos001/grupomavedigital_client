@@ -1,5 +1,5 @@
 /**
- * @description Componentes exibido quando o usuario não está logado
+ * @description Componentes exibido quando o usuario não tem privilegio
  * @author @GuilhermeSantos001
  * @update 06/10/2021
  */
@@ -31,20 +31,20 @@ export default class NoAuth extends React.Component<MyProps, MyState> {
         <div className="col-12 p-2" style={{ fontFamily: 'Fira Code' }}>
           <p className="text-center my-2">
             <FontAwesomeIcon
-              icon={Icon.render('fas', 'power-off')}
+              icon={Icon.render('fas', 'ban')}
               className="fs-1 flex-shrink-1 text-primary my-auto"
             />
             <br />
             <br />
-            Sua sessão expirou. Por gentileza, faça login novamente!
+            Você não tem privilégios para acessar essa pagina.
           </p>
           <p className="text-center">
             <a
               className="btn btn-outline-primary col-6"
               role="button"
-              onClick={(e) => this.props.handleClick(e, '/auth/login')}
+              onClick={(e) => this.props.handleClick(e, '/system')}
             >
-              Reconectar
+              Retornar ao sistema
             </a>
           </p>
         </div>
