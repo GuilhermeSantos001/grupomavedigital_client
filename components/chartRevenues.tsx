@@ -761,7 +761,7 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
                 <GooSpinner size={42} color={'#A1A1A1'} loading={true} />
               </div>
               <div className="d-flex justify-content-center p-2">
-                <div className="row text-center p-2">
+                <div className="row text-center">
                   <div className="col-12">
                     <p className="text-muted">
                       Defina os filtros a cima para exibir o conteúdo.
@@ -784,7 +784,7 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
           <></>
         )}
         <div className="chartRevenues active">
-          <div className="my-2 p-2 border-bottom">
+          <div className="my-2">
             <h1 className="text-primary text-center fw-bold">
               {this.state.chartData_client} (
               {`Loja: ${this.state.chartData_clientStore}`})
