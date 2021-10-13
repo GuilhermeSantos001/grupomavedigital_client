@@ -3,6 +3,7 @@
     "target": "esnext",
     "baseUrl": ".",
     "paths": {
+      "@/bin/*": ["bin/*"],
       "@/components/*": ["components/*"],
       "@/src/*": ["src/*"],
       "@/modules/*": ["modules/*"]

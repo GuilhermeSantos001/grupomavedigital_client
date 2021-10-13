@@ -7,68 +7,13 @@
 import Image from 'next/image'
 
 import { PageProps } from '@/pages/_app'
+import PageMenu from '@/bin/home_menu'
 
 const staticProps: PageProps = {
   title: 'Grupo Mave Digital',
   description: 'Bem-vindo(a) ao ambiente digital interativo do Grupo Mave!',
   themeColor: '#004a6e',
-  menu: [
-    {
-      id: 'mn-home',
-      active: true,
-      icon: {
-        family: 'fas',
-        name: 'home',
-      },
-      name: 'Home',
-      link: '/',
-    },
-    {
-      id: 'mn-login',
-      active: false,
-      icon: {
-        family: 'fas',
-        name: 'sign-in-alt',
-      },
-      name: 'Acessar',
-      link: '/system',
-    },
-    {
-      id: 'mn-helping',
-      active: false,
-      icon: {
-        family: 'fas',
-        name: 'question-circle',
-      },
-      type: 'dropdown',
-      name: 'Precisa de Ajuda?',
-      dropdownId: 'navbarDropdown',
-      content: [
-        {
-          id: 'md-helpdesk',
-          icon: {
-            family: 'fas',
-            name: 'headset',
-          },
-          name: 'HelpDesk',
-          link: 'https://grupomavedigital.com.br/glpi/',
-        },
-        {
-          id: 'md-sp1',
-          type: 'separator',
-        },
-        {
-          id: 'md-docs',
-          icon: {
-            family: 'fas',
-            name: 'book-reader',
-          },
-          name: 'Documentação',
-          link: '/help/docs',
-        },
-      ],
-    },
-  ],
+  menu: PageMenu('mn-home'),
 }
 
 export const getStaticProps = () => ({
