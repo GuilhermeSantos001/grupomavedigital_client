@@ -4,7 +4,7 @@ export type Method = "POST";
 
 export type Body = {
   query: string;
-  variables: Record<string, string>;
+  variables: Record<string, string | string[] | boolean>;
 }
 
 export default class Fetch {
@@ -14,7 +14,7 @@ export default class Fetch {
     this.url = url;
   }
 
-  public exec<Response>(body: Body, headers: Record<string, string>): Promise<Response> {
+  public exec<Response>(body: Body, headers: Record<string, string | boolean>): Promise<Response> {
     return new Promise((resolve, reject) => {
       fetch(`${this.url}`, {
         method: 'POST',
@@ -30,7 +30,7 @@ export default class Fetch {
     });
   }
 
-  public tokenValidate(): Promise<{
+  public async tokenValidate(): Promise<{
     data: {
       response: {
         success: boolean
@@ -40,49 +40,54 @@ export default class Fetch {
     },
     errors: Error[]
   }> {
-    return new Promise(async (resolve, reject) => {
-      const variables = new Variables(1, 'IndexedDB'),
-        auth = await variables.get<string>('auth'),
-        token = await variables.get<string>('token'),
-        signature = await variables.get<string>('signature'),
-        refreshToken = await variables.get<{
+    return new Promise((resolve, reject) => {
+      const variables = new Variables(1, 'IndexedDB');
+
+      Promise.all([
+        variables.get<string>('auth'),
+        variables.get<string>('token'),
+        variables.get<string>('signature'),
+        variables.get<{
           signature: string
           value: string
         }>('refreshToken')
-
-      fetch(this.url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          authorization:
-            '4VMYcqF77yRfA9dmzVcD9JPZFycmN5dZdtDZww49ENHW4H97nY7RuzWa6jTkAMY3',
-          encodeuri: 'false',
-        },
-        body: JSON.stringify({
-          query: `
-            query authUserFromSystem($auth: String!, $token: String!, $signature: String!, $refreshToken: InputRefreshToken) {
-              response: authValidate(
-                auth: $auth,
-                token: $token,
-                signature: $signature
-                refreshToken: $refreshToken
-              ) {
-                success
-                signature
-                token
-              }
-            }
-           `,
-          variables: {
-            auth,
-            token,
-            signature,
-            refreshToken: refreshToken ? refreshToken : null,
-          },
-        }),
-      })
-        .then((response) => response.json())
-        .then((response) => resolve(response))
+      ])
+        .then(values => {
+          fetch(this.url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              authorization:
+                '4VMYcqF77yRfA9dmzVcD9JPZFycmN5dZdtDZww49ENHW4H97nY7RuzWa6jTkAMY3',
+              encodeuri: 'false',
+            },
+            body: JSON.stringify({
+              query: `
+                query authUserFromSystem($auth: String!, $token: String!, $signature: String!, $refreshToken: InputRefreshToken) {
+                  response: authValidate(
+                    auth: $auth,
+                    token: $token,
+                    signature: $signature
+                    refreshToken: $refreshToken
+                  ) {
+                    success
+                    signature
+                    token
+                  }
+                }
+               `,
+              variables: {
+                auth: values[0],
+                token: values[1],
+                signature: values[2],
+                refreshToken: values[3] ? values[3] : null,
+              },
+            }),
+          })
+            .then((response) => response.json())
+            .then((response) => resolve(response))
+            .catch((error) => reject(error))
+        })
         .catch((error) => reject(error))
     });
   }

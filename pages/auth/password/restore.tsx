@@ -111,7 +111,7 @@ const PasswordRestore = ({ token }): JSX.Element => {
     handleClickPasswordView = () => {
       setPasswordView(passwordView ? false : true)
     },
-    handleClickChangePassword = async (e) => {
+    handleClickChangePassword = async () => {
       const test = checkPassword(password)
 
       if (typeof test === 'string') return Alerting.create(test)

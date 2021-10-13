@@ -4,8 +4,6 @@
  * @update 05/10/2021
  */
 
-import { DocumentContext } from 'next/document'
-
 import React, { useEffect, useState } from 'react'
 import { Modal } from 'react-bootstrap'
 
@@ -24,6 +22,7 @@ import NoAuth from '@/components/noAuth'
 import Alerting from '@/src/utils/alerting'
 
 import { PageProps } from '@/pages/_app'
+import PageMenu from '@/bin/main_menu'
 
 import Fetch from '@/src/utils/fetch'
 import Variables from '@/src/db/variables'
@@ -47,86 +46,10 @@ const serverSideProps: PageProps = {
   title: 'Segurança',
   description: 'Configurações pessoais de segurança',
   themeColor: '#004a6e',
-  menu: [
-    {
-      id: 'mn-home',
-      active: false,
-      icon: {
-        family: 'fas',
-        name: 'home',
-      },
-      name: 'Home',
-      link: '/',
-    },
-    {
-      id: 'mn-login',
-      active: false,
-      icon: {
-        family: 'fas',
-        name: 'sign-in-alt',
-      },
-      name: 'Conectado',
-      link: '/system',
-    },
-    {
-      id: 'mn-security',
-      active: true,
-      icon: {
-        family: 'fas',
-        name: 'shield-alt',
-      },
-      name: 'Segurança',
-      link: '/user/security',
-    },
-    {
-      id: 'mn-helping',
-      active: false,
-      icon: {
-        family: 'fas',
-        name: 'question-circle',
-      },
-      type: 'dropdown',
-      name: 'Precisa de Ajuda?',
-      dropdownId: 'navbarDropdown',
-      content: [
-        {
-          id: 'md-helpdesk',
-          icon: {
-            family: 'fas',
-            name: 'headset',
-          },
-          name: 'HelpDesk',
-          link: '/help/helpdesk',
-        },
-        {
-          id: 'md-sp1',
-          type: 'separator',
-        },
-        {
-          id: 'md-docs',
-          icon: {
-            family: 'fas',
-            name: 'book-reader',
-          },
-          name: 'Documentação',
-          link: '/help/docs',
-        },
-      ],
-    },
-    {
-      id: 'mn-logout',
-      active: false,
-      icon: {
-        family: 'fas',
-        name: 'power-off',
-      },
-      name: 'Desconectar',
-      link: '/auth/logout',
-    },
-  ],
+  menu: PageMenu('mn-security'),
 }
 
-export const getServerSideProps = async (ctx: DocumentContext) => {
+export const getServerSideProps = async () => {
   return {
     props: {
       ...serverSideProps,
@@ -500,7 +423,11 @@ function compose_password_1(
               </div>
               <div className="flex-shrink-1 col-12 col-md-2">
                 <div className="form-text text-start text-md-end">
-                  <a target="_blank" href="/auth/password/forgot">
+                  <a
+                    href="/auth/password/forgot"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
                     Esqueceu sua senha?
                   </a>
                 </div>
@@ -603,7 +530,7 @@ function compose_password_3() {
           <div className="p-1">
             <small className="text-muted">
               A senha não deve conter nenhum desses caracteres especiais:{' '}
-              {`\=\-\(\)\&\¨\"\'\`\{\}\?\/\-\+\.\,\;\|\%\*`}
+              {`=-()&¨"'\`{}?/-+.,;|%*`}
             </small>
           </div>
         </div>
@@ -696,15 +623,17 @@ function compose_twoFactor(
                 Microsoft Authenticator, recomendado.
                 <br />
                 <a
-                  target="_blank"
                   href="https://play.google.com/store/apps/details?id=com.azure.authenticator&hl=pt_BR&gl=US"
+                  target="_blank"
+                  rel="noreferrer"
                 >
                   Baixar pela Google Play
                 </a>
                 <br />
                 <a
-                  target="_blank"
                   href="https://apps.apple.com/br/app/microsoft-authenticator/id983156458"
+                  target="_blank"
+                  rel="noreferrer"
                 >
                   Baixar pela Apple Store
                 </a>
@@ -761,13 +690,13 @@ const Security = (): JSX.Element => {
     handleChangeNewPassword = async (e) => {
       setNewPassword(e.target.value)
     },
-    handleClickPasswordView = async (e) => {
+    handleClickPasswordView = async () => {
       setPasswordView(passwordView ? false : true)
     },
-    handleClickNewPasswordView = async (e) => {
+    handleClickNewPasswordView = async () => {
       setNewPasswordView(newPasswordView ? false : true)
     },
-    handleClickChangePassword = async (e) => {
+    handleClickChangePassword = async () => {
       const test = checkPassword(newPassword)
 
       if (typeof test === 'string') return Alerting.create(test)
@@ -788,15 +717,13 @@ const Security = (): JSX.Element => {
       try {
         setTwoFactorQRCode(await authSignTwofactor(_fetch))
       } catch (error) {
-        console.log(error)
-
         throw new Error(error)
       }
     },
     handleChangeTwoFactorCode = async (e) => {
       setTwoFactorCode(e.target.value)
     },
-    handleClickTwoFactorVerify = async (e) => {
+    handleClickTwoFactorVerify = async () => {
       if (await authVerifyTwofactor(_fetch, twoFactorCode)) {
         if (await authEnabledTwofactor(_fetch)) {
           Alerting.create('Sua autenticação de duas etapas está habilitada.')
@@ -811,7 +738,7 @@ const Security = (): JSX.Element => {
         Alerting.create('Código invalido. Tente novamente!')
       }
     },
-    handleClickTwoFactorDisable = async (e) => {
+    handleClickTwoFactorDisable = async () => {
       if (await authDisableTwofactor(_fetch)) {
         Alerting.create('Sua autenticação de duas etapas foi desabilitada.')
         setTwofactor(false)

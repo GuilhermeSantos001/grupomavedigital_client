@@ -1,17 +1,16 @@
 /**
- * @description Componentes do cabeçalho
+ * @description Componentes exibido quando a pagina apresentou um erro
  * @author @GuilhermeSantos001
- * @update 22/09/2021
- * @version 1.0.0
+ * @update 06/10/2021
  */
 
 import React from 'react'
 
 import Image from 'next/image'
 
-type MyProps = {}
+type MyProps = Record<string, never>
 
-type MyState = {}
+type MyState = Record<string, never>
 
 export default class RenderPageError extends React.Component<MyProps, MyState> {
   constructor(props) {

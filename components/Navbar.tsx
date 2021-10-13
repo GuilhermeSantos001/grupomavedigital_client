@@ -1,8 +1,7 @@
 /**
- * @description Componentes do cabeçalho
+ * @description Componentes da navbar
  * @author @GuilhermeSantos001
- * @update 22/09/2021
- * @version 1.0.0
+ * @update 06/10/2021
  */
 
 import React from 'react'
@@ -17,7 +16,7 @@ type MyProps = {
   fullwidth: boolean
 }
 
-type MyState = {}
+type MyState = Record<string, never>
 
 export default class Navbar extends React.Component<MyProps, MyState> {
   constructor(props) {

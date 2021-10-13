@@ -6,7 +6,7 @@
  */
 
 const checkPassword = (password: string): string | boolean => {
-  var strength = 0;
+  let strength = 0;
 
   if (password.match(/[a-z]+/)) {
     strength += 1;
@@ -36,7 +36,7 @@ const checkPassword = (password: string): string | boolean => {
     return "A senha deve conter no mínimo uma letra minúscula e maiúscula, um número e um caractere especial: $@#!";
   }
 
-  if (password.match(/[\=\-\(\)\&\¨\"\'\`{}?\/\-\+\.,\;\|\%\*]+/)) {
+  if (password.match(/[=\-()&¨"'`{}?/\-+.,;|%*]+/)) {
     return `A senha não deve conter nenhum desses caracteres especiais: =-()&¨"'\`{}?/-+.,;\\|%*`;
   }
 
