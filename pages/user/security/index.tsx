@@ -22,6 +22,7 @@ import NoAuth from '@/components/noAuth'
 import Alerting from '@/src/utils/alerting'
 
 import { PageProps } from '@/pages/_app'
+import PageMenu from '@/bin/main_menu'
 
 import Fetch from '@/src/utils/fetch'
 import Variables from '@/src/db/variables'
@@ -45,93 +46,7 @@ const serverSideProps: PageProps = {
   title: 'Segurança',
   description: 'Configurações pessoais de segurança',
   themeColor: '#004a6e',
-  menu: [
-    {
-      id: 'mn-home',
-      active: false,
-      icon: {
-        family: 'fas',
-        name: 'home',
-      },
-      name: 'Home',
-      link: '/',
-    },
-    {
-      id: 'mn-login',
-      active: false,
-      icon: {
-        family: 'fas',
-        name: 'sign-in-alt',
-      },
-      name: 'Conectado',
-      link: '/system',
-    },
-    {
-      id: 'mn-security',
-      active: true,
-      icon: {
-        family: 'fas',
-        name: 'shield-alt',
-      },
-      name: 'Segurança',
-      link: '/user/security',
-    },
-    {
-      id: 'mn-dashboard',
-      active: false,
-      icon: {
-        family: 'fas',
-        name: 'chart-line',
-      },
-      name: 'Painéis',
-      link: '/dashboard',
-    },
-    {
-      id: 'mn-helping',
-      active: false,
-      icon: {
-        family: 'fas',
-        name: 'question-circle',
-      },
-      type: 'dropdown',
-      name: 'Precisa de Ajuda?',
-      dropdownId: 'navbarDropdown',
-      content: [
-        {
-          id: 'md-helpdesk',
-          icon: {
-            family: 'fas',
-            name: 'headset',
-          },
-          name: 'HelpDesk',
-          link: '/help/helpdesk',
-        },
-        {
-          id: 'md-sp1',
-          type: 'separator',
-        },
-        {
-          id: 'md-docs',
-          icon: {
-            family: 'fas',
-            name: 'book-reader',
-          },
-          name: 'Documentação',
-          link: '/help/docs',
-        },
-      ],
-    },
-    {
-      id: 'mn-logout',
-      active: false,
-      icon: {
-        family: 'fas',
-        name: 'power-off',
-      },
-      name: 'Desconectar',
-      link: '/auth/logout',
-    },
-  ],
+  menu: PageMenu('mn-security'),
 }
 
 export const getServerSideProps = async () => {

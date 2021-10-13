@@ -26,70 +26,13 @@ interface Content {
 import Sugar from 'sugar'
 
 import { PageProps } from '@/pages/_app'
+import PageMenu from '@/bin/main_menu'
 
 const staticProps: PageProps = {
     title: 'Documentação',
     description: 'Saiba mais sobre o funcionamento da nossa plataforma',
     themeColor: '#004a6e',
-    menu: [
-      {
-        id: 'mn-home',
-        active: false,
-        icon: {
-          family: 'fas',
-          name: 'home',
-        },
-        name: 'Home',
-        link: '/',
-      },
-      {
-        id: 'mn-login',
-        active: false,
-        icon: {
-          family: 'fas',
-          name: 'sign-in-alt',
-        },
-        name: 'Acessar',
-        link: '/system',
-      },
-      {
-        id: 'mn-helping',
-        active: false,
-        icon: {
-          family: 'fas',
-          name: 'question-circle',
-        },
-        type: 'dropdown',
-        name: 'Precisa de Ajuda?',
-        dropdownId: 'navbarDropdown',
-        content: [
-          {
-            id: 'md-helpdesk',
-            active: false,
-            icon: {
-              family: 'fas',
-              name: 'headset',
-            },
-            name: 'HelpDesk',
-            link: 'https://grupomavedigital.com.br/glpi/',
-          },
-          {
-            id: 'md-sp1',
-            type: 'separator',
-          },
-          {
-            id: 'md-docs',
-            active: true,
-            icon: {
-              family: 'fas',
-              name: 'book-reader',
-            },
-            name: 'Documentação',
-            link: '/help/docs',
-          },
-        ],
-      },
-    ],
+    menu: PageMenu('mn-helping'),
   },
   sections: Section[] = [
     {

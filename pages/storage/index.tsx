@@ -1,33 +1,39 @@
 /**
- * @description Dashboard do "Faturamento"
+ * @description Gestor online de documentos
  * @author @GuilhermeSantos001
- * @update 08/10/2021
+ * @update 13/10/2021
  */
 
 import React, { useEffect, useState } from 'react'
+
+import Link from 'next/link'
 
 import { useRouter } from 'next/router'
 
 import SkeletonLoader from 'tiny-skeleton-loader-react'
 
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import Icon from '@/src/utils/fontAwesomeIcons'
+
 import RenderPageError from '@/components/renderPageError'
 import NoPrivilege from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
-import ChartRevenues from '@/components/chartRevenues'
 
 import { PageProps } from '@/pages/_app'
 import PageMenu from '@/bin/main_menu'
 
 import Fetch from '@/src/utils/fetch'
 import Variables from '@/src/db/variables'
-import hasPrivilege from '@/src/functions/hasPrivilege'
 import tokenValidate from '@/src/functions/tokenValidate'
+import hasPrivilege from '@/src/functions/hasPrivilege'
+
+import File from '@/components/storage/file'
 
 const serverSideProps: PageProps = {
-  title: 'Dashboard/Faturamento',
-  description: 'Gestão há vista do faturamento',
+  title: 'System/Storage',
+  description: 'Gestor de documentos online do Grupo Mave Digital',
   themeColor: '#004a6e',
-  menu: PageMenu('mn-dashboard'),
+  menu: PageMenu('mn-herculesStorage'),
 }
 
 export const getServerSideProps = async () => {
@@ -50,6 +56,13 @@ function compose_load() {
                 height={'10rem'}
                 radius={10}
                 circle={false}
+                style={{ marginTop: '0.1rem' }}
+              />
+              <SkeletonLoader
+                width={'100%'}
+                height={'10rem'}
+                radius={10}
+                circle={false}
                 style={{ marginTop: '1rem' }}
               />
             </div>
@@ -59,7 +72,7 @@ function compose_load() {
       <div className="d-none d-md-flex">
         <div className="col-12">
           <div className="row g-2">
-            <div className="col-12">
+            <div className="col-12 col-md-6">
               <div className="p-1">
                 <SkeletonLoader
                   width={'100%'}
@@ -69,6 +82,24 @@ function compose_load() {
                 />
               </div>
             </div>
+            <div className="col-12 col-md-6">
+              <div className="p-1">
+                <SkeletonLoader
+                  width={'100%'}
+                  height={'10rem'}
+                  radius={10}
+                  circle={false}
+                />
+              </div>
+            </div>
+          </div>
+          <div className="col-12 p-2">
+            <SkeletonLoader
+              width={'100%'}
+              height={'0.1rem'}
+              radius={0}
+              circle={false}
+            />
           </div>
         </div>
       </div>
@@ -93,21 +124,29 @@ function compose_ready() {
     <div className="row g-2">
       <div className="col-12">
         <div className="p-3 bg-primary bg-gradient rounded">
-          <h1 className="text-center text-secondary fw-bold my-2">
-            Faturamento
-          </h1>
+          <div className="d-flex bd-highlight">
+            <div className="p-2 w-100 bd-highlight">
+              <p className="text-start text-secondary fw-bold fs-5 my-2">
+                Seus Arquivos
+              </p>
+            </div>
+            <div className="p-2 flex-shrink-1 bd-highlight my-2">
+              <FontAwesomeIcon
+                icon={Icon.render('fas', 'file-archive')}
+                className="ms-2 fs-3 flex-shrink-1 text-secondary my-auto"
+              />
+            </div>
+          </div>
         </div>
-        <div className="p-3 bg-light-gray rounded">
-          <ChartRevenues
-            fetch={new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)}
-          />
+        <div className="p-3 bg-light-gray rounded overflow-auto h-50">
+          <File />
         </div>
       </div>
     </div>
   )
 }
 
-const Revenues = (): JSX.Element => {
+const Storage = (): JSX.Element => {
   const [isReady, setReady] = useState<boolean>(false)
   const [isError, setError] = useState<boolean>(false)
   const [notPrivilege, setNotPrivilege] = useState<boolean>(false)
@@ -166,4 +205,4 @@ const Revenues = (): JSX.Element => {
   if (isReady) return compose_ready()
 }
 
-export default Revenues
+export default Storage

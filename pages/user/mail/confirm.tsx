@@ -1,7 +1,7 @@
 /**
  * @description Pagina para confirmação do e-mail usuario
  * @author @GuilhermeSantos001
- * @update 05/10/2021
+ * @update 13/10/2021
  */
 
 import React, { useEffect, useState } from 'react'
@@ -9,6 +9,7 @@ import React, { useEffect, useState } from 'react'
 import SkeletonLoader from 'tiny-skeleton-loader-react'
 
 import { PageProps } from '@/pages/_app'
+import PageMenu from '@/bin/main_menu'
 
 import Fetch from '@/src/utils/fetch'
 import mailConfirm from '@/src/functions/mailConfirm'
@@ -17,43 +18,7 @@ const serverSideProps: PageProps = {
   title: 'Confirmação da conta',
   description: 'Confirme sua conta para acessar o ambiente digital interativo.',
   themeColor: '#004a6e',
-  menu: [
-    {
-      id: 'mn-helping',
-      active: false,
-      icon: {
-        family: 'fas',
-        name: 'question-circle',
-      },
-      type: 'dropdown',
-      name: 'Precisa de Ajuda?',
-      dropdownId: 'navbarDropdown',
-      content: [
-        {
-          id: 'md-helpdesk',
-          icon: {
-            family: 'fas',
-            name: 'headset',
-          },
-          name: 'HelpDesk',
-          link: '/help/helpdesk',
-        },
-        {
-          id: 'md-sp1',
-          type: 'separator',
-        },
-        {
-          id: 'md-docs',
-          icon: {
-            family: 'fas',
-            name: 'book-reader',
-          },
-          name: 'Documentação',
-          link: '/help/docs',
-        },
-      ],
-    },
-  ],
+  menu: PageMenu(),
 }
 
 export async function getServerSideProps(context) {
