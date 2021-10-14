@@ -29,6 +29,7 @@ import dashboardRevenues from '@/src/functions/dashboardRevenues'
 import getChartDataRevenuesByMonthly from '@/src/functions/getChartDataRevenuesByMonthly'
 
 import Alerting from '@/src/utils/alerting'
+import verifyPeriodIsValid from '@/src/functions/verifyPeriodIsValid'
 
 type MyProps = {
   fetch: Fetch
@@ -295,8 +296,6 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
           })
       }
 
-    const date = new Date()
-
     return (
       <div className="container-fluid">
         <div className="d-flex flex-column flex-md-row">
@@ -335,7 +334,12 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
               id="input-data2"
               type="date"
               min={this.state.period[0]}
-              max={date.toISOString().slice(0, date.toISOString().indexOf('T'))}
+              max={new Date()
+                .toLocaleDateString()
+                .replace(/\//g, '-')
+                .split('-')
+                .reverse()
+                .join('-')}
               className="form-control"
               aria-label="Selecione o período final"
               aria-describedby="date-addon"
@@ -402,18 +406,7 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
       if (
         this.state.processInfo ||
         this.state.userFocusInput ||
-        !(
-          parseInt(start.year) >= 2016 &&
-          parseInt(end.year) >= parseInt(start.year) &&
-          parseInt(start.month) > 0 &&
-          parseInt(start.month) <= 12 &&
-          parseInt(end.month) > 0 &&
-          parseInt(end.month) <= 12 &&
-          parseInt(start.day) > 0 &&
-          parseInt(start.day) <= 31 &&
-          parseInt(end.day) > 0 &&
-          parseInt(end.day) <= 31
-        )
+        !verifyPeriodIsValid(start, end)
       )
         return
 
@@ -783,7 +776,7 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
         ) : (
           <></>
         )}
-        <div className="chartRevenues active">
+        <div className="chart active">
           <div className="my-2">
             <h1 className="text-primary text-center fw-bold">
               {this.state.chartData_client} (

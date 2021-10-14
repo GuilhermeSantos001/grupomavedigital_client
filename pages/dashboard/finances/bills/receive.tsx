@@ -1,35 +1,31 @@
 /**
- * @description Painéis do sistema
+ * @description Dashboard de "Contas a Receber"
  * @author @GuilhermeSantos001
- * @update 06/10/2021
+ * @update 13/10/2021
  */
 
 import React, { useEffect, useState } from 'react'
-
-import Link from 'next/link'
 
 import { useRouter } from 'next/router'
 
 import SkeletonLoader from 'tiny-skeleton-loader-react'
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import Icon from '@/src/utils/fontAwesomeIcons'
-
 import RenderPageError from '@/components/renderPageError'
 import NoPrivilege from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
+import ChartBillsReceive from '@/components/charts/chartBillsReceive'
 
 import { PageProps } from '@/pages/_app'
 import PageMenu from '@/bin/main_menu'
 
 import Fetch from '@/src/utils/fetch'
 import Variables from '@/src/db/variables'
-import tokenValidate from '@/src/functions/tokenValidate'
 import hasPrivilege from '@/src/functions/hasPrivilege'
+import tokenValidate from '@/src/functions/tokenValidate'
 
 const serverSideProps: PageProps = {
-  title: 'System/Dashboard',
-  description: 'Painéis de gestão do Grupo Mave',
+  title: 'Dashboard/Contas a Receber',
+  description: 'Gestão há vista de contas a receber',
   themeColor: '#004a6e',
   menu: PageMenu('mn-dashboard'),
 }
@@ -54,13 +50,6 @@ function compose_load() {
                 height={'10rem'}
                 radius={10}
                 circle={false}
-                style={{ marginTop: '0.1rem' }}
-              />
-              <SkeletonLoader
-                width={'100%'}
-                height={'10rem'}
-                radius={10}
-                circle={false}
                 style={{ marginTop: '1rem' }}
               />
             </div>
@@ -70,7 +59,7 @@ function compose_load() {
       <div className="d-none d-md-flex">
         <div className="col-12">
           <div className="row g-2">
-            <div className="col-12 col-md-6">
+            <div className="col-12">
               <div className="p-1">
                 <SkeletonLoader
                   width={'100%'}
@@ -80,24 +69,6 @@ function compose_load() {
                 />
               </div>
             </div>
-            <div className="col-12 col-md-6">
-              <div className="p-1">
-                <SkeletonLoader
-                  width={'100%'}
-                  height={'10rem'}
-                  radius={10}
-                  circle={false}
-                />
-              </div>
-            </div>
-          </div>
-          <div className="col-12 p-2">
-            <SkeletonLoader
-              width={'100%'}
-              height={'0.1rem'}
-              radius={0}
-              circle={false}
-            />
           </div>
         </div>
       </div>
@@ -120,67 +91,23 @@ function compose_noAuth(handleClick) {
 function compose_ready() {
   return (
     <div className="row g-2">
-      <div className="col-12 col-md-6">
+      <div className="col-12">
         <div className="p-3 bg-primary bg-gradient rounded">
-          <p className="text-center text-secondary fw-bold fs-5 my-2">
-            <FontAwesomeIcon
-              icon={Icon.render('fas', 'coins')}
-              className="me-1 fs-3 flex-shrink-1 text-secondary my-auto"
-            />
-            Financeiro
-          </p>
+          <h1 className="text-center text-secondary fw-bold my-2">
+            Contas a Receber
+          </h1>
         </div>
-        <div className="p-3 bg-light-gray rounded overflow-auto h-50">
-          <div className="my-1 text-primary">
-            <p className="text-center text-md-start px-2 fs-6 fw-bold">
-              <FontAwesomeIcon
-                icon={Icon.render('fas', 'file-invoice-dollar')}
-                className="me-1 flex-shrink-1 my-auto"
-              />
-              <Link href="/dashboard/finances/revenues">Faturamento</Link>
-            </p>
-            <hr />
-            <p className="text-center text-md-start px-2 fs-6 fw-bold">
-              <FontAwesomeIcon
-                icon={Icon.render('fas', 'funnel-dollar')}
-                className="me-1 flex-shrink-1 my-auto"
-              />
-              <Link href="/dashboard/finances/bills/receive">
-                Contas a Receber
-              </Link>
-            </p>
-            <hr />
-          </div>
-        </div>
-      </div>
-      <div className="col-12 col-md-6">
-        <div className="p-3 bg-primary bg-gradient rounded">
-          <p className="text-center text-secondary fw-bold fs-5 my-2">
-            <FontAwesomeIcon
-              icon={Icon.render('fas', 'parachute-box')}
-              className="me-2 fs-3 flex-shrink-1 text-secondary my-auto"
-            />
-            Suprimentos
-          </p>
-        </div>
-        <div className="p-3 bg-light-gray rounded overflow-auto h-50">
-          <div className="my-1 text-muted">
-            <p className="text-center text-md-start px-2 fs-6 fw-bold">
-              <FontAwesomeIcon
-                icon={Icon.render('fas', 'wrench')}
-                className="me-1 flex-shrink-1 my-auto"
-              />
-              Estamos trabalhando nesse recurso.
-            </p>
-            <hr />
-          </div>
+        <div className="p-3 bg-light-gray rounded">
+          <ChartBillsReceive
+            fetch={new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)}
+          />
         </div>
       </div>
     </div>
   )
 }
 
-const Dashboard = (): JSX.Element => {
+const Receive = (): JSX.Element => {
   const [isReady, setReady] = useState<boolean>(false)
   const [isError, setError] = useState<boolean>(false)
   const [notPrivilege, setNotPrivilege] = useState<boolean>(false)
@@ -239,4 +166,4 @@ const Dashboard = (): JSX.Element => {
   if (isReady) return compose_ready()
 }
 
-export default Dashboard
+export default Receive
