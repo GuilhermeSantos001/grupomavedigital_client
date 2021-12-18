@@ -13,7 +13,7 @@ export default class MemoryDB implements IDatabaseProvider {
 
     constructor(db_name: string, version: number) {
         if (!this.supportBrowser())
-            throw new Error('Browser not support for MemoryDB!');
+            throw new TypeError('Browser not support for MemoryDB!');
         this.name = db_name;
         this.version = version;
     }
@@ -53,7 +53,7 @@ export default class MemoryDB implements IDatabaseProvider {
                     .push(
                         Object
                             .assign({ [keyPath]: undefined }, data)
-                );
+                    );
 
                 return resolve();
             } catch (error) {
@@ -97,6 +97,22 @@ export default class MemoryDB implements IDatabaseProvider {
             try {
                 if (this.data[storeName])
                     return resolve(this.data[storeName].filter((data: Type) => data[keyPath] === key).at(0) || undefined);
+
+                return resolve(undefined);
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
+    /**
+     * @description Retorna todas as chaves da store
+     */
+    public storeGetAllKeys(storeName: string): Promise<string[]> {
+        return new Promise((resolve, reject) => {
+            try {
+                if (this.data[storeName])
+                    return resolve(Object.keys(this.data[storeName]) || undefined);
 
                 return resolve(undefined);
             } catch (error) {

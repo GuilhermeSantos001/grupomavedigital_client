@@ -1,7 +1,7 @@
 /**
  * @description Pagina usada quando o usuario esquece a senha
  * @author @GuilhermeSantos001
- * @update 05/10/2021
+ * @update 21/11/2021
  */
 
 import React, { useState } from 'react'
@@ -53,12 +53,12 @@ const staticProps: PageProps = {
             family: 'fas',
             name: 'book-reader',
           },
-          name: 'Documentação',
+          name: 'DOC',
           link: '/help/docs',
         },
       ],
     },
-  ],
+  ]
 }
 
 export const getStaticProps = () => ({
@@ -116,8 +116,8 @@ const Forgot = (): JSX.Element => {
   const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
 
   const handleChangeUsername = (e) => {
-      setUsername(e.target.value)
-    },
+    setUsername(e.target.value)
+  },
     handleClickChangePassword = async () => {
       if (await authForgotPassword(_fetch, username)) {
         Alerting.create('Um e-mail será enviado para você em breve.')

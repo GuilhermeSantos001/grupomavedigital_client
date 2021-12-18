@@ -16,33 +16,41 @@ $input-bg: #fafafa;
 $component-active-color: $dark-gray;
 $component-active-bg: #e0e0e0;
 
+$dropdown-color: $secondary;
+$dropdown-bg: $primary;
+$dropdown-link-hover-bg: $dark-gray;
+$dropdown-link-active-bg: $dark-gray;
+
 $link-hover-color: #ebcd0f;
 $nav-tabs-link-active-color: #ebcd0f;
 $nav-pills-link-active-color: #ebcd0f;
 $nav-link-font-size: 14px;
 $nav-link-font-weight: bold;
+$nav-link-color: #004a6e;
+$nav-link-hover-color: #ebcd0f;
+$nav-tabs-link-active-color: $secondary;
+$nav-tabs-link-active-bg: $primary;
 
 $offcanvas-bg-color: $light-gray;
 
 $accordion-button-active-bg: $primary;
 $accordion-button-active-color: $secondary;
 
-@import "../../node_modules/bootstrap/scss/bootstrap.scss";
+@import '../../node_modules/bootstrap/scss/bootstrap';
 
 // Bootstrap custom variables
 $colors-custom: (
-  "light-gray": $light-gray,
-  "dark-gray": $dark-gray,
+  'light-gray': $light-gray,
+  'dark-gray': $dark-gray,
 );
 
 $theme-colors: map-merge($theme-colors, $colors-custom);
 
-@import "../plugins/please-wait/margin.scss";
-@import "../plugins/spinkit/all.scss";
-@import "../plugins/file-explore/all.scss";
+@import '../plugins/please-wait/margin.scss';
+@import '../plugins/spinkit/all.scss';
 
 // Themes
-@import "dark.scss";
+@import 'dark.scss';
 
 // Class
-@import "../class/all.scss";
+@import '../class/all.scss';

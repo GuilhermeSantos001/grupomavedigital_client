@@ -38,6 +38,25 @@ export default class NoAuth extends React.Component<MyProps, MyState> {
             <br />
             Você não tem privilégios para acessar essa pagina.
           </p>
+          <div className="bg-primary bg-gradient p-3 my-3 rounded shadow">
+            <div className="d-flex w-100 justify-content-between">
+              <h5 className="mb-1 text-secondary fw-bold">
+                1. Precisa de permissão?
+              </h5>
+              <small>
+                <FontAwesomeIcon
+                  icon={Icon.render('fas', 'hands-helping')}
+                  className="ms-2 fs-3 flex-shrink-1 text-secondary my-auto"
+                />
+              </small>
+            </div>
+            <p className="mb-1 text-secondary">
+              Entre em contato com nosso suporte para solicitar acesso. Nossa equipe precisará de algumas informações para liberar seu acesso.
+            </p>
+            <small className='text-secondary'>
+              - Suporte, Grupo Mave Digital. E-mail: suporte@grupomave.com.br.
+            </small>
+          </div>
           <p className="text-center">
             <a
               className="btn btn-outline-primary col-6"

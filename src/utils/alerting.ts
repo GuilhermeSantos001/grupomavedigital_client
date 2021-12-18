@@ -1,8 +1,7 @@
 /**
  * @description Gerenciador de alertas
  * @author @GuilhermeSantos001
- * @update 14/09/2021
- * @version 1.0.0
+ * @update 22/10/2021
  */
 
 interface IAlert {
@@ -10,81 +9,101 @@ interface IAlert {
   delay: number;
 }
 
-class Alert {
-  private show = false;
-  private delay: any = false;
-  private timeout = 1500;
-  private cache: IAlert[] = [];
-  private noCache = false;
-  private messageValue: string;
-  private messageDelay: number;
-
-  constructor() {
-    this.messageValue = "";
-    this.messageDelay = 0;
+declare global {
+  interface Window {
+    Alerting: {
+      show: boolean
+      messageValue: string
+      messageDelay: number
+      cache: IAlert[]
+      noCache: boolean
+      delay: NodeJS.Timeout
+    }
   }
+}
+
+class Alert {
+  private timeout = 1500;
 
   /**
    * @description Verifica se o alerta está sendo exibido
    */
   isShowing(): boolean {
-    return this.show;
+    return window.Alerting && window.Alerting.show;
   }
 
   setMessage(msg: string): void {
-    this.messageValue = msg;
+    if (window.Alerting)
+      window.Alerting.messageValue = msg;
   }
 
   getMessage(): string {
-    return this.messageValue;
+    return window.Alerting && window.Alerting.messageValue;
   }
 
   setMessageDelay(delay: number): void {
-    this.messageDelay = delay;
+    if (window.Alerting)
+      window.Alerting.messageDelay = delay;
   }
 
   getMessageDelay(): number {
-    return this.messageDelay;
+    return window.Alerting && window.Alerting.messageDelay;
   }
 
   /**
    * @description Cria um novo alerta
    */
   create(message: string, delay = 2500): void {
-    if (!this.noCache) {
-      this.cache.push({ message, delay });
+    if (!window.Alerting) {
+      window.Alerting = {
+        noCache: true,
+        show: false,
+        delay: undefined,
+        cache: [],
+        messageDelay: 0,
+        messageValue: ''
+      }
+    };
+
+    if (!window.Alerting.noCache) {
+      window.Alerting.cache.push({ message, delay });
     } else {
-      this.noCache = false;
+      window.Alerting.noCache = false;
     }
 
     if (!this.isShowing()) {
-      this.show = true;
       this.setMessage(message);
       this.setMessageDelay(delay);
+      window.Alerting.show = true;
     }
 
-    if (!this.delay) {
-      this.delay = setTimeout(() => {
-        clearTimeout(this.delay),
-          this.delay = false,
-          this.show = false;
+    if (!window.Alerting.delay) {
+      window.Alerting.delay = setTimeout(this.close.bind(this), delay + this.timeout);
+    }
+  }
 
-        this.cache.shift();
+  /**
+   * @description Fecha o alerta
+   */
+  close(): void {
+    if (window.Alerting.show) {
+      clearTimeout(window.Alerting.delay);
+      window.Alerting.delay = undefined;
+      window.Alerting.show = false;
 
-        const data: IAlert = {
-          message: this.cache.at(0)?.message || "",
-          delay: this.cache.at(0)?.delay || 0
-        };
+      window.Alerting.cache.shift();
 
-        if (data.message.length > 0 && data.delay > 0) {
-          this.noCache = true;
-          this.create(data.message, data.delay);
-        }
-      }, delay + this.timeout);
+      const data: IAlert = {
+        message: window.Alerting.cache.at(0)?.message || "",
+        delay: window.Alerting.cache.at(0)?.delay || 0
+      };
+
+      if (data.message.length > 0 && data.delay > 0) {
+        window.Alerting.noCache = true;
+        this.create(data.message, data.delay);
+      }
     }
   }
 }
 
-const alerting = new Alert();
-
-export default alerting;
+export default new Alert();

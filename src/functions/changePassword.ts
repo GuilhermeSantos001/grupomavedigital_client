@@ -2,7 +2,7 @@
  * @description Efetuada uma chamada para a API para alterar a
  * senha do usuario
  * @author @GuilhermeSantos001
- * @update 01/10/2021
+ * @update 16/12/2021
  */
 
 import { compressToEncodedURIComponent } from 'lz-string';
@@ -10,15 +10,20 @@ import { compressToEncodedURIComponent } from 'lz-string';
 import Fetch from '@/src/utils/fetch';
 import Variables from '@/src/db/variables';
 
-const changePassword = async (_fetch: Fetch, pwd: string, new_pwd: string): Promise<boolean> => {
+import { CommonResponse } from '@/pages/_app'
+
+declare type Response = CommonResponse & { success: boolean }
+
+const changePassword = async (_fetch: Fetch, pwd: string, new_pwd: string): Promise<Response> => {
   const variables = new Variables(1, 'IndexedDB'),
     auth = await variables.get<string>('auth'),
     token = await variables.get<string>('token'),
+    refreshToken = await variables.get<{ signature: string, value: string }>('refreshToken'),
     signature = await variables.get<string>('signature')
 
   const req = await _fetch.exec<{
     data: {
-      response: boolean
+      response: Response
     }
     errors: Error[]
   }>(
@@ -29,7 +34,13 @@ const changePassword = async (_fetch: Fetch, pwd: string, new_pwd: string): Prom
             auth: $auth,
             pwd: $pwd,
             new_pwd: $new_pwd,
-          )
+          ) {
+            success
+            updatedToken {
+              signature
+              token
+            }
+          }
         }
       `,
       variables: {
@@ -42,6 +53,7 @@ const changePassword = async (_fetch: Fetch, pwd: string, new_pwd: string): Prom
       authorization: 'Re94FUC3phicraR94Tuq5@0Sto16sp4swa7I1As5uChEmUhExuvATrovic5lfic',
       auth: compressToEncodedURIComponent(auth),
       token: compressToEncodedURIComponent(token),
+      refreshToken: compressToEncodedURIComponent(JSON.stringify(refreshToken)),
       signature: compressToEncodedURIComponent(signature),
       encodeuri: 'true',
     }
@@ -52,7 +64,7 @@ const changePassword = async (_fetch: Fetch, pwd: string, new_pwd: string): Prom
     } = req
 
   if (errors)
-    return false;
+    return { success: false, updatedToken: null };
 
   return data.response;
 }

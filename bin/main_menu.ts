@@ -32,9 +32,9 @@ export default function getMenu(firstId?: menuId): Menu[] {
       active: firstId === 'mn-login' ? true : false,
       icon: {
         family: 'fas',
-        name: 'sign-in-alt',
+        name: 'user',
       },
-      name: 'Conectado',
+      name: 'Dashboard',
       link: '/system',
     },
     {
@@ -56,6 +56,7 @@ export default function getMenu(firstId?: menuId): Menu[] {
       },
       name: 'Painéis',
       link: '/dashboard',
+      disabled: true
     },
     {
       id: 'mn-herculesStorage',
@@ -85,7 +86,7 @@ export default function getMenu(firstId?: menuId): Menu[] {
             name: 'headset',
           },
           name: 'HelpDesk',
-          link: '/help/helpdesk',
+          link: '/help/helpdesk'
         },
         {
           id: 'md-sp1',
@@ -97,7 +98,7 @@ export default function getMenu(firstId?: menuId): Menu[] {
             family: 'fas',
             name: 'book-reader',
           },
-          name: 'Documentação',
+          name: 'DOC',
           link: '/help/docs',
         },
       ],

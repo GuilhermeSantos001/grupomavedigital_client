@@ -1,7 +1,7 @@
 /**
  * @description Pagina para confirmação do e-mail usuario
  * @author @GuilhermeSantos001
- * @update 05/10/2021
+ * @update 21/11/2021
  */
 
 import React, { useEffect, useState } from 'react'
@@ -54,12 +54,12 @@ const serverSideProps: PageProps = {
             family: 'fas',
             name: 'book-reader',
           },
-          name: 'Documentação',
+          name: 'DOC',
           link: '/help/docs',
         },
       ],
     },
-  ],
+  ]
 }
 
 export async function getServerSideProps(context) {

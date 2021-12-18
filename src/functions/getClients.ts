@@ -63,7 +63,7 @@ const getClients = async (_fetch: Fetch, filial: string, cache: boolean): Promis
 
   if (errors) {
     console.error(errors);
-    throw new Error('Não foi possível retornar as informações dos clientes.')
+    throw new TypeError('Não foi possível retornar as informações dos clientes.')
   }
 
   return data.response;

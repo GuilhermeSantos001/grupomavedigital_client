@@ -4,7 +4,7 @@
  * @update 24/09/2021
  */
 
-import { compressToBase64, decompressFromBase64 } from 'lz-string';
+import { compress, decompress } from 'lzutf8';
 
 import { parse, stringify } from 'flatted';
 
@@ -70,14 +70,14 @@ export default class Cache {
    * @description Faz a compressão do valor
    */
   private compress(value: any): string {
-    return compressToBase64(stringify(value));
+    return compress(stringify(value));
   }
 
   /**
    * @description Faz a descompressão do valor
    */
   private decompress(value: string): any {
-    return parse(decompressFromBase64(value) || "");
+    return parse(decompress(value) || "");
   }
 
   /**

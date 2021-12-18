@@ -18,7 +18,7 @@ const serverSideProps: PageProps = {
   title: 'Confirmação da conta',
   description: 'Confirme sua conta para acessar o ambiente digital interativo.',
   themeColor: '#004a6e',
-  menu: PageMenu(),
+  menu: PageMenu()
 }
 
 export async function getServerSideProps(context) {

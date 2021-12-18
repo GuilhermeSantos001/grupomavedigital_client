@@ -10,7 +10,7 @@ input:disabled {
   cursor: not-allowed;
 }
 
-input[type="file"] {
+input[type='file'] {
   cursor: pointer;
 }
 
@@ -22,35 +22,35 @@ html {
 }
 
 .bg-light-gray {
-  background-color: map-get($theme-colors, "light-gray");
+  background-color: map-get($theme-colors, 'light-gray');
 }
 .bg-dark-gray {
-  background-color: map-get($theme-colors, "dark-gray");
+  background-color: map-get($theme-colors, 'dark-gray');
 }
 
 .text-light-gray {
-  color: map-get($theme-colors, "light-gray");
+  color: map-get($theme-colors, 'light-gray');
 }
 .text-dark-gray {
-  color: map-get($theme-colors, "dark-gray");
+  color: map-get($theme-colors, 'dark-gray');
 }
 
 .animation-delay {
-  -webkit-transition: 100ms ease-in; /* Safari */
-  transition: 100ms ease-in;
-  -webkit-transition-delay: 100ms; /* Safari */
-  transition-delay: 100ms;
+  -webkit-transition: 0.1s ease-in; /* Safari */
+  transition: 0.1s ease-in;
+  -webkit-transition-delay: 0.1s; /* Safari */
+  transition-delay: 0.1s;
 }
 
 .hover-color {
   cursor: pointer;
 
   &.active {
-    color: map-get($theme-colors, "secondary");
+    color: map-get($theme-colors, 'secondary');
   }
 
   &:hover {
-    color: map-get($theme-colors, "secondary");
+    color: map-get($theme-colors, 'secondary');
   }
 }
 
@@ -103,7 +103,9 @@ html {
 }
 
 .zoom:hover {
-  transform: scale(1.5); /* (150% zoom - Note: if the zoom is too large, it will go outside of the viewport) */
+  transform: scale(
+    1.5
+  ); /* (150% zoom - Note: if the zoom is too large, it will go outside of the viewport) */
 }
 
 .list-style-none {
@@ -115,10 +117,15 @@ html {
 .menuItem {
   cursor: pointer;
   text-decoration: none;
-  color: map-get($theme-colors, "primary");
+  color: map-get($theme-colors, 'light-gray');
 
   &.active {
-    color: map-get($theme-colors, "secondary");
+    color: map-get($theme-colors, 'secondary');
+  }
+  &.disabled {
+    @extend .text-white, .opacity-50;
+
+    cursor: not-allowed;
   }
 }
 

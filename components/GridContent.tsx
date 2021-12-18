@@ -6,6 +6,8 @@
 
 import React from 'react'
 
+import { Dropdown } from 'react-bootstrap'
+
 import Link from 'next/link'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -25,34 +27,51 @@ export default class GridContent extends React.Component<MyProps, MyState> {
   composeItemsMenu(items) {
     return items.map((item) => {
       if (item.type === 'dropdown') {
-        return (
-          <li
+        const itemNormal = (
+          <div
             key={item.id}
-            className="d-flex flex-row ps-2 py-2 mb-2 border-bottom dropdown"
+            className="d-flex flex-row ps-2 py-2 mb-2 bg-primary border-bottom rounded"
           >
-            <div className="btn-group w-100">
-              <a
-                className={`menuItem dropdown-toggle animation-delay hover-color`}
+            <Dropdown className='col-10'>
+              <Dropdown.Toggle
+                className={`menuItem ps-0 col-12 animation-delay hover-color text-truncate`}
                 id={item.dropdownId}
-                role="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
               >
                 {item.name}
-              </a>
-              <ul
-                className="dropdown-menu w-100"
-                aria-labelledby={item.dropdownId}
-              >
+              </Dropdown.Toggle>
+              <Dropdown.Menu className="dropdown-menu w-100">
                 {this.composeSubItemsMenu(item.content)}
-              </ul>
+              </Dropdown.Menu>
+            </Dropdown>
+            <div className='col-2 pe-2 d-flex flex-row justify-content-center align-items-center'>
+              <FontAwesomeIcon
+                icon={Icon.render(item.icon.family, item.icon.name)}
+                className="fs-6 flex-shrink-1 text-secondary my-auto"
+              />
             </div>
-            <FontAwesomeIcon
-              icon={Icon.render(item.icon.family, item.icon.name)}
-              className="fs-6 flex-shrink-1 text-muted opacity-50 my-auto"
-            />
-          </li>
-        )
+          </div>
+        ),
+          itemDisabled = (
+            <li
+              key={item.id}
+              className="d-flex flex-row ps-2 py-2 mb-2 bg-primary border-bottom rounded dropdown"
+            >
+              <div className="btn-group w-100">
+                <a
+                  className={`menuItem disabled dropdown-toggle`}
+                  id={item.dropdownId}
+                >
+                  {item.name}
+                </a>
+              </div>
+              <FontAwesomeIcon
+                icon={Icon.render(item.icon.family, item.icon.name)}
+                className={`fs-6 flex-shrink-1 ${!item.disabled ? 'text-secondary' : 'text-white opacity-50'} me-2 my-auto`}
+              />
+            </li>
+          );
+
+        return item.disabled ? itemDisabled : itemNormal;
       } else {
         if (item.type === 'separator')
           return (
@@ -60,40 +79,53 @@ export default class GridContent extends React.Component<MyProps, MyState> {
               <hr className="dropdown-divider" />
             </li>
           )
-        return (
-          <li
+
+        const itemNormal = (
+          <div
             key={item.id}
-            className="d-flex flex-row ps-2 py-2 mb-2 border-bottom"
+            className={`d-flex flex-row ps-2 py-2 mb-2 bg-primary border-bottom rounded`}
           >
-            {item.link.indexOf('http') !== -1 ? (
-              <a
-                className={`menuItem w-100 text-truncate animation-delay hover-color ${
-                  item.active ? 'active' : ''
-                }`}
+            {
+              item.link.indexOf('http') !== -1 ? <Dropdown.Item
+                className={`menuItem w-100 text-truncate animation-delay hover-color ${item.active ? 'active' : ''}`}
                 href={item.link}
-                target="_blank"
                 rel="noreferrer"
               >
                 {item.name}
-              </a>
-            ) : (
-              <Link href={item.link}>
+              </Dropdown.Item> : <Link href={item.link}>
                 <a
-                  className={`menuItem w-100 text-truncate animation-delay hover-color ${
-                    item.active ? 'active' : ''
-                  }`}
+                  className={`menuItem w-100 text-truncate animation-delay hover-color ${item.active ? 'active' : ''
+                    }`}
                   href={item.link}
                 >
                   {item.name}
                 </a>
               </Link>
-            )}
+            }
             <FontAwesomeIcon
               icon={Icon.render(item.icon.family, item.icon.name)}
-              className="fs-6 flex-shrink-1 text-muted opacity-50 my-auto"
+              className="fs-6 flex-shrink-1 text-secondary me-2 my-auto"
             />
-          </li>
-        )
+          </div>
+        ),
+          itemDisabled = (
+            <li
+              key={item.id}
+              className={`d-flex flex-row ps-2 py-2 mb-2 bg-primary border-bottom rounded`}
+            >
+              <a
+                className='menuItem disabled w-100 text-truncate'
+              >
+                {item.name}
+              </a>
+              <FontAwesomeIcon
+                icon={Icon.render(item.icon.family, item.icon.name)}
+                className={`fs-6 flex-shrink-1 ${!item.disabled ? 'text-secondary' : 'text-white opacity-50'} me-2 my-auto`}
+              />
+            </li>
+          )
+
+        return item.disabled ? itemDisabled : itemNormal;
       }
     })
   }
@@ -107,13 +139,12 @@ export default class GridContent extends React.Component<MyProps, MyState> {
           </li>
         )
       } else {
-        return (
+        const itemNormal = (
           <li key={item.id} className="d-flex flex-row dropdown-item col-11">
             {item.link.indexOf('http') !== -1 ? (
               <a
-                className={`menuItem w-100 text-truncate animation-delay hover-color ${
-                  item.active ? 'active' : ''
-                }`}
+                className={`menuItem w-100 text-truncate animation-delay hover-color ${item.active ? 'active' : ''
+                  }`}
                 href={item.link}
                 target="_blank"
                 rel="noreferrer"
@@ -123,9 +154,8 @@ export default class GridContent extends React.Component<MyProps, MyState> {
             ) : (
               <Link href={item.link}>
                 <a
-                  className={`menuItem w-100 text-truncate animation-delay hover-color ${
-                    item.active ? 'active' : ''
-                  }`}
+                  className={`menuItem w-100 text-truncate animation-delay hover-color ${item.active ? 'active' : ''
+                    }`}
                   href={item.link}
                 >
                   {item.name}
@@ -134,10 +164,25 @@ export default class GridContent extends React.Component<MyProps, MyState> {
             )}
             <FontAwesomeIcon
               icon={Icon.render(item.icon.family, item.icon.name)}
-              className="fs-6 flex-shrink-1 text-muted opacity-50 my-auto"
+              className="fs-6 flex-shrink-1 text-secondary me-2 my-auto"
             />
           </li>
-        )
+        ),
+          itemDisabled = (
+            <li key={item.id} className="d-flex flex-row dropdown-item col-11">
+              <a
+                className='menuItem disabled w-100 text-truncate'
+              >
+                {item.name}
+              </a>
+              <FontAwesomeIcon
+                icon={Icon.render(item.icon.family, item.icon.name)}
+                className={`fs-6 flex-shrink-1 ${!item.disabled ? 'text-secondary' : 'text-white opacity-50'} me-2 my-auto`}
+              />
+            </li>
+          )
+
+        return item.disabled ? itemDisabled : itemNormal;
       }
     })
   }
@@ -150,17 +195,15 @@ export default class GridContent extends React.Component<MyProps, MyState> {
       <>
         <div
           id="sidebar"
-          className={`p-2 border-3 border-end animation-delay ${
-            this.props.fullwidth ? 'fullwidth' : ''
-          } ${this.props.menuShow ? 'fullwidth' : ''}`}
+          className={`p-2 border-3 border-end animation-delay ${this.props.fullwidth ? 'fullwidth' : ''
+            } ${this.props.menuShow ? 'fullwidth' : ''}`}
         >
           <ul className={`list-style-none`}>{menu}</ul>
         </div>
         <div
           id="content"
-          className={`p-2 animation-delay ${
-            this.props.fullwidth ? 'fullwidth' : ''
-          }${this.props.menuShow ? 'fullwidth' : ''}`}
+          className={`p-2 animation-delay ${this.props.fullwidth ? 'fullwidth' : ''
+            }${this.props.menuShow ? 'fullwidth' : ''}`}
         >
           <a id="buttonToTop">
             <span className="material-icons" style={{ fontSize: '2rem' }}>

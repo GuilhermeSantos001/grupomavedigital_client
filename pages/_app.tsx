@@ -1,6 +1,13 @@
 // import App from "next/app";
 import type { AppProps /*, AppContext */ } from 'next/app'
 
+import SSRProvider from 'react-bootstrap/SSRProvider';
+
+import { Provider } from 'react-redux'
+import store from '../app/store'
+import { PersistGate } from 'redux-persist/integration/react'
+import { persistStore } from 'redux-persist'
+
 import '../styles/globals.scss'
 import '../styles/plugins.css'
 
@@ -12,12 +19,65 @@ import Loading from '@/components/Loading'
 
 import { iconsFamily, iconsName } from '@/src/utils/fontAwesomeIcons'
 
+export type PrivilegesSystem =
+  // Sistema
+  | 'common'
+  | 'administrador'
+  | 'moderador'
+  | 'supervisor'
+  | 'diretoria'
+  // Financeiro
+  | 'fin_faturamento'
+  | 'fin_assistente'
+  | 'fin_gerente'
+  // RH/DP
+  | 'rh_beneficios'
+  | 'rh_encarregado'
+  | 'rh_juridico'
+  | 'rh_recrutamento'
+  | 'rh_sesmet'
+  // Suprimentos
+  | 'sup_compras'
+  | 'sup_estoque'
+  | 'sup_assistente'
+  | 'sup_gerente'
+  // Comercial
+  | 'com_vendas'
+  | 'com_adm'
+  | 'com_gerente'
+  | 'com_qualidade'
+  // Operacional
+  | 'ope_mesa'
+  | 'ope_coordenador'
+  | 'ope_supervisor'
+  | 'ope_gerente'
+  // Marketing
+  | 'mkt_geral'
+  // Juridico
+  | 'jur_advogado'
+  // Contabilidade
+  | 'cont_contabil'
+  ;
+
+export interface CommonResponse {
+  success?: boolean;
+  updatedToken: UpdatedToken
+}
+
+export type UpdatedToken = {
+  signature: string
+  token: string
+}
+
 export interface PageProps {
   title: string
   description: string
   themeColor: string
   menu: Menu[]
   fullwidth?: boolean
+  socketIO?: {
+    room: string[]
+  }
 }
 
 interface MenuItem {
@@ -29,6 +89,7 @@ interface MenuItem {
   }
   name: string
   link: string
+  disabled?: boolean
 }
 
 interface MenuItemDropdown extends Omit<MenuItem, 'link'> {
@@ -52,7 +113,10 @@ function MyApp({ Component, pageProps }: AppProps) {
       'Olá, venha conhecer o ambiente digital interativo do Grupo Mave. Tenha todas as informações a um clique. Acesse o link e saiba mais!',
     themeColor = props.themeColor ?? '#004a6e',
     menu = props.menu ?? [],
-    fullwidth = props.fullwidth
+    fullwidth = props.fullwidth,
+    persistor = persistStore(store);
+
+  const text = <p>Loading...</p>
 
   return (
     <>
@@ -163,34 +227,6 @@ function MyApp({ Component, pageProps }: AppProps) {
         strategy="beforeInteractive"
       />
       <Script
-        src="/javascripts/plugins/jquery-3.6.0.min.js"
-        strategy="beforeInteractive"
-      />
-      <Script
-        src="/javascripts/plugins/jquery.ui.position.min.js"
-        strategy="beforeInteractive"
-      />
-      <Script
-        src="/javascripts/plugins/jquery.contextMenu.min.js"
-        strategy="beforeInteractive"
-      />
-      <Script
-        src="/javascripts/plugins/chart.min.js"
-        strategy="beforeInteractive"
-      />
-      <Script
-        src="/javascripts/plugins/socket.io.min.js"
-        strategy="beforeInteractive"
-      />
-      <Script
-        src="/javascripts/plugins/lz-string.min.js"
-        strategy="beforeInteractive"
-      />
-      <Script
-        src="/javascripts/plugins/bootstrap.bundle.min.js"
-        strategy="beforeInteractive"
-      />
-      <Script
         src="/javascripts/plugins/feather.min.js"
         strategy="beforeInteractive"
       />
@@ -198,13 +234,15 @@ function MyApp({ Component, pageProps }: AppProps) {
         src="/javascripts/plugins/hls.min.js"
         strategy="beforeInteractive"
       />
-      <Script
-        src="/javascripts/plugins/file_explore.js"
-        strategy="beforeInteractive"
-      />
-      <Layout fullwidth={fullwidth} menu={menu}>
-        <Component {...pageProps} />
-      </Layout>
+      <SSRProvider>
+        <Provider store={store}>
+          <PersistGate loading={text} persistor={persistor}>
+            <Layout fullwidth={fullwidth} menu={menu}>
+              <Component {...pageProps} />
+            </Layout>
+          </PersistGate>
+        </Provider>
+      </SSRProvider>
     </>
   )
 }

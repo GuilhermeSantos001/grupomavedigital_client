@@ -1,87 +1,55 @@
 /**
- * @description Componentes dos alertas
+ * @description Componente para exibição dos alertas
  * @author @GuilhermeSantos001
- * @update 22/09/2021
- * @version 1.0.0
+ * @update 22/10/2021
  */
 
-import React from 'react'
+import { useState, useEffect } from 'react'
 
-import $ from 'jquery'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import Icon from '@/src/utils/fontAwesomeIcons'
 
-import myAlert from '@/src/utils/alerting'
+import { Toast } from 'react-bootstrap'
 
-type MyProps = {
-  message?: string
-  delay?: number
-}
+import alerting from '@/src/utils/alerting'
 
-type MyState = { boxAlerting: boolean }
+const Alerting = (): JSX.Element => {
+  const [message, setMessage] = useState<string>('')
+  const [show, setShow] = useState<boolean>(false)
 
-export default class Alerting extends React.Component<MyProps, MyState> {
-  constructor(props) {
-    super(props)
-
-    this.state = { boxAlerting: false }
+  const toggleShow = () => {
+    setShow(!show);
+    alerting.close();
   }
 
-  componentDidMount() {
-    const message = this.props.message,
-      delay = this.props.delay
-
-    const renderAlerting = () => {
-        $('body').append(`\
-        <div style="z-index: 9999; font-size: 18px; opacity: 0;" class="alertDiv alert bg-primary text-secondary border border-secondary alert-dismissible fade show shadow fixed-top m-2 text-truncate" role="alert">\
-            <strong>${message || myAlert.getMessage()}</strong>\
-        </div>\
-        `)
-
-        $('.alertDiv').animate({ opacity: 1 }, 'fast')
-
-        this.setState({ boxAlerting: true })
-      },
-      stopAlerting = () => {
-        if (this.state.boxAlerting) {
-          $('.alertDiv').fadeOut('slow', () => {
-            $('.alertDiv').remove()
-
-            myAlert.setMessage('')
-            myAlert.setMessageDelay(0)
-
-            this.setState({ boxAlerting: false })
-          })
-        }
+  useEffect(() => {
+    setInterval(() => {
+      if (alerting.isShowing()) {
+        setMessage(alerting.getMessage())
+        setShow(true)
       }
 
-    if (message && delay) renderAlerting()
-
-    setInterval(() => {
-      if (
-        myAlert.getMessage().length > 0 &&
-        myAlert.getMessageDelay() > 0 &&
-        !this.state.boxAlerting
-      ) {
-        setTimeout(() => stopAlerting(), delay || myAlert.getMessageDelay())
-
-        renderAlerting()
+      if (!alerting.isShowing()) {
+        setShow(false)
       }
     })
-  }
+  }, [])
 
-  componentWillUnmount() {
-    if (this.state.boxAlerting) {
-      $('.alertDiv').fadeOut('slow', () => {
-        $('.alertDiv').remove()
-
-        myAlert.setMessage('')
-        myAlert.setMessageDelay(0)
-
-        this.setState({ boxAlerting: false })
-      })
-    }
-  }
-
-  render() {
-    return <></>
-  }
+  return (
+    <Toast show={show} onClose={toggleShow} className='col-12 fixed-bottom m-2' style={{ left: 'auto', right: 0, zIndex: 9999 }}>
+      <Toast.Header
+        className="bg-primary text-secondary fw-bold"
+        closeVariant="white"
+      >
+        <FontAwesomeIcon
+          icon={Icon.render('fas', 'exclamation-circle')}
+          className="flex-shrink-1 my-auto me-2 text-secondary"
+        />
+        <strong className="me-auto">Alerta</strong>
+      </Toast.Header>
+      <Toast.Body className="bg-light">{message}</Toast.Body>
+    </Toast>
+  )
 }
+
+export default Alerting

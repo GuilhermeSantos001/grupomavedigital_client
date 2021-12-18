@@ -58,7 +58,7 @@ const getFilial = async (_fetch: Fetch, cache: boolean): Promise<Filial[]> => {
 
   if (errors) {
     console.error(errors);
-    throw new Error('Não foi possível retornar as informações das filiais.')
+    throw new TypeError('Não foi possível retornar as informações das filiais.')
   }
 
   return data.response;

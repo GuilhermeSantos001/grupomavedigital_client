@@ -50,10 +50,6 @@ export default class Loading extends React.Component {
         }
       }
 
-    win.$(() => {
-      stopLoading()
-    })
-
     setInterval(() => {
       if (win.loading && !win.loading_screen) {
         renderLoad()
@@ -63,6 +59,8 @@ export default class Loading extends React.Component {
     })
 
     renderLoad()
+
+    setTimeout(() => stopLoading())
   }
 
   componentWillUnmount() {

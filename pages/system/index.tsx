@@ -1,7 +1,7 @@
 /**
  * @description Pagina principal do sistema
  * @author @GuilhermeSantos001
- * @update 05/10/2021
+ * @update 16/12/2021
  */
 
 import React, { useEffect, useState } from 'react'
@@ -25,7 +25,7 @@ import PageMenu from '@/bin/main_menu'
 import Fetch from '@/src/utils/fetch'
 import Variables from '@/src/db/variables'
 import getUserInfo from '@/src/functions/getUserInfo'
-import tokenValidate from '@/src/functions/tokenValidate'
+import { tokenValidate, saveUpdatedToken } from '@/src/functions/tokenValidate'
 
 interface PageData {
   photoProfile: string
@@ -37,7 +37,7 @@ const serverSideProps: PageProps = {
   title: 'System/Home',
   description: 'Grupo Mave Digital seu ambiente de trabalho integrado',
   themeColor: '#004a6e',
-  menu: PageMenu('mn-login'),
+  menu: PageMenu('mn-login')
 }
 
 export const getServerSideProps = async () => {
@@ -181,8 +181,8 @@ function compose_load() {
   )
 }
 
-function compose_error() {
-  return <RenderPageError />
+function compose_error(handleClick) {
+  return <RenderPageError handleClick={handleClick} />
 }
 
 function compose_noAuth(handleClick) {
@@ -288,35 +288,39 @@ const System = (): JSX.Element => {
   const router = useRouter()
   const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
 
-  const handleClick = async (e, path) => {
-    e.preventDefault()
+  const
+    handleClick = async (e, path) => {
+      e.preventDefault()
 
-    if (path === '/auth/login') {
-      const variables = new Variables(1, 'IndexedDB')
-      await Promise.all([await variables.clear()]).then(() => {
-        router.push(path)
-      })
+      if (path === '/auth/login') {
+        const variables = new Variables(1, 'IndexedDB')
+        await Promise.all([await variables.clear()]).then(() => {
+          router.push(path)
+        })
+      }
     }
-  }
 
   useEffect(() => {
     const timer = setTimeout(async () => {
-      const allowViewPage = await tokenValidate(_fetch)
+      const isAllowViewPage = await tokenValidate(_fetch)
 
-      if (!allowViewPage) {
+      if (!isAllowViewPage) {
         setNotAuth(true)
         setLoading(false)
       } else {
         try {
-          const { photoProfile, username, privileges } = await getUserInfo(
+          const { photoProfile, username, privilege, updatedToken } = await getUserInfo(
             _fetch
           )
 
           setData({
             photoProfile,
             username,
-            privilege: privileges[0],
+            privilege
           })
+
+          if (updatedToken)
+            await saveUpdatedToken(updatedToken.signature, updatedToken.token);
 
           setReady(true)
           return setLoading(false)
@@ -332,7 +336,7 @@ const System = (): JSX.Element => {
 
   if (loading) return compose_load()
 
-  if (isError) return compose_error()
+  if (isError) return compose_error(handleClick)
 
   if (notAuth) return compose_noAuth(handleClick)
 

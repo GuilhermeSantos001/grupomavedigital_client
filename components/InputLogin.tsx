@@ -1,7 +1,7 @@
 /**
  * @description Componente do input para login
  * @author @GuilhermeSantos001
- * @update 05/10/2021
+ * @update 17/11/2021
  */
 
 import React from 'react'
@@ -167,7 +167,7 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
           'Ocorreu um erro com o servidor. Tente novamente mais tarde!'
         )
 
-        throw new Error(error)
+        throw new TypeError(error)
       })
   }
 
@@ -227,7 +227,7 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
           'Ocorreu um erro com o servidor. Tente novamente mais tarde!'
         )
 
-        throw new Error(error)
+        throw new TypeError(error)
       })
   }
 
@@ -306,6 +306,13 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
               className="fs-6 flex-shrink-1 my-auto"
             />
           </span>
+        </div>
+        <div className="col-12">
+          <div className="form-text text-start text-md-end">
+            <a href="/auth/password/forgot" target="_blank" rel="noreferrer">
+              Esqueceu sua senha?
+            </a>
+          </div>
         </div>
         <div className="col-12 bd-callout bd-callout-primary my-2">
           <p>

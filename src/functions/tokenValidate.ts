@@ -1,33 +1,43 @@
 /**
  * @description Efetuada uma chamada para a API para verificar o token do usuario
  * @author @GuilhermeSantos001
- * @update 30/09/2021
+ * @update 16/12/2021
  */
 
 import Fetch from '@/src/utils/fetch'
 import Variables from '@/src/db/variables'
 
-const tokenValidate = async (_fetch: Fetch): Promise<boolean> => {
+export const saveUpdatedToken = async (signature: string, token) => {
   const variables = new Variables(1, 'IndexedDB')
 
-  const validate = await _fetch.tokenValidate(),
-    {
+  await variables.define('signature', signature);
+  await variables.define('token', token);
+}
+
+export const tokenValidate = async (_fetch: Fetch): Promise<boolean> => {
+  try {
+    const validate = await _fetch.tokenValidate();
+
+    const {
       errors,
       data
     } = validate
 
-  if (errors) return false
+    if (errors) return false
 
-  const { success, signature, token } = data.response;
+    const { success, signature, token } = data.response;
 
-  if (success) {
-    if (signature) await variables.define('signature', signature)
-    if (token) await variables.define('token', token)
+    if (success) {
+      if (signature && token)
+        saveUpdatedToken(signature, token);
 
-    return true
-  } else {
+      return true
+    } else {
+      return false
+    }
+  } catch (error) {
+    console.error(error);
+
     return false
   }
 }
-
-export default tokenValidate;

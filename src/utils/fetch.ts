@@ -1,10 +1,11 @@
+/* eslint-disable no-async-promise-executor */
 import Variables from "@/src/db/variables";
 
 export type Method = "POST";
 
 export type Body = {
   query: string;
-  variables: Record<string, string | string[] | boolean>;
+  variables: Record<string, string | string[] | boolean | FormData>;
 }
 
 export default class Fetch {
@@ -30,6 +31,18 @@ export default class Fetch {
     });
   }
 
+  public upload<Response>(body: FormData): Promise<Response> {
+    return new Promise((resolve, reject) => {
+      fetch(`${this.url}`, {
+        method: 'POST',
+        body,
+      })
+        .then((response) => response.json())
+        .then((response) => resolve(response))
+        .catch((error) => reject(error))
+    });
+  }
+
   public async tokenValidate(): Promise<{
     data: {
       response: {
@@ -40,8 +53,12 @@ export default class Fetch {
     },
     errors: Error[]
   }> {
-    return new Promise((resolve, reject) => {
-      const variables = new Variables(1, 'IndexedDB');
+    return new Promise(async (resolve, reject) => {
+      const variables = new Variables(1, 'IndexedDB'),
+        keys = await variables.getAllKeys();
+
+      if (keys.length <= 0)
+        return reject(`Nenhuma credencial encontrada.`);
 
       Promise.all([
         variables.get<string>('auth'),

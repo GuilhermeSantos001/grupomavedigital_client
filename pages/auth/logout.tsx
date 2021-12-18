@@ -6,24 +6,22 @@
 
 import React, { useEffect, useState } from 'react'
 
-import { compressToEncodedURIComponent } from 'lz-string'
-
 import { useRouter } from 'next/router'
 
 import SkeletonLoader from 'tiny-skeleton-loader-react'
 
 import { PageProps } from '@/pages/_app'
 
+import Fetch from '@/src/utils/fetch'
 import Variables from '@/src/db/variables'
-
-import Alert from '@/src/utils/alerting'
+import AuthLogout from '@/src/functions/authLogout'
 
 const staticProps: PageProps = {
   title: 'Desconectando',
   description: 'Você está se desconectando do sistema',
   themeColor: '#004a6e',
   menu: [],
-  fullwidth: true,
+  fullwidth: true
 }
 
 export const getStaticProps = () => ({
@@ -57,57 +55,17 @@ const Logout = (): JSX.Element => {
   const [loading, setLoading] = useState<boolean>(true)
 
   const router = useRouter()
+  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
 
   useEffect(() => {
     const timer = setTimeout(async () => {
-      const variables = new Variables(1, 'IndexedDB'),
-        auth = await variables.get<string>('auth'),
-        token = await variables.get<string>('token'),
-        signature = await variables.get<string>('signature')
+      const variables = new Variables(1, 'IndexedDB');
 
-      fetch(`${process.env.NEXT_PUBLIC_GRAPHQL_HOST}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          authorization:
-            'vlta#eke08uf=48uCuFustLr3ChL9a1*wrE_ayi0L*oFl-UHidlST8moj9f8C5L4',
-          encodeuri: 'true',
-        },
-        body: JSON.stringify({
-          query: `
-          query DisconnectUserToSystem($auth: String!, $token: String!, $signature: String!) {
-            success: authLogout(auth: $auth, token: $token, signature: $signature)
-          }
-          `,
-          variables: {
-            auth: compressToEncodedURIComponent(auth),
-            token: compressToEncodedURIComponent(token),
-            signature: compressToEncodedURIComponent(signature),
-          },
-        }),
-      })
-        .then((response) => response.json())
-        .then(async ({ data, errors }) => {
-          if (errors)
-            return errors.forEach((error) => Alert.create(error.message))
+      if (await AuthLogout(_fetch)) {
+        await variables.clear()
 
-          const { success } = data || {}
-
-          if (!success) {
-            Alert.create('Não foi possível encerrar a sua sessão.')
-          }
-
-          await variables.clear()
-
-          router.push('/auth/login')
-        })
-        .catch((err) => {
-          Alert.create(
-            'Ocorreu um erro com o servidor. Tente novamente mais tarde!'
-          )
-
-          throw new Error(err)
-        })
+        router.push('/auth/login')
+      }
 
       setLoading(false)
     })

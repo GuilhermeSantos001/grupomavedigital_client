@@ -29,11 +29,11 @@ import { PageProps } from '@/pages/_app'
 import PageMenu from '@/bin/main_menu'
 
 const staticProps: PageProps = {
-    title: 'Documentação',
-    description: 'Saiba mais sobre o funcionamento da nossa plataforma',
-    themeColor: '#004a6e',
-    menu: PageMenu('mn-helping'),
-  },
+  title: 'Documentação',
+  description: 'Saiba mais sobre o funcionamento da nossa plataforma',
+  themeColor: '#004a6e',
+  menu: PageMenu('mn-helping')
+},
   sections: Section[] = [
     {
       id: 'section-ss',
@@ -316,16 +316,16 @@ function render_doc(index: number, parentID: string, doc: Doc) {
 
 const Docs = ({ sections }): JSX.Element => {
   const links = sections.map((section: Section, index: number) => {
-      return (
-        <a
-          key={section.id}
-          className="nav-link bg-transparent text-primary border-bottom my-1"
-          href={`#item-${index + 1}`}
-        >
-          {`${index + 1}. ${Sugar.String.capitalize(section.title)}`}
-        </a>
-      )
-    }),
+    return (
+      <a
+        key={section.id}
+        className="nav-link bg-transparent text-primary border-bottom my-1"
+        href={`#item-${index + 1}`}
+      >
+        {`${index + 1}. ${Sugar.String.capitalize(section.title)}`}
+      </a>
+    )
+  }),
     docs = (section: Section, index: number) =>
       section.docs.map((doc: Doc, docIndex: number) =>
         render_doc(docIndex, `item-${index + 1}`, doc)

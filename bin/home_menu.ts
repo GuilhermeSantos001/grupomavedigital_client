@@ -31,7 +31,7 @@ export default function getMenu(firstId?: menuId): Menu[] {
         name: 'sign-in-alt',
       },
       name: 'Acessar',
-      link: '/system',
+      link: '/auth/login',
     },
     {
       id: 'mn-helping',
@@ -63,7 +63,7 @@ export default function getMenu(firstId?: menuId): Menu[] {
             family: 'fas',
             name: 'book-reader',
           },
-          name: 'Documentação',
+          name: 'DOC',
           link: '/help/docs',
         },
       ],

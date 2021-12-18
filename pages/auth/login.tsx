@@ -38,18 +38,8 @@ const staticProps: PageProps = {
         family: 'fas',
         name: 'sign-in-alt',
       },
-      name: 'Conectado',
-      link: '/system',
-    },
-    {
-      id: 'mn-security',
-      active: false,
-      icon: {
-        family: 'fas',
-        name: 'shield-alt',
-      },
-      name: 'Segurança',
-      link: '/user/security',
+      name: 'Acessar',
+      link: '/auth/login',
     },
     {
       id: 'mn-helping',
@@ -81,22 +71,12 @@ const staticProps: PageProps = {
             family: 'fas',
             name: 'book-reader',
           },
-          name: 'Documentação',
+          name: 'DOC',
           link: '/help/docs',
         },
       ],
     },
-    {
-      id: 'mn-logout',
-      active: false,
-      icon: {
-        family: 'fas',
-        name: 'power-off',
-      },
-      name: 'Desconectar',
-      link: '/auth/logout',
-    },
-  ],
+  ]
 }
 
 export const getStaticProps = () => ({

@@ -37,6 +37,13 @@ export default class Variables extends CoreDB {
   }
 
   /**
+   * @description Retorna o valor da variável
+   */
+  public async getAllKeys(): Promise<string[]> {
+    return await this.store_getAllKeys('variable');
+  }
+
+  /**
    * @description Limpa as variaveis
    */
   public async clear(): Promise<boolean> {

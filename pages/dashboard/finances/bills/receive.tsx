@@ -1,7 +1,7 @@
 /**
  * @description Dashboard de "Contas a Receber"
  * @author @GuilhermeSantos001
- * @update 13/10/2021
+ * @update 21/11/2021
  */
 
 import React, { useEffect, useState } from 'react'
@@ -21,13 +21,13 @@ import PageMenu from '@/bin/main_menu'
 import Fetch from '@/src/utils/fetch'
 import Variables from '@/src/db/variables'
 import hasPrivilege from '@/src/functions/hasPrivilege'
-import tokenValidate from '@/src/functions/tokenValidate'
+import { tokenValidate } from '@/src/functions/tokenValidate'
 
 const serverSideProps: PageProps = {
   title: 'Dashboard/Contas a Receber',
   description: 'Gestão há vista de contas a receber',
   themeColor: '#004a6e',
-  menu: PageMenu('mn-dashboard'),
+  menu: PageMenu('mn-dashboard')
 }
 
 export const getServerSideProps = async () => {
@@ -76,8 +76,8 @@ function compose_load() {
   )
 }
 
-function compose_error() {
-  return <RenderPageError />
+function compose_error(handleClick) {
+  return <RenderPageError handleClick={handleClick} />
 }
 
 function compose_noPrivilege(handleClick) {
@@ -117,7 +117,8 @@ const Receive = (): JSX.Element => {
   const router = useRouter()
   const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
 
-  const handleClickNoAuth = async (e, path) => {
+  const
+    handleClickNoAuth = async (e, path) => {
       e.preventDefault()
 
       if (path === '/auth/login') {
@@ -134,9 +135,9 @@ const Receive = (): JSX.Element => {
 
   useEffect(() => {
     const timer = setTimeout(async () => {
-      const allowViewPage = await tokenValidate(_fetch)
+      const isAllowViewPage = await tokenValidate(_fetch)
 
-      if (!allowViewPage) {
+      if (!isAllowViewPage) {
         setNotAuth(true)
         setLoading(false)
       } else {
@@ -157,7 +158,7 @@ const Receive = (): JSX.Element => {
 
   if (loading) return compose_load()
 
-  if (isError) return compose_error()
+  if (isError) return compose_error(handleClickNoAuth)
 
   if (notPrivilege) return compose_noPrivilege(handleClickNoPrivilege)
 

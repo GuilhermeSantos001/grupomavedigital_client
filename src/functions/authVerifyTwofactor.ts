@@ -2,7 +2,7 @@
  * @description Efetuada uma chamada para a API para verificar o codigo da
  * autenticação de duas etapas
  * @author @GuilhermeSantos001
- * @update 01/10/2021
+ * @update 16/12/2021
  */
 
 import { compressToEncodedURIComponent } from 'lz-string';
@@ -10,15 +10,18 @@ import { compressToEncodedURIComponent } from 'lz-string';
 import Fetch from '@/src/utils/fetch';
 import Variables from '@/src/db/variables';
 
-const authVerifyTwofactor = async (_fetch: Fetch, qrcode: string): Promise<boolean> => {
+import { CommonResponse } from '@/pages/_app'
+
+const authVerifyTwofactor = async (_fetch: Fetch, qrcode: string): Promise<CommonResponse> => {
   const variables = new Variables(1, 'IndexedDB'),
     auth = await variables.get<string>('auth'),
     token = await variables.get<string>('token'),
+    refreshToken = await variables.get<{ signature: string, value: string }>('refreshToken'),
     signature = await variables.get<string>('signature')
 
   const req = await _fetch.exec<{
     data: {
-      response: boolean
+      response: CommonResponse
     }
     errors: Error[]
   }>(
@@ -28,7 +31,13 @@ const authVerifyTwofactor = async (_fetch: Fetch, qrcode: string): Promise<boole
           response: authVerifyTwofactor(
             auth: $auth,
             qrcode: $qrcode
-          )
+          ) {
+            success
+            updatedToken {
+              signature
+              token
+            }
+          }
         }
       `,
       variables: {
@@ -40,6 +49,7 @@ const authVerifyTwofactor = async (_fetch: Fetch, qrcode: string): Promise<boole
       authorization: 'duhoHU4o#3!oCHogLw*6WUbrE2radr2CrlpLD+P7Ka*R-veSEB75lsT6PeblPuko',
       auth: compressToEncodedURIComponent(auth),
       token: compressToEncodedURIComponent(token),
+      refreshToken: compressToEncodedURIComponent(JSON.stringify(refreshToken)),
       signature: compressToEncodedURIComponent(signature),
       encodeuri: 'true',
     }
@@ -50,7 +60,7 @@ const authVerifyTwofactor = async (_fetch: Fetch, qrcode: string): Promise<boole
     } = req
 
   if (errors)
-    return false;
+    return { success: false, updatedToken: null }
 
   return data.response;
 }

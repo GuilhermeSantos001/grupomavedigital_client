@@ -16,7 +16,7 @@ class MyDocument extends Document {
 
   render() {
     return (
-      <Html lang="pt-BR">
+      <Html data-theme="light" lang="pt-BR">
         <Head />
         <body>
           <Main />

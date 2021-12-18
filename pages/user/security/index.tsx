@@ -1,7 +1,7 @@
 /**
  * @description Pagina usada para alterar as informações de segurança do usuario
  * @author @GuilhermeSantos001
- * @update 05/10/2021
+ * @update 16/12/2021
  */
 
 import React, { useEffect, useState } from 'react'
@@ -27,7 +27,7 @@ import PageMenu from '@/bin/main_menu'
 import Fetch from '@/src/utils/fetch'
 import Variables from '@/src/db/variables'
 import getUserInfo from '@/src/functions/getUserInfo'
-import tokenValidate from '@/src/functions/tokenValidate'
+import { tokenValidate, saveUpdatedToken } from '@/src/functions/tokenValidate'
 import hasConfiguredTwoFactor from '@/src/functions/hasConfiguredTwoFactor'
 import authSignTwofactor from '@/src/functions/authSignTwofactor'
 import authVerifyTwofactor from '@/src/functions/authVerifyTwofactor'
@@ -46,7 +46,7 @@ const serverSideProps: PageProps = {
   title: 'Segurança',
   description: 'Configurações pessoais de segurança',
   themeColor: '#004a6e',
-  menu: PageMenu('mn-security'),
+  menu: PageMenu('mn-security')
 }
 
 export const getServerSideProps = async () => {
@@ -206,8 +206,8 @@ function compose_load() {
   )
 }
 
-function compose_error() {
-  return <RenderPageError />
+function compose_error(handleClick) {
+  return <RenderPageError handleClick={handleClick} />
 }
 
 function compose_noAuth(handleClick) {
@@ -674,7 +674,8 @@ const Security = (): JSX.Element => {
   const router = useRouter()
   const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
 
-  const handleClick = async (e, path) => {
+  const
+    handleClick = async (e, path) => {
       e.preventDefault()
 
       if (path === '/auth/login') {
@@ -702,7 +703,12 @@ const Security = (): JSX.Element => {
       if (typeof test === 'string') return Alerting.create(test)
 
       if (test) {
-        if (await changePassword(_fetch, password, newPassword)) {
+        const { success, updatedToken } = await changePassword(_fetch, password, newPassword);
+
+        if (updatedToken)
+          await saveUpdatedToken(updatedToken.signature, updatedToken.token);
+
+        if (success) {
           Alerting.create('Senha alterada com sucesso!')
           setPassword('')
           setNewPassword('')
@@ -715,17 +721,32 @@ const Security = (): JSX.Element => {
     },
     handleClickTwoFactorSign = async () => {
       try {
-        setTwoFactorQRCode(await authSignTwofactor(_fetch))
+        const { qrcode, updatedToken } = await authSignTwofactor(_fetch);
+
+        if (updatedToken)
+          await saveUpdatedToken(updatedToken.signature, updatedToken.token);
+
+        setTwoFactorQRCode(qrcode)
       } catch (error) {
-        throw new Error(error)
+        throw new TypeError(error)
       }
     },
     handleChangeTwoFactorCode = async (e) => {
       setTwoFactorCode(e.target.value)
     },
     handleClickTwoFactorVerify = async () => {
-      if (await authVerifyTwofactor(_fetch, twoFactorCode)) {
-        if (await authEnabledTwofactor(_fetch)) {
+      const { success: success1, updatedToken: updatedToken1 } = await authVerifyTwofactor(_fetch, twoFactorCode);
+
+      if (updatedToken1)
+        await saveUpdatedToken(updatedToken1.signature, updatedToken1.token);
+
+      if (success1) {
+        const { success: success2, updatedToken: updatedToken2 } = await authEnabledTwofactor(_fetch);
+
+        if (updatedToken2)
+          await saveUpdatedToken(updatedToken2.signature, updatedToken2.token);
+
+        if (success2) {
           Alerting.create('Sua autenticação de duas etapas está habilitada.')
           handleTriggerTwoFactorModal(false)
           setTwofactor(true)
@@ -739,7 +760,12 @@ const Security = (): JSX.Element => {
       }
     },
     handleClickTwoFactorDisable = async () => {
-      if (await authDisableTwofactor(_fetch)) {
+      const { success, updatedToken } = await authDisableTwofactor(_fetch);
+
+      if (updatedToken)
+        await saveUpdatedToken(updatedToken.signature, updatedToken.token);
+
+      if (success) {
         Alerting.create('Sua autenticação de duas etapas foi desabilitada.')
         setTwofactor(false)
       } else {
@@ -756,23 +782,31 @@ const Security = (): JSX.Element => {
 
   useEffect(() => {
     const timer = setTimeout(async () => {
-      const allowViewPage = await tokenValidate(_fetch)
+      const isAllowViewPage = await tokenValidate(_fetch)
 
-      if (!allowViewPage) {
+      if (!isAllowViewPage) {
         setNotAuth(true)
         setLoading(false)
       } else {
         try {
-          const { photoProfile, username, privileges } = await getUserInfo(
+          const { photoProfile, username, privilege, updatedToken: updatedToken1 } = await getUserInfo(
             _fetch
           )
 
-          setTwofactor(await hasConfiguredTwoFactor(_fetch))
+          if (updatedToken1)
+            await saveUpdatedToken(updatedToken1.signature, updatedToken1.token);
+
+          const { success, updatedToken: updatedToken2 } = await hasConfiguredTwoFactor(_fetch);
+
+          if (updatedToken2)
+            await saveUpdatedToken(updatedToken2.signature, updatedToken2.token);
+
+          setTwofactor(success)
 
           setData({
             photoProfile,
             username,
-            privilege: privileges[0],
+            privilege,
           })
 
           setReady(true)
@@ -789,7 +823,7 @@ const Security = (): JSX.Element => {
 
   if (loading) return compose_load()
 
-  if (isError) return compose_error()
+  if (isError) return compose_error(handleClick)
 
   if (notAuth) return compose_noAuth(handleClick)
 

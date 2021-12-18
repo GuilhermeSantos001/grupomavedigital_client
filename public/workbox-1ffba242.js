@@ -84,7 +84,7 @@ define("./workbox-1ffba242.js",['exports'], (function (exports) { 'use strict';
         value
       }) => {
         if (!paramName || !validValueDescription) {
-          throw new Error(`Unexpected input to 'invalid-value' error.`);
+          throw new TypeError(`Unexpected input to 'invalid-value' error.`);
         }
 
         return `The '${paramName}' parameter was given a value with an ` + `unexpected value. ${validValueDescription} Received a value of ` + `${JSON.stringify(value)}.`;
@@ -96,7 +96,7 @@ define("./workbox-1ffba242.js",['exports'], (function (exports) { 'use strict';
         paramName
       }) => {
         if (!moduleName || !className || !funcName || !paramName) {
-          throw new Error(`Unexpected input to 'not-an-array' error.`);
+          throw new TypeError(`Unexpected input to 'not-an-array' error.`);
         }
 
         return `The parameter '${paramName}' passed into ` + `'${moduleName}.${className}.${funcName}()' must be an array.`;
@@ -109,7 +109,7 @@ define("./workbox-1ffba242.js",['exports'], (function (exports) { 'use strict';
         funcName
       }) => {
         if (!expectedType || !paramName || !moduleName || !funcName) {
-          throw new Error(`Unexpected input to 'incorrect-type' error.`);
+          throw new TypeError(`Unexpected input to 'incorrect-type' error.`);
         }
 
         const classNameStr = className ? `${className}.` : '';
@@ -124,7 +124,7 @@ define("./workbox-1ffba242.js",['exports'], (function (exports) { 'use strict';
         isReturnValueProblem
       }) => {
         if (!expectedClassName || !moduleName || !funcName) {
-          throw new Error(`Unexpected input to 'incorrect-class' error.`);
+          throw new TypeError(`Unexpected input to 'incorrect-class' error.`);
         }
 
         const classNameStr = className ? `${className}.` : '';
@@ -143,7 +143,7 @@ define("./workbox-1ffba242.js",['exports'], (function (exports) { 'use strict';
         funcName
       }) => {
         if (!expectedMethod || !paramName || !moduleName || !className || !funcName) {
-          throw new Error(`Unexpected input to 'missing-a-method' error.`);
+          throw new TypeError(`Unexpected input to 'missing-a-method' error.`);
         }
 
         return `${moduleName}.${className}.${funcName}() expected the ` + `'${paramName}' parameter to expose a '${expectedMethod}' method.`;
@@ -158,7 +158,7 @@ define("./workbox-1ffba242.js",['exports'], (function (exports) { 'use strict';
         secondEntry
       }) => {
         if (!firstEntry || !secondEntry) {
-          throw new Error(`Unexpected input to ` + `'add-to-cache-list-duplicate-entries' error.`);
+          throw new TypeError(`Unexpected input to ` + `'add-to-cache-list-duplicate-entries' error.`);
         }
 
         return `Two of the entries passed to ` + `'workbox-precaching.PrecacheController.addToCacheList()' had the URL ` + `${firstEntry} but different revision details. Workbox is ` + `unable to cache and version the asset correctly. Please remove one ` + `of the entries.`;
@@ -167,7 +167,7 @@ define("./workbox-1ffba242.js",['exports'], (function (exports) { 'use strict';
         thrownErrorMessage
       }) => {
         if (!thrownErrorMessage) {
-          throw new Error(`Unexpected input to ` + `'plugin-error-request-will-fetch', error.`);
+          throw new TypeError(`Unexpected input to ` + `'plugin-error-request-will-fetch', error.`);
         }
 
         return `An error was thrown by a plugins 'requestWillFetch()' method. ` + `The thrown error message was: '${thrownErrorMessage}'.`;
@@ -177,7 +177,7 @@ define("./workbox-1ffba242.js",['exports'], (function (exports) { 'use strict';
         value
       }) => {
         if (!cacheNameId) {
-          throw new Error(`Expected a 'cacheNameId' for error 'invalid-cache-name'`);
+          throw new TypeError(`Expected a 'cacheNameId' for error 'invalid-cache-name'`);
         }
 
         return `You must provide a name containing at least one character for ` + `setCacheDetails({${cacheNameId}: '...'}). Received a value of ` + `'${JSON.stringify(value)}'`;
@@ -186,7 +186,7 @@ define("./workbox-1ffba242.js",['exports'], (function (exports) { 'use strict';
         method
       }) => {
         if (!method) {
-          throw new Error(`Unexpected input to ` + `'unregister-route-but-not-found-with-method' error.`);
+          throw new TypeError(`Unexpected input to ` + `'unregister-route-but-not-found-with-method' error.`);
         }
 
         return `The route you're trying to unregister was not  previously ` + `registered for the method type '${method}'.`;
@@ -248,7 +248,7 @@ define("./workbox-1ffba242.js",['exports'], (function (exports) { 'use strict';
         paramName
       }) => {
         if (!paramName || !moduleName || !funcName) {
-          throw new Error(`Unexpected input to 'invalid-string' error.`);
+          throw new TypeError(`Unexpected input to 'invalid-string' error.`);
         }
 
         return `When using strings, the '${paramName}' parameter must start with ` + `'http' (for cross-origin matches) or '/' (for same-origin matches). ` + `Please see the docs for ${moduleName}.${funcName}() for ` + `more info.`;
@@ -266,7 +266,7 @@ define("./workbox-1ffba242.js",['exports'], (function (exports) { 'use strict';
         normalizedRangeHeader
       }) => {
         if (!normalizedRangeHeader) {
-          throw new Error(`Unexpected input to 'unit-must-be-bytes' error.`);
+          throw new TypeError(`Unexpected input to 'unit-must-be-bytes' error.`);
         }
 
         return `The 'unit' portion of the Range header must be set to 'bytes'. ` + `The Range header provided was "${normalizedRangeHeader}"`;
@@ -275,7 +275,7 @@ define("./workbox-1ffba242.js",['exports'], (function (exports) { 'use strict';
         normalizedRangeHeader
       }) => {
         if (!normalizedRangeHeader) {
-          throw new Error(`Unexpected input to 'single-range-only' error.`);
+          throw new TypeError(`Unexpected input to 'single-range-only' error.`);
         }
 
         return `Multiple ranges are not supported. Please use a  single start ` + `value, and optional end value. The Range header provided was ` + `"${normalizedRangeHeader}"`;
@@ -284,7 +284,7 @@ define("./workbox-1ffba242.js",['exports'], (function (exports) { 'use strict';
         normalizedRangeHeader
       }) => {
         if (!normalizedRangeHeader) {
-          throw new Error(`Unexpected input to 'invalid-range-values' error.`);
+          throw new TypeError(`Unexpected input to 'invalid-range-values' error.`);
         }
 
         return `The Range header is missing both start and end values. At least ` + `one of those values is needed. The Range header provided was ` + `"${normalizedRangeHeader}"`;
@@ -363,7 +363,7 @@ define("./workbox-1ffba242.js",['exports'], (function (exports) { 'use strict';
       const message = messages$1[code];
 
       if (!message) {
-        throw new Error(`Unable to find message for code '${code}'.`);
+        throw new TypeError(`Unable to find message for code '${code}'.`);
       }
 
       return message(details);
@@ -2672,7 +2672,7 @@ define("./workbox-1ffba242.js",['exports'], (function (exports) { 'use strict';
           response = await Promise.race(promises);
 
           if (!response) {
-            throw new Error(`Timed out the network response after ` + `${this._networkTimeoutSeconds} seconds.`);
+            throw new TypeError(`Timed out the network response after ` + `${this._networkTimeoutSeconds} seconds.`);
           }
         } catch (err) {
           if (err instanceof Error) {

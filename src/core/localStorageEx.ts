@@ -15,7 +15,7 @@ export default class LocalStorageEx implements IDatabaseProvider {
 
   constructor(db_name: string, version: number) {
     if (!this.supportBrowser())
-      throw new Error('Browser not support for localStorage!');
+      throw new TypeError('Browser not support for localStorage!');
 
     this.name = db_name;
     this.version = version;
@@ -129,6 +129,22 @@ export default class LocalStorageEx implements IDatabaseProvider {
       try {
         if (this.data[storeName])
           return resolve(this.data[storeName].filter((data: Type) => data[keyPath] === key).at(0) || undefined);
+
+        return resolve(undefined);
+      } catch {
+        return reject();
+      }
+    });
+  }
+
+  /**
+  * @description Retorna todas as chaves da store
+  */
+  public storeGetAllKeys(storeName: string): Promise<string[]> {
+    return new Promise((resolve, reject) => {
+      try {
+        if (this.data[storeName])
+          return resolve(Object.keys(this.data[storeName]) || undefined);
 
         return resolve(undefined);
       } catch {
