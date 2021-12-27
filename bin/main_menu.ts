@@ -14,6 +14,7 @@ type menuId =
   | 'mn-helping'
   | 'mn-logout'
   | 'mn-herculesStorage'
+  | 'mn-payback'
 
 export default function getMenu(firstId?: menuId): Menu[] {
   return [
@@ -67,6 +68,42 @@ export default function getMenu(firstId?: menuId): Menu[] {
       },
       name: 'Storage',
       link: '/storage',
+      disabled: true
+    },
+    {
+      id: 'mn-payback',
+      active: firstId === 'mn-payback' ? true : false,
+      icon: {
+        family: 'fas',
+        name: 'file-invoice-dollar',
+      },
+      type: 'dropdown',
+      name: 'Pagamentos',
+      dropdownId: 'navbarDropdown',
+      content: [
+        {
+          id: 'mn-payback-cards',
+          icon: {
+            family: 'fas',
+            name: 'credit-card',
+          },
+          name: 'Cartões',
+          link: '/payback/cards'
+        },
+        {
+          id: 'mn-sp1',
+          type: 'separator',
+        },
+        {
+          id: 'mn-payback-release',
+          icon: {
+            family: 'fas',
+            name: 'money-check-alt',
+          },
+          name: 'Lançamentos',
+          link: '/payback/release'
+        }
+      ]
     },
     {
       id: 'mn-helping',

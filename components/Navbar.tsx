@@ -63,7 +63,7 @@ export default class Navbar extends React.Component<MyProps, MyState> {
               onClick={this.handleImageClick}
             />
             <div className="my-auto flex-fill">
-              <p className="text-center fs-3 fw-bold">
+              <p className="text-center text-secondary fs-3 fw-bold">
                 Ambiente Digital Interativo
               </p>
             </div>

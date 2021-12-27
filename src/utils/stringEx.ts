@@ -1,10 +1,34 @@
 /**
  * @description Métodos essenciais para se trabalhar com textos
  * @author @GuilhermeSantos001
- * @update 10/10/2021
+ * @update 27/12/2021
  */
 
-class String {
+import { v4 as uuidv4 } from 'uuid';
+import { compressToBase64 } from 'lz-string';
+
+class StringEx {
+  /**
+   * @description Retorna um texto representando um identificador único
+   */
+  id(): string {
+    return compressToBase64(uuidv4());
+  }
+
+  /**
+   * @description Retorna o texto usado no campo de data de criação
+   */
+  createdAt(): string {
+    return `Criado em ${new Date().toLocaleDateString()} ás ${new Date().toLocaleTimeString()}`;
+  }
+
+  /**
+   * @description Retorna o texto usado no campo de data de atualização
+   */
+  updatedAt(): string {
+    return `Atualizado em ${new Date().toLocaleDateString()} ás ${new Date().toLocaleTimeString()}`;
+  }
+
   /**
    * @description Verifica se o valor informado está presente no texto
    * @param search Valor a ser procurado
@@ -86,4 +110,4 @@ class String {
   }
 }
 
-export default new String();
+export default new StringEx();

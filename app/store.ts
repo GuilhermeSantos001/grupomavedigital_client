@@ -4,12 +4,17 @@ import { combineReducers } from "redux";
 import { persistReducer } from 'redux-persist'
 import thunk from 'redux-thunk'
 
+// ! Hercules
 import herculesReducer from '@/app/features/hercules/hercules.slice'
 import herculesTreeNavigationReducer from '@/app/features/hercules/treeNavigation.slice'
+
+// ! Payback
+import paybackReducer from '@/app/features/payback/payback.slice'
 
 const reducers = combineReducers({
   hercules: herculesReducer,
   herculesTreeNavigation: herculesTreeNavigationReducer,
+  payback: paybackReducer,
 });
 
 const persistConfig = {
