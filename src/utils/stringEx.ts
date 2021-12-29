@@ -18,15 +18,19 @@ class StringEx {
   /**
    * @description Retorna o texto usado no campo de data de criação
    */
-  createdAt(): string {
-    return `Criado em ${new Date().toLocaleDateString()} ás ${new Date().toLocaleTimeString()}`;
+  createdAt(date?: string): string {
+    const now = date ? new Date(date) : new Date();
+
+    return `Criado em ${now.toLocaleDateString()} ás ${now.toLocaleTimeString()}`;
   }
 
   /**
    * @description Retorna o texto usado no campo de data de atualização
    */
-  updatedAt(): string {
-    return `Atualizado em ${new Date().toLocaleDateString()} ás ${new Date().toLocaleTimeString()}`;
+  updatedAt(date?: string): string {
+    const now = date ? new Date(date) : new Date();
+
+    return `Atualizado em ${now.toLocaleDateString()} ás ${now.toLocaleTimeString()}`;
   }
 
   /**

@@ -1,7 +1,7 @@
 /**
  * @description Componentes da grade do layout da pagina
  * @author @GuilhermeSantos001
- * @update 05/10/2021
+ * @update 29/12/2021
  */
 
 import React from 'react'
@@ -14,6 +14,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
 
 import { Menu } from '@/pages/_app'
+
+import ScrollToTop from '@/components/scrollToTop'
 
 type MyProps = {
   menu: Menu[]
@@ -205,12 +207,8 @@ export default class GridContent extends React.Component<MyProps, MyState> {
           className={`p-2 animation-delay ${this.props.fullwidth ? 'fullwidth' : ''
             }${this.props.menuShow ? 'fullwidth' : ''}`}
         >
-          <a id="buttonToTop">
-            <span className="material-icons" style={{ fontSize: '2rem' }}>
-              keyboard_arrow_up
-            </span>
-          </a>
           {children}
+          <ScrollToTop />
         </div>
       </>
     )

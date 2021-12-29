@@ -58,6 +58,7 @@ export default class Navbar extends React.Component<MyProps, MyState> {
               className="cursor-pointer"
               src="/assets/logo.png"
               alt="Grupo Mave"
+              priority={true}
               width={340}
               height={90}
               onClick={this.handleImageClick}

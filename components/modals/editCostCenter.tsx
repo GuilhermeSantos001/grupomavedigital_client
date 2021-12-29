@@ -1,7 +1,7 @@
 /**
  * @description Modal -> Edita um Centro de Custo
  * @author @GuilhermeSantos001
- * @update 27/12/2021
+ * @update 28/12/2021
  */
 
 import { useState } from 'react'
@@ -34,9 +34,10 @@ export type Props = {
 
 const RegisterCostCenter = (props: Props): JSX.Element => {
   const
-    itemDefault = {
+    itemDefault: CostCenter = {
       id: '',
       title: '',
+      status: 'available',
       createdAt: '',
       updatedAt: '',
     };
@@ -62,7 +63,7 @@ const RegisterCostCenter = (props: Props): JSX.Element => {
   if (item && costCenterItem.id !== item.id) {
     setCostCenterItem({
       ...item,
-      updatedAt: StringEx.updatedAt()
+      updatedAt: new Date().toISOString()
     });
 
     if (textUpdateTitle !== item.title)
@@ -90,7 +91,7 @@ const RegisterCostCenter = (props: Props): JSX.Element => {
             placeholder="Data de Registro"
             aria-label="Data de Registro"
             aria-describedby="createdAt-addon"
-            value={costCenterItem.createdAt}
+            value={StringEx.createdAt(costCenterItem.createdAt)}
             disabled={true}
           />
         </div>
@@ -107,7 +108,7 @@ const RegisterCostCenter = (props: Props): JSX.Element => {
             placeholder="Data de Atualização"
             aria-label="Data de Atualização"
             aria-describedby="updatedAt-addon"
-            value={costCenterItem.updatedAt}
+            value={StringEx.updatedAt(costCenterItem.updatedAt)}
             disabled={true}
           />
         </div>

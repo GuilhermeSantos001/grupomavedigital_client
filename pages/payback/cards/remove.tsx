@@ -6,6 +6,8 @@
 
 import React, { useEffect, useState } from 'react'
 
+import { Offcanvas } from 'react-bootstrap'
+
 import { useRouter } from 'next/router'
 
 import SkeletonLoader from 'tiny-skeleton-loader-react'
@@ -16,9 +18,7 @@ import Icon from '@/src/utils/fontAwesomeIcons'
 import RenderPageError from '@/components/renderPageError'
 import NoPrivilege from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
-import SelectCostCenter from '@/components/inputs/selectCostCenter'
-import ModalRegisterCostCenter from '@/components/modals/registerCostCenter'
-import ModalEditCostCenter from '@/components/modals/editCostCenter'
+import ListWithFiveColumns from '@/components/lists/listwithFiveColumns'
 
 import { PageProps } from '@/pages/_app'
 import PageMenu from '@/bin/main_menu'
@@ -33,7 +33,7 @@ import StringEx from '@/src/utils/stringEx'
 import { useAppSelector, useAppDispatch } from '@/app/hooks'
 
 import {
-  appendItemLot
+  removeItemLot
 } from '@/app/features/payback/payback.slice'
 
 import type {
@@ -42,8 +42,8 @@ import type {
 } from '@/app/features/payback/payback.slice'
 
 const serverSideProps: PageProps = {
-  title: 'Pagamentos/Cartões Benefício/Cadastro',
-  description: 'Adição de cartões de benefício',
+  title: 'Pagamentos/Cartões Benefício/Remoção',
+  description: 'Remoção de cartões beneficio',
   themeColor: '#004a6e',
   menu: PageMenu('mn-payback')
 }
@@ -293,64 +293,25 @@ function compose_noAuth(handleClick) {
 
 function compose_ready(
   handleClickBackPage: () => void,
-  showModalRegisterCostCenter: boolean,
-  showModalEditCostCenter: boolean,
-  handleShowModalRegisterCostCenter: () => void,
-  handleCloseModalRegisterCostCenter: () => void,
-  handleShowModalEditCostCenter: () => void,
-  handleCloseModalEditCostCenter: () => void,
-  costCenter: string,
-  handleDefineCostCenter: (e: any) => void,
-  handleResetCostCenter: () => void,
-  costCenters: CostCenter[],
-  numLot: number,
-  handleChangeNumLot: (val: number) => void,
-  numSerialNumber: number,
-  handleChangeNumSerialNumber: (val: number) => void,
-  numLastCardNumber: number,
-  handleChangeNumLastCardNumber: (val: number) => void,
   lotItems: LotItem[],
-  handleRegister: (lotItem: LotItem) => {
-    payload: LotItem;
+  costCenters: CostCenter[],
+  removeMultipleLotItems: (items: string[]) => void,
+  removeLotItem: (id: string) => {
+    payload: string;
     type: string;
-  }
+  },
+  showCanvasDateInfo: boolean,
+  openCanvasDateInfo: () => void,
+  closeCanvasDateInfo: () => void,
+  textTitleCanvasDateInfo: string,
+  textCreatedAt: string,
+  textUpdatedAt: string,
+  handleChangeTextTitleCanvasDateInfo: (text: string) => void,
+  handleChangeTextCreatedAt: (text: string) => void,
+  handleChangeTextUpdatedAt: (text: string) => void,
 ) {
-  const
-    enableCancel = () => {
-      if (
-        numLot > 0 ||
-        numSerialNumber > 0 ||
-        numLastCardNumber > 0 ||
-        costCenter !== ''
-      ) {
-        return true
-      }
-
-      return false
-    },
-    enableRegister = () => {
-      if (
-        numLot === 0 ||
-        numSerialNumber === 0 ||
-        numLastCardNumber === 0 ||
-        costCenter === ''
-      ) {
-        return false
-      }
-
-      return true
-    },
-    handleCancel = () => {
-      handleChangeNumLot(0);
-      handleChangeNumSerialNumber(0);
-      handleChangeNumLastCardNumber(0);
-      handleResetCostCenter();
-    }
-
   return (
     <>
-      <ModalRegisterCostCenter show={showModalRegisterCostCenter} handleClose={handleCloseModalRegisterCostCenter} />
-      <ModalEditCostCenter show={showModalEditCostCenter} costCenter={costCenter} handleResetCostCenter={handleResetCostCenter} handleClose={handleCloseModalEditCostCenter} />
       <div className="row g-2">
         <div className="col-12">
           <div className="p-3 bg-primary bg-gradient rounded">
@@ -359,7 +320,7 @@ function compose_ready(
                 icon={Icon.render('fas', 'registered')}
                 className="me-2 fs-3 flex-shrink-1 text-secondary my-auto"
               />
-              Registrar Lote
+              Remover Lote
             </p>
           </div>
           <button
@@ -370,155 +331,220 @@ function compose_ready(
             Voltar
           </button>
           <p className="fw-bold border-bottom text-center my-2">
-            Data de Criação {'&'} Código do Lote
+            Lotes Disponíveis
           </p>
-          <div className='d-flex flex-column flex-md-row'>
-            <div className="input-group my-2 m-md-2">
-              <span className="input-group-text" id="date-addon">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'calendar-day')}
-                  className="m-auto fs-3 flex-shrink-1 text-primary"
-                />
-              </span>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Data de Registro"
-                aria-label="Data de Registro"
-                aria-describedby="date-addon"
-                value={StringEx.createdAt()}
-                disabled={true}
-              />
-            </div>
-            <div className="input-group my-2 m-md-2">
-              <span className="input-group-text" id="code-addon">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'key')}
-                  className="m-auto fs-3 flex-shrink-1 text-primary"
-                />
-              </span>
-              <input
-                type="number"
-                className="form-control"
-                placeholder="Código do lote"
-                aria-label="Código do lote"
-                aria-describedby="code-addon"
-                min={0}
-                value={String(numLot).padStart(9, '0')}
-                onChange={(e) => handleChangeNumLot(Number(e.target.value))}
-              />
-            </div>
-          </div>
-          <p className="fw-bold border-bottom text-center my-2">
-            Centro de Custo {'&'} Número de Série
-          </p>
-          <div className='d-flex flex-column flex-md-row'>
-            <SelectCostCenter
-              costCenter={costCenter}
-              costCenters={costCenters}
-              handleDefineCostCenter={handleDefineCostCenter}
-              handleShowModalEditCostCenter={handleShowModalEditCostCenter}
-              handleShowModalRegisterCostCenter={handleShowModalRegisterCostCenter}
-            />
-            <div className="input-group my-2 m-md-2">
-              <span className="input-group-text" id="serialNumber-addon">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'sort-numeric-up')}
-                  className="m-auto fs-3 flex-shrink-1 text-primary"
-                />
-              </span>
-              <input
-                type="number"
-                className="form-control"
-                placeholder="Número de Série"
-                aria-label="Número de Série"
-                aria-describedby="serialNumber-addon"
-                min={0}
-                value={String(numSerialNumber).padStart(15, '0')}
-                onChange={(e) => handleChangeNumSerialNumber(Number(e.target.value))}
-              />
-            </div>
-          </div>
-          <p className="fw-bold border-bottom text-center my-2">
-            4 Últimos Dígitos do Número do Cartão
-          </p>
-          <div className='d-flex flex-column flex-md-row'>
-            <div className="input-group my-2 m-md-2">
-              <span className="input-group-text" id="lastCardNumber-addon">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'credit-card')}
-                  className="m-auto fs-3 flex-shrink-1 text-primary"
-                />
-              </span>
-              <input
-                type="number"
-                className="form-control"
-                placeholder="4 Últimos Dígitos do Número do Cartão"
-                aria-label="4 Últimos Dígitos do Número do Cartão"
-                aria-describedby="lastCardNumber-addon"
-                min={0}
-                value={String(numLastCardNumber).padStart(4, '0')}
-                onChange={(e) => handleChangeNumLastCardNumber(Number(e.target.value))}
-              />
-            </div>
-          </div>
-          <div className='d-flex flex-column flex-md-row justify-content-end px-2 my-2'>
-            <div className="btn-group" role="group" aria-label="Basic example">
-              <button
-                type="button"
-                className="btn btn-danger"
-                onClick={handleCancel}
-                disabled={enableCancel() ? false : true}
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => {
-                  if (lotItems.filter(lot => lot.serialNumber === String(numSerialNumber).padStart(15, '0')).length > 0)
-                    return Alerting.create('Já existe um lote com esse número de série!');
+          {canvas_dateInfo(
+            showCanvasDateInfo,
+            closeCanvasDateInfo,
+            textTitleCanvasDateInfo,
+            textCreatedAt,
+            textUpdatedAt,
+          )}
+          <ListWithFiveColumns
+            noItemsMessage='Nenhum lote disponível.'
+            pagination={{
+              page: 1,
+              limit: 20,
+              paginationLimit: 10
+            }}
+            columns={[
+              {
+                title: 'Código do Lote',
+                size: '2'
+              },
+              {
+                title: 'Número de Série',
+                size: '3'
+              },
+              {
+                title: 'Centro de Custo',
+                size: '2'
+              },
+              {
+                title: '4 Últimos Dígitos do Cartão',
+                size: ''
+              }
+            ]}
+            actionMenu={{
+              actions: [
+                {
+                  title: 'Deletar',
+                  icon: {
+                    prefix: 'fas',
+                    name: 'trash'
+                  },
+                  enabled: true,
+                  handleClick: (items) => {
+                    const filter = items.filter(item => {
+                      const lot = lotItems.find(lot => lot.serialNumber === item);
 
-                  if (lotItems.filter(lot => lot.lastCardNumber === String(numLastCardNumber).padStart(4, '0')).length > 0)
-                    return Alerting.create('Já existe um lote com os mesmos 4 últimos dígitos do número do cartão!');
+                      return lot.status === 'available';
+                    });
 
-                  handleRegister({
-                    id: String(numLot).padStart(9, '0'),
-                    costCenter,
-                    serialNumber: String(numSerialNumber).padStart(15, '0'),
-                    lastCardNumber: String(numLastCardNumber).padStart(4, '0'),
-                    status: 'available',
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
-                  });
+                    if (filter.length > 0)
+                      removeMultipleLotItems(filter)
+                    else
+                      Alerting.create('Nenhum lote pode ser removido.')
+                  }
+                },
+              ]
+            }}
+            lines={[...lotItems]
+              // ? Classifica os itens disponíveis
+              .filter(item => item.status === 'available')
+              // ? Classifica por data de criação
+              .sort((a, b) => {
+                if (new Date(a.createdAt) < new Date(b.createdAt))
+                  return 1;
+                else if (new Date(a.createdAt) === new Date(b.createdAt))
+                  return 0;
+                else
+                  return -1;
+              })
+              // ? Classifica por Centro de Custo
+              .sort((a, b) => {
+                const
+                  costCenterA = costCenters.find(c => c.id === a.costCenter).title,
+                  costCenterB = costCenters.find(c => c.id === b.costCenter).title;
 
-                  Alerting.create('Lote registrado com sucesso!');
-                }}
-                disabled={enableRegister() ? false : true}
-              >
-                Registrar
-              </button>
-            </div>
-          </div>
+                return costCenterA.localeCompare(costCenterB);
+              })
+              .map(item => {
+                return {
+                  id: item.serialNumber,
+                  values: [
+                    {
+                      data: item.id,
+                      size: '2'
+                    },
+                    {
+                      data: item.serialNumber,
+                      size: '3'
+                    },
+                    {
+                      data: costCenters.find(costCenter => costCenter.id === item.costCenter).title,
+                      size: '2'
+                    },
+                    {
+                      data: item.lastCardNumber,
+                      size: '2'
+                    }
+                  ],
+                  actions: [
+                    {
+                      icon: {
+                        prefix: 'fas',
+                        name: 'calendar-day'
+                      },
+                      enabled: true,
+                      handleClick: () => {
+                        handleChangeTextTitleCanvasDateInfo(`Número de Série: ${item.serialNumber}`);
+                        handleChangeTextCreatedAt(StringEx.createdAt(item.createdAt));
+                        handleChangeTextUpdatedAt(StringEx.updatedAt(item.updatedAt));
+                        openCanvasDateInfo();
+                      },
+                      popover: {
+                        title: 'Data de Criação & Atualização',
+                        description: 'Informações sobre a data de criação e atualização do lote.'
+                      }
+                    },
+                    {
+                      icon: {
+                        prefix: 'fas',
+                        name: 'user-tag'
+                      },
+                      enabled: item.userAssigned?.length <= 0 ? true : false,
+                      handleClick: () => console.log('Hello World 2'),
+                      popover: {
+                        title: 'Usuário Atribuído',
+                        description: 'Informações sobre o usuário atribuído ao lote.'
+                      }
+                    },
+                    {
+                      icon: {
+                        prefix: 'fas',
+                        name: 'trash'
+                      },
+                      enabled: item.status === 'available',
+                      handleClick: () => removeLotItem(item.serialNumber),
+                      popover: {
+                        title: 'Remova o lote',
+                        description: 'Você pode remover lotes que ainda estão disponíveis.'
+                      }
+                    }
+                  ]
+                }
+              })}
+          />
         </div>
       </div>
     </>
   )
 }
 
-const Register = (): JSX.Element => {
+function canvas_dateInfo(
+  show: boolean,
+  handleClose: () => void,
+  textTitle: string,
+  createdAt: string,
+  updatedAt: string,
+) {
+  return (
+    <Offcanvas show={show} onHide={handleClose} placement='end'>
+      <Offcanvas.Header className='bg-primary bg-gradient fw-bold text-secondary' closeButton closeVariant='white'>
+        <Offcanvas.Title className='text-truncate'>{textTitle}</Offcanvas.Title>
+      </Offcanvas.Header>
+      <Offcanvas.Body>
+        <div className="input-group my-3">
+          <span className="input-group-text" id="createdAt-addon1">
+            <FontAwesomeIcon
+              icon={Icon.render('fas', 'calendar-day')}
+              className="me-2 fs-3 flex-shrink-1 text-primary my-auto"
+            />
+          </span>
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Data de Criação"
+            aria-label="Data de Criação"
+            aria-describedby="createdAt-addon1"
+            value={createdAt}
+            readOnly={true}
+          />
+        </div>
+        <div className="input-group my-3">
+          <span className="input-group-text" id="updatedAt-addon1">
+            <FontAwesomeIcon
+              icon={Icon.render('fas', 'calendar-week')}
+              className="me-2 fs-3 flex-shrink-1 text-primary my-auto"
+            />
+          </span>
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Data de Atualização"
+            aria-label="Data de Atualização"
+            aria-describedby="updatedAt-addon1"
+            value={updatedAt}
+            readOnly={true}
+          />
+        </div>
+      </Offcanvas.Body>
+    </Offcanvas>
+  )
+}
+
+const Remove = (): JSX.Element => {
   const [isReady, setReady] = useState<boolean>(false)
   const [isError, setError] = useState<boolean>(false)
   const [notPrivilege, setNotPrivilege] = useState<boolean>(false)
   const [notAuth, setNotAuth] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(true)
 
-  const [showModalRegisterCostCenter, setShowModalRegisterCostCenter] = useState<boolean>(false)
-  const [showModalEditCostCenter, setShowModalEditCostCenter] = useState<boolean>(false)
-  const [costCenter, setCostCenter] = useState<string>('')
-  const [numLot, setNumLot] = useState<number>(0)
-  const [numSerialNumber, setNumSerialNumber] = useState<number>(0)
-  const [numLastCardNumber, setNumLastCardNumber] = useState<number>(0)
+  const [showCanvasDateInfo, setShowModalDateInfo] = useState<boolean>(false)
+  const [textTitleCanvasDateInfo, setTextTitleCanvasDateInfo] = useState<string>('')
+  const [textCreatedAt, setTextCreatedAt] = useState<string>('')
+  const [textUpdatedAt, setTextUpdatedAt] = useState<string>('')
 
   const
     dispatch = useAppDispatch(),
@@ -544,30 +570,13 @@ const Register = (): JSX.Element => {
       router.push(path)
     },
     handleClickBackPage = () => router.push('/payback/cards'),
-    handleShowModalRegisterCostCenter = () => setShowModalRegisterCostCenter(true),
-    handleCloseModalRegisterCostCenter = () => setShowModalRegisterCostCenter(false),
-    handleShowModalEditCostCenter = () => setShowModalEditCostCenter(true),
-    handleCloseModalEditCostCenter = () => setShowModalEditCostCenter(false),
-    handleDefineCostCenter = (title: string) => {
-      if (title === 'Centro de Custo')
-        setCostCenter('');
-      else
-        setCostCenter(title);
-    },
-    handleResetCostCenter = () => setCostCenter(''),
-    handleChangeNumLot = (val: number) => {
-      if (String(val).length <= 9)
-        setNumLot(val);
-    },
-    handleChangeSerialNumber = (val: number) => {
-      if (String(val).length <= 15)
-        setNumSerialNumber(val);
-    },
-    handleChangeLastCardNumber = (val: number) => {
-      if (String(val).length <= 4)
-        setNumLastCardNumber(val);
-    },
-    handleRegister = (lotItem: LotItem) => dispatch(appendItemLot(lotItem));
+    removeMultipleLotItems = (items: string[]) => items.forEach(item => dispatch(removeItemLot(item))),
+    removeLotItem = (id: string) => dispatch(removeItemLot(id)),
+    openCanvasDateInfo = () => setShowModalDateInfo(true),
+    closeCanvasDateInfo = () => setShowModalDateInfo(false),
+    handleChangeTextTitleCanvasDateInfo = (text: string) => setTextTitleCanvasDateInfo(text),
+    handleChangeTextCreatedAt = (text: string) => setTextCreatedAt(text),
+    handleChangeTextUpdatedAt = (text: string) => setTextUpdatedAt(text)
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -602,25 +611,20 @@ const Register = (): JSX.Element => {
 
   if (isReady) return compose_ready(
     handleClickBackPage,
-    showModalRegisterCostCenter,
-    showModalEditCostCenter,
-    handleShowModalRegisterCostCenter,
-    handleCloseModalRegisterCostCenter,
-    handleShowModalEditCostCenter,
-    handleCloseModalEditCostCenter,
-    costCenter,
-    handleDefineCostCenter,
-    handleResetCostCenter,
-    costCenters,
-    numLot,
-    handleChangeNumLot,
-    numSerialNumber,
-    handleChangeSerialNumber,
-    numLastCardNumber,
-    handleChangeLastCardNumber,
     lotItems,
-    handleRegister
+    costCenters,
+    removeMultipleLotItems,
+    removeLotItem,
+    showCanvasDateInfo,
+    openCanvasDateInfo,
+    closeCanvasDateInfo,
+    textTitleCanvasDateInfo,
+    textCreatedAt,
+    textUpdatedAt,
+    handleChangeTextTitleCanvasDateInfo,
+    handleChangeTextCreatedAt,
+    handleChangeTextUpdatedAt,
   )
 }
 
-export default Register
+export default Remove

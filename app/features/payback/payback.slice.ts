@@ -6,11 +6,15 @@
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
+declare type Status = 'available' | 'unavailable' | 'blocked'
+
 export type LotItem = {
   id: string
   costCenter: string
   serialNumber: string
   lastCardNumber: string
+  userAssigned?: string
+  status: Status
   createdAt: string
   updatedAt: string
 }
@@ -18,6 +22,7 @@ export type LotItem = {
 export type CostCenter = {
   id: string
   title: string
+  status: Status
   createdAt: string
   updatedAt: string
 }
@@ -41,7 +46,7 @@ export const reducerSlice = createSlice({
       if (!state.lotItems)
         state.lotItems = [];
 
-      if (state.lotItems.filter(item => item.id === action.payload.id).length <= 0)
+      if (state.lotItems.filter(item => item.serialNumber === action.payload.serialNumber || item.lastCardNumber === action.payload.lastCardNumber).length <= 0)
         state.lotItems.push(action.payload);
     },
     // ? Usado para editar um item do lote
@@ -49,7 +54,7 @@ export const reducerSlice = createSlice({
       if (!state.lotItems)
         state.lotItems = [];
 
-      const index = state.lotItems.findIndex(item => item.id === action.payload.id);
+      const index = state.lotItems.findIndex(item => item.serialNumber === action.payload.id);
 
       if (index !== -1)
         state.lotItems[index] = action.payload;
@@ -59,7 +64,7 @@ export const reducerSlice = createSlice({
       if (!state.lotItems)
         state.lotItems = [];
 
-      state.lotItems = state.lotItems.filter(item => item.id !== action.payload);
+      state.lotItems = state.lotItems.filter(item => item.serialNumber !== action.payload);
     },
     // ? Usado para limpar o lote
     clearLot: (state) => {
