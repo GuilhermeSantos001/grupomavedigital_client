@@ -19,9 +19,14 @@ module.exports = {
   moduleNameMapper: {
     '\\.(css|less|sass|scss)$': 'identity-obj-proxy',
     '\\.(gif|ttf|eot|svg|png)$': '<rootDir>/test/__mocks__/fileMock.js',
+    "^@/bin/(.+)$": "<rootDir>/bin/$1",
+    "^@/app/(.+)$": "<rootDir>/app/$1",
+    "^@/context/(.+)$": "<rootDir>/context/$1",
+    "^@/lib/(.+)$": "<rootDir>/lib/$1",
     "^@/components/(.+)$": "<rootDir>/components/$1",
     "^@/pages/(.+)$": "<rootDir>/pages/$1",
     "^@/src/(.+)$": "<rootDir>/src/$1",
+    "^@/styles/(.+)$": "<rootDir>/styles/$1",
   },
   modulePathIgnorePatterns: ["<rootDir>/cypress/"]
 }

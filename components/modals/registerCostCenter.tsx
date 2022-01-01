@@ -1,7 +1,7 @@
 /**
- * @description Modal -> Registra un centro de costo
+ * @description Modal -> Registra um centro de custo
  * @author @GuilhermeSantos001
- * @update 28/12/2021
+ * @update 29/12/2021
  */
 
 import { useState } from 'react'
@@ -18,11 +18,11 @@ import { useAppDispatch } from '@/app/hooks'
 
 import {
   appendCostCenter
-} from '@/app/features/payback/payback.slice'
+} from '@/app/features/system/system.slice'
 
 import type {
   CostCenter
-} from '@/app/features/payback/payback.slice'
+} from '@/app/features/system/system.slice'
 
 export type Props = {
   show: boolean

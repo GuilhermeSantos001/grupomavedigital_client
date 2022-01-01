@@ -4,8 +4,13 @@
     "baseUrl": ".",
     "paths": {
       "@/bin/*": ["bin/*"],
+      "@/app/*": ["app/*"],
+      "@/context/*": ["context/*"],
+      "@/lib/*": ["lib/*"],
       "@/components/*": ["components/*"],
+      "@/pages/*": ["pages/*"],
       "@/src/*": ["src/*"],
+      "@/styles/*": ["styles/*"],
       "@/modules/*": ["modules/*"]
     }
   }

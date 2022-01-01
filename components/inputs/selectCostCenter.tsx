@@ -1,7 +1,7 @@
 /**
  * @description Input -> Seleciona um centro de custo
  * @author @GuilhermeSantos001
- * @update 27/12/2021
+ * @update 29/12/2021
  */
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -9,7 +9,7 @@ import Icon from '@/src/utils/fontAwesomeIcons'
 
 import type {
   CostCenter
-} from '@/app/features/payback/payback.slice'
+} from '@/app/features/system/system.slice'
 
 export type Props = {
   costCenter: string
@@ -19,8 +19,7 @@ export type Props = {
   handleShowModalRegisterCostCenter: () => void
 }
 
-const RegisterCostCenter = (props: Props): JSX.Element => {
-
+const SelectCostCenter = (props: Props): JSX.Element => {
   return (
     <div className="input-group my-2 m-md-2">
       <span className="input-group-text" id="costCenter-addon">
@@ -57,4 +56,4 @@ const RegisterCostCenter = (props: Props): JSX.Element => {
   )
 }
 
-export default RegisterCostCenter
+export default SelectCostCenter

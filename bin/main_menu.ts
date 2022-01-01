@@ -95,13 +95,13 @@ export default function getMenu(firstId?: menuId): Menu[] {
           type: 'separator',
         },
         {
-          id: 'mn-payback-release',
+          id: 'mn-payback-postings',
           icon: {
             family: 'fas',
             name: 'money-check-alt',
           },
           name: 'Lançamentos',
-          link: '/payback/release'
+          link: '/payback/postings'
         }
       ]
     },

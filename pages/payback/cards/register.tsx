@@ -37,9 +37,12 @@ import {
 } from '@/app/features/payback/payback.slice'
 
 import type {
-  LotItem,
-  CostCenter
+  LotItem
 } from '@/app/features/payback/payback.slice'
+
+import type {
+  CostCenter
+} from '@/app/features/system/system.slice'
 
 const serverSideProps: PageProps = {
   title: 'Pagamentos/Cartões Benefício/Cadastro',
@@ -522,7 +525,7 @@ const Register = (): JSX.Element => {
 
   const
     dispatch = useAppDispatch(),
-    costCenters = useAppSelector((state) => state.payback.costCenters || []),
+    costCenters = useAppSelector((state) => state.system.costCenters || []),
     lotItems = useAppSelector((state) => state.payback.lotItems || [])
 
   const router = useRouter()

@@ -40,6 +40,9 @@
       ],
       "@/src/*": [
         "src/*"
+      ],
+      "@/styles/*": [
+        "styles/*"
       ]
     },
     "incremental": true

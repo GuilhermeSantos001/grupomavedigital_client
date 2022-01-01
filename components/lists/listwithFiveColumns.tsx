@@ -128,7 +128,6 @@ const ListwithFiveColumns = (props: Props): JSX.Element => {
     totalJumpPaginationExceed = totalPages / totalPagination,
     exceedPagination = () => totalPages > totalPagination,
     handlePageChange = (page: number) => {
-      window.scrollTo(0, 0);
       setCurrentPage(page <= totalPages ? page : totalPages);
       resetSelections();
     },
@@ -191,7 +190,14 @@ const ListwithFiveColumns = (props: Props): JSX.Element => {
   return (
     <>
       {actionMenu}
-      <ul className="list-group col-12 p-2 my-2">
+      <div className='d-lg-none'>
+        <div className='d-flex flex-row justify-content-center border'>
+          <p className='m-auto p-2 text-muted'>
+            Não é possível exibir a lista em tela pequena.
+          </p>
+        </div>
+      </div>
+      <ul className="d-none d-lg-block list-group col-12 p-2 my-2">
         <li className="list-group-item d-flex flex-row bg-primary bg-gradient text-white">
           <input
             className="form-check-input col-1 my-auto"
@@ -231,6 +237,7 @@ const ListwithFiveColumns = (props: Props): JSX.Element => {
               aria-label="Procurar..."
               aria-describedby="search-addon"
               value={textSearch}
+              disabled={props.lines.length === 0}
               onChange={(e) => {
                 if (currentPage > 1) {
                   setCurrentJumpPaginationExceed(1);
@@ -295,10 +302,14 @@ const ListwithFiveColumns = (props: Props): JSX.Element => {
             <p className='text-muted text-center p-2'>{props.noItemsMessage}</p>
         }
       </ul>
-      <nav aria-label="Page navigation">
+      <nav className={`d-none ${lines.length > 0 ? 'd-lg-block' : ''}`} aria-label="Page navigation">
         <div className='d-flex flex-row px-5'>
           <p className='text-muted p-2 w-100'>
-            😃 Exibindo {getFirstPagination()} de {getLastPagination()} Resultados!
+            📌 Exibindo as páginas de <b className='text-primary fw-bold'>{getFirstPagination()}</b> até <b className='text-primary fw-bold'>{getLastPagination()}</b>. <br />
+            📌 <b className='text-primary fw-bold'>{totalPages}</b> páginas encontradas. <br />
+            📌 <b className='text-primary fw-bold'>{totalPagination}</b> páginas selecionais por vez. <br />
+            📌 <b className='text-primary fw-bold'>{lines.length}</b> itens retornados por página. <br />
+            📌 <b className='text-primary fw-bold'>{props.lines.length}</b> itens disponíveis.
           </p>
           <ul className="pagination flex-shrink-1">
             <li className={`page-item ${hasPreviousPage() ? '' : 'disabled'}`}>

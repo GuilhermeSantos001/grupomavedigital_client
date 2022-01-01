@@ -210,12 +210,6 @@ function MyApp({ Component, pageProps }: AppProps) {
           href="/favicon/favicon256.png"
           key="appleIcon256"
         />
-        <link
-          rel="stylesheet"
-          type="text/css"
-          href="https://fonts.googleapis.com/icon?family=Material+Icons"
-          key="materialIcons"
-        />
       </Head>
       <Script
         src="/javascripts/plugins/please-wait.min.js"

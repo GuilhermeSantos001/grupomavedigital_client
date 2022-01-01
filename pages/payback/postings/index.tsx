@@ -1,5 +1,5 @@
 /**
- * @description Payback -> Cartões Beneficio (Alelo)
+ * @description Payback -> Lançamentos Financeiros
  * @author @GuilhermeSantos001
  * @update 29/12/2021
  */
@@ -28,8 +28,8 @@ import { tokenValidate } from '@/src/functions/tokenValidate'
 import hasPrivilege from '@/src/functions/hasPrivilege'
 
 const serverSideProps: PageProps = {
-  title: 'Pagamentos/Cartões Benefício',
-  description: 'Cartões Benefício',
+  title: 'Pagamentos/Lançamentos Financeiros',
+  description: 'Lançamentos Financeiros',
   themeColor: '#004a6e',
   menu: PageMenu('mn-payback')
 }
@@ -125,16 +125,16 @@ function compose_ready() {
         <div className="p-3 bg-primary bg-gradient rounded">
           <p className="text-center text-secondary fw-bold fs-5 my-2">
             <FontAwesomeIcon
-              icon={Icon.render('fas', 'id-card')}
+              icon={Icon.render('fas', 'money-check-alt')}
               className="me-2 fs-3 flex-shrink-1 text-secondary my-auto"
-            /> Alelo - Cartões Benefício
+            /> Lançamentos Financeiros
           </p>
         </div>
         <div className="p-3 bg-light-gray rounded overflow-auto">
           <div className="my-1 text-primary">
             <div className='d-flex align-items-center justify-content-center col-12 bg-primary bg-gradient rounded p-2'>
               <p className='fs-5 my-auto text-secondary fw-bold text-center'>
-                Lotes
+                Operacional
               </p>
             </div>
             <div className='d-flex flex-column flex-md-row align-items-center border-bottom my-3'>
@@ -143,24 +143,24 @@ function compose_ready() {
                   icon={Icon.render('fas', 'plus-square')}
                   className="me-1 flex-shrink-1 my-auto"
                 />
-                <Link href="/payback/cards/register">Registrar Lote</Link>
+                <Link href="/payback/postings/register">Registrar Lançamento</Link>
               </p>
               <hr />
               <p className="text-center text-md-start px-2 fs-6 fw-bold">
                 <FontAwesomeIcon
-                  icon={Icon.render('fas', 'minus-square')}
+                  icon={Icon.render('fas', 'user-shield')}
                   className="me-1 flex-shrink-1 my-auto"
                 />
-                <Link href="/payback/cards/remove">Remover Lote</Link>
+                <Link href="/payback/postings/check">Apurar Lançamentos</Link>
               </p>
               <hr />
               <p className="text-center text-md-start px-2 fs-6 fw-bold">
                 <FontAwesomeIcon
-                  icon={Icon.render('fas', 'search')}
+                  icon={Icon.render('fas', 'history')}
                   className="me-1 flex-shrink-1 my-auto"
                 />
-                <Link href="/payback/cards/lots">
-                  Verificar Lotes
+                <Link href="/payback/postings/history">
+                  Histórico de Lançamentos
                 </Link>
               </p>
               <hr />
@@ -293,7 +293,7 @@ function compose_ready() {
   )
 }
 
-const Cards = (): JSX.Element => {
+const Postings = (): JSX.Element => {
   const [isReady, setReady] = useState<boolean>(false)
   const [isError, setError] = useState<boolean>(false)
   const [notPrivilege, setNotPrivilege] = useState<boolean>(false)
@@ -328,7 +328,7 @@ const Cards = (): JSX.Element => {
         setLoading(false)
       } else {
         try {
-          if (!(await hasPrivilege('administrador', 'fin_gerente', 'fin_assistente'))) setNotPrivilege(true)
+          if (!(await hasPrivilege('administrador', 'fin_gerente', 'fin_assistente', 'ope_gerente', 'ope_coordenador', 'ope_mesa'))) setNotPrivilege(true)
 
           setReady(true)
           return setLoading(false)
@@ -353,4 +353,4 @@ const Cards = (): JSX.Element => {
   if (isReady) return compose_ready()
 }
 
-export default Cards
+export default Postings

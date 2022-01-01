@@ -37,9 +37,12 @@ import {
 } from '@/app/features/payback/payback.slice'
 
 import type {
-  LotItem,
-  CostCenter
+  LotItem
 } from '@/app/features/payback/payback.slice'
+
+import type {
+  CostCenter
+} from '@/app/features/system/system.slice'
 
 const serverSideProps: PageProps = {
   title: 'Pagamentos/Cartões Benefício/Remoção',
@@ -56,6 +59,7 @@ export const getServerSideProps = async () => {
   }
 }
 
+// TODO: Implementar o esqueleto de loading da página
 function compose_load() {
   return (
     <div>
@@ -344,7 +348,7 @@ function compose_ready(
             noItemsMessage='Nenhum lote disponível.'
             pagination={{
               page: 1,
-              limit: 20,
+              limit: 10,
               paginationLimit: 10
             }}
             columns={[
@@ -454,6 +458,7 @@ function compose_ready(
                         name: 'user-tag'
                       },
                       enabled: item.userAssigned?.length <= 0 ? true : false,
+                      // TODO: Implementar ação para ver o usuário vinculado ao lote
                       handleClick: () => console.log('Hello World 2'),
                       popover: {
                         title: 'Usuário Atribuído',
@@ -548,7 +553,7 @@ const Remove = (): JSX.Element => {
 
   const
     dispatch = useAppDispatch(),
-    costCenters = useAppSelector((state) => state.payback.costCenters || []),
+    costCenters = useAppSelector((state) => state.system.costCenters || []),
     lotItems = useAppSelector((state) => state.payback.lotItems || [])
 
   const router = useRouter()

@@ -1,7 +1,7 @@
 /**
  * @description Modal -> Edita um Centro de Custo
  * @author @GuilhermeSantos001
- * @update 28/12/2021
+ * @update 29/12/2021
  */
 
 import { useState } from 'react'
@@ -19,11 +19,11 @@ import { useAppSelector, useAppDispatch } from '@/app/hooks'
 import {
   editCostCenter,
   removeCostCenter
-} from '@/app/features/payback/payback.slice'
+} from '@/app/features/system/system.slice'
 
 import type {
   CostCenter
-} from '@/app/features/payback/payback.slice'
+} from '@/app/features/system/system.slice'
 
 export type Props = {
   show: boolean
@@ -47,13 +47,22 @@ const RegisterCostCenter = (props: Props): JSX.Element => {
 
   const
     dispatch = useAppDispatch(),
-    costCenters = useAppSelector((state) => state.payback.costCenters || []);
+    costCenters = useAppSelector((state) => state.system.costCenters || []),
+    lotItems = useAppSelector((state) => state.payback.lotItems || []),
+    postings = useAppSelector((state) => state.payback.postings || []);
 
   const
     handleCloseEx = (): void => {
       setCostCenterItem(itemDefault);
       setTextUpdateTitle('');
       props.handleClose();
+    },
+    canDeleteCostCenter = (itemId: string) => {
+      const
+        lotItem = lotItems.find((item) => item.costCenter === itemId),
+        posting = postings.find((item) => item.costCenter === itemId);
+
+      return lotItem === undefined && posting === undefined;
     },
     updateCostCenter = (item: CostCenter) => dispatch(editCostCenter(item)),
     deleteCostCenter = (itemId: string) => dispatch(removeCostCenter(itemId));
@@ -151,7 +160,7 @@ const RegisterCostCenter = (props: Props): JSX.Element => {
         <Button variant="secondary" onClick={handleCloseEx}>
           Cancelar
         </Button>
-        <Button variant="danger" onClick={() => {
+        <Button variant="danger" disabled={!canDeleteCostCenter(costCenterItem.id) || costCenterItem.status !== 'available'} onClick={() => {
           deleteCostCenter(costCenterItem.id);
           props.handleResetCostCenter();
           handleCloseEx();
