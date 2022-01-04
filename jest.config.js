@@ -3,6 +3,10 @@
  * https://jestjs.io/docs/configuration
  */
 
+const {
+  resolve
+} = require('path');
+
 module.exports = {
   roots: ['<rootDir>'],
   testEnvironment: 'jsdom',
@@ -28,5 +32,6 @@ module.exports = {
     "^@/src/(.+)$": "<rootDir>/src/$1",
     "^@/styles/(.+)$": "<rootDir>/styles/$1",
   },
-  modulePathIgnorePatterns: ["<rootDir>/cypress/"]
+  modulePathIgnorePatterns: ["<rootDir>/cypress/"],
+  setupFiles: [resolve(__dirname, './test/setup-test.ts')],
 }
