@@ -1,7 +1,7 @@
 /**
  * @description Modal -> Modal de Cadastro de local de trabalho
  * @author @GuilhermeSantos001
- * @update 01/01/2022
+ * @update 05/01/2022
  */
 
 import * as React from 'react';
@@ -35,7 +35,6 @@ import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import type {
   Workplace,
   Scale,
-  Service,
   Street,
   Neighborhood,
   City,
@@ -44,41 +43,25 @@ import type {
 
 import {
   appendWorkplace,
+  appendScale,
+  editScale,
+  removeScale,
+  appendStreet,
+  editStreet,
+  removeStreet,
+  appendNeighborhood,
+  editNeighborhood,
+  removeNeighborhood,
+  appendCity,
+  editCity,
+  removeCity,
+  appendDistrict,
+  editDistrict,
+  removeDistrict,
 } from '@/app/features/system/system.slice'
 
 export interface Props {
   show: boolean
-  scale: string
-  neighborhood: string
-  city: string
-  district: string
-  workplaces: Workplace[]
-  scales: Scale[]
-  street: string
-  streets: Street[]
-  neighborhoods: Neighborhood[]
-  cities: City[]
-  districts: District[]
-  handleChangeScale: (id: string) => void
-  handleAppendScale: (scale: Scale) => void
-  handleUpdateScale: (scale: Scale) => void
-  handleRemoveScale: (id: string) => void
-  handleChangeStreet: (id: string) => void
-  handleAppendStreet: (street: Street) => void
-  handleUpdateStreet: (street: Street) => void
-  handleRemoveStreet: (id: string) => void
-  handleChangeNeighborhood: (id: string) => void
-  handleAppendNeighborhood: (neighborhood: Neighborhood) => void
-  handleUpdateNeighborhood: (neighborhood: Neighborhood) => void
-  handleRemoveNeighborhood: (id: string) => void
-  handleChangeCity: (id: string) => void
-  handleAppendCity: (city: City) => void
-  handleUpdateCity: (city: City) => void
-  handleRemoveCity: (id: string) => void
-  handleChangeDistrict: (id: string) => void
-  handleAppendDistrict: (district: District) => void
-  handleUpdateDistrict: (district: District) => void
-  handleRemoveDistrict: (id: string) => void
   handleClose: () => void
 }
 
@@ -93,46 +76,87 @@ const Transition = React.forwardRef(function Transition(
 
 export default function RegisterWorkplace(props: Props) {
   const [name, setName] = React.useState<string>('');
+  const [scale, setScale] = React.useState<string>('')
   const [entryTime, setEntryTime] = React.useState<Date>(null);
   const [exitTime, setExitTime] = React.useState<Date>(null);
-  const [appliedServices, setAppliedServices] = React.useState<Service[]>([]);
+  const [appliedServices, setAppliedServices] = React.useState<string[]>([]);
+  const [street, setStreet] = React.useState<string>('')
   const [numberHome, setNumberHome] = React.useState<number>(0);
   const [complement, setComplement] = React.useState<string>('');
+  const [neighborhood, setNeighborhood] = React.useState<string>('')
+  const [city, setCity] = React.useState<string>('')
+  const [district, setDistrict] = React.useState<string>('')
   const [zipCode, setZipCode] = React.useState<number>(0);
 
-  const dispatch = useAppDispatch();
-  const services = useAppSelector((state) => state.system.services || []);
+  const
+    dispatch = useAppDispatch(),
+    workplaces = useAppSelector(state => state.system.workplaces || []),
+    services = useAppSelector((state) => state.system.services || []),
+    scales = useAppSelector((state) => state.system.scales || []),
+    streets = useAppSelector((state) => state.system.streets || []),
+    neighborhoods = useAppSelector((state) => state.system.neighborhoods || []),
+    cities = useAppSelector((state) => state.system.cities || []),
+    districts = useAppSelector((state) => state.system.districts || []);
 
   const
     handleResetInputs = () => {
       setName('');
+      setScale('');
       setEntryTime(null);
       setExitTime(null);
       setAppliedServices([]);
+      setStreet('');
       setNumberHome(0);
       setComplement('');
+      setNeighborhood('');
+      setCity('');
+      setDistrict('');
       setZipCode(0);
     },
+    handleChangeScale = (value: string) => setScale(value),
+    handleAppendScale = (scale: Scale) => dispatch(appendScale(scale)),
+    handleUpdateScale = (scale: Scale) => dispatch(editScale(scale)),
+    handleRemoveScale = (id: string) => dispatch(removeScale(id)),
     handleChangeName = (value: string) => setName(value),
     handleChangeEntryTime = (value: Date) => setEntryTime(value),
     handleChangeExitTime = (value: Date) => setExitTime(value),
+    handleChangeStreet = (value: string) => setStreet(value),
+    handleAppendStreet = (street: Street) => dispatch(appendStreet(street)),
+    handleUpdateStreet = (street: Street) => dispatch(editStreet(street)),
+    handleRemoveStreet = (id: string) => dispatch(removeStreet(id)),
     handleChangeNumberHome = (value: number) => setNumberHome(value),
     handleChangeComplement = (value: string) => setComplement(value),
+    handleChangeNeighborhood = (value: string) => setNeighborhood(value),
+    handleAppendNeighborhood = (neighborhood: Neighborhood) => dispatch(appendNeighborhood(neighborhood)),
+    handleUpdateNeighborhood = (neighborhood: Neighborhood) => dispatch(editNeighborhood(neighborhood)),
+    handleRemoveNeighborhood = (id: string) => dispatch(removeNeighborhood(id)),
+    handleChangeCity = (value: string) => setCity(value),
+    handleAppendCity = (city: City) => dispatch(appendCity(city)),
+    handleUpdateCity = (city: City) => dispatch(editCity(city)),
+    handleRemoveCity = (id: string) => dispatch(removeCity(id)),
+    handleChangeDistrict = (value: string) => setDistrict(value),
+    handleAppendDistrict = (district: District) => dispatch(appendDistrict(district)),
+    handleUpdateDistrict = (district: District) => dispatch(editDistrict(district)),
+    handleRemoveDistrict = (id: string) => dispatch(removeDistrict(id)),
     handleChangeZipCode = (value: number) => setZipCode(value);
 
   const canRegisterWorkPlace = () => {
     return name.length > 0 &&
+      scale.length > 0 &&
       entryTime !== null &&
       exitTime !== null &&
       appliedServices.length > 0 &&
+      street.length > 0 &&
       numberHome > 0 &&
       // complement.length > 0 && // ? Complemento não é obrigatório
-      zipCode > 0 &&
-      props.scale !== '' &&
-      props.street !== '' &&
-      props.neighborhood !== '' &&
-      props.city !== ''
+      neighborhood.length > 0 &&
+      city.length > 0 &&
+      district.length > 0 &&
+      zipCode > 0
   }
+
+  if (streets.find(_street => _street.id === street))
+    console.log(streets.find(_street => _street.id === street).id);
 
   const handleRegisterWorkplace = () => {
     const workplace: Workplace = {
@@ -141,19 +165,19 @@ export default function RegisterWorkplace(props: Props) {
       entryTime: entryTime.toISOString(),
       exitTime: exitTime.toISOString(),
       services: appliedServices,
-      scale: props.scales.find(scale => scale.id === props.scale),
+      scale: scales.find(_scale => _scale.id === scale).id,
       address: {
-        street: props.streets.find(street => street.id === props.street),
-        neighborhood: props.neighborhoods.find(neighborhood => neighborhood.id === props.neighborhood),
-        city: props.cities.find(city => city.id === props.city),
-        district: props.districts.find(district => district.id === props.district),
+        street: streets.find(_street => _street.id === street).id,
+        neighborhood: neighborhoods.find(_neighborhood => _neighborhood.id === neighborhood).id,
+        city: cities.find(_city => _city.id === city).id,
+        district: districts.find(_district => _district.id === district).id,
         number: numberHome,
         complement,
         zipCode,
       },
     }
 
-    if (props.workplaces.find(workplace => workplace.name === name && workplace.scale.id === props.scale))
+    if (workplaces.find(_workplace => _workplace.name === name && _workplace.scale === scale))
       return Alerting.create('Já existe um local de trabalho com esse nome e escala.');
 
     dispatch(appendWorkplace(workplace));
@@ -213,11 +237,11 @@ export default function RegisterWorkplace(props: Props) {
           <ListItem>
             <div className='col'>
               <SelectScale
-                scales={props.scales}
-                handleChangeScale={props.handleChangeScale}
-                handleAppendScale={props.handleAppendScale}
-                handleUpdateScale={props.handleUpdateScale}
-                handleRemoveScale={props.handleRemoveScale}
+                scales={scales}
+                handleChangeScale={handleChangeScale}
+                handleAppendScale={handleAppendScale}
+                handleUpdateScale={handleUpdateScale}
+                handleRemoveScale={handleRemoveScale}
               />
             </div>
           </ListItem>
@@ -244,7 +268,7 @@ export default function RegisterWorkplace(props: Props) {
         <SelectService
           left={services.map((service) => service.value)}
           right={[]}
-          onChangeAppliedServices={(values) => setAppliedServices(services.filter(service => values.includes(service.value)))}
+          onChangeAppliedServices={(values) => setAppliedServices(services.filter(service => values.includes(service.value)).map(service => service.id))}
         />
         <List>
           <ListItem>
@@ -253,44 +277,44 @@ export default function RegisterWorkplace(props: Props) {
           <ListItem>
             <div className='col'>
               <SelectStreet
-                streets={props.streets}
-                handleChangeStreet={props.handleChangeStreet}
-                handleAppendStreet={props.handleAppendStreet}
-                handleUpdateStreet={props.handleUpdateStreet}
-                handleRemoveStreet={props.handleRemoveStreet}
+                streets={streets}
+                handleChangeStreet={handleChangeStreet}
+                handleAppendStreet={handleAppendStreet}
+                handleUpdateStreet={handleUpdateStreet}
+                handleRemoveStreet={handleRemoveStreet}
               />
             </div>
           </ListItem>
           <ListItem>
             <div className='col'>
               <SelectNeighborhood
-                neighborhoods={props.neighborhoods}
-                handleChangeNeighborhood={props.handleChangeNeighborhood}
-                handleAppendNeighborhood={props.handleAppendNeighborhood}
-                handleUpdateNeighborhood={props.handleUpdateNeighborhood}
-                handleRemoveNeighborhood={props.handleRemoveNeighborhood}
+                neighborhoods={neighborhoods}
+                handleChangeNeighborhood={handleChangeNeighborhood}
+                handleAppendNeighborhood={handleAppendNeighborhood}
+                handleUpdateNeighborhood={handleUpdateNeighborhood}
+                handleRemoveNeighborhood={handleRemoveNeighborhood}
               />
             </div>
           </ListItem>
           <ListItem>
             <div className='col'>
               <SelectCity
-                cities={props.cities}
-                handleChangeCity={props.handleChangeCity}
-                handleAppendCity={props.handleAppendCity}
-                handleUpdateCity={props.handleUpdateCity}
-                handleRemoveCity={props.handleRemoveCity}
+                cities={cities}
+                handleChangeCity={handleChangeCity}
+                handleAppendCity={handleAppendCity}
+                handleUpdateCity={handleUpdateCity}
+                handleRemoveCity={handleRemoveCity}
               />
             </div>
           </ListItem>
           <ListItem>
             <div className='col'>
               <SelectDistrict
-                districts={props.districts}
-                handleChangeDistrict={props.handleChangeDistrict}
-                handleAppendDistrict={props.handleAppendDistrict}
-                handleUpdateDistrict={props.handleUpdateDistrict}
-                handleRemoveDistrict={props.handleRemoveDistrict}
+                districts={districts}
+                handleChangeDistrict={handleChangeDistrict}
+                handleAppendDistrict={handleAppendDistrict}
+                handleUpdateDistrict={handleUpdateDistrict}
+                handleRemoveDistrict={handleRemoveDistrict}
               />
             </div>
           </ListItem>

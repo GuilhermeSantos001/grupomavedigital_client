@@ -1,7 +1,7 @@
 /**
  * @description Input -> Seleciona uma escala de trabalho
  * @author @GuilhermeSantos001
- * @update 30/12/2021
+ * @update 05/01/2022
  */
 
 import * as React from 'react';
@@ -34,6 +34,7 @@ const filter = createFilterOptions<FilmOptionType>();
 export default function SelectScale(props: Props) {
   const [value, setValue] = React.useState<FilmOptionType | null>(props.scale || null);
   const [hasEdit, setHasEdit] = React.useState<boolean>(false);
+  const [editValue, setEditValue] = React.useState<string>('');
 
   const
     people = useAppSelector((state) => state.system.people || []),
@@ -41,8 +42,8 @@ export default function SelectScale(props: Props) {
 
   const canDeleteScale = (itemId: string) => {
     const
-      person = people.find((item) => item.scale.id === itemId),
-      workplace = workplaces.find((item) => item.scale.id === itemId);
+      person = people.find((item) => item.scale === itemId),
+      workplace = workplaces.find((item) => item.scale === itemId);
 
     return person === undefined && workplace === undefined;
   }
@@ -55,23 +56,54 @@ export default function SelectScale(props: Props) {
       <Autocomplete
         className='col-12 col-md-10 mb-2 mb-md-0 me-md-2'
         value={value}
-        onChange={(event, newValue) => {
+        onChange={(event: any, newValue) => {
           if (typeof newValue === 'string') {
-            setValue({
+            const value: Scale = {
               id: StringEx.id(),
               value: newValue,
-              status: 'available',
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString()
-            });
+            };
+
+            setValue(value);
+
+            if (String(event.type).toLowerCase() === 'keydown') {
+              if (
+                String(event.code).toLowerCase() === 'enter' ||
+                String(event.code).toLowerCase() === 'numpadenter'
+              ) {
+                if (hasEdit) {
+                  const scale = props.scales.find(scale => scale.id === editValue);
+
+                  if (scale) {
+                    const update: Scale = {
+                      ...scale,
+                      value: newValue
+                    };
+
+                    setValue(update);
+
+                    props.handleUpdateScale(update);
+                    props.handleChangeScale(update.id);
+                  }
+                } else {
+                  if (props.scales.filter(scale => scale.value === newValue).length <= 0) {
+                    props.handleAppendScale(value);
+                    props.handleChangeScale(value.id);
+                  } else {
+                    const scale = props.scales.find(scale => scale.value === newValue);
+
+                    if (scale) {
+                      setValue(scale);
+                      props.handleChangeScale(scale.id)
+                    }
+                  }
+                }
+              }
+            }
           } else if (newValue && newValue.inputValue) {
             // Create a new value from the user input
             const scale: Scale = {
               id: hasEdit ? value.id : StringEx.id(),
               value: newValue.inputValue,
-              status: 'available',
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString()
             };
 
             setValue(scale);
@@ -96,13 +128,11 @@ export default function SelectScale(props: Props) {
 
           // Suggest the creation of a new value
           const isExisting = options.some((option) => inputValue === option.value);
+
           if (inputValue !== '' && !isExisting) {
             filtered.push({
               id: hasEdit ? value.id : StringEx.id(),
               value: hasEdit ? `Atualizar "${value.value}" para "${inputValue}"` : `Adicionar "${inputValue}"`,
-              status: 'available',
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
               inputValue,
               inputUpdate: hasEdit ? true : false
             });
@@ -143,8 +173,10 @@ export default function SelectScale(props: Props) {
         onClick={() => {
           if (!hasEdit) {
             setHasEdit(true);
+            setEditValue(value ? value.id : '');
           } else {
             setHasEdit(false);
+            setEditValue('');
           }
         }}
       >
@@ -154,10 +186,11 @@ export default function SelectScale(props: Props) {
         className='col mx-1'
         variant="contained"
         color='error'
-        disabled={hasEdit ||!value || !canDeleteScale(value.id)}
+        disabled={hasEdit || !value || !canDeleteScale(value.id)}
         onClick={() => {
-          props.handleRemoveScale(value.id);
           setValue(null);
+          props.handleChangeScale('');
+          props.handleRemoveScale(value.id);
         }}
       >
         Deletar

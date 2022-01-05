@@ -1,7 +1,7 @@
 /**
  * @description Input -> Seleciona uma cidade
  * @author @GuilhermeSantos001
- * @update 31/12/2021
+ * @update 05/02/2022
  */
 
 import * as React from 'react';
@@ -35,6 +35,7 @@ const filter = createFilterOptions<FilmOptionType>();
 export default function SelectStreet(props: Props) {
   const [value, setValue] = React.useState<FilmOptionType | null>(props.city || null);
   const [hasEdit, setHasEdit] = React.useState<boolean>(false);
+  const [editValue, setEditValue] = React.useState<string>('');
 
   const
     workplaces = useAppSelector((state) => state.system.workplaces || []);
@@ -47,23 +48,54 @@ export default function SelectStreet(props: Props) {
       <Autocomplete
         className='col-12 col-md-10 mb-2 mb-md-0 me-md-2'
         value={value}
-        onChange={(event, newValue) => {
+        onChange={(event: any, newValue) => {
           if (typeof newValue === 'string') {
-            setValue({
+            const value: City = {
               id: StringEx.id(),
               name: newValue,
-              status: 'available',
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString()
-            });
+            };
+
+            setValue(value);
+
+            if (String(event.type).toLowerCase() === 'keydown') {
+              if (
+                String(event.code).toLowerCase() === 'enter' ||
+                String(event.code).toLowerCase() === 'numpadenter'
+              ) {
+                if (hasEdit) {
+                  const city = props.cities.find(city => city.id === editValue);
+
+                  if (city) {
+                    const update: City = {
+                      ...city,
+                      name: newValue
+                    };
+
+                    setValue(update);
+
+                    props.handleUpdateCity(update);
+                    props.handleChangeCity(update.id);
+                  }
+                } else {
+                  if (props.cities.filter(city => city.name === newValue).length <= 0) {
+                    props.handleAppendCity(value);
+                    props.handleChangeCity(value.id);
+                  } else {
+                    const city = props.cities.find(city => city.name === newValue);
+
+                    if (city) {
+                      setValue(city);
+                      props.handleChangeCity(city.id)
+                    }
+                  }
+                }
+              }
+            }
           } else if (newValue && newValue.inputValue) {
             // Create a new value from the user input
             const city: City = {
               id: hasEdit ? value.id : StringEx.id(),
               name: newValue.inputValue,
-              status: 'available',
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString()
             };
 
             setValue(city);
@@ -93,9 +125,6 @@ export default function SelectStreet(props: Props) {
             filtered.push({
               id: hasEdit ? value.id : StringEx.id(),
               name: hasEdit ? `Atualizar "${value.name}" para "${inputValue}"` : `Adicionar "${inputValue}"`,
-              status: 'available',
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
               inputValue,
               inputUpdate: hasEdit ? true : false
             });
@@ -136,8 +165,10 @@ export default function SelectStreet(props: Props) {
         onClick={() => {
           if (!hasEdit) {
             setHasEdit(true);
+            setEditValue(value ? value.id : '');
           } else {
             setHasEdit(false);
+            setEditValue('');
           }
         }}
       >
@@ -149,8 +180,9 @@ export default function SelectStreet(props: Props) {
         color='error'
         disabled={hasEdit || !value || !canDeleteCity(workplaces, 'city', value.id)}
         onClick={() => {
-          props.handleRemoveCity(value.id);
           setValue(null);
+          props.handleChangeCity('');
+          props.handleRemoveCity(value.id);
         }}
       >
         Deletar

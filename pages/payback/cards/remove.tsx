@@ -1,7 +1,7 @@
 /**
  * @description Payback -> Cartões Beneficio (Alelo) -> Cadastro
  * @author @GuilhermeSantos001
- * @update 29/12/2021
+ * @update 05/01/2022
  */
 
 import React, { useEffect, useState } from 'react'
@@ -309,10 +309,8 @@ function compose_ready(
   closeCanvasDateInfo: () => void,
   textTitleCanvasDateInfo: string,
   textCreatedAt: string,
-  textUpdatedAt: string,
   handleChangeTextTitleCanvasDateInfo: (text: string) => void,
-  handleChangeTextCreatedAt: (text: string) => void,
-  handleChangeTextUpdatedAt: (text: string) => void,
+  handleChangeTextCreatedAt: (text: string) => void
 ) {
   return (
     <>
@@ -341,8 +339,7 @@ function compose_ready(
             showCanvasDateInfo,
             closeCanvasDateInfo,
             textTitleCanvasDateInfo,
-            textCreatedAt,
-            textUpdatedAt,
+            textCreatedAt
           )}
           <ListWithFiveColumns
             noItemsMessage='Nenhum lote disponível.'
@@ -444,7 +441,6 @@ function compose_ready(
                       handleClick: () => {
                         handleChangeTextTitleCanvasDateInfo(`Número de Série: ${item.serialNumber}`);
                         handleChangeTextCreatedAt(StringEx.createdAt(item.createdAt));
-                        handleChangeTextUpdatedAt(StringEx.updatedAt(item.updatedAt));
                         openCanvasDateInfo();
                       },
                       popover: {
@@ -457,7 +453,7 @@ function compose_ready(
                         prefix: 'fas',
                         name: 'user-tag'
                       },
-                      enabled: item.userAssigned?.length <= 0 ? true : false,
+                      enabled: item.person?.length <= 0 ? true : false,
                       // TODO: Implementar ação para ver o usuário vinculado ao lote
                       handleClick: () => console.log('Hello World 2'),
                       popover: {
@@ -491,8 +487,7 @@ function canvas_dateInfo(
   show: boolean,
   handleClose: () => void,
   textTitle: string,
-  createdAt: string,
-  updatedAt: string,
+  createdAt: string
 ) {
   return (
     <Offcanvas show={show} onHide={handleClose} placement='end'>
@@ -517,23 +512,6 @@ function canvas_dateInfo(
             readOnly={true}
           />
         </div>
-        <div className="input-group my-3">
-          <span className="input-group-text" id="updatedAt-addon1">
-            <FontAwesomeIcon
-              icon={Icon.render('fas', 'calendar-week')}
-              className="me-2 fs-3 flex-shrink-1 text-primary my-auto"
-            />
-          </span>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Data de Atualização"
-            aria-label="Data de Atualização"
-            aria-describedby="updatedAt-addon1"
-            value={updatedAt}
-            readOnly={true}
-          />
-        </div>
       </Offcanvas.Body>
     </Offcanvas>
   )
@@ -549,7 +527,6 @@ const Remove = (): JSX.Element => {
   const [showCanvasDateInfo, setShowModalDateInfo] = useState<boolean>(false)
   const [textTitleCanvasDateInfo, setTextTitleCanvasDateInfo] = useState<string>('')
   const [textCreatedAt, setTextCreatedAt] = useState<string>('')
-  const [textUpdatedAt, setTextUpdatedAt] = useState<string>('')
 
   const
     dispatch = useAppDispatch(),
@@ -580,8 +557,7 @@ const Remove = (): JSX.Element => {
     openCanvasDateInfo = () => setShowModalDateInfo(true),
     closeCanvasDateInfo = () => setShowModalDateInfo(false),
     handleChangeTextTitleCanvasDateInfo = (text: string) => setTextTitleCanvasDateInfo(text),
-    handleChangeTextCreatedAt = (text: string) => setTextCreatedAt(text),
-    handleChangeTextUpdatedAt = (text: string) => setTextUpdatedAt(text)
+    handleChangeTextCreatedAt = (text: string) => setTextCreatedAt(text);
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -625,10 +601,8 @@ const Remove = (): JSX.Element => {
     closeCanvasDateInfo,
     textTitleCanvasDateInfo,
     textCreatedAt,
-    textUpdatedAt,
     handleChangeTextTitleCanvasDateInfo,
-    handleChangeTextCreatedAt,
-    handleChangeTextUpdatedAt,
+    handleChangeTextCreatedAt
   )
 }
 

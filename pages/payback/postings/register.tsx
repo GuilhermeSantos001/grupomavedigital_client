@@ -1,7 +1,7 @@
 /**
  * @description Payback -> Lançamentos Financeiros -> Cadastro
  * @author @GuilhermeSantos001
- * @update 31/12/2021
+ * @update 05/01/2022
  */
 
 import React, { useEffect, useState } from 'react'
@@ -13,8 +13,6 @@ import SkeletonLoader from 'tiny-skeleton-loader-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
 
-import Button from '@mui/material/Button'
-
 import RenderPageError from '@/components/renderPageError'
 import NoPrivilege from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
@@ -24,7 +22,7 @@ import ModalEditCostCenter from '@/components/modals/editCostCenter'
 import MobileDatePicker from '@/components/inputs/mobileDatePicker'
 import AssistantPostingsRegister from '@/components/assistants/assistantPostingsRegister'
 import ListWithCheckboxMUI from '@/components/lists/listWithCheckboxMUI'
-import ListWithIconsMUI from '@/components/lists/listWithIconsMUI'
+import ListWorkplacesSelected from '@/components/lists/listWorkplacesSelected'
 import RegisterWorkplace from '@/components/modals/registerWorkplace'
 import EditWorkplace from '@/components/modals/editWorkplace'
 
@@ -48,6 +46,7 @@ import type {
   Workplace,
   Person,
   Scale,
+  Service,
   Street,
   Neighborhood,
   City,
@@ -55,24 +54,8 @@ import type {
 } from '@/app/features/system/system.slice'
 
 import {
-  appendScale,
-  editScale,
-  removeScale,
-  appendStreet,
-  editStreet,
-  removeStreet,
-  appendNeighborhood,
-  editNeighborhood,
-  removeNeighborhood,
-  appendCity,
-  editCity,
-  removeCity,
-  appendDistrict,
-  editDistrict,
-  removeDistrict,
   removeWorkplace,
 } from '@/app/features/system/system.slice'
-
 
 import type {
   Posting
@@ -363,36 +346,12 @@ function compose_ready(
   handleCloseModalRegisterWorkplace: () => void,
   handleShowModalEditWorkplace: () => void,
   handleCloseModalEditWorkplace: () => void,
-  scale: string,
-  street: string,
-  neighborhood: string,
-  city: string,
-  district: string,
   scales: Scale[],
+  services: Service[],
   streets: Street[],
   neighborhoods: Neighborhood[],
   cities: City[],
   districts: District[],
-  handleDefineScale: (value: string) => void,
-  handleAppendScale: (scale: Scale) => void,
-  handleUpdateScale: (scale: Scale) => void,
-  handleRemoveScale: (id: string) => void,
-  handleDefineStreet: (value: string) => void,
-  handleAppendStreet: (street: Street) => void,
-  handleUpdateStreet: (street: Street) => void,
-  handleRemoveStreet: (id: string) => void,
-  handleDefineNeighborhood: (value: string) => void,
-  handleAppendNeighborhood: (neighborhood: Neighborhood) => void,
-  handleUpdateNeighborhood: (neighborhood: Neighborhood) => void,
-  handleRemoveNeighborhood: (id: string) => void,
-  handleDefineCity: (value: string) => void,
-  handleAppendCity: (city: City) => void,
-  handleUpdateCity: (city: City) => void,
-  handleRemoveCity: (id: string) => void,
-  handleDefineDistrict: (value: string) => void,
-  handleAppendDistrict: (district: District) => void,
-  handleUpdateDistrict: (district: District) => void,
-  handleRemoveDistrict: (id: string) => void,
   selectWorkplaces: string[],
   handleDefineSelectWorkplaces: (itens: string[]) => void,
   handleDeleteWorkplaces: (itens: string[]) => void,
@@ -401,12 +360,21 @@ function compose_ready(
   handleAppendAppliedWorkplaces: (itens: Workplace[]) => void,
   handleRemoveAppliedWorkplaces: (itens: Workplace[]) => void,
 ) {
-  const { columns: workPlaceColumns, rows: workPlaceRows } = getWorkPlaceForTable(workplaces);
+  const { columns: workPlaceColumns, rows: workPlaceRows } =
+    getWorkPlaceForTable(
+      workplaces,
+      scales,
+      services,
+      streets,
+      neighborhoods,
+      cities,
+      districts
+    );
 
   return (
     <>
       <ModalRegisterCostCenter show={showModalRegisterCostCenter} handleClose={handleCloseModalRegisterCostCenter} />
-      <ModalEditCostCenter show={showModalEditCostCenter} costCenter={costCenter} handleResetCostCenter={handleResetCostCenter} handleClose={handleCloseModalEditCostCenter} />
+      <ModalEditCostCenter show={showModalEditCostCenter} id={costCenter} handleResetCostCenter={handleResetCostCenter} handleClose={handleCloseModalEditCostCenter} />
       <div className="row g-2">
         <div className="col-12">
           <div className="p-3 bg-primary bg-gradient rounded">
@@ -485,37 +453,6 @@ function compose_ready(
                     <div className='d-flex flex-column p-2 m-2'>
                       <RegisterWorkplace
                         show={showModalRegisterWorkplace}
-                        scale={scale}
-                        street={street}
-                        neighborhood={neighborhood}
-                        city={city}
-                        district={district}
-                        scales={scales}
-                        workplaces={workplaces}
-                        streets={streets}
-                        neighborhoods={neighborhoods}
-                        cities={cities}
-                        districts={districts}
-                        handleChangeScale={handleDefineScale}
-                        handleAppendScale={handleAppendScale}
-                        handleUpdateScale={handleUpdateScale}
-                        handleRemoveScale={handleRemoveScale}
-                        handleChangeStreet={handleDefineStreet}
-                        handleAppendStreet={handleAppendStreet}
-                        handleUpdateStreet={handleUpdateStreet}
-                        handleRemoveStreet={handleRemoveStreet}
-                        handleChangeNeighborhood={handleDefineNeighborhood}
-                        handleAppendNeighborhood={handleAppendNeighborhood}
-                        handleUpdateNeighborhood={handleUpdateNeighborhood}
-                        handleRemoveNeighborhood={handleRemoveNeighborhood}
-                        handleChangeCity={handleDefineCity}
-                        handleAppendCity={handleAppendCity}
-                        handleUpdateCity={handleUpdateCity}
-                        handleRemoveCity={handleRemoveCity}
-                        handleChangeDistrict={handleDefineDistrict}
-                        handleAppendDistrict={handleAppendDistrict}
-                        handleUpdateDistrict={handleUpdateDistrict}
-                        handleRemoveDistrict={handleRemoveDistrict}
                         handleClose={handleCloseModalRegisterWorkplace}
                       />
                       {
@@ -527,42 +464,21 @@ function compose_ready(
                           entryTime={workplaces.find(place => place.id === selectWorkplaces[0]).entryTime}
                           exitTime={workplaces.find(place => place.id === selectWorkplaces[0]).exitTime}
                           services={workplaces.find(place => place.id === selectWorkplaces[0]).services}
-                          scale={workplaces.find(place => place.id === selectWorkplaces[0]).scale.id}
-                          street={workplaces.find(place => place.id === selectWorkplaces[0]).address.street.id}
+                          scale={workplaces.find(place => place.id === selectWorkplaces[0]).scale}
+                          street={workplaces.find(place => place.id === selectWorkplaces[0]).address.street}
                           numberHome={workplaces.find(place => place.id === selectWorkplaces[0]).address.number}
                           complement={workplaces.find(place => place.id === selectWorkplaces[0]).address.complement}
                           zipCode={workplaces.find(place => place.id === selectWorkplaces[0]).address.zipCode}
-                          neighborhood={workplaces.find(place => place.id === selectWorkplaces[0]).address.neighborhood.id}
-                          city={workplaces.find(place => place.id === selectWorkplaces[0]).address.city.id}
-                          district={workplaces.find(place => place.id === selectWorkplaces[0]).address.district.id}
-                          scales={scales}
-                          workplaces={workplaces}
-                          streets={streets}
-                          neighborhoods={neighborhoods}
-                          cities={cities}
-                          districts={districts}
-                          handleAppendScale={handleAppendScale}
-                          handleUpdateScale={handleUpdateScale}
-                          handleRemoveScale={handleRemoveScale}
-                          handleAppendStreet={handleAppendStreet}
-                          handleUpdateStreet={handleUpdateStreet}
-                          handleRemoveStreet={handleRemoveStreet}
-                          handleAppendNeighborhood={handleAppendNeighborhood}
-                          handleUpdateNeighborhood={handleUpdateNeighborhood}
-                          handleRemoveNeighborhood={handleRemoveNeighborhood}
-                          handleAppendCity={handleAppendCity}
-                          handleUpdateCity={handleUpdateCity}
-                          handleRemoveCity={handleRemoveCity}
-                          handleAppendDistrict={handleAppendDistrict}
-                          handleUpdateDistrict={handleUpdateDistrict}
-                          handleRemoveDistrict={handleRemoveDistrict}
+                          neighborhood={workplaces.find(place => place.id === selectWorkplaces[0]).address.neighborhood}
+                          city={workplaces.find(place => place.id === selectWorkplaces[0]).address.city}
+                          district={workplaces.find(place => place.id === selectWorkplaces[0]).address.district}
                           handleClose={handleCloseModalEditWorkplace}
                         />
                       }
                       <p className="fw-bold border-bottom text-center my-2">
                         Aplicados
                       </p>
-                      <ListWithIconsMUI
+                      <ListWorkplacesSelected
                         workplaces={appliedWorkplaces}
                       />
                       <p className="fw-bold border-bottom text-center my-2">
@@ -576,7 +492,7 @@ function compose_ready(
                         onChangeSelection={handleDefineSelectWorkplaces}
                         onPageSizeChange={handleChangePageSizeTableWorkplaces}
                       />
-                      <div className='d-flex flex-row'>
+                      <div className='d-flex flex-column flex-md-row'>
                         <button
                           type="button"
                           className="btn btn-link"
@@ -593,7 +509,10 @@ function compose_ready(
                               handleAppendAppliedWorkplaces(workplaces.filter(workplace => filtered.includes(workplace.id)));
                           }}
                         >
-                          ✔Aplicar
+                          <FontAwesomeIcon
+                            icon={Icon.render('fas', 'check')}
+                            className="me-1 flex-shrink-1 my-auto"
+                          /> Aplicar
                         </button>
                         <button
                           type="button"
@@ -601,7 +520,10 @@ function compose_ready(
                           disabled={selectWorkplaces.length <= 0}
                           onClick={() => handleRemoveAppliedWorkplaces(workplaces.filter(workplace => selectWorkplaces.includes(workplace.id)))}
                         >
-                          ❌Desaplicar
+                          <FontAwesomeIcon
+                            icon={Icon.render('fas', 'times')}
+                            className="me-1 flex-shrink-1 my-auto"
+                          /> Desaplicar
                         </button>
                         <button
                           type="button"
@@ -609,22 +531,31 @@ function compose_ready(
                           disabled={selectWorkplaces.length <= 0 || selectWorkplaces.length > 1}
                           onClick={handleShowModalEditWorkplace}
                         >
-                          💫 Atualizar
+                          <FontAwesomeIcon
+                            icon={Icon.render('fas', 'edit')}
+                            className="me-1 flex-shrink-1 my-auto"
+                          /> Atualizar
                         </button>
                         <button
                           type="button"
                           className="btn btn-link"
-                          disabled={selectWorkplaces.length <= 0 || people.filter(person => selectWorkplaces.includes(person.workplace.id)).length > 0}
+                          disabled={selectWorkplaces.length <= 0 || people.filter(person => selectWorkplaces.includes(person.workplace)).length > 0}
                           onClick={() => handleDeleteWorkplaces(selectWorkplaces)}
                         >
-                          ➖ Remover
+                          <FontAwesomeIcon
+                            icon={Icon.render('fas', 'minus-square')}
+                            className="me-1 flex-shrink-1 my-auto"
+                          /> Remover
                         </button>
                         <button
                           type="button"
                           className="btn btn-link"
                           onClick={handleShowModalRegisterWorkplace}
                         >
-                          ➕ Adicionar
+                          <FontAwesomeIcon
+                            icon={Icon.render('fas', 'plus-square')}
+                            className="me-1 flex-shrink-1 my-auto"
+                          /> Adicionar
                         </button>
                       </div>
                     </div>
@@ -661,11 +592,6 @@ const Register = (): JSX.Element => {
   const [costCenter, setCostCenter] = useState<string>('')
   const [periodStart, setPeriodStart] = useState<Date>(new Date())
   const [periodEnd, setPeriodEnd] = useState<Date>(new Date())
-  const [scale, setScale] = useState<string>('')
-  const [street, setStreet] = useState<string>('')
-  const [neighborhood, setNeighborhood] = useState<string>('')
-  const [city, setCity] = useState<string>('')
-  const [district, setDistrict] = useState<string>('')
 
   const [selectWorkplaces, setSelectWorkplaces] = useState<string[]>([])
   const [appliedWorkplaces, setAppliedWorkplaces] = useState<Workplace[]>([])
@@ -679,10 +605,11 @@ const Register = (): JSX.Element => {
     workplaces = useAppSelector((state) => state.system.workplaces || []),
     people = useAppSelector((state) => state.system.people || []),
     scales = useAppSelector((state) => state.system.scales || []),
+    services = useAppSelector((state) => state.system.services || []),
     streets = useAppSelector((state) => state.system.streets || []),
     neighborhoods = useAppSelector((state) => state.system.neighborhoods || []),
     cities = useAppSelector((state) => state.system.cities || []),
-    districts = useAppSelector((state) => state.system.districts || [])
+    districts = useAppSelector((state) => state.system.districts || []);
 
   const router = useRouter()
   const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
@@ -716,31 +643,11 @@ const Register = (): JSX.Element => {
       else
         setCostCenter(title);
     },
-    handleDefineScale = (value: string) => setScale(value),
-    handleDefineStreet = (value: string) => setStreet(value),
-    handleDefineNeighborhood = (value: string) => setNeighborhood(value),
-    handleDefineCity = (value: string) => setCity(value),
-    handleDefineDistrict = (value: string) => setDistrict(value),
     handleResetCostCenter = () => setCostCenter(''),
     handleShowModalRegisterWorkplace = () => setShowModalRegisterWorkplace(true),
     handleCloseModalRegisterWorkplace = () => setShowModalRegisterWorkplace(false),
     handleShowModalEditWorkplace = () => setShowModalEditWorkplace(true),
     handleCloseModalEditWorkplace = () => setShowModalEditWorkplace(false),
-    handleAppendScale = (scale: Scale) => dispatch(appendScale(scale)),
-    handleUpdateScale = (scale: Scale) => dispatch(editScale(scale)),
-    handleRemoveScale = (id: string) => dispatch(removeScale(id)),
-    handleAppendStreet = (street: Street) => dispatch(appendStreet(street)),
-    handleUpdateStreet = (street: Street) => dispatch(editStreet(street)),
-    handleRemoveStreet = (id: string) => dispatch(removeStreet(id)),
-    handleAppendNeighborhood = (neighborhood: Neighborhood) => dispatch(appendNeighborhood(neighborhood)),
-    handleUpdateNeighborhood = (neighborhood: Neighborhood) => dispatch(editNeighborhood(neighborhood)),
-    handleRemoveNeighborhood = (id: string) => dispatch(removeNeighborhood(id)),
-    handleAppendCity = (city: City) => dispatch(appendCity(city)),
-    handleUpdateCity = (city: City) => dispatch(editCity(city)),
-    handleRemoveCity = (id: string) => dispatch(removeCity(id)),
-    handleAppendDistrict = (district: District) => dispatch(appendDistrict(district)),
-    handleUpdateDistrict = (district: District) => dispatch(editDistrict(district)),
-    handleRemoveDistrict = (id: string) => dispatch(removeDistrict(id)),
     handleDefineSelectWorkplaces = (itens: string[]) => setSelectWorkplaces(itens),
     handleDeleteWorkplaces = (itens: string[]) => itens.forEach(id => dispatch(removeWorkplace(id))),
     handleAppendAppliedWorkplaces = (itens: Workplace[]) => setAppliedWorkplaces([...appliedWorkplaces, ...itens]),
@@ -809,36 +716,12 @@ const Register = (): JSX.Element => {
     handleCloseModalRegisterWorkplace,
     handleShowModalEditWorkplace,
     handleCloseModalEditWorkplace,
-    scale,
-    street,
-    neighborhood,
-    city,
-    district,
     scales,
+    services,
     streets,
     neighborhoods,
     cities,
     districts,
-    handleDefineScale,
-    handleAppendScale,
-    handleUpdateScale,
-    handleRemoveScale,
-    handleDefineStreet,
-    handleAppendStreet,
-    handleUpdateStreet,
-    handleRemoveStreet,
-    handleDefineNeighborhood,
-    handleAppendNeighborhood,
-    handleUpdateNeighborhood,
-    handleRemoveNeighborhood,
-    handleDefineCity,
-    handleAppendCity,
-    handleUpdateCity,
-    handleRemoveCity,
-    handleDefineDistrict,
-    handleAppendDistrict,
-    handleUpdateDistrict,
-    handleRemoveDistrict,
     selectWorkplaces,
     handleDefineSelectWorkplaces,
     handleDeleteWorkplaces,

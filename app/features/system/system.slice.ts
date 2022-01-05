@@ -1,7 +1,7 @@
 /**
  * @description Reducer -> System
  * @author GuilhermeSantos001
- * @update 31/12/2021
+ * @update 05/01/2022
  */
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
@@ -12,9 +12,17 @@ export type Status = 'available' | 'unavailable' | 'blocked'
 export type CostCenter = {
   id: string
   title: string // ? Nome do Centro de Custo
-  status: Status // ? Status do Centro de Custo
-  createdAt: string // ? Data de criação do Centro de Custo
-  updatedAt: string // ? Data de atualização do Centro de Custo
+}
+
+// ? Dados dos Endereços
+export type Address = {
+  street: string // ? Rua do endereço
+  number: number // ? Número do endereço
+  complement: string // ? Complemento do endereço
+  neighborhood: string // ? Bairro do endereço
+  city: string // ? Cidade do endereço
+  district: string // ? Estado do endereço
+  zipCode: number // ? CEP do endereço
 }
 
 // ? Dados das Pessoas
@@ -28,94 +36,59 @@ export type Person = {
   birthDate: string // ? Data de nascimento da pessoa
   phone: string // ? Telefone da pessoa
   email: string // ? E-mail da pessoa
-  address: { // ? Endereço da pessoa
-    street: string // ? Rua da casa da pessoa
-    number: number // ? Número da casa da pessoa
-    complement: string // ? Complemento da casa da pessoa
-    neighborhood: string // ? Bairro da casa da pessoa
-    city: string // ? Cidade da casa da pessoa
-    state: string // ? Estado da casa da pessoa
-    zipCode: string // ? CEP da casa da pessoa
-  }
-  scale: Scale // ? Escala de trabalho da pessoa
+  address: Address // ? Endereço da pessoa
+  scale: string // ? Escala de trabalho da pessoa
   mirror: string // ? Espelho de ponto da pessoa
-  workplace: Workplace // ? Local de trabalho da pessoa
+  workplace: string // ? Local de trabalho da pessoa
+  cards: string[] // ? Lista de cartões da pessoa
   status: Status // ? Status do lote
-  createdAt: string // ? Data de criação da pessoa
-  updatedAt: string // ? Data de atualização da pessoa
 }
 
 // ? Dados dos Locais de Trabalho
 export type Workplace = {
   id: string
   name: string // ? Nome do local de trabalho da pessoa
-  scale: Scale // ? Escala do local de trabalho da pessoa
-  services: Service[] // ? Serviços do local de trabalho da pessoa
+  scale: string // ? Escala do local de trabalho da pessoa
+  services: string[] // ? Serviços do local de trabalho da pessoa
   entryTime: string // ? Hora de entrada do local de trabalho da pessoa
   exitTime: string // ? Hora de saída do local de trabalho da pessoa
-  address: { // ? Endereço do local de trabalho da pessoa
-    street: Street // ? Rua do local de trabalho da pessoa
-    number: number // ? Número da Casa do local de trabalho da pessoa
-    complement: string // ? Complemento do local de trabalho da pessoa
-    neighborhood: Neighborhood // ? Bairro do local de trabalho da pessoa
-    city: City // ? Cidade do local de trabalho da pessoa
-    district: District // ? Distrito do local de trabalho da pessoa
-    zipCode: number // ? CEP do local de trabalho da pessoa
-  }
+  address: Address // ? Endereço do local de trabalho da pessoa
 }
 
 // ? Dados dos Serviços
 export type Service = {
   id: string
   value: string // ? Valor do serviço
-  status: Status // ? Status do serviço
-  createdAt: string // ? Data de criação do serviço
-  updatedAt: string // ? Data de atualização do serviço
 }
 
 // ? Dados das Escalas de Trabalho
 export type Scale = {
   id: string
   value: string // ? Valor da escala de trabalho
-  status: Status // ? Status da escala de trabalho
-  createdAt: string // ? Data de criação da escala de trabalho
-  updatedAt: string // ? Data de atualização da escala de trabalho
 }
 
 // ? Dados das Ruas
 export type Street = {
   id: string
   name: string // ? Nome da rua
-  status: Status // ? Status da rua
-  createdAt: string // ? Data de criação da rua
-  updatedAt: string // ? Data de atualização da rua
 }
 
 // ? Dados dos Bairros
 export type Neighborhood = {
   id: string
   name: string // ? Nome do bairro
-  status: Status // ? Status do bairro
-  createdAt: string // ? Data de criação do bairro
-  updatedAt: string // ? Data de atualização do bairro
 }
 
 // ? Dados das Cidades
 export type City = {
   id: string
   name: string // ? Nome da cidade
-  status: Status // ? Status da cidade
-  createdAt: string // ? Data de criação da cidade
-  updatedAt: string // ? Data de atualização da cidade
 }
 
 // ? Dados dos Distritos (Estados)
-export type District ={
+export type District = {
   id: string
   name: string // ? Nome do distrito
-  status: Status // ? Status do distrito
-  createdAt: string // ? Data de criação do distrito
-  updatedAt: string // ? Data de atualização do distrito
 }
 
 export interface PaybackState {
@@ -215,7 +188,7 @@ export const reducerSlice = createSlice({
 
       if (state.workplaces.filter(item =>
         item.name === action.payload.name &&
-        item.scale.value === action.payload.scale.value
+        item.scale === action.payload.scale
       ).length <= 0)
         state.workplaces.push(action.payload);
     },

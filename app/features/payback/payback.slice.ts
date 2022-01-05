@@ -1,7 +1,7 @@
 /**
  * @description Reducer -> Payback
  * @author GuilhermeSantos001
- * @update 29/12/2021
+ * @update 05/01/2022
  */
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
@@ -16,10 +16,9 @@ export type LotItem = {
   costCenter: string // ? Centro de Custo
   serialNumber: string // ? Número de série do cartão
   lastCardNumber: string // ? 4 últimos números do cartão
-  userAssigned?: string // ? Usuário atribuído ao lote
   status: Status // ? Status do lote
   createdAt: string // ? Data de criação do lote
-  updatedAt: string // ? Data de atualização do lote
+  person?: string // ? Pessoa que recebeu o cartão
 }
 
 // ? Dados da pessoa do lançamento
@@ -48,7 +47,6 @@ export type Posting = {
   paymentDateCancelled?: string // ? Data de quando foi cancelado o pagamento do lançamento
   status: Status // ? Status do lote
   createdAt: string // ? Data de criação do lançamento
-  updatedAt: string // ? Data de atualização do lançamento
 }
 
 export interface PaybackState {

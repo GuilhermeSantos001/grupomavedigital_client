@@ -1,7 +1,7 @@
 /**
  * @description Input -> Seleciona um bairro
  * @author @GuilhermeSantos001
- * @update 31/12/2021
+ * @update 05/01/2022
  */
 
 import * as React from 'react';
@@ -35,6 +35,7 @@ const filter = createFilterOptions<FilmOptionType>();
 export default function SelectStreet(props: Props) {
   const [value, setValue] = React.useState<FilmOptionType | null>(props.neighborhood || null);
   const [hasEdit, setHasEdit] = React.useState<boolean>(false);
+  const [editValue, setEditValue] = React.useState<string>('');
 
   const
     workplaces = useAppSelector((state) => state.system.workplaces || []);
@@ -47,23 +48,54 @@ export default function SelectStreet(props: Props) {
       <Autocomplete
         className='col-12 col-md-10 mb-2 mb-md-0 me-md-2'
         value={value}
-        onChange={(event, newValue) => {
+        onChange={(event: any, newValue) => {
           if (typeof newValue === 'string') {
-            setValue({
+            const value: Neighborhood = {
               id: StringEx.id(),
               name: newValue,
-              status: 'available',
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString()
-            });
+            };
+
+            setValue(value);
+
+            if (String(event.type).toLowerCase() === 'keydown') {
+              if (
+                String(event.code).toLowerCase() === 'enter' ||
+                String(event.code).toLowerCase() === 'numpadenter'
+              ) {
+                if (hasEdit) {
+                  const neighborhood = props.neighborhoods.find(neighborhood => neighborhood.id === editValue);
+
+                  if (neighborhood) {
+                    const update: Neighborhood = {
+                      ...neighborhood,
+                      name: newValue
+                    };
+
+                    setValue(update);
+
+                    props.handleUpdateNeighborhood(update);
+                    props.handleChangeNeighborhood(update.id);
+                  }
+                } else {
+                  if (props.neighborhoods.filter(neighborhood => neighborhood.name === newValue).length <= 0) {
+                    props.handleAppendNeighborhood(value);
+                    props.handleChangeNeighborhood(value.id);
+                  } else {
+                    const neighborhood = props.neighborhoods.find(neighborhood => neighborhood.name === newValue);
+
+                    if (neighborhood) {
+                      setValue(neighborhood);
+                      props.handleChangeNeighborhood(neighborhood.id)
+                    }
+                  }
+                }
+              }
+            }
           } else if (newValue && newValue.inputValue) {
             // Create a new value from the user input
             const neighborhood: Neighborhood = {
               id: hasEdit ? value.id : StringEx.id(),
               name: newValue.inputValue,
-              status: 'available',
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString()
             };
 
             setValue(neighborhood);
@@ -93,9 +125,6 @@ export default function SelectStreet(props: Props) {
             filtered.push({
               id: hasEdit ? value.id : StringEx.id(),
               name: hasEdit ? `Atualizar "${value.name}" para "${inputValue}"` : `Adicionar "${inputValue}"`,
-              status: 'available',
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
               inputValue,
               inputUpdate: hasEdit ? true : false
             });
@@ -136,8 +165,10 @@ export default function SelectStreet(props: Props) {
         onClick={() => {
           if (!hasEdit) {
             setHasEdit(true);
+            setEditValue(value ? value.id : '');
           } else {
             setHasEdit(false);
+            setEditValue('');
           }
         }}
       >
@@ -149,8 +180,9 @@ export default function SelectStreet(props: Props) {
         color='error'
         disabled={hasEdit || !value || !canDeleteNeighborhood(workplaces, 'neighborhood', value.id)}
         onClick={() => {
-          props.handleRemoveNeighborhood(value.id);
           setValue(null);
+          props.handleChangeNeighborhood('');
+          props.handleRemoveNeighborhood(value.id);
         }}
       >
         Deletar

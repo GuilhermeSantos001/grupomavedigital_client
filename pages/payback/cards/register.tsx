@@ -1,7 +1,7 @@
 /**
  * @description Payback -> Cartões Beneficio (Alelo) -> Cadastro
  * @author @GuilhermeSantos001
- * @update 29/12/2021
+ * @update 05/01/2022
  */
 
 import React, { useEffect, useState } from 'react'
@@ -353,7 +353,7 @@ function compose_ready(
   return (
     <>
       <ModalRegisterCostCenter show={showModalRegisterCostCenter} handleClose={handleCloseModalRegisterCostCenter} />
-      <ModalEditCostCenter show={showModalEditCostCenter} costCenter={costCenter} handleResetCostCenter={handleResetCostCenter} handleClose={handleCloseModalEditCostCenter} />
+      <ModalEditCostCenter show={showModalEditCostCenter} id={costCenter} handleResetCostCenter={handleResetCostCenter} handleClose={handleCloseModalEditCostCenter} />
       <div className="row g-2">
         <div className="col-12">
           <div className="p-3 bg-primary bg-gradient rounded">
@@ -491,8 +491,7 @@ function compose_ready(
                     serialNumber: String(numSerialNumber).padStart(15, '0'),
                     lastCardNumber: String(numLastCardNumber).padStart(4, '0'),
                     status: 'available',
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
+                    createdAt: new Date().toISOString()
                   });
 
                   Alerting.create('Lote registrado com sucesso!');

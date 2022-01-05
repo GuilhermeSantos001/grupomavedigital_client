@@ -1,7 +1,7 @@
 /**
  * @description Input -> Seleciona um serviço
  * @author @GuilhermeSantos001
- * @update 31/12/2021
+ * @update 05/01/2022
  */
 
 import * as React from 'react';
@@ -227,9 +227,6 @@ export default function SelectService(props: Props) {
               handleClickAdd({
                 id: StringEx.id(),
                 value: newService,
-                status: 'available',
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
               });
               setNewService('');
               setLeft([...left, newService]);
@@ -281,7 +278,7 @@ export default function SelectService(props: Props) {
         disabled={
           leftChecked.length <= 0 ||
           hasEditService ||
-          workplaces.filter(place => place.services.filter(service => leftChecked.indexOf(service.value) !== -1).length > 0).length > 0
+          workplaces.filter(place => place.services.filter(service => leftChecked.indexOf(service) !== -1).length > 0).length > 0
         }
         onClick={() => {
           leftChecked.forEach(value => handleClickDelete(services.find(service => service.value === value).id));

@@ -1,6 +1,9 @@
 import React from 'react'
 
+import { SnackbarProvider } from 'notistack';
+
 import Alerting from '@/components/Alerting'
+import WindowSuperAdmin from '@/components/WindowSuperAdmin'
 import Navbar from '@/components/Navbar'
 import GridContent from '@/components/GridContent'
 
@@ -32,8 +35,9 @@ class Layout extends React.Component<MyProps, myStates> {
     const children = this.props.children
 
     return (
-      <>
+      <SnackbarProvider maxSnack={3}>
         <Alerting />
+        <WindowSuperAdmin />
         <Navbar
           menuShow={this.state.menuShow}
           setMenuShow={this.handleMenuShowClick}
@@ -46,7 +50,7 @@ class Layout extends React.Component<MyProps, myStates> {
         >
           {children}
         </GridContent>
-      </>
+      </SnackbarProvider>
     )
   }
 }

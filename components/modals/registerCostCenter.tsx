@@ -1,7 +1,7 @@
 /**
  * @description Modal -> Registra um centro de custo
  * @author @GuilhermeSantos001
- * @update 29/12/2021
+ * @update 05/01/2022
  */
 
 import { useState } from 'react'
@@ -33,10 +33,7 @@ const RegisterCostCenter = (props: Props): JSX.Element => {
   const
     itemDefault: CostCenter = {
       id: StringEx.id(),
-      title: '',
-      status: 'available',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      title: ''
     };
 
   const [costCenterItem, setCostCenterItem] = useState<CostCenter>(itemDefault)
@@ -59,40 +56,6 @@ const RegisterCostCenter = (props: Props): JSX.Element => {
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <div className="input-group my-2 m-md-2">
-          <span className="input-group-text" id="createdAt-addon">
-            <FontAwesomeIcon
-              icon={Icon.render('fas', 'calendar-day')}
-              className="m-auto fs-3 flex-shrink-1 text-primary"
-            />
-          </span>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Data de Registro"
-            aria-label="Data de Registro"
-            aria-describedby="createdAt-addon"
-            value={StringEx.createdAt(costCenterItem.createdAt)}
-            disabled={true}
-          />
-        </div>
-        <div className="input-group my-2 m-md-2">
-          <span className="input-group-text" id="updatedAt-addon">
-            <FontAwesomeIcon
-              icon={Icon.render('fas', 'calendar-week')}
-              className="m-auto fs-3 flex-shrink-1 text-primary"
-            />
-          </span>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Data de Atualização"
-            aria-label="Data de Atualização"
-            aria-describedby="updatedAt-addon"
-            value={StringEx.updatedAt(costCenterItem.updatedAt)}
-            disabled={true}
-          />
-        </div>
         <div className="input-group my-2 m-md-2">
           <span className="input-group-text" id="code-addon">
             <FontAwesomeIcon
