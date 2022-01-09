@@ -1,6 +1,6 @@
 /**
  * @description Efetuada uma chamada para a API para verificar o token do usuario
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 16/12/2021
  */
 

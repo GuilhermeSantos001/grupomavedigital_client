@@ -1,6 +1,6 @@
 /**
  * @description Dashboard do usuario
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 05/10/2021
  */
 

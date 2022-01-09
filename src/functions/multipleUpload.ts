@@ -1,6 +1,6 @@
 /**
  * @description Efetuada uma chamada para a API para enviar varios arquivos
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 14/11/2021
  */
 

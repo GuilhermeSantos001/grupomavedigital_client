@@ -1,7 +1,7 @@
 /**
- * @description Modal -> Modal de Cadastro de local de trabalho
+ * @description Modal -> Modal de Cadastro de pessoa
  * @author GuilhermeSantos001
- * @update 07/01/2022
+ * @update 08/01/2022
  */
 
 import React, { useState } from 'react';
@@ -19,9 +19,10 @@ import CloseIcon from '@mui/icons-material/Close';
 import Slide from '@mui/material/Slide';
 import { TransitionProps } from '@mui/material/transitions';
 
-import MobileTimePicker from '@/components/inputs/mobileTimePicker'
+import MobileDatePicker from '@/components/inputs/mobileDatePicker'
 import SelectScale from '@/components/inputs/selectScale'
 import SelectService from '@/components/inputs/selectService'
+import SelectCard from '@/components/inputs/selectCard'
 import SelectStreet from '@/components/inputs/selectStreet'
 import SelectNeighborhood from '@/components/inputs/selectNeighborhood'
 import SelectCity from '@/components/inputs/selectCity'
@@ -33,9 +34,14 @@ import Alerting from '@/src/utils/alerting'
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 
 import {
-  Workplace,
-  appendWorkplace,
+  Person,
+  appendPerson,
 } from '@/app/features/system/system.slice'
+
+import {
+  LotItem,
+  editItemLot
+} from '@/app/features/payback/payback.slice'
 
 export interface Props {
   show: boolean
@@ -51,23 +57,30 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export default function RegisterWorkplace(props: Props) {
-  const [name, setName] = useState<string>('');
+export default function RegisterPeople(props: Props) {
+  const [matricule, setMatricule] = useState<number>(0)
+  const [name, setName] = useState<string>('')
+  const [cpf, setCPF] = useState<string>('')
+  const [rg, setRG] = useState<string>('')
+  const [motherName, setMotherName] = useState<string>('')
+  const [birthDate, setBirthDate] = useState<Date>(null)
+  const [phone, setPhone] = useState<string>('')
+  const [mail, setMail] = useState<string>('')
   const [scale, setScale] = useState<string>('')
-  const [entryTime, setEntryTime] = useState<Date>(null);
-  const [exitTime, setExitTime] = useState<Date>(null);
-  const [appliedServices, setAppliedServices] = useState<string[]>([]);
+  const [appliedCards, setAppliedCards] = useState<string[]>([])
+  const [appliedServices, setAppliedServices] = useState<string[]>([])
   const [street, setStreet] = useState<string>('')
-  const [numberHome, setNumberHome] = useState<number>(0);
-  const [complement, setComplement] = useState<string>('');
+  const [numberHome, setNumberHome] = useState<number>(0)
+  const [complement, setComplement] = useState<string>('')
   const [neighborhood, setNeighborhood] = useState<string>('')
   const [city, setCity] = useState<string>('')
   const [district, setDistrict] = useState<string>('')
-  const [zipCode, setZipCode] = useState<number>(0);
+  const [zipCode, setZipCode] = useState<number>(0)
 
   const
     dispatch = useAppDispatch(),
-    workplaces = useAppSelector(state => state.system.workplaces || []),
+    people = useAppSelector(state => state.system.people),
+    lotItems = useAppSelector(state => state.payback.lotItems || []),
     services = useAppSelector((state) => state.system.services || []),
     scales = useAppSelector((state) => state.system.scales || []),
     streets = useAppSelector((state) => state.system.streets || []),
@@ -77,10 +90,16 @@ export default function RegisterWorkplace(props: Props) {
 
   const
     handleResetInputs = () => {
+      setMatricule(0)
       setName('');
+      setCPF('');
+      setRG('');
+      setMotherName('');
+      setBirthDate(null);
+      setPhone('');
+      setMail('');
       setScale('');
-      setEntryTime(null);
-      setExitTime(null);
+      setAppliedCards([]);
       setAppliedServices([]);
       setStreet('');
       setNumberHome(0);
@@ -91,9 +110,14 @@ export default function RegisterWorkplace(props: Props) {
       setZipCode(0);
     },
     handleChangeScale = (value: string) => setScale(value),
+    handleChangeMatricule = (value: number) => setMatricule(value),
     handleChangeName = (value: string) => setName(value),
-    handleChangeEntryTime = (value: Date) => setEntryTime(value),
-    handleChangeExitTime = (value: Date) => setExitTime(value),
+    handleChangeCPF = (value: string) => setCPF(value),
+    handleChangeRG = (value: string) => setRG(value),
+    handleChangeMotherName = (value: string) => setMotherName(value),
+    handleChangeBirthDate = (value: Date) => setBirthDate(value),
+    handleChangePhone = (value: string) => setPhone(value),
+    handleChangeMail = (value: string) => setMail(value),
     handleChangeStreet = (value: string) => setStreet(value),
     handleChangeNumberHome = (value: number) => setNumberHome(value),
     handleChangeComplement = (value: string) => setComplement(value),
@@ -102,11 +126,17 @@ export default function RegisterWorkplace(props: Props) {
     handleChangeDistrict = (value: string) => setDistrict(value),
     handleChangeZipCode = (value: number) => setZipCode(value);
 
-  const canRegisterWorkPlace = () => {
+  const canRegisterPerson = () => {
     return name.length > 0 &&
+      matricule > 0 &&
+      cpf.length > 0 &&
+      rg.length > 0 &&
+      motherName.length > 0 &&
+      birthDate != null &&
+      phone.length > 0 &&
+      mail.length > 0 &&
+      appliedCards.length > 0 &&
       scale.length > 0 &&
-      entryTime !== null &&
-      exitTime !== null &&
       appliedServices.length > 0 &&
       street.length > 0 &&
       numberHome > 0 &&
@@ -117,14 +147,21 @@ export default function RegisterWorkplace(props: Props) {
       zipCode > 0
   }
 
-  const handleRegisterWorkplace = () => {
-    const workplace: Workplace = {
+  const handleRegisterPerson = () => {
+    const person: Person = {
       id: StringEx.id(),
+      matricule,
       name,
-      entryTime: entryTime.toISOString(),
-      exitTime: exitTime.toISOString(),
+      cpf,
+      rg,
+      motherName,
+      birthDate: birthDate.toISOString(),
+      phone,
+      mail,
       services: appliedServices,
       scale: scales.find(_scale => _scale.id === scale).id,
+      cards: lotItems.filter(_lotItem => appliedCards.includes(`${_lotItem.id} - ${_lotItem.lastCardNumber}`)).map(_lotItem => `${_lotItem.id} - ${_lotItem.lastCardNumber}`),
+      status: 'available',
       address: {
         street: streets.find(_street => _street.id === street).id,
         neighborhood: neighborhoods.find(_neighborhood => _neighborhood.id === neighborhood).id,
@@ -136,10 +173,30 @@ export default function RegisterWorkplace(props: Props) {
       },
     }
 
-    if (workplaces.find(_workplace => _workplace.name === name && _workplace.scale === scale))
-      return Alerting.create('Já existe um local de trabalho com esse nome e escala.');
+    if (people.find(_person =>
+      _person.matricule === matricule ||
+      _person.cpf === cpf ||
+      _person.rg === rg ||
+      _person.cards.filter(card => appliedCards.includes(card)).length > 0
+    ))
+      return Alerting.create('Já existe uma pessoa com esses dados.');
 
-    dispatch(appendWorkplace(workplace));
+    // ? Associa o cartão a pessoa
+    lotItems
+      .filter(
+        _lotItem => appliedCards.includes(`${_lotItem.id} - ${_lotItem.lastCardNumber}`)
+      )
+      .forEach(
+        _lotItem => {
+          const card: LotItem = {
+            ..._lotItem,
+            person: person.id
+          }
+
+          dispatch(editItemLot(card));
+        })
+
+    dispatch(appendPerson(person));
     handleResetInputs();
     props.handleClose();
   }
@@ -169,12 +226,12 @@ export default function RegisterWorkplace(props: Props) {
               <CloseIcon />
             </IconButton>
             <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
-              Registrar Local de Trabalho
+              Registrar Funcionário
             </Typography>
             <Button
               color="inherit"
-              disabled={!canRegisterWorkPlace()}
-              onClick={handleRegisterWorkplace}
+              disabled={!canRegisterPerson()}
+              onClick={handleRegisterPerson}
             >
               Registrar
             </Button>
@@ -187,10 +244,79 @@ export default function RegisterWorkplace(props: Props) {
           <ListItem>
             <TextField
               className='col'
-              label="Nome do Posto"
+              label="Matrícula"
+              variant="standard"
+              value={String(matricule).padStart(6, '0')}
+              onChange={(e) => {
+                const value = parseInt(e.target.value);
+
+                if (value >= 0 && value <= 999999)
+                  handleChangeMatricule(value)
+              }}
+            />
+          </ListItem>
+          <ListItem>
+            <TextField
+              className='col'
+              label="Nome Completo"
               variant="standard"
               value={name}
               onChange={(e) => handleChangeName(e.target.value)}
+            />
+          </ListItem>
+          <ListItem>
+            <TextField
+              className='col'
+              label="CPF"
+              variant="standard"
+              value={cpf}
+              onChange={(e) => handleChangeCPF(e.target.value)}
+            />
+          </ListItem>
+          <ListItem>
+            <TextField
+              className='col'
+              label="RG"
+              variant="standard"
+              value={rg}
+              onChange={(e) => handleChangeRG(e.target.value)}
+            />
+          </ListItem>
+          <ListItem>
+            <TextField
+              className='col'
+              label="Nome da Mãe"
+              variant="standard"
+              value={motherName}
+              onChange={(e) => handleChangeMotherName(e.target.value)}
+            />
+          </ListItem>
+          <ListItem>
+            <TextField
+              className='col'
+              label="Celular"
+              variant="standard"
+              value={phone}
+              onChange={(e) => handleChangePhone(e.target.value)}
+            />
+          </ListItem>
+          <ListItem>
+            <TextField
+              className='col'
+              label="E-mail"
+              variant="standard"
+              value={mail}
+              onChange={(e) => handleChangeMail(e.target.value)}
+            />
+          </ListItem>
+        </List>
+        <List>
+          <ListItem>
+            <MobileDatePicker
+              className='col-12'
+              label="Data de Nascimento"
+              value={birthDate}
+              handleChangeValue={handleChangeBirthDate}
             />
           </ListItem>
           <ListItem>
@@ -201,23 +327,14 @@ export default function RegisterWorkplace(props: Props) {
             </div>
           </ListItem>
           <ListItem>
-            <MobileTimePicker
-              className='col-12'
-              label="Horário de Entrada"
-              value={entryTime}
-              handleChangeValue={handleChangeEntryTime}
-            />
+            <div className='col'>
+              <SelectCard
+                handleChangeCard={(cards) => setAppliedCards(cards)}
+              />
+            </div>
           </ListItem>
           <ListItem>
-            <MobileTimePicker
-              className='col-12'
-              label="Horário de Saída"
-              value={exitTime}
-              handleChangeValue={handleChangeExitTime}
-            />
-          </ListItem>
-          <ListItem>
-            <ListItemText primary="Serviços no Posto" />
+            <ListItemText primary="Funções da Pessoa" />
           </ListItem>
         </List>
         <SelectService
@@ -227,7 +344,7 @@ export default function RegisterWorkplace(props: Props) {
         />
         <List>
           <ListItem>
-            <ListItemText primary="Endereço do Posto" />
+            <ListItemText primary="Endereço" />
           </ListItem>
           <ListItem>
             <div className='col'>
@@ -300,8 +417,8 @@ export default function RegisterWorkplace(props: Props) {
           className='col-10 mx-auto my-2'
           variant="contained"
           color="primary"
-          disabled={!canRegisterWorkPlace()}
-          onClick={handleRegisterWorkplace}
+          disabled={!canRegisterPerson()}
+          onClick={handleRegisterPerson}
         >
           Registrar
         </Button>

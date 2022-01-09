@@ -1,6 +1,6 @@
 /**
  * @description Componentes exibido quando o usuario não está logado
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 16/12/2021
  */
 

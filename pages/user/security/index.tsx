@@ -1,6 +1,6 @@
 /**
  * @description Pagina usada para alterar as informações de segurança do usuario
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 16/12/2021
  */
 

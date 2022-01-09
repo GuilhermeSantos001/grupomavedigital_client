@@ -1,6 +1,6 @@
 /**
  * @description Payback -> Lançamentos Financeiros
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 29/12/2021
  */
 

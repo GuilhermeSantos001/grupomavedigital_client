@@ -1,10 +1,10 @@
 /**
  * @description Input -> Seleciona um serviço
- * @author @GuilhermeSantos001
- * @update 05/01/2022
+ * @author GuilhermeSantos001
+ * @update 07/01/2022
  */
 
-import * as React from 'react';
+import React, {useState} from 'react';
 import Grid from '@mui/material/Grid';
 import List from '@mui/material/List';
 import Card from '@mui/material/Card';
@@ -18,6 +18,7 @@ import Divider from '@mui/material/Divider';
 import TextField from '@mui/material/TextField';
 
 import StringEx from '@/src/utils/stringEx';
+import ArrayEx from '@/src/utils/arrayEx';
 import Alerting from '@/src/utils/alerting';
 
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
@@ -29,21 +30,6 @@ import {
   removeService,
 } from '@/app/features/system/system.slice'
 
-// ? Retorna todos os itens da lista A que não estão na lista B
-export function not(a: readonly string[], b: readonly string[]) {
-  return a.filter((value) => b.indexOf(value) === -1);
-}
-
-// ? Retorna todos os itens da lista A que estão na lista B
-export function intersection(a: readonly string[], b: readonly string[]) {
-  return a.filter((value) => b.indexOf(value) !== -1);
-}
-
-// ? Faz a união da lista A com os itens da lista B
-export function union(a: readonly string[], b: readonly string[]) {
-  return [...a, ...not(b, a)];
-}
-
 export interface Props {
   left: string[];
   right: string[];
@@ -51,13 +37,13 @@ export interface Props {
 }
 
 export default function SelectService(props: Props) {
-  const [checked, setChecked] = React.useState<readonly string[]>([]);
-  const [left, setLeft] = React.useState<readonly string[]>(props.left);
-  const [right, setRight] = React.useState<readonly string[]>(props.right);
-  const [newService, setNewService] = React.useState<string>('');
-  const [hasEditService, setHasEditService] = React.useState<boolean>(false);
-  const [textUpdateService, setTextUpdateService] = React.useState<string>('');
-  const [idUpdateService, setIdUpdateService] = React.useState<string>('');
+  const [checked, setChecked] = useState<readonly string[]>([]);
+  const [left, setLeft] = useState<readonly string[]>(props.left);
+  const [right, setRight] = useState<readonly string[]>(props.right);
+  const [newService, setNewService] = useState<string>('');
+  const [hasEditService, setHasEditService] = useState<boolean>(false);
+  const [textUpdateService, setTextUpdateService] = useState<string>('');
+  const [idUpdateService, setIdUpdateService] = useState<string>('');
 
   const dispatch = useAppDispatch();
   const services = useAppSelector((state) => state.system.services || []);
@@ -68,8 +54,8 @@ export default function SelectService(props: Props) {
     handleClickEdit = (item: Service) => dispatch(editService(item)),
     handleClickDelete = (id: string) => dispatch(removeService(id));
 
-  const leftChecked = intersection(checked, left);
-  const rightChecked = intersection(checked, right);
+  const leftChecked = ArrayEx.intersection(checked, left);
+  const rightChecked = ArrayEx.intersection(checked, right);
 
   const handleToggle = (value: string) => () => {
     const currentIndex = checked.indexOf(value);
@@ -85,13 +71,13 @@ export default function SelectService(props: Props) {
   };
 
   const numberOfChecked = (items: readonly string[]) =>
-    intersection(checked, items).length;
+    ArrayEx.intersection(checked, items).length;
 
   const handleToggleAll = (items: readonly string[]) => () => {
     if (numberOfChecked(items) === items.length) {
-      setChecked(not(checked, items));
+      setChecked(ArrayEx.not(checked, items));
     } else {
-      setChecked(union(checked, items));
+      setChecked(ArrayEx.union(checked, items));
     }
   };
 
@@ -99,16 +85,16 @@ export default function SelectService(props: Props) {
     props.onChangeAppliedServices(right.concat(leftChecked));
 
     setRight(right.concat(leftChecked));
-    setLeft(not(left, leftChecked));
-    setChecked(not(checked, leftChecked));
+    setLeft(ArrayEx.not(left, leftChecked));
+    setChecked(ArrayEx.not(checked, leftChecked));
   };
 
   const handleCheckedLeft = () => {
-    props.onChangeAppliedServices(not(right, rightChecked));
+    props.onChangeAppliedServices(ArrayEx.not(right, rightChecked));
 
     setLeft(left.concat(rightChecked));
-    setRight(not(right, rightChecked));
-    setChecked(not(checked, rightChecked));
+    setRight(ArrayEx.not(right, rightChecked));
+    setChecked(ArrayEx.not(checked, rightChecked));
   };
 
   const customList = (title: React.ReactNode, items: readonly string[]) => (

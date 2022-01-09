@@ -1,6 +1,6 @@
 /**
  * @description Classe usada para armazenamento em memoria
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 27/09/2021
  */
 

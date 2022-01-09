@@ -1,6 +1,6 @@
 /**
  * @description Gestor online de documentos -> TI
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 16/12/2021
  */
 

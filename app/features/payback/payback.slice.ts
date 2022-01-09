@@ -1,12 +1,12 @@
 /**
  * @description Reducer -> Payback
  * @author GuilhermeSantos001
- * @update 05/01/2022
+ * @update 08/01/2022
  */
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-import { Status, Person } from '@/app/features/system/system.slice'
+import { Status, Workplace } from '@/app/features/system/system.slice'
 
 declare type PaymentStatus = 'payable' | 'paid' | 'cancelled'
 
@@ -22,8 +22,10 @@ export type LotItem = {
 }
 
 // ? Dados da pessoa do lançamento
-export type PersonPosting = Person & {
-  reasonForAbsence?: string // ? Motivo de falta do beneficiário
+export type PersonPosting = {
+  id: string // ? ID da pessoa
+  mirror: string // ? Espelho de ponto da funcionário/beneficiário
+  reasonForAbsence?: string // ? Motivo de falta do funcionário
   reasonForCoverage?: string // ? Motivo de cobertura do beneficiário
 }
 
@@ -39,6 +41,8 @@ export type Posting = {
   description: string // ? Descrição do lançamento
   coverage: PersonPosting // ? Pessoa que está realizando a cobertura do lançamento
   covering: PersonPosting // ? Pessoa que está sendo substituída no lançamento
+  coverageWorkplace: Workplace // ? Local de trabalho da pessoa que está realizando a cobertura do lançamento
+  coveringWorkplace: Workplace // ? Local de trabalho da pessoa que está sendo substituída no lançamento
   paymentMethod: string // ? Forma de pagamento do lançamento
   paymentValue: number // ? Valor de pagamento do lançamento
   paymentDatePayable: string // ? Data há pagar do lançamento
@@ -76,7 +80,7 @@ export const reducerSlice = createSlice({
       if (!state.lotItems)
         state.lotItems = [];
 
-      const index = state.lotItems.findIndex(item => item.serialNumber === action.payload.id);
+      const index = state.lotItems.findIndex(item => item.id === action.payload.id && item.lastCardNumber === action.payload.lastCardNumber);
 
       if (index !== -1)
         state.lotItems[index] = action.payload;
@@ -101,7 +105,7 @@ export const reducerSlice = createSlice({
         state.postings.filter(item => {
           // ? Verifica se a pessoa que está cobrindo já possui um lançamento no mesmo dia
           if (
-            item.coverage.matricule === action.payload.coverage.matricule &&
+            item.coverage.id === action.payload.coverage.id &&
             item.originDate === action.payload.originDate
           )
             return false;

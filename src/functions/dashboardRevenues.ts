@@ -1,7 +1,7 @@
 /**
  * @description Efetuada uma chamada para a API para retornar as
  * informações da dashboard: "Faturamento"
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 08/10/2021
  */
 

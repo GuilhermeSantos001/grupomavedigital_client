@@ -1,7 +1,7 @@
 /**
  * @description Efetuada uma chamada para a API para retornar as informações
  * do usuário
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 16/12/2021
  */
 

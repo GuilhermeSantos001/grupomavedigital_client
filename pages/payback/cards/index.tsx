@@ -1,10 +1,10 @@
 /**
  * @description Payback -> Cartões Beneficio (Alelo)
- * @author @GuilhermeSantos001
- * @update 29/12/2021
+ * @author GuilhermeSantos001
+ * @update 08/01/2022
  */
 
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import Link from 'next/link'
 
@@ -154,50 +154,30 @@ function compose_ready() {
                 <Link href="/payback/cards/remove">Remover Lote</Link>
               </p>
               <hr />
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'search')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/cards/lots">
-                  Verificar Lotes
-                </Link>
-              </p>
-              <hr />
             </div>
             <div className='d-flex align-items-center justify-content-center col-12 bg-primary bg-gradient rounded p-2'>
               <p className='fs-5 my-auto text-secondary fw-bold text-center'>
-                Associação
+                Títulos
               </p>
             </div>
             <div className='d-flex flex-column flex-md-row align-items-center border-bottom my-3'>
               <p className="text-center text-md-start px-2 fs-6 fw-bold">
                 <FontAwesomeIcon
-                  icon={Icon.render('fas', 'user-plus')}
+                  icon={Icon.render('fas', 'money-check')}
                   className="me-1 flex-shrink-1 my-auto"
                 />
-                <Link href="/payback/cards/link">
-                  Associar Cartões
+                <Link href="/payback/titles/pay">
+                  Títulos a Pagar
                 </Link>
               </p>
               <hr />
               <p className="text-center text-md-start px-2 fs-6 fw-bold">
                 <FontAwesomeIcon
-                  icon={Icon.render('fas', 'user-minus')}
+                  icon={Icon.render('fas', 'money-check-alt')}
                   className="me-1 flex-shrink-1 my-auto"
                 />
-                <Link href="/payback/cards/unlink">
-                  Desassociar Cartões
-                </Link>
-              </p>
-              <hr />
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'search')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/cards/links">
-                  Verificar Associações
+                <Link href="/payback/titles/paid">
+                  Títulos Pagos
                 </Link>
               </p>
               <hr />
@@ -293,7 +273,7 @@ function compose_ready() {
   )
 }
 
-const Cards = (): JSX.Element => {
+export default function Cards() {
   const [isReady, setReady] = useState<boolean>(false)
   const [isError, setError] = useState<boolean>(false)
   const [notPrivilege, setNotPrivilege] = useState<boolean>(false)
@@ -352,5 +332,3 @@ const Cards = (): JSX.Element => {
 
   if (isReady) return compose_ready()
 }
-
-export default Cards

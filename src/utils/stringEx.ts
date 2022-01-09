@@ -1,6 +1,6 @@
 /**
  * @description Métodos essenciais para se trabalhar com textos
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 27/12/2021
  */
 

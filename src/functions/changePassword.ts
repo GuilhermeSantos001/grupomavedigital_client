@@ -1,7 +1,7 @@
 /**
  * @description Efetuada uma chamada para a API para alterar a
  * senha do usuario
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 16/12/2021
  */
 

@@ -94,8 +94,8 @@ export default function WindowSuperAdmin() {
       if (hasChanges) {
         enqueueSnackbar(
           'A página será recarregada para aplicar as alterações!', {
-          variant: 'success',
-          className: 'bg-primary fw-bold text-secondary'
+          variant: 'info',
+          className: 'bg-primary fw-bold text-secondary',
         });
 
         handleReload();
@@ -121,6 +121,8 @@ export default function WindowSuperAdmin() {
     }
 
   const
+    lotItems = useAppSelector(state => state.payback.lotItems || []),
+    postings = useAppSelector(state => state.payback.postings || []),
     costCenters = useAppSelector(state => state.system.costCenters || []),
     workplaces = useAppSelector(state => state.system.workplaces || []),
     services = useAppSelector(state => state.system.services || []),
@@ -194,6 +196,16 @@ export default function WindowSuperAdmin() {
       },
     ],
     optionsQtRegisters: OptionQtRegisters[] = [
+      {
+        title: 'Cartões Benefício',
+        length: lotItems.length,
+        exec: () => console.log(lotItems)
+      },
+      {
+        title: 'Lançamentos Financeiros',
+        length: postings.length,
+        exec: () => console.log(postings)
+      },
       {
         title: 'Centros de custo',
         length: costCenters.length,

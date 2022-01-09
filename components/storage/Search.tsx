@@ -1,6 +1,6 @@
 /**
  * @description Componentes da barra de pesquisa do GED
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 08/12/2021
  */
 

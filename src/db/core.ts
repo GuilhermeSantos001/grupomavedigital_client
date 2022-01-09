@@ -1,6 +1,6 @@
 /**
  * @description Estrutura de base para interação com o banco de dados
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 27/09/2021
  */
 

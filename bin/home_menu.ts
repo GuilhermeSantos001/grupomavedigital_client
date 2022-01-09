@@ -1,6 +1,6 @@
 /**
  * @description Menu Inicial do sistema
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 13/10/2021
  */
 

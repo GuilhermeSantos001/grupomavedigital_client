@@ -1,6 +1,6 @@
 /**
  * @description Componente do input para login
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 17/11/2021
  */
 

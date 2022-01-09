@@ -1,7 +1,7 @@
 /**
  * @description Efetuada uma chamada para a API para verificar se a autenticação
  * de duas etapas está configurada
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 16/12/2021
  */
 

@@ -1,6 +1,6 @@
 /**
  * @description Dashboard do "Faturamento"
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 21/11/2021
  */
 

@@ -1,6 +1,6 @@
 /**
  * @description Componente de exibição das pastas do GED
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 14/12/2021
  */
 

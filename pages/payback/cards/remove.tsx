@@ -1,10 +1,10 @@
 /**
  * @description Payback -> Cartões Beneficio (Alelo) -> Cadastro
- * @author @GuilhermeSantos001
- * @update 05/01/2022
+ * @author GuilhermeSantos001
+ * @update 08/01/2022
  */
 
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { Offcanvas } from 'react-bootstrap'
 
@@ -33,15 +33,14 @@ import StringEx from '@/src/utils/stringEx'
 import { useAppSelector, useAppDispatch } from '@/app/hooks'
 
 import {
-  removeItemLot
+  LotItem,
+  removeItemLot,
 } from '@/app/features/payback/payback.slice'
 
-import type {
-  LotItem
-} from '@/app/features/payback/payback.slice'
-
-import type {
-  CostCenter
+import {
+  CostCenter,
+  Person,
+  editPerson
 } from '@/app/features/system/system.slice'
 
 const serverSideProps: PageProps = {
@@ -299,18 +298,27 @@ function compose_ready(
   handleClickBackPage: () => void,
   lotItems: LotItem[],
   costCenters: CostCenter[],
+  people: Person[],
+  updatePerson: (person: Person) => void,
   removeMultipleLotItems: (items: string[]) => void,
   removeLotItem: (id: string) => {
     payload: string;
     type: string;
   },
   showCanvasDateInfo: boolean,
+  showCanvasUserInfo: boolean,
   openCanvasDateInfo: () => void,
   closeCanvasDateInfo: () => void,
+  openCanvasUserInfo: () => void,
+  closeCanvasUserInfo: () => void,
   textTitleCanvasDateInfo: string,
-  textCreatedAt: string,
+  textCreatedAtCanvasDateInfo: string,
+  textNameCanvasUserInfo: string,
+  textMatriculeCanvasUserInfo: string,
   handleChangeTextTitleCanvasDateInfo: (text: string) => void,
-  handleChangeTextCreatedAt: (text: string) => void
+  handleChangeTextCreatedAtCanvasDateInfo: (text: string) => void,
+  handleChangeTextNameCanvasUserInfo: (text: string) => void,
+  handleChangeTextMatriculeCanvasUserInfo: (text: string) => void,
 ) {
   return (
     <>
@@ -339,7 +347,13 @@ function compose_ready(
             showCanvasDateInfo,
             closeCanvasDateInfo,
             textTitleCanvasDateInfo,
-            textCreatedAt
+            textCreatedAtCanvasDateInfo
+          )}
+          {canvas_userInfo(
+            showCanvasUserInfo,
+            closeCanvasUserInfo,
+            textNameCanvasUserInfo,
+            textMatriculeCanvasUserInfo
           )}
           <ListWithFiveColumns
             noItemsMessage='Nenhum lote disponível.'
@@ -379,7 +393,18 @@ function compose_ready(
                     const filter = items.filter(item => {
                       const lot = lotItems.find(lot => lot.serialNumber === item);
 
-                      return lot.status === 'available';
+                      if (lot.status === 'available') {
+                        if (lot.person) {
+                          const person = people.find(person => person.id == lot.person);
+
+                          updatePerson({
+                            ...person,
+                            cards: person.cards.filter(card => card != `${lot.id} - ${lot.lastCardNumber}`)
+                          });
+                        }
+                      }
+
+                      return false;
                     });
 
                     if (filter.length > 0)
@@ -440,7 +465,7 @@ function compose_ready(
                       enabled: true,
                       handleClick: () => {
                         handleChangeTextTitleCanvasDateInfo(`Número de Série: ${item.serialNumber}`);
-                        handleChangeTextCreatedAt(StringEx.createdAt(item.createdAt));
+                        handleChangeTextCreatedAtCanvasDateInfo(StringEx.createdAt(item.createdAt));
                         openCanvasDateInfo();
                       },
                       popover: {
@@ -453,9 +478,12 @@ function compose_ready(
                         prefix: 'fas',
                         name: 'user-tag'
                       },
-                      enabled: item.person?.length <= 0 ? true : false,
-                      // TODO: Implementar ação para ver o usuário vinculado ao lote
-                      handleClick: () => console.log('Hello World 2'),
+                      enabled: item.person?.length > 0 ? true : false,
+                      handleClick: () => {
+                        handleChangeTextNameCanvasUserInfo(`${people.find(person => person.id === item.person).name}`);
+                        handleChangeTextMatriculeCanvasUserInfo(`Matrícula: ${people.find(person => person.id === item.person).matricule}`);
+                        openCanvasUserInfo();
+                      },
                       popover: {
                         title: 'Usuário Atribuído',
                         description: 'Informações sobre o usuário atribuído ao lote.'
@@ -467,7 +495,18 @@ function compose_ready(
                         name: 'trash'
                       },
                       enabled: item.status === 'available',
-                      handleClick: () => removeLotItem(item.serialNumber),
+                      handleClick: () => {
+                        if (item.person) {
+                          const person = people.find(person => person.id == item.person);
+
+                          updatePerson({
+                            ...person,
+                            cards: person.cards.filter(card => card != `${item.id} - ${item.lastCardNumber}`)
+                          });
+                        }
+
+                        removeLotItem(item.serialNumber)
+                      },
                       popover: {
                         title: 'Remova o lote',
                         description: 'Você pode remover lotes que ainda estão disponíveis.'
@@ -517,7 +556,41 @@ function canvas_dateInfo(
   )
 }
 
-const Remove = (): JSX.Element => {
+function canvas_userInfo(
+  show: boolean,
+  handleClose: () => void,
+  name: string,
+  matricule: string
+) {
+  return (
+    <Offcanvas show={show} onHide={handleClose} placement='end'>
+      <Offcanvas.Header className='bg-primary bg-gradient fw-bold text-secondary' closeButton closeVariant='white'>
+        <Offcanvas.Title className='text-truncate'>{name}</Offcanvas.Title>
+      </Offcanvas.Header>
+      <Offcanvas.Body>
+        <div className="input-group my-3">
+          <span className="input-group-text" id="createdAt-addon1">
+            <FontAwesomeIcon
+              icon={Icon.render('fas', 'id-card')}
+              className="me-2 fs-3 flex-shrink-1 text-primary my-auto"
+            />
+          </span>
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Matrícula"
+            aria-label="Matrícula"
+            aria-describedby="matricule-addon"
+            value={matricule}
+            readOnly={true}
+          />
+        </div>
+      </Offcanvas.Body>
+    </Offcanvas>
+  )
+}
+
+export default function CardsRemove() {
   const [isReady, setReady] = useState<boolean>(false)
   const [isError, setError] = useState<boolean>(false)
   const [notPrivilege, setNotPrivilege] = useState<boolean>(false)
@@ -526,12 +599,17 @@ const Remove = (): JSX.Element => {
 
   const [showCanvasDateInfo, setShowModalDateInfo] = useState<boolean>(false)
   const [textTitleCanvasDateInfo, setTextTitleCanvasDateInfo] = useState<string>('')
-  const [textCreatedAt, setTextCreatedAt] = useState<string>('')
+  const [textCreatedAtCanvasDateInfo, setTextCreatedAt] = useState<string>('')
+
+  const [showCanvasUserInfo, setShowModalUserInfo] = useState<boolean>(false)
+  const [textNameCanvasUserInfo, setTextNameCanvasUserInfo] = useState<string>('')
+  const [textMatriculeCanvasUserInfo, setTextMatriculeCanvasUserInfo] = useState<string>('')
 
   const
     dispatch = useAppDispatch(),
     costCenters = useAppSelector((state) => state.system.costCenters || []),
-    lotItems = useAppSelector((state) => state.payback.lotItems || [])
+    lotItems = useAppSelector((state) => state.payback.lotItems || []),
+    people = useAppSelector((state) => state.system.people || []);
 
   const router = useRouter()
   const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
@@ -552,12 +630,17 @@ const Remove = (): JSX.Element => {
       router.push(path)
     },
     handleClickBackPage = () => router.push('/payback/cards'),
+    updatePerson = (person: Person) => dispatch(editPerson(person)),
     removeMultipleLotItems = (items: string[]) => items.forEach(item => dispatch(removeItemLot(item))),
     removeLotItem = (id: string) => dispatch(removeItemLot(id)),
     openCanvasDateInfo = () => setShowModalDateInfo(true),
     closeCanvasDateInfo = () => setShowModalDateInfo(false),
+    openCanvasUserInfo = () => setShowModalUserInfo(true),
+    closeCanvasUserInfo = () => setShowModalUserInfo(false),
     handleChangeTextTitleCanvasDateInfo = (text: string) => setTextTitleCanvasDateInfo(text),
-    handleChangeTextCreatedAt = (text: string) => setTextCreatedAt(text);
+    handleChangeTextCreatedAtCanvasDateInfo = (text: string) => setTextCreatedAt(text),
+    handleChangeTextNameCanvasUserInfo = (text: string) => setTextNameCanvasUserInfo(text),
+    handleChangeTextMatriculeUserInfo = (text: string) => setTextMatriculeCanvasUserInfo(text);
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -594,16 +677,23 @@ const Remove = (): JSX.Element => {
     handleClickBackPage,
     lotItems,
     costCenters,
+    people,
+    updatePerson,
     removeMultipleLotItems,
     removeLotItem,
     showCanvasDateInfo,
+    showCanvasUserInfo,
     openCanvasDateInfo,
     closeCanvasDateInfo,
+    openCanvasUserInfo,
+    closeCanvasUserInfo,
     textTitleCanvasDateInfo,
-    textCreatedAt,
+    textCreatedAtCanvasDateInfo,
+    textNameCanvasUserInfo,
+    textMatriculeCanvasUserInfo,
     handleChangeTextTitleCanvasDateInfo,
-    handleChangeTextCreatedAt
+    handleChangeTextCreatedAtCanvasDateInfo,
+    handleChangeTextNameCanvasUserInfo,
+    handleChangeTextMatriculeUserInfo,
   )
 }
-
-export default Remove

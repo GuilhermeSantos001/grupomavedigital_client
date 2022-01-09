@@ -1,7 +1,7 @@
 /**
  * @description Modal -> Edita um Centro de Custo
- * @author @GuilhermeSantos001
- * @update 05/01/2022
+ * @author GuilhermeSantos001
+ * @update 07/01/2022
  */
 
 import { useState } from 'react'
@@ -16,12 +16,9 @@ import Alerting from '@/src/utils/alerting'
 import { useAppSelector, useAppDispatch } from '@/app/hooks'
 
 import {
+  CostCenter,
   editCostCenter,
   removeCostCenter
-} from '@/app/features/system/system.slice'
-
-import type {
-  CostCenter
 } from '@/app/features/system/system.slice'
 
 export type Props = {
@@ -31,7 +28,7 @@ export type Props = {
   handleClose: () => void
 }
 
-const RegisterCostCenter = (props: Props): JSX.Element => {
+export default function RegisterCostCenter(props: Props) {
   const
     itemDefault: CostCenter = {
       id: '',
@@ -147,5 +144,3 @@ const RegisterCostCenter = (props: Props): JSX.Element => {
     </Modal>
   )
 }
-
-export default RegisterCostCenter

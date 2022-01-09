@@ -1,6 +1,6 @@
 /**
  * @description Banco de dados dos caches utilizados no sistema
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 27/09/2021
  * @version 1.0.0
  */

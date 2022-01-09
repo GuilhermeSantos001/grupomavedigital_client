@@ -1,6 +1,6 @@
 /**
  * @description Componente para exibição dos alertas
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 22/10/2021
  */
 

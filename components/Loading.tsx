@@ -1,6 +1,6 @@
 /**
  * @description Componentes de loading
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 22/09/2021
  */
 

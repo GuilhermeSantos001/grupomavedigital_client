@@ -1,6 +1,6 @@
 /**
  * @description Input -> Seleção de Hora
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 30/12/2021
  */
 

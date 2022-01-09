@@ -1,7 +1,7 @@
 /**
  * @description Efetuada uma chamada para a API para processar o pedido
  * de troca de senha, quando o usuario "esqueceu a senha"
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 04/10/2021
  */
 

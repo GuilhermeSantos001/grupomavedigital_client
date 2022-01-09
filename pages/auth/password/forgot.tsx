@@ -1,6 +1,6 @@
 /**
  * @description Pagina usada quando o usuario esquece a senha
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 21/11/2021
  */
 

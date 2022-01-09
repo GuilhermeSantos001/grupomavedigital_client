@@ -1,6 +1,6 @@
 /**
  * @description Pagina usada quando o usuario deseja efetuar o login
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 05/10/2021
  */
 

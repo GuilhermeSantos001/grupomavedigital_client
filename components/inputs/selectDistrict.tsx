@@ -1,28 +1,27 @@
 /**
  * @description Input -> Seleciona um distrito(Estado)
- * @author @GuilhermeSantos001
- * @update 05/01/2022
+ * @author GuilhermeSantos001
+ * @update 07/01/2022
  */
 
-import * as React from 'react';
+import { useState } from 'react';
 import { Autocomplete, TextField, createFilterOptions, Button } from '@mui/material'
 
-import { useAppSelector } from '@/app/hooks'
+import { useAppSelector, useAppDispatch } from '@/app/hooks'
 
 import canDeleteDistrict from '@/src/functions/canDeleteAddressAssociation'
 import StringEx from '@/src/utils/stringEx'
 
-import type {
-  District
+import {
+  District,
+  appendDistrict,
+  editDistrict,
+  removeDistrict,
 } from '@/app/features/system/system.slice'
 
 export type Props = {
-  districts: District[]
   district?: FilmOptionType
   handleChangeDistrict: (id: string) => void
-  handleAppendDistrict: (city: District) => void
-  handleUpdateDistrict: (city: District) => void
-  handleRemoveDistrict: (id: string) => void
 }
 
 export type FilmOptionType = District & {
@@ -33,12 +32,19 @@ export type FilmOptionType = District & {
 const filter = createFilterOptions<FilmOptionType>();
 
 export default function SelectStreet(props: Props) {
-  const [value, setValue] = React.useState<FilmOptionType | null>(props.district || null);
-  const [hasEdit, setHasEdit] = React.useState<boolean>(false);
-  const [editValue, setEditValue] = React.useState<string>('');
+  const [value, setValue] = useState<FilmOptionType | null>(props.district || null);
+  const [hasEdit, setHasEdit] = useState<boolean>(false);
+  const [editValue, setEditValue] = useState<string>('');
 
   const
+    districts = useAppSelector((state) => state.system.districts || []),
     workplaces = useAppSelector((state) => state.system.workplaces || []);
+
+  const
+    dispatch = useAppDispatch(),
+    handleAppendDistrict = (district: District) => dispatch(appendDistrict(district)),
+    handleUpdateDistrict = (district: District) => dispatch(editDistrict(district)),
+    handleRemoveDistrict = (id: string) => dispatch(removeDistrict(id));
 
   if (!value && hasEdit)
     setHasEdit(false);
@@ -63,7 +69,7 @@ export default function SelectStreet(props: Props) {
                 String(event.code).toLowerCase() === 'numpadenter'
               ) {
                 if (hasEdit) {
-                  const district = props.districts.find(district => district.id === editValue);
+                  const district = districts.find(district => district.id === editValue);
 
                   if (district) {
                     const update: District = {
@@ -73,15 +79,15 @@ export default function SelectStreet(props: Props) {
 
                     setValue(update);
 
-                    props.handleUpdateDistrict(update);
+                    handleUpdateDistrict(update);
                     props.handleChangeDistrict(update.id);
                   }
                 } else {
-                  if (props.districts.filter(district => district.name === newValue).length <= 0) {
-                    props.handleAppendDistrict(value);
+                  if (districts.filter(district => district.name === newValue).length <= 0) {
+                    handleAppendDistrict(value);
                     props.handleChangeDistrict(value.id);
                   } else {
-                    const district = props.districts.find(district => district.name === newValue);
+                    const district = districts.find(district => district.name === newValue);
 
                     if (district) {
                       setValue(district);
@@ -101,9 +107,9 @@ export default function SelectStreet(props: Props) {
             setValue(district);
 
             if (!newValue.inputUpdate) {
-              props.handleAppendDistrict(district);
+              handleAppendDistrict(district);
             } else {
-              props.handleUpdateDistrict(district);
+              handleUpdateDistrict(district);
             }
 
             props.handleChangeDistrict(district.id);
@@ -136,7 +142,7 @@ export default function SelectStreet(props: Props) {
         clearOnBlur
         handleHomeEndKeys
         id="free-solo-with-text-demo"
-        options={props.districts.map(district => {
+        options={districts.map(district => {
           return { ...district, inputValue: '', inputUpdate: false }
         })}
         getOptionLabel={(option) => {
@@ -181,8 +187,8 @@ export default function SelectStreet(props: Props) {
         disabled={hasEdit || !value || !canDeleteDistrict(workplaces, 'district', value.id)}
         onClick={() => {
           setValue(null);
+          handleRemoveDistrict(value.id);
           props.handleChangeDistrict('');
-          props.handleRemoveDistrict(value.id);
         }}
       >
         Deletar

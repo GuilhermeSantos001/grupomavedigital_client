@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /**
  * @description DropZone usado para arrastar arquivos/pastas para upload
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 22/11/2021
  */
 

@@ -1,6 +1,6 @@
 /**
  * @description Pagina para confirmação do e-mail usuario
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 13/10/2021
  */
 

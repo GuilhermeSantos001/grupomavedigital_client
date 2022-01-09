@@ -1,6 +1,6 @@
 /**
  * @description Métodos essenciais para se trabalhar com datas
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 29/12/2021
  */
 

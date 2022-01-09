@@ -1,6 +1,6 @@
 /**
  * @description Verifica se o usuario tem os privilegios informados
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 06/10/2021
  */
 

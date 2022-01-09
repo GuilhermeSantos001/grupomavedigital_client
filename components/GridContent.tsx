@@ -1,6 +1,6 @@
 /**
  * @description Componentes da grade do layout da pagina
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 29/12/2021
  */
 

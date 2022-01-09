@@ -1,6 +1,6 @@
 /**
  * @description Assistente -> Registro de Lançamento Financeiro
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 30/12/2021
  */
 
@@ -20,6 +20,7 @@ declare interface Step {
 export interface Props {
   steps: Step[]
   step: number,
+  finish: boolean,
   prevStepEnabled: boolean
   nextStepEnabled: boolean
   onChangeStep: (step: number) => void
@@ -43,7 +44,7 @@ export default function AssistantPostingsRegister(props: Props): JSX.Element {
         <Button
           className='mx-2'
           variant="contained"
-          disabled={!props.prevStepEnabled}
+          disabled={props.finish || !props.prevStepEnabled && !props.finish}
           onClick={() => {
             props.onChangeStep(props.step - 1);
             props.onPrevStep();
@@ -54,9 +55,9 @@ export default function AssistantPostingsRegister(props: Props): JSX.Element {
         <Button
           className='mx-2'
           variant="contained"
-          disabled={!props.nextStepEnabled}
+          disabled={props.finish || !props.nextStepEnabled && !props.finish}
           onClick={() => {
-            if (props.step === props.steps.length - 1)  {
+            if (props.step === props.steps.length - 1) {
               props.handleFinish();
             } else {
               props.onChangeStep(props.step + 1);

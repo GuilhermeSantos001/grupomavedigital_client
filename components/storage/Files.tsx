@@ -1,6 +1,6 @@
 /**
  * @description Componente de exibição dos arquivos do GED
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 10/12/2021
  */
 

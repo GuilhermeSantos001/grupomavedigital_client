@@ -1,7 +1,7 @@
 /**
  * @description Reducer -> System
  * @author GuilhermeSantos001
- * @update 05/01/2022
+ * @update 07/01/2022
  */
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
@@ -35,13 +35,12 @@ export type Person = {
   motherName: string // ? Nome da mãe da pessoa
   birthDate: string // ? Data de nascimento da pessoa
   phone: string // ? Telefone da pessoa
-  email: string // ? E-mail da pessoa
+  mail: string // ? E-mail da pessoa
   address: Address // ? Endereço da pessoa
   scale: string // ? Escala de trabalho da pessoa
-  mirror: string // ? Espelho de ponto da pessoa
-  workplace: string // ? Local de trabalho da pessoa
+  services: string[] // ? Serviço da pessoa
   cards: string[] // ? Lista de cartões da pessoa
-  status: Status // ? Status do lote
+  status: Status // ? Status da pessoa
 }
 
 // ? Dados dos Locais de Trabalho

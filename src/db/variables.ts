@@ -1,6 +1,6 @@
 /**
  * @description Banco de dados das variáveis utilizadas no sistema
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @updated 27/09/2021
  */
 

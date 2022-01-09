@@ -1,7 +1,7 @@
 /**
  * @description Efetuada uma chamada para a API para retornar as
  * naturezas bancarias
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 13/10/2021
  */
 

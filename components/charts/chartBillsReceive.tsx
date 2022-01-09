@@ -1,6 +1,6 @@
 /**
  * @description Componente do painel de "Contas a Receber"
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 13/10/2021
  */
 

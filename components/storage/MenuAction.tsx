@@ -1,6 +1,6 @@
 /**
  * @description Componentes do menu de ações do GED
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 08/12/2021
  */
 

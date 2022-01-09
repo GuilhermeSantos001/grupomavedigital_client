@@ -1,6 +1,6 @@
 /**
  * @description Classe usada para controle de cache avançado
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 24/09/2021
  */
 

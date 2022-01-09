@@ -1,6 +1,6 @@
 /**
  * @description Classe usada para interação com indexedDB
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 25/09/2021
  */
 

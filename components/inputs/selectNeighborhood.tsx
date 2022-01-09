@@ -1,28 +1,27 @@
 /**
  * @description Input -> Seleciona um bairro
- * @author @GuilhermeSantos001
- * @update 05/01/2022
+ * @author GuilhermeSantos001
+ * @update 07/01/2022
  */
 
-import * as React from 'react';
+import { useState } from 'react';
 import { Autocomplete, TextField, createFilterOptions, Button } from '@mui/material'
 
-import { useAppSelector } from '@/app/hooks'
+import { useAppSelector, useAppDispatch } from '@/app/hooks'
 
 import canDeleteNeighborhood from '@/src/functions/canDeleteAddressAssociation'
 import StringEx from '@/src/utils/stringEx'
 
-import type {
-  Neighborhood
+import {
+  Neighborhood,
+  appendNeighborhood,
+  editNeighborhood,
+  removeNeighborhood,
 } from '@/app/features/system/system.slice'
 
 export type Props = {
-  neighborhoods: Neighborhood[]
   neighborhood?: FilmOptionType
   handleChangeNeighborhood: (id: string) => void
-  handleAppendNeighborhood: (neighborhood: Neighborhood) => void
-  handleUpdateNeighborhood: (neighborhood: Neighborhood) => void
-  handleRemoveNeighborhood: (id: string) => void
 }
 
 export type FilmOptionType = Neighborhood & {
@@ -33,12 +32,19 @@ export type FilmOptionType = Neighborhood & {
 const filter = createFilterOptions<FilmOptionType>();
 
 export default function SelectStreet(props: Props) {
-  const [value, setValue] = React.useState<FilmOptionType | null>(props.neighborhood || null);
-  const [hasEdit, setHasEdit] = React.useState<boolean>(false);
-  const [editValue, setEditValue] = React.useState<string>('');
+  const [value, setValue] = useState<FilmOptionType | null>(props.neighborhood || null);
+  const [hasEdit, setHasEdit] = useState<boolean>(false);
+  const [editValue, setEditValue] = useState<string>('');
 
   const
+    neighborhoods = useAppSelector((state) => state.system.neighborhoods || []),
     workplaces = useAppSelector((state) => state.system.workplaces || []);
+
+  const
+    dispatch = useAppDispatch(),
+    handleAppendNeighborhood = (neighborhood: Neighborhood) => dispatch(appendNeighborhood(neighborhood)),
+    handleUpdateNeighborhood = (neighborhood: Neighborhood) => dispatch(editNeighborhood(neighborhood)),
+    handleRemoveNeighborhood = (id: string) => dispatch(removeNeighborhood(id));
 
   if (!value && hasEdit)
     setHasEdit(false);
@@ -63,7 +69,7 @@ export default function SelectStreet(props: Props) {
                 String(event.code).toLowerCase() === 'numpadenter'
               ) {
                 if (hasEdit) {
-                  const neighborhood = props.neighborhoods.find(neighborhood => neighborhood.id === editValue);
+                  const neighborhood = neighborhoods.find(neighborhood => neighborhood.id === editValue);
 
                   if (neighborhood) {
                     const update: Neighborhood = {
@@ -73,15 +79,15 @@ export default function SelectStreet(props: Props) {
 
                     setValue(update);
 
-                    props.handleUpdateNeighborhood(update);
+                    handleUpdateNeighborhood(update);
                     props.handleChangeNeighborhood(update.id);
                   }
                 } else {
-                  if (props.neighborhoods.filter(neighborhood => neighborhood.name === newValue).length <= 0) {
-                    props.handleAppendNeighborhood(value);
+                  if (neighborhoods.filter(neighborhood => neighborhood.name === newValue).length <= 0) {
+                    handleAppendNeighborhood(value);
                     props.handleChangeNeighborhood(value.id);
                   } else {
-                    const neighborhood = props.neighborhoods.find(neighborhood => neighborhood.name === newValue);
+                    const neighborhood = neighborhoods.find(neighborhood => neighborhood.name === newValue);
 
                     if (neighborhood) {
                       setValue(neighborhood);
@@ -101,9 +107,9 @@ export default function SelectStreet(props: Props) {
             setValue(neighborhood);
 
             if (!newValue.inputUpdate) {
-              props.handleAppendNeighborhood(neighborhood);
+              handleAppendNeighborhood(neighborhood);
             } else {
-              props.handleUpdateNeighborhood(neighborhood);
+              handleUpdateNeighborhood(neighborhood);
             }
 
             props.handleChangeNeighborhood(neighborhood.id);
@@ -136,7 +142,7 @@ export default function SelectStreet(props: Props) {
         clearOnBlur
         handleHomeEndKeys
         id="free-solo-with-text-demo"
-        options={props.neighborhoods.map(neighborhood => {
+        options={neighborhoods.map(neighborhood => {
           return { ...neighborhood, inputValue: '', inputUpdate: false }
         })}
         getOptionLabel={(option) => {
@@ -181,8 +187,8 @@ export default function SelectStreet(props: Props) {
         disabled={hasEdit || !value || !canDeleteNeighborhood(workplaces, 'neighborhood', value.id)}
         onClick={() => {
           setValue(null);
+          handleRemoveNeighborhood(value.id);
           props.handleChangeNeighborhood('');
-          props.handleRemoveNeighborhood(value.id);
         }}
       >
         Deletar

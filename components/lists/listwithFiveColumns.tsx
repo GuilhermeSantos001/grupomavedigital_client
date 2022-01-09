@@ -1,6 +1,6 @@
 /**
  * @description Lista -> Lista com 5 colunas
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 29/12/2021
  */
 

@@ -1,6 +1,6 @@
 /**
  * @description Lista -> Lista com ícones (MUI)
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 05/01/2022
  */
 

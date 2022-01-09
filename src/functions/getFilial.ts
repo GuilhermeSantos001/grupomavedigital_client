@@ -1,6 +1,6 @@
 /**
  * @description Efetuada uma chamada para a API para retornar as filiais
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 07/10/2021
  */
 

@@ -1,7 +1,7 @@
 /**
  * @description Efetuada uma chamada para a API para ativar e retornar o
  * QRCode da verificação de duas etapas
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 16/12/2021
  */
 

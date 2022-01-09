@@ -1,27 +1,26 @@
 /**
  * @description Input -> Seleciona uma escala de trabalho
- * @author @GuilhermeSantos001
- * @update 05/01/2022
+ * @author GuilhermeSantos001
+ * @update 07/01/2022
  */
 
-import * as React from 'react';
+import { useState } from 'react';
 import { Autocomplete, TextField, createFilterOptions, Button } from '@mui/material'
 
-import { useAppSelector } from '@/app/hooks'
+import { useAppSelector, useAppDispatch } from '@/app/hooks'
 
 import StringEx from '@/src/utils/stringEx'
 
-import type {
-  Scale
+import {
+  Scale,
+  appendScale,
+  editScale,
+  removeScale,
 } from '@/app/features/system/system.slice'
 
 export type Props = {
-  scales: Scale[]
   scale?: FilmOptionType
   handleChangeScale: (id: string) => void
-  handleAppendScale: (scale: Scale) => void
-  handleUpdateScale: (scale: Scale) => void
-  handleRemoveScale: (id: string) => void
 }
 
 export type FilmOptionType = Scale & {
@@ -32,13 +31,20 @@ export type FilmOptionType = Scale & {
 const filter = createFilterOptions<FilmOptionType>();
 
 export default function SelectScale(props: Props) {
-  const [value, setValue] = React.useState<FilmOptionType | null>(props.scale || null);
-  const [hasEdit, setHasEdit] = React.useState<boolean>(false);
-  const [editValue, setEditValue] = React.useState<string>('');
+  const [value, setValue] = useState<FilmOptionType | null>(props.scale || null);
+  const [hasEdit, setHasEdit] = useState<boolean>(false);
+  const [editValue, setEditValue] = useState<string>('');
 
   const
+    scales = useAppSelector((state) => state.system.scales || []),
     people = useAppSelector((state) => state.system.people || []),
     workplaces = useAppSelector((state) => state.system.workplaces || []);
+
+  const
+    dispatch = useAppDispatch(),
+    handleAppendScale = (scale: Scale) => dispatch(appendScale(scale)),
+    handleUpdateScale = (scale: Scale) => dispatch(editScale(scale)),
+    handleRemoveScale = (id: string) => dispatch(removeScale(id));
 
   const canDeleteScale = (itemId: string) => {
     const
@@ -71,7 +77,7 @@ export default function SelectScale(props: Props) {
                 String(event.code).toLowerCase() === 'numpadenter'
               ) {
                 if (hasEdit) {
-                  const scale = props.scales.find(scale => scale.id === editValue);
+                  const scale = scales.find(scale => scale.id === editValue);
 
                   if (scale) {
                     const update: Scale = {
@@ -81,15 +87,15 @@ export default function SelectScale(props: Props) {
 
                     setValue(update);
 
-                    props.handleUpdateScale(update);
+                    handleUpdateScale(update);
                     props.handleChangeScale(update.id);
                   }
                 } else {
-                  if (props.scales.filter(scale => scale.value === newValue).length <= 0) {
-                    props.handleAppendScale(value);
+                  if (scales.filter(scale => scale.value === newValue).length <= 0) {
+                    handleAppendScale(value);
                     props.handleChangeScale(value.id);
                   } else {
-                    const scale = props.scales.find(scale => scale.value === newValue);
+                    const scale = scales.find(scale => scale.value === newValue);
 
                     if (scale) {
                       setValue(scale);
@@ -109,9 +115,9 @@ export default function SelectScale(props: Props) {
             setValue(scale);
 
             if (!newValue.inputUpdate) {
-              props.handleAppendScale(scale);
+              handleAppendScale(scale);
             } else {
-              props.handleUpdateScale(scale);
+              handleUpdateScale(scale);
             }
 
             props.handleChangeScale(scale.id);
@@ -144,7 +150,7 @@ export default function SelectScale(props: Props) {
         clearOnBlur
         handleHomeEndKeys
         id="free-solo-with-text-demo"
-        options={props.scales.map(scale => {
+        options={scales.map(scale => {
           return { ...scale, inputValue: '', inputUpdate: false }
         })}
         getOptionLabel={(option) => {
@@ -189,8 +195,8 @@ export default function SelectScale(props: Props) {
         disabled={hasEdit || !value || !canDeleteScale(value.id)}
         onClick={() => {
           setValue(null);
+          handleRemoveScale(value.id);
           props.handleChangeScale('');
-          props.handleRemoveScale(value.id);
         }}
       >
         Deletar

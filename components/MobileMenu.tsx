@@ -1,6 +1,6 @@
 /**
  * @description Componentes do menu mobile
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 22/09/2021
  * @version 1.0.0
  */

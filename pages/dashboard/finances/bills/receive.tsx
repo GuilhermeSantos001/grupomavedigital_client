@@ -1,6 +1,6 @@
 /**
  * @description Dashboard de "Contas a Receber"
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 21/11/2021
  */
 

@@ -1,28 +1,27 @@
 /**
  * @description Input -> Seleciona uma rua
- * @author @GuilhermeSantos001
- * @update 05/01/2022
+ * @author GuilhermeSantos001
+ * @update 07/01/2022
  */
 
-import * as React from 'react';
+import { useState } from 'react';
 import { Autocomplete, TextField, createFilterOptions, Button } from '@mui/material'
 
-import { useAppSelector } from '@/app/hooks'
+import { useAppSelector, useAppDispatch } from '@/app/hooks'
 
 import canDeleteStreet from '@/src/functions/canDeleteAddressAssociation'
 import StringEx from '@/src/utils/stringEx'
 
-import type {
-  Street
+import {
+  Street,
+  appendStreet,
+  editStreet,
+  removeStreet,
 } from '@/app/features/system/system.slice'
 
 export type Props = {
-  streets: Street[]
   street?: FilmOptionType
   handleChangeStreet: (id: string) => void
-  handleAppendStreet: (street: Street) => void
-  handleUpdateStreet: (street: Street) => void
-  handleRemoveStreet: (id: string) => void
 }
 
 export type FilmOptionType = Street & {
@@ -33,12 +32,19 @@ export type FilmOptionType = Street & {
 const filter = createFilterOptions<FilmOptionType>();
 
 export default function SelectStreet(props: Props) {
-  const [value, setValue] = React.useState<FilmOptionType | null>(props.street || null);
-  const [hasEdit, setHasEdit] = React.useState<boolean>(false);
-  const [editValue, setEditValue] = React.useState<string>('');
+  const [value, setValue] = useState<FilmOptionType | null>(props.street || null);
+  const [hasEdit, setHasEdit] = useState<boolean>(false);
+  const [editValue, setEditValue] = useState<string>('');
 
   const
+    streets = useAppSelector((state) => state.system.streets || []),
     workplaces = useAppSelector((state) => state.system.workplaces || []);
+
+  const
+    dispatch = useAppDispatch(),
+    handleAppendStreet = (street: Street) => dispatch(appendStreet(street)),
+    handleUpdateStreet = (street: Street) => dispatch(editStreet(street)),
+    handleRemoveStreet = (id: string) => dispatch(removeStreet(id));
 
   if (!value && hasEdit)
     setHasEdit(false);
@@ -63,7 +69,7 @@ export default function SelectStreet(props: Props) {
                 String(event.code).toLowerCase() === 'numpadenter'
               ) {
                 if (hasEdit) {
-                  const street = props.streets.find(street => street.id === editValue);
+                  const street = streets.find(street => street.id === editValue);
 
                   if (street) {
                     const update: Street = {
@@ -73,15 +79,15 @@ export default function SelectStreet(props: Props) {
 
                     setValue(update);
 
-                    props.handleUpdateStreet(update);
+                    handleUpdateStreet(update);
                     props.handleChangeStreet(update.id);
                   }
                 } else {
-                  if (props.streets.filter(street => street.name === newValue).length <= 0) {
-                    props.handleAppendStreet(value);
+                  if (streets.filter(street => street.name === newValue).length <= 0) {
+                    handleAppendStreet(value);
                     props.handleChangeStreet(value.id);
                   } else {
-                    const street = props.streets.find(street => street.name === newValue);
+                    const street = streets.find(street => street.name === newValue);
 
                     if (street) {
                       setValue(street);
@@ -101,9 +107,9 @@ export default function SelectStreet(props: Props) {
             setValue(street);
 
             if (!newValue.inputUpdate) {
-              props.handleAppendStreet(street);
+              handleAppendStreet(street);
             } else {
-              props.handleUpdateStreet(street);
+              handleUpdateStreet(street);
             }
 
             props.handleChangeStreet(street.id);
@@ -136,7 +142,7 @@ export default function SelectStreet(props: Props) {
         clearOnBlur
         handleHomeEndKeys
         id="free-solo-with-text-demo"
-        options={props.streets.map(street => {
+        options={streets.map(street => {
           return { ...street, inputValue: '', inputUpdate: false }
         })}
         getOptionLabel={(option) => {
@@ -181,8 +187,8 @@ export default function SelectStreet(props: Props) {
         disabled={hasEdit || !value || !canDeleteStreet(workplaces, 'street', value.id)}
         onClick={() => {
           setValue(null);
+          handleRemoveStreet(value.id);
           props.handleChangeStreet('');
-          props.handleRemoveStreet(value.id);
         }}
       >
         Deletar

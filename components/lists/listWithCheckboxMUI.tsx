@@ -1,6 +1,6 @@
 /**
  * @description Lista -> Lista com checkbox (MUI)
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 31/12/2021
  */
 

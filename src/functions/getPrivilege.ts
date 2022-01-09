@@ -1,7 +1,7 @@
 /* eslint-disable no-async-promise-executor */
 /**
  * @description Retorna os privilégios do usuário
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 16/12/2021
  */
 

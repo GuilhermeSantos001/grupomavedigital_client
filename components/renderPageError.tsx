@@ -1,6 +1,6 @@
 /**
  * @description Componentes exibido quando a pagina apresentou um erro
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 06/10/2021
  */
 

@@ -1,7 +1,7 @@
 /**
  * @description Efetuada uma chamada para a API para confirmar
  * a conta do usuario
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 04/10/2021
  */
 

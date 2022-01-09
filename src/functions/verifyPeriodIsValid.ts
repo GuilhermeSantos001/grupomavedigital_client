@@ -1,6 +1,6 @@
 /**
  * @description Verifica se o formato do período está valido
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 14/10/2021
  */
 

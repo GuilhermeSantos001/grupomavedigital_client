@@ -1,10 +1,10 @@
 /**
  * @description Payback -> Cartões Beneficio (Alelo) -> Cadastro
- * @author @GuilhermeSantos001
- * @update 05/01/2022
+ * @author GuilhermeSantos001
+ * @update 07/01/2022
  */
 
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { useRouter } from 'next/router'
 
@@ -17,8 +17,6 @@ import RenderPageError from '@/components/renderPageError'
 import NoPrivilege from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
 import SelectCostCenter from '@/components/inputs/selectCostCenter'
-import ModalRegisterCostCenter from '@/components/modals/registerCostCenter'
-import ModalEditCostCenter from '@/components/modals/editCostCenter'
 
 import { PageProps } from '@/pages/_app'
 import PageMenu from '@/bin/main_menu'
@@ -33,16 +31,10 @@ import StringEx from '@/src/utils/stringEx'
 import { useAppSelector, useAppDispatch } from '@/app/hooks'
 
 import {
+  LotItem,
   appendItemLot
 } from '@/app/features/payback/payback.slice'
-
-import type {
-  LotItem
-} from '@/app/features/payback/payback.slice'
-
-import type {
-  CostCenter
-} from '@/app/features/system/system.slice'
+import { StringBuilder } from 'lzutf8'
 
 const serverSideProps: PageProps = {
   title: 'Pagamentos/Cartões Benefício/Cadastro',
@@ -296,16 +288,9 @@ function compose_noAuth(handleClick) {
 
 function compose_ready(
   handleClickBackPage: () => void,
-  showModalRegisterCostCenter: boolean,
-  showModalEditCostCenter: boolean,
-  handleShowModalRegisterCostCenter: () => void,
-  handleCloseModalRegisterCostCenter: () => void,
-  handleShowModalEditCostCenter: () => void,
-  handleCloseModalEditCostCenter: () => void,
   costCenter: string,
   handleDefineCostCenter: (e: any) => void,
   handleResetCostCenter: () => void,
-  costCenters: CostCenter[],
   numLot: number,
   handleChangeNumLot: (val: number) => void,
   numSerialNumber: number,
@@ -352,8 +337,6 @@ function compose_ready(
 
   return (
     <>
-      <ModalRegisterCostCenter show={showModalRegisterCostCenter} handleClose={handleCloseModalRegisterCostCenter} />
-      <ModalEditCostCenter show={showModalEditCostCenter} id={costCenter} handleResetCostCenter={handleResetCostCenter} handleClose={handleCloseModalEditCostCenter} />
       <div className="row g-2">
         <div className="col-12">
           <div className="p-3 bg-primary bg-gradient rounded">
@@ -418,10 +401,8 @@ function compose_ready(
           <div className='d-flex flex-column flex-md-row'>
             <SelectCostCenter
               costCenter={costCenter}
-              costCenters={costCenters}
               handleDefineCostCenter={handleDefineCostCenter}
-              handleShowModalEditCostCenter={handleShowModalEditCostCenter}
-              handleShowModalRegisterCostCenter={handleShowModalRegisterCostCenter}
+              handleResetCostCenter={handleResetCostCenter}
             />
             <div className="input-group my-2 m-md-2">
               <span className="input-group-text" id="serialNumber-addon">
@@ -482,7 +463,7 @@ function compose_ready(
                   if (lotItems.filter(lot => lot.serialNumber === String(numSerialNumber).padStart(15, '0')).length > 0)
                     return Alerting.create('Já existe um lote com esse número de série!');
 
-                  if (lotItems.filter(lot => lot.lastCardNumber === String(numLastCardNumber).padStart(4, '0')).length > 0)
+                  if (lotItems.filter(lot => lot.lastCardNumber === StringBuilder(numLastCardNumber).padStart(4, '0')).length > 0)
                     return Alerting.create('Já existe um lote com os mesmos 4 últimos dígitos do número do cartão!');
 
                   handleRegister({
@@ -508,15 +489,13 @@ function compose_ready(
   )
 }
 
-const Register = (): JSX.Element => {
+export default function CardsRegister() {
   const [isReady, setReady] = useState<boolean>(false)
   const [isError, setError] = useState<boolean>(false)
   const [notPrivilege, setNotPrivilege] = useState<boolean>(false)
   const [notAuth, setNotAuth] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(true)
 
-  const [showModalRegisterCostCenter, setShowModalRegisterCostCenter] = useState<boolean>(false)
-  const [showModalEditCostCenter, setShowModalEditCostCenter] = useState<boolean>(false)
   const [costCenter, setCostCenter] = useState<string>('')
   const [numLot, setNumLot] = useState<number>(0)
   const [numSerialNumber, setNumSerialNumber] = useState<number>(0)
@@ -524,7 +503,6 @@ const Register = (): JSX.Element => {
 
   const
     dispatch = useAppDispatch(),
-    costCenters = useAppSelector((state) => state.system.costCenters || []),
     lotItems = useAppSelector((state) => state.payback.lotItems || [])
 
   const router = useRouter()
@@ -546,10 +524,6 @@ const Register = (): JSX.Element => {
       router.push(path)
     },
     handleClickBackPage = () => router.push('/payback/cards'),
-    handleShowModalRegisterCostCenter = () => setShowModalRegisterCostCenter(true),
-    handleCloseModalRegisterCostCenter = () => setShowModalRegisterCostCenter(false),
-    handleShowModalEditCostCenter = () => setShowModalEditCostCenter(true),
-    handleCloseModalEditCostCenter = () => setShowModalEditCostCenter(false),
     handleDefineCostCenter = (title: string) => {
       if (title === 'Centro de Custo')
         setCostCenter('');
@@ -604,16 +578,9 @@ const Register = (): JSX.Element => {
 
   if (isReady) return compose_ready(
     handleClickBackPage,
-    showModalRegisterCostCenter,
-    showModalEditCostCenter,
-    handleShowModalRegisterCostCenter,
-    handleCloseModalRegisterCostCenter,
-    handleShowModalEditCostCenter,
-    handleCloseModalEditCostCenter,
     costCenter,
     handleDefineCostCenter,
     handleResetCostCenter,
-    costCenters,
     numLot,
     handleChangeNumLot,
     numSerialNumber,
@@ -624,5 +591,3 @@ const Register = (): JSX.Element => {
     handleRegister
   )
 }
-
-export default Register
