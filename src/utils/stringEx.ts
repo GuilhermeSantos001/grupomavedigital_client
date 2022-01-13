@@ -1,11 +1,12 @@
 /**
  * @description Métodos essenciais para se trabalhar com textos
  * @author GuilhermeSantos001
- * @update 27/12/2021
+ * @update 12/01/2022
  */
 
 import { v4 as uuidv4 } from 'uuid';
 import { compressToBase64 } from 'lz-string';
+import StringMask from 'string-mask';
 
 class StringEx {
   /**
@@ -31,6 +32,15 @@ class StringEx {
     const now = date ? new Date(date) : new Date();
 
     return `Atualizado em ${now.toLocaleDateString()} ás ${now.toLocaleTimeString()}`;
+  }
+
+  /**
+   * @description Retorna o texto usado no campo de data de expiração
+   */
+   expiredAt(date?: string): string {
+    const now = date ? new Date(date) : new Date();
+
+    return `Expira em ${now.toLocaleDateString()} ás ${now.toLocaleTimeString()}`;
   }
 
   /**
@@ -111,6 +121,83 @@ class StringEx {
     });
 
     return word;
+  }
+
+  /**
+   * @description Remove a mascara do tipo numeral do texto
+   */
+  removeMaskNum(str: string): string {
+    return str.replace(/\D/g, '');
+  }
+
+  /**
+   * @description Remove a mascara do tipo letra do texto
+   */
+  removeMaskLetter(str: string): string {
+    return str.replace(/[^a-zA-Z]/g, '');
+  }
+
+  /**
+   * @description Retorna o texto com a mascara de telefone aplicada
+   */
+  maskPhone(str: string): string {
+    var formatter = new StringMask('(00) 00000-0000');
+
+    return formatter.apply(str);
+  }
+
+  /**
+   * @description Retorna o texto com a mascara do numero da casa aplicada
+   */
+  maskHouseNumber(str: string): string {
+    var formatter = new StringMask('0000');
+
+    return formatter.apply(str);
+  }
+
+  /**
+   * @description Retorna o texto com a mascara de cep aplicada
+   */
+  maskZipcode(str: string): string {
+    var formatter = new StringMask('00000-000');
+
+    return formatter.apply(str);
+  }
+
+  /**
+   * @description Retorna o texto com a mascara da matricula aplicada
+   */
+  maskMatricule(str: string): string {
+    var formatter = new StringMask('00000');
+
+    return formatter.apply(str);
+  }
+
+  /**
+   * @description Retorna o texto com a mascara de CNPJ aplicada
+   */
+  maskCNPJ(str: string): string {
+    var formatter = new StringMask('00.000.000/0000-00');
+
+    return formatter.apply(str);
+  }
+
+  /**
+   * @description Retorna o texto com a mascara de cpf aplicada
+   */
+  maskCPF(str: string): string {
+    var formatter = new StringMask('000.000.000-00');
+
+    return formatter.apply(str);
+  }
+
+  /**
+   * @description Retorna o texto com a mascara de rg aplicada
+   */
+  maskRG(str: string): string {
+    var formatter = new StringMask('00.000.000-0');
+
+    return formatter.apply(str);
   }
 }
 

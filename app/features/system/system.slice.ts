@@ -66,6 +66,12 @@ export type Scale = {
   value: string // ? Valor da escala de trabalho
 }
 
+// ? Dados dos motivos de falta
+export type ReasonForAbsence = {
+  id: string
+  value: string // ? Valor do Motivo de falta do funcionário
+}
+
 // ? Dados das Ruas
 export type Street = {
   id: string
@@ -90,16 +96,33 @@ export type District = {
   name: string // ? Nome do distrito
 }
 
+// ? Dados dos Uploads
+export type Upload = {
+  fileId: string
+  authorId: string
+  filename: string
+  filetype: string
+  description: string
+  size: number
+  compressedSize: number
+  version: number
+  temporary: boolean
+  expiredAt: string
+  createdAt: string
+}
+
 export interface PaybackState {
   costCenters: CostCenter[]
   people: Person[],
   workplaces: Workplace[],
   scales: Scale[],
+  reasonForAbsences: ReasonForAbsence[],
   services: Service[],
   streets: Street[],
   neighborhoods: Neighborhood[],
   cities: City[],
   districts: District[],
+  uploads: Upload[]
 }
 
 const initialState: PaybackState = {
@@ -107,11 +130,13 @@ const initialState: PaybackState = {
   people: [],
   workplaces: [],
   scales: [],
+  reasonForAbsences: [],
   services: [],
   streets: [],
   neighborhoods: [],
   cities: [],
   districts: [],
+  uploads: []
 };
 
 export const reducerSlice = createSlice({
@@ -238,6 +263,31 @@ export const reducerSlice = createSlice({
         state.scales = [];
 
       state.scales = state.scales.filter(item => item.id !== action.payload);
+    },
+    // ? Adiciona um motivo de falta
+    appendReasonForAbsence: (state, action: PayloadAction<ReasonForAbsence>) => {
+      if (!state.reasonForAbsences)
+        state.reasonForAbsences = [];
+
+      if (state.reasonForAbsences.filter(item => item.value === action.payload.value).length <= 0)
+        state.reasonForAbsences.push(action.payload);
+    },
+    //? Edita um motivo de falta
+    editReasonForAbsence: (state, action: PayloadAction<ReasonForAbsence>) => {
+      if (!state.reasonForAbsences)
+        state.reasonForAbsences = [];
+
+      const index = state.reasonForAbsences.findIndex(item => item.id === action.payload.id);
+
+      if (index !== -1)
+        state.reasonForAbsences[index] = action.payload;
+    },
+    // ? Remove um motivo de falta
+    removeReasonForAbsence: (state, action: PayloadAction<string>) => {
+      if (!state.reasonForAbsences)
+        state.reasonForAbsences = [];
+
+      state.reasonForAbsences = state.reasonForAbsences.filter(item => item.id !== action.payload);
     },
     // ? Limpa as escalas de trabalho
     clearScales: (state) => {
@@ -397,6 +447,34 @@ export const reducerSlice = createSlice({
     // ? Limpa os distritos
     clearDistricts: (state) => {
       state.districts = [];
+    },
+    // ? Adiciona um novo upload
+    appendUploads: (state, action: PayloadAction<Upload>) => {
+      if (!state.uploads)
+        state.uploads = [];
+
+      state.uploads.push(action.payload);
+    },
+    // ? Edita um upload
+    editUploads: (state, action: PayloadAction<Upload>) => {
+      if (!state.uploads)
+        state.uploads = [];
+
+      const index = state.uploads.findIndex(item => item.fileId === action.payload.fileId);
+
+      if (index !== -1)
+        state.uploads[index] = action.payload;
+    },
+    // ? Remove um upload
+    removeUploads: (state, action: PayloadAction<string>) => {
+      if (!state.uploads)
+        state.uploads = [];
+
+      state.uploads = state.uploads.filter(item => item.fileId !== action.payload);
+    },
+    // ? Limpa os uploads
+    clearUploads: (state) => {
+      state.uploads = [];
     }
   }
 })
@@ -418,6 +496,9 @@ export const {
   editScale,
   removeScale,
   clearScales,
+  appendReasonForAbsence,
+  editReasonForAbsence,
+  removeReasonForAbsence,
   appendService,
   editService,
   removeService,
@@ -438,6 +519,10 @@ export const {
   editDistrict,
   removeDistrict,
   clearDistricts,
+  appendUploads,
+  editUploads,
+  removeUploads,
+  clearUploads,
 } = reducerSlice.actions
 
 export default reducerSlice.reducer

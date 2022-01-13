@@ -5,7 +5,7 @@
  * @update 16/12/2021
  */
 
-import { compressToEncodedURIComponent } from 'lz-string'
+import { compressToBase64, compressToEncodedURIComponent } from 'lz-string'
 
 import axios from 'axios'
 import Fetch from '@/src/utils/fetch'
@@ -42,6 +42,7 @@ export async function getPrivilegeAlias(group: GroupId): Promise<string> {
     return new Promise(async (resolve, reject) => {
         const
             variables = new Variables(1, 'IndexedDB'),
+            auth = await variables.get<string>('auth'),
             token = await variables.get<string>('token'),
             refreshToken = await variables.get<{
                 signature: string
@@ -54,7 +55,8 @@ export async function getPrivilegeAlias(group: GroupId): Promise<string> {
             .get(`${uri}/utils/privilege/alias/${compressToEncodedURIComponent(group.name)}`, {
                 headers: {
                     'Content-Type': 'application/json',
-                    'auth': process.env.NEXT_PUBLIC_EXPRESS_AUTHORIZATION || "",
+                    'key': compressToBase64(process.env.NEXT_PUBLIC_EXPRESS_AUTHORIZATION),
+                    'auth': compressToEncodedURIComponent(auth),
                     'token': compressToEncodedURIComponent(token),
                     'refreshToken': compressToEncodedURIComponent(JSON.stringify(refreshToken)),
                     'signature': compressToEncodedURIComponent(signature)

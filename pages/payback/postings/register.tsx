@@ -19,11 +19,13 @@ import NoAuth from '@/components/noAuth'
 import SelectCostCenter from '@/components/inputs/selectCostCenter'
 import MobileDatePicker from '@/components/inputs/mobileDatePicker'
 import AssistantPostingsRegister from '@/components/assistants/assistantPostingsRegister'
+import AssistantCoverageDefine from '@/components/assistants/assistantCoverageDefine'
 import ListWithCheckboxMUI from '@/components/lists/listWithCheckboxMUI'
 import ListWorkplacesSelected from '@/components/lists/listWorkplacesSelected'
 import RegisterWorkplace from '@/components/modals/registerWorkplace'
 import RegisterPeople from '@/components/modals/registerPeople'
 import EditWorkplace from '@/components/modals/editWorkplace'
+import EditPeople from '@/components/modals/editPeople'
 
 import { PageProps } from '@/pages/_app'
 import PageMenu from '@/bin/main_menu'
@@ -369,6 +371,9 @@ function compose_ready(
   handleRemoveAppliedPeopleInWorkplaces: (itens: Person[]) => void,
   lotItems: LotItem[],
   postings: Posting[],
+  showModalAssistantCoverageDefine: boolean,
+  handleOpenModalAssistantCoverageDefine: () => void,
+  handleCloseModalAssistantCoverageDefine: () => void,
 ) {
   const
     { columns: workPlaceColumns, rows: workPlaceRows } =
@@ -589,25 +594,36 @@ function compose_ready(
                         handleClose={handleCloseModalRegisterPeopleInWorkplace}
                       />
                       {
-                        selectWorkplaces.length === 1 &&
-                        <EditWorkplace
+                        selectPeopleInWorkplaces.length === 1 &&
+                        <EditPeople
                           show={showModalEditPeopleInWorkplace}
-                          id={workplaces.find(place => place.id === selectWorkplaces[0]).id}
-                          name={workplaces.find(place => place.id === selectWorkplaces[0]).name}
-                          entryTime={workplaces.find(place => place.id === selectWorkplaces[0]).entryTime}
-                          exitTime={workplaces.find(place => place.id === selectWorkplaces[0]).exitTime}
-                          services={workplaces.find(place => place.id === selectWorkplaces[0]).services}
-                          scale={workplaces.find(place => place.id === selectWorkplaces[0]).scale}
-                          street={workplaces.find(place => place.id === selectWorkplaces[0]).address.street}
-                          numberHome={workplaces.find(place => place.id === selectWorkplaces[0]).address.number}
-                          complement={workplaces.find(place => place.id === selectWorkplaces[0]).address.complement}
-                          zipCode={workplaces.find(place => place.id === selectWorkplaces[0]).address.zipCode}
-                          neighborhood={workplaces.find(place => place.id === selectWorkplaces[0]).address.neighborhood}
-                          city={workplaces.find(place => place.id === selectWorkplaces[0]).address.city}
-                          district={workplaces.find(place => place.id === selectWorkplaces[0]).address.district}
+                          id={people.find(person => person.id === selectPeopleInWorkplaces[0]).id}
+                          matricule={people.find(person => person.id === selectPeopleInWorkplaces[0]).matricule}
+                          name={people.find(person => person.id === selectPeopleInWorkplaces[0]).name}
+                          cpf={people.find(person => person.id === selectPeopleInWorkplaces[0]).cpf}
+                          rg={people.find(person => person.id === selectPeopleInWorkplaces[0]).rg}
+                          motherName={people.find(person => person.id === selectPeopleInWorkplaces[0]).motherName}
+                          birthDate={people.find(person => person.id === selectPeopleInWorkplaces[0]).birthDate}
+                          phone={people.find(person => person.id === selectPeopleInWorkplaces[0]).phone}
+                          mail={people.find(person => person.id === selectPeopleInWorkplaces[0]).mail}
+                          scale={people.find(person => person.id === selectPeopleInWorkplaces[0]).scale}
+                          cards={people.find(person => person.id === selectPeopleInWorkplaces[0]).cards}
+                          services={people.find(person => person.id === selectPeopleInWorkplaces[0]).services}
+                          street={people.find(person => person.id === selectPeopleInWorkplaces[0]).address.street}
+                          numberHome={people.find(person => person.id === selectPeopleInWorkplaces[0]).address.number}
+                          complement={people.find(person => person.id === selectPeopleInWorkplaces[0]).address.complement}
+                          neighborhood={people.find(person => person.id === selectPeopleInWorkplaces[0]).address.neighborhood}
+                          city={people.find(person => person.id === selectPeopleInWorkplaces[0]).address.city}
+                          district={people.find(person => person.id === selectPeopleInWorkplaces[0]).address.district}
+                          zipCode={people.find(person => person.id === selectPeopleInWorkplaces[0]).address.zipCode}
                           handleClose={handleCloseModalEditPeopleInWorkplace}
                         />
                       }
+                      <AssistantCoverageDefine
+                        show={showModalAssistantCoverageDefine}
+                        availableWorkplaces={appliedWorkplaces.map(place => place.id)}
+                        handleClose={handleCloseModalAssistantCoverageDefine}
+                      />
                       <p className="fw-bold border-bottom text-center my-2">
                         Funcionários
                       </p>
@@ -632,8 +648,10 @@ function compose_ready(
                               return true;
                             });
 
-                            if (filtered.length > 0)
+                            if (filtered.length > 0) {
                               handleAppendAppliedPeopleInWorkplaces(people.filter(person => filtered.includes(person.id)));
+                              handleOpenModalAssistantCoverageDefine();
+                            }
                           }}
                         >
                           <FontAwesomeIcon
@@ -656,7 +674,7 @@ function compose_ready(
                           type="button"
                           className="btn btn-link"
                           disabled={selectPeopleInWorkplaces.length <= 0 || selectPeopleInWorkplaces.length > 1}
-                          onClick={handleShowModalEditWorkplace}
+                          onClick={handleShowModalEditPeopleInWorkplace}
                         >
                           <FontAwesomeIcon
                             icon={Icon.render('fas', 'edit')}
@@ -707,6 +725,20 @@ function compose_ready(
 }
 
 const Register = (): JSX.Element => {
+  const
+    dispatch = useAppDispatch(),
+    workplaces = useAppSelector((state) => state.system.workplaces || []),
+    people = useAppSelector((state) => state.system.people || []),
+    scales = useAppSelector((state) => state.system.scales || []),
+    services = useAppSelector((state) => state.system.services || []),
+    streets = useAppSelector((state) => state.system.streets || []),
+    neighborhoods = useAppSelector((state) => state.system.neighborhoods || []),
+    cities = useAppSelector((state) => state.system.cities || []),
+    districts = useAppSelector((state) => state.system.districts || []),
+    lotItems = useAppSelector((state) => state.payback.lotItems || []),
+    postings = useAppSelector((state) => state.payback.postings || []),
+    uploads = useAppSelector((state) => state.system.uploads || []);
+
   const [isReady, setReady] = useState<boolean>(false)
   const [isError, setError] = useState<boolean>(false)
   const [notPrivilege, setNotPrivilege] = useState<boolean>(false)
@@ -738,18 +770,9 @@ const Register = (): JSX.Element => {
   const [pageSizeTablePeopleInWorkplaces, setPageSizeTablePeopleInWorkplaces] = useState<number>(10)
   const pageSizeOptionsTablePeopleInWorkplaces = [10, 25, 50, 100];
 
-  const
-    dispatch = useAppDispatch(),
-    workplaces = useAppSelector((state) => state.system.workplaces || []),
-    people = useAppSelector((state) => state.system.people || []),
-    scales = useAppSelector((state) => state.system.scales || []),
-    services = useAppSelector((state) => state.system.services || []),
-    streets = useAppSelector((state) => state.system.streets || []),
-    neighborhoods = useAppSelector((state) => state.system.neighborhoods || []),
-    cities = useAppSelector((state) => state.system.cities || []),
-    districts = useAppSelector((state) => state.system.districts || []),
-    lotItems = useAppSelector((state) => state.payback.lotItems || []),
-    postings = useAppSelector((state) => state.payback.postings || []);
+  const [showModalAssistantCoverageDefine, setShowModalAssistantCoverageDefine] = useState<boolean>(false)
+
+  console.log('HI', uploads);
 
   const router = useRouter()
   const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
@@ -813,7 +836,9 @@ const Register = (): JSX.Element => {
     },
     handleRemoveAppliedPeopleInWorkplaces = (itens: Person[]) => {
       setAppliedPeopleInWorkplaces(appliedPeopleInWorkplaces.filter(item => !itens.some(item2 => item2.id === item.id)))
-    }
+    },
+    handleOpenModalAssistantCoverageDefine = () => setShowModalAssistantCoverageDefine(true),
+    handleCloseModalAssistantCoverageDefine = () => setShowModalAssistantCoverageDefine(false);
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -900,6 +925,9 @@ const Register = (): JSX.Element => {
     handleRemoveAppliedPeopleInWorkplaces,
     lotItems,
     postings,
+    showModalAssistantCoverageDefine,
+    handleOpenModalAssistantCoverageDefine,
+    handleCloseModalAssistantCoverageDefine,
   )
 }
 

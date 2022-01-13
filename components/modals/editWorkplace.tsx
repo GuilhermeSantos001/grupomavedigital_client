@@ -166,7 +166,7 @@ export default function RegisterWorkplace(props: Props) {
               <UpdateIcon />
             </IconButton>
             <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
-              Local de Trabalho
+              Editar Local de Trabalho
             </Typography>
             <Button
               color="inherit"

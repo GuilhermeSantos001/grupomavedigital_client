@@ -1,7 +1,7 @@
 /**
  * @description Componente do input para login
  * @author GuilhermeSantos001
- * @update 17/11/2021
+ * @update 13/01/2022
  */
 
 import React from 'react'
@@ -34,7 +34,6 @@ type MyState = {
 }
 
 export default class InputLogin extends React.Component<MyProps, MyState> {
-  variables: Variables
   fetch: Fetch
 
   constructor(props) {
@@ -61,10 +60,6 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
     this.handleTwofactorValidate = this.handleTwofactorValidate.bind(this)
     this.handleTwofactorRetrieve = this.handleTwofactorRetrieve.bind(this)
     this.handleTwofactorBack = this.handleTwofactorBack.bind(this)
-  }
-
-  componentDidMount() {
-    this.variables = new Variables(1, 'IndexedDB')
   }
 
   handlePasswordEyeClick() {
@@ -145,12 +140,14 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
           )
 
         try {
+          const variables = new Variables(1, 'IndexedDB');
+
           await Promise.all([
-            await this.variables.clear(),
-            await this.variables.define('auth', user.authorization),
-            await this.variables.define('token', user.token),
-            await this.variables.define('refreshToken', user.refreshToken),
-            await this.variables.define('signature', user.signature),
+            await variables.clear(),
+            await variables.define('auth', user.authorization),
+            await variables.define('token', user.token),
+            await variables.define('refreshToken', user.refreshToken),
+            await variables.define('signature', user.signature),
           ])
         } catch (error) {
           console.error(error)
@@ -333,14 +330,12 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
           </button>
         </div>
         <div
-          className={`twofactor-bg ${
-            this.state.twofactorRequest ? 'active' : 'deactivate'
-          } fixed-top d-flex flex-column`}
+          className={`twofactor-bg ${this.state.twofactorRequest ? 'active' : 'deactivate'
+            } fixed-top d-flex flex-column`}
         >
           <div
-            className={`twofactor ${
-              this.state.twofactorRequest ? 'active' : 'deactivate'
-            } col-12 overflow-auto`}
+            className={`twofactor ${this.state.twofactorRequest ? 'active' : 'deactivate'
+              } col-12 overflow-auto`}
           >
             <h1 className="text-white text-center fs-1 fw-bold m-5">
               Autenticação de dois fatores está ativada. Por gentileza, insira

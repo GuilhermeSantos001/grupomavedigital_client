@@ -1,7 +1,7 @@
 /**
  * @description Modal -> Modal de Cadastro de local de trabalho
  * @author GuilhermeSantos001
- * @update 07/01/2022
+ * @update 10/01/2022
  */
 
 import React, { useState } from 'react';
@@ -262,13 +262,8 @@ export default function RegisterWorkplace(props: Props) {
               className='col'
               label="Número"
               variant="standard"
-              value={String(numberHome).padStart(4, '0')}
-              onChange={(e) => {
-                const value = parseInt(e.target.value);
-
-                if (value >= 0 && value <= 9999)
-                  handleChangeNumberHome(value)
-              }}
+              value={StringEx.maskHouseNumber(String(numberHome).padStart(4, '0'))}
+              onChange={(e) => handleChangeNumberHome(parseInt(e.target.value))}
             />
           </ListItem>
           <ListItem>
@@ -286,13 +281,8 @@ export default function RegisterWorkplace(props: Props) {
               className='col'
               label="CEP"
               variant="standard"
-              value={String(zipCode).padStart(8, '0')}
-              onChange={(e) => {
-                const value = parseInt(e.target.value);
-
-                if (value >= 0 && value <= 99999999)
-                  handleChangeZipCode(value)
-              }}
+              value={StringEx.maskZipcode(String(zipCode).padStart(8, '0'))}
+              onChange={(e) => handleChangeZipCode(parseInt(e.target.value))}
             />
           </ListItem>
         </List>

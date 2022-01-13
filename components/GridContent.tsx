@@ -1,7 +1,7 @@
 /**
  * @description Componentes da grade do layout da pagina
  * @author GuilhermeSantos001
- * @update 29/12/2021
+ * @update 13/01/2022
  */
 
 import React from 'react'
@@ -14,8 +14,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
 
 import { Menu } from '@/pages/_app'
-
-import ScrollToTop from '@/components/scrollToTop'
 
 type MyProps = {
   menu: Menu[]
@@ -194,23 +192,22 @@ export default class GridContent extends React.Component<MyProps, MyState> {
       menu = this.composeItemsMenu(this.props.menu)
 
     return (
-      <>
+      <div className='p-2'>
         <div
           id="sidebar"
-          className={`p-2 border-3 border-end animation-delay ${this.props.fullwidth ? 'fullwidth' : ''
+          className={`p-2 animation-delay ${this.props.fullwidth ? 'fullwidth' : ''
             } ${this.props.menuShow ? 'fullwidth' : ''}`}
         >
-          <ul className={`list-style-none`}>{menu}</ul>
+          <ul className={`list-style-none pe-2 border-end`}>{menu}</ul>
         </div>
         <div
           id="content"
-          className={`p-2 animation-delay ${this.props.fullwidth ? 'fullwidth' : ''
+          className={`p-2 border-start animation-delay ${this.props.fullwidth ? 'fullwidth' : ''
             }${this.props.menuShow ? 'fullwidth' : ''}`}
         >
           {children}
-          <ScrollToTop />
         </div>
-      </>
+      </div>
     )
   }
 }

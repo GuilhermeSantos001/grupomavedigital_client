@@ -1,5 +1,5 @@
 /**
- * @description Modal -> Modal de Cadastro de pessoa
+ * @description Modal -> Modal de Edição das pessoas
  * @author GuilhermeSantos001
  * @update 10/01/2022
  */
@@ -15,36 +15,50 @@ import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
-import CloseIcon from '@mui/icons-material/Close';
+import UpdateIcon from '@mui/icons-material/Update';
 import Slide from '@mui/material/Slide';
 import { TransitionProps } from '@mui/material/transitions';
 
 import MobileDatePicker from '@/components/inputs/mobileDatePicker'
 import SelectScale from '@/components/inputs/selectScale'
 import SelectService from '@/components/inputs/selectService'
-import SelectCard from '@/components/inputs/selectCard'
 import SelectStreet from '@/components/inputs/selectStreet'
 import SelectNeighborhood from '@/components/inputs/selectNeighborhood'
 import SelectCity from '@/components/inputs/selectCity'
 import SelectDistrict from '@/components/inputs/selectDistrict'
 
 import StringEx from '@/src/utils/stringEx'
+import ArrayEx from '@/src/utils/arrayEx'
 import Alerting from '@/src/utils/alerting'
 
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 
 import {
   Person,
-  appendPerson,
+  editPerson,
 } from '@/app/features/system/system.slice'
-
-import {
-  LotItem,
-  editItemLot
-} from '@/app/features/payback/payback.slice'
 
 export interface Props {
   show: boolean
+  id: string
+  matricule: number
+  name: string
+  cpf: string
+  rg: string
+  motherName: string
+  birthDate: string
+  phone: string
+  mail: string
+  scale: string
+  cards: string[]
+  services: string[]
+  street: string
+  numberHome: number
+  complement: string
+  neighborhood: string
+  city: string
+  district: string
+  zipCode: number
   handleClose: () => void
 }
 
@@ -58,24 +72,23 @@ const Transition = React.forwardRef(function Transition(
 });
 
 export default function RegisterPeople(props: Props) {
-  const [matricule, setMatricule] = useState<number>(0)
-  const [name, setName] = useState<string>('')
-  const [cpf, setCPF] = useState<string>('')
-  const [rg, setRG] = useState<string>('')
-  const [motherName, setMotherName] = useState<string>('')
-  const [birthDate, setBirthDate] = useState<Date>(null)
-  const [phone, setPhone] = useState<string>('')
-  const [mail, setMail] = useState<string>('')
-  const [scale, setScale] = useState<string>('')
-  const [appliedCards, setAppliedCards] = useState<string[]>([])
-  const [appliedServices, setAppliedServices] = useState<string[]>([])
-  const [street, setStreet] = useState<string>('')
-  const [numberHome, setNumberHome] = useState<number>(0)
-  const [complement, setComplement] = useState<string>('')
-  const [neighborhood, setNeighborhood] = useState<string>('')
-  const [city, setCity] = useState<string>('')
-  const [district, setDistrict] = useState<string>('')
-  const [zipCode, setZipCode] = useState<number>(0)
+  const [matricule, setMatricule] = useState<number>(props.matricule)
+  const [name, setName] = useState<string>(props.name)
+  const [cpf, setCPF] = useState<string>(props.cpf)
+  const [rg, setRG] = useState<string>(props.rg)
+  const [motherName, setMotherName] = useState<string>(props.motherName)
+  const [birthDate, setBirthDate] = useState<Date>(new Date(props.birthDate))
+  const [phone, setPhone] = useState<string>(props.phone)
+  const [mail, setMail] = useState<string>(props.mail)
+  const [scale, setScale] = useState<string>(props.scale)
+  const [appliedServices, setAppliedServices] = useState<string[]>(props.services)
+  const [street, setStreet] = useState<string>(props.street)
+  const [numberHome, setNumberHome] = useState<number>(props.numberHome)
+  const [complement, setComplement] = useState<string>(props.complement)
+  const [neighborhood, setNeighborhood] = useState<string>(props.neighborhood)
+  const [city, setCity] = useState<string>(props.city)
+  const [district, setDistrict] = useState<string>(props.district)
+  const [zipCode, setZipCode] = useState<number>(props.zipCode)
 
   const
     dispatch = useAppDispatch(),
@@ -89,26 +102,6 @@ export default function RegisterPeople(props: Props) {
     districts = useAppSelector((state) => state.system.districts || []);
 
   const
-    handleResetInputs = () => {
-      setMatricule(0)
-      setName('');
-      setCPF('');
-      setRG('');
-      setMotherName('');
-      setBirthDate(null);
-      setPhone('');
-      setMail('');
-      setScale('');
-      setAppliedCards([]);
-      setAppliedServices([]);
-      setStreet('');
-      setNumberHome(0);
-      setComplement('');
-      setNeighborhood('');
-      setCity('');
-      setDistrict('');
-      setZipCode(0);
-    },
     handleChangeScale = (value: string) => setScale(value),
     handleChangeMatricule = (value: number) => setMatricule(value),
     handleChangeName = (value: string) => setName(value),
@@ -126,30 +119,37 @@ export default function RegisterPeople(props: Props) {
     handleChangeDistrict = (value: string) => setDistrict(value),
     handleChangeZipCode = (value: number) => setZipCode(value);
 
-  const canRegisterPerson = () => {
-    return name.length > 0 &&
-      matricule > 0 &&
-      cpf.length > 0 &&
-      rg.length > 0 &&
-      motherName.length > 0 &&
-      birthDate != null &&
-      phone.length > 0 &&
-      mail.length > 0 &&
-      appliedCards.length > 0 &&
-      scale.length > 0 &&
-      appliedServices.length > 0 &&
-      street.length > 0 &&
-      numberHome > 0 &&
-      // complement.length > 0 && // ? Complemento não é obrigatório
-      neighborhood.length > 0 &&
-      city.length > 0 &&
-      district.length > 0 &&
-      zipCode > 0
-  }
+  const
+    canEditPerson = () => {
+      return name.length > 0 &&
+        matricule > 0 &&
+        cpf.length > 0 &&
+        rg.length > 0 &&
+        motherName.length > 0 &&
+        birthDate != null &&
+        phone.length > 0 &&
+        mail.length > 0 &&
+        scale.length > 0 &&
+        appliedServices.length > 0 &&
+        street.length > 0 &&
+        numberHome > 0 &&
+        // complement.length > 0 && // ? Complemento não é obrigatório
+        neighborhood.length > 0 &&
+        city.length > 0 &&
+        district.length > 0 &&
+        zipCode > 0
+    },
+    servicesAvailables = () => {
+      const available = ArrayEx.not(services.map((service) => service.id), props.services.map((service) => service));
 
-  const handleRegisterPerson = () => {
+      return services
+        .filter(service => available.includes(service.id))
+        .map(service => service.value)
+    };
+
+  const handleEditPerson = () => {
     const person: Person = {
-      id: StringEx.id(),
+      id: props.id,
       matricule,
       name,
       cpf,
@@ -160,7 +160,7 @@ export default function RegisterPeople(props: Props) {
       mail,
       services: appliedServices,
       scale: scales.find(_scale => _scale.id === scale).id,
-      cards: lotItems.filter(_lotItem => appliedCards.includes(`${_lotItem.id} - ${_lotItem.lastCardNumber}`)).map(_lotItem => `${_lotItem.id} - ${_lotItem.lastCardNumber}`),
+      cards: lotItems.filter(_lotItem => props.cards.includes(`${_lotItem.id} - ${_lotItem.lastCardNumber}`)).map(_lotItem => `${_lotItem.id} - ${_lotItem.lastCardNumber}`),
       status: 'available',
       address: {
         street: streets.find(_street => _street.id === street).id,
@@ -174,30 +174,13 @@ export default function RegisterPeople(props: Props) {
     }
 
     if (people.find(_person =>
-      _person.matricule === matricule ||
-      _person.cpf === cpf ||
-      _person.rg === rg ||
-      _person.cards.filter(card => appliedCards.includes(card)).length > 0
+      _person.id !== person.id && _person.matricule === matricule ||
+      _person.id !== person.id && _person.cpf === cpf ||
+      _person.id !== person.id && _person.rg === rg
     ))
       return Alerting.create('Já existe uma pessoa com esses dados.');
 
-    // ? Associa o cartão a pessoa
-    lotItems
-      .filter(
-        _lotItem => appliedCards.includes(`${_lotItem.id} - ${_lotItem.lastCardNumber}`)
-      )
-      .forEach(
-        _lotItem => {
-          const card: LotItem = {
-            ..._lotItem,
-            person: person.id
-          }
-
-          dispatch(editItemLot(card));
-        })
-
-    dispatch(appendPerson(person));
-    handleResetInputs();
+    dispatch(editPerson(person));
     props.handleClose();
   }
 
@@ -206,34 +189,26 @@ export default function RegisterPeople(props: Props) {
       <Dialog
         fullScreen
         open={props.show}
-        onClose={() => {
-          handleResetInputs();
-          props.handleClose();
-        }}
         TransitionComponent={Transition}
       >
-        <AppBar sx={{ position: 'relative' }}>
+        <AppBar sx={{ position: 'relative' }} color='primary'>
           <Toolbar>
             <IconButton
               edge="start"
               color="inherit"
-              onClick={() => {
-                handleResetInputs();
-                props.handleClose();
-              }}
               aria-label="close"
             >
-              <CloseIcon />
+              <UpdateIcon />
             </IconButton>
             <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
-              Registrar Funcionário
+              Editar Funcionário
             </Typography>
             <Button
               color="inherit"
-              disabled={!canRegisterPerson()}
-              onClick={handleRegisterPerson}
+              disabled={!canEditPerson()}
+              onClick={handleEditPerson}
             >
-              Registrar
+              Atualizar
             </Button>
           </Toolbar>
         </AppBar>
@@ -317,14 +292,8 @@ export default function RegisterPeople(props: Props) {
           <ListItem>
             <div className='col'>
               <SelectScale
+                scale={scales.find(scale => scale.id === props.scale)}
                 handleChangeScale={handleChangeScale}
-              />
-            </div>
-          </ListItem>
-          <ListItem>
-            <div className='col'>
-              <SelectCard
-                handleChangeCard={(cards) => setAppliedCards(cards)}
               />
             </div>
           </ListItem>
@@ -333,8 +302,8 @@ export default function RegisterPeople(props: Props) {
           </ListItem>
         </List>
         <SelectService
-          left={services.map((service) => service.value)}
-          right={[]}
+          left={servicesAvailables()}
+          right={services.filter((service) => props.services.includes(service.id)).map((service) => service.value)}
           onChangeAppliedServices={(values) => setAppliedServices(services.filter(service => values.includes(service.value)).map(service => service.id))}
         />
         <List>
@@ -344,6 +313,7 @@ export default function RegisterPeople(props: Props) {
           <ListItem>
             <div className='col'>
               <SelectStreet
+                street={streets.find(street => street.id === props.street)}
                 handleChangeStreet={handleChangeStreet}
               />
             </div>
@@ -351,6 +321,7 @@ export default function RegisterPeople(props: Props) {
           <ListItem>
             <div className='col'>
               <SelectNeighborhood
+                neighborhood={neighborhoods.find(neighborhood => neighborhood.id === props.neighborhood)}
                 handleChangeNeighborhood={handleChangeNeighborhood}
               />
             </div>
@@ -358,6 +329,7 @@ export default function RegisterPeople(props: Props) {
           <ListItem>
             <div className='col'>
               <SelectCity
+                city={cities.find(city => city.id === props.city)}
                 handleChangeCity={handleChangeCity}
               />
             </div>
@@ -365,6 +337,7 @@ export default function RegisterPeople(props: Props) {
           <ListItem>
             <div className='col'>
               <SelectDistrict
+                district={districts.find(district => district.id === props.district)}
                 handleChangeDistrict={handleChangeDistrict}
               />
             </div>
@@ -402,21 +375,10 @@ export default function RegisterPeople(props: Props) {
           className='col-10 mx-auto my-2'
           variant="contained"
           color="primary"
-          disabled={!canRegisterPerson()}
-          onClick={handleRegisterPerson}
+          disabled={!canEditPerson()}
+          onClick={handleEditPerson}
         >
-          Registrar
-        </Button>
-        <Button
-          className='col-10 mx-auto my-2'
-          variant="contained"
-          color="error"
-          onClick={() => {
-            handleResetInputs();
-            props.handleClose();
-          }}
-        >
-          Cancelar
+          Atualizar
         </Button>
       </Dialog>
     </div>

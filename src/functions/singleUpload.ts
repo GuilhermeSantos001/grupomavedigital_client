@@ -18,13 +18,13 @@ export interface File {
   status: string
 }
 
-const singleUpload = async (_fetch: Fetch, file: globalThis.File): Promise<File> => {
+const singleUpload = async (_fetch: Fetch, file: globalThis.File, randomName: boolean): Promise<File> => {
   const formData = new FormData(),
     signedUrl = await signURL(),
     size = file.size,
     variables = new Variables(1, 'IndexedDB'),
     auth = await variables.get<string>('auth'),
-    operations = `{ "query": "mutation ($file: Upload!, $size: String!, $signedUrl: String!, $auth: String!) { singleUpload(file: $file, size: $size, signedUrl: $signedUrl, auth: $auth) { authorId name size compressedSize fileId version status } }", "variables": { "file": null, "size": "${size}", "signedUrl": "${signedUrl}", "auth": "${auth}" } }`,
+    operations = `{ "query": "mutation ($file: Upload!, $size: String!, $signedUrl: String!, $auth: String!, $randomName: Boolean!) { singleUpload(file: $file, size: $size, signedUrl: $signedUrl, auth: $auth, randomName: $randomName) { authorId name size compressedSize fileId version status } }", "variables": { "file": null, "size": "${size}", "signedUrl": "${signedUrl}", "auth": "${auth}", "randomName": ${randomName} } }`,
     map = `{"0": ["variables.file"] }`
 
   formData.append('operations', operations)

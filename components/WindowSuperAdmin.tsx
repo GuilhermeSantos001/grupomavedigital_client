@@ -1,10 +1,11 @@
 /**
  * @description Janela de super administrador
  * @author GuilhermeSantos001
- * @update 05/01/2022
+ * @update 13/01/2022
 */
 
 import { useState, useEffect } from 'react';
+
 import Avatar from '@mui/material/Avatar';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -19,6 +20,7 @@ import PlayIcon from '@mui/icons-material/PlayArrow';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 
 import hasPrivilege from '@/src/functions/hasPrivilege'
+import Alerting from '@/src/utils/alerting'
 
 import { useSnackbar } from 'notistack';
 
@@ -34,6 +36,7 @@ import {
   clearNeighborhoods,
   clearCities,
   clearDistricts,
+  clearUploads,
 } from '@/app/features/system/system.slice'
 
 import {
@@ -62,6 +65,7 @@ export default function WindowSuperAdmin() {
     collapseExpandedOptionsClear,
     setCollapseExpandedOptionsClear
   ] = useState<boolean>(false);
+
   const [
     textSearchOptionsClear,
     setTextSearchOptionsClear
@@ -71,6 +75,7 @@ export default function WindowSuperAdmin() {
     collapseExpandedQtRegisters,
     setCollapseExpandedQtRegisters
   ] = useState<boolean>(false);
+
   const [
     textSearchQtRegisters,
     setTextSearchQtRegisters
@@ -132,6 +137,7 @@ export default function WindowSuperAdmin() {
     neighborhoods = useAppSelector(state => state.system.neighborhoods || []),
     cities = useAppSelector(state => state.system.cities || []),
     districts = useAppSelector(state => state.system.districts || []),
+    uploads = useAppSelector(state => state.system.uploads || []),
     optionsClear: OptionClear[] = [
       {
         id: 'all',
@@ -194,6 +200,10 @@ export default function WindowSuperAdmin() {
         title: 'Limpar registros dos estados',
         exec: () => dispatch(clearDistricts())
       },
+      {
+        title: 'Limpar registros dos uploads',
+        exec: () => dispatch(clearUploads())
+      },
     ],
     optionsQtRegisters: OptionQtRegisters[] = [
       {
@@ -251,15 +261,25 @@ export default function WindowSuperAdmin() {
         length: districts.length,
         exec: () => console.info(districts)
       },
+      {
+        title: 'Uploads',
+        length: uploads.length,
+        exec: () => console.info(uploads)
+      },
     ]
 
   useEffect(() => {
     const listener = async (e) => {
       if (e.key === 'F2') {
-        if (!(await hasPrivilege('administrador')))
+        try {
+          if (!(await hasPrivilege('administrador')))
           return;
 
         setShow(true);
+        } catch (error){
+          Alerting.create('Você não pode abrir a janela de administrador agora!');
+          console.error(error);
+        }
       }
     }
 

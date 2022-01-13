@@ -2,7 +2,7 @@
 /**
  * @description DropZone usado para arrastar arquivos/pastas para upload
  * @author GuilhermeSantos001
- * @update 22/11/2021
+ * @update 11/10/2022
  */
 
 import React from 'react'
@@ -18,6 +18,7 @@ import singleUpload, { File as IUploadFile } from '@/src/functions/singleUpload'
 import multipleUpload from '@/src/functions/multipleUpload'
 
 import Alerting from '@/src/utils/alerting'
+import StringEx from '@/src/utils/stringEx'
 import Fetch from '@/src/utils/fetch'
 
 declare function callbackAfterUpload(files: IUploadFile | IUploadFile[]): void
@@ -26,6 +27,8 @@ type MyProps = {
   fetch: Fetch
   ext: `.${string}`[]
   maxSize: number
+  limit?: number
+  randomName?: boolean
   onCallbackAfterUpload: typeof callbackAfterUpload
 }
 
@@ -261,10 +264,11 @@ export default class DropZone extends React.Component<MyProps, MyState> {
     if (this.state.files.length > 1) {
       params = await multipleUpload(
         this.props.fetch,
-        this.state.files.map((file) => file.raw)
+        this.state.files.map((file) => file.raw),
+        this.props.randomName
       )
     } else {
-      params = await singleUpload(this.props.fetch, this.state.files[0].raw)
+      params = await singleUpload(this.props.fetch, this.state.files[0].raw, this.props.randomName)
     }
 
     this.handleClickTrashAll()
@@ -339,6 +343,9 @@ export default class DropZone extends React.Component<MyProps, MyState> {
   }
 
   async processFiles(items) {
+    if (this.props.limit > 0 && this.state.files.length >= this.props.limit)
+      return this.setDropInvalid('exceedLimit');
+
     const valid = Array.from({ length: items.length }).filter((_, i) =>
       this.props.ext.includes(
         `.${items[i].name.substring(items[i].name.lastIndexOf('.') + 1)}`
@@ -473,7 +480,7 @@ export default class DropZone extends React.Component<MyProps, MyState> {
   }
 
   setDropInvalid(
-    alertType: 'ext' | 'maxSize' | 'duplicate',
+    alertType: 'ext' | 'maxSize' | 'duplicate' | 'exceedLimit',
     duplicateNames?: string[]
   ) {
     if (alertType == 'ext') {
@@ -485,7 +492,7 @@ export default class DropZone extends React.Component<MyProps, MyState> {
       )
     } else if (alertType == 'maxSize') {
       Alerting.create(
-        'Seu arquivo irá exceder o limite maximo permitido.',
+        'Seu arquivo irá exceder o limite máximo permitido.',
         3600
       )
     } else if (alertType == 'duplicate') {
@@ -496,6 +503,8 @@ export default class DropZone extends React.Component<MyProps, MyState> {
       } else {
         Alerting.create(`Varios arquivos informados já estão na lista.`)
       }
+    } else if (alertType == 'exceedLimit') {
+      Alerting.create(`Você atingiu o limite máximo de ${this.props.limit} arquivo(s) para upload por vêz.`)
     }
 
     this.setState({

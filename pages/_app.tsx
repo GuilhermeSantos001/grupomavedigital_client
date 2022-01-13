@@ -15,7 +15,9 @@ import Head from 'next/head'
 import Script from 'next/script'
 
 import Layout from '@/components/Layout'
-import Loading from '@/components/Loading'
+import Loading, { LoadingFullWidth } from '@/components/Loading'
+
+import { ImpulseSpinner } from "react-spinners-kit"
 
 import { iconsFamily, iconsName } from '@/src/utils/fontAwesomeIcons'
 
@@ -116,7 +118,16 @@ function MyApp({ Component, pageProps }: AppProps) {
     fullwidth = props.fullwidth,
     persistor = persistStore(store);
 
-  const text = <p>Loading...</p>
+  const reduxLoading = (
+    <div
+      className='d-flex flex-row justify-content-center align-items-center bg-primary bg-gradient'
+      style={{ width: '100vw', height: '100vh' }}
+    >
+      <div className='align-self-center m-2'>
+        <ImpulseSpinner size={70} backColor="white" frontColor='yellow' loading={true} />
+      </div>
+    </div>
+  )
 
   return (
     <>
@@ -215,7 +226,6 @@ function MyApp({ Component, pageProps }: AppProps) {
         src="/javascripts/plugins/please-wait.min.js"
         strategy="beforeInteractive"
       />
-      <Loading />
       <Script
         src="/javascripts/plugins/plyr.min.js"
         strategy="beforeInteractive"
@@ -230,10 +240,12 @@ function MyApp({ Component, pageProps }: AppProps) {
       />
       <SSRProvider>
         <Provider store={store}>
-          <PersistGate loading={text} persistor={persistor}>
-            <Layout fullwidth={fullwidth} menu={menu}>
-              <Component {...pageProps} />
-            </Layout>
+          <PersistGate loading={reduxLoading} persistor={persistor}>
+            <Loading>
+              <Layout fullwidth={fullwidth} menu={menu}>
+                <Component {...pageProps} />
+              </Layout>
+            </Loading>
           </PersistGate>
         </Provider>
       </SSRProvider>

@@ -6,6 +6,8 @@
 
 import { GridColDef } from '@mui/x-data-grid';
 
+import StringEx from '@/src/utils/stringEx';
+
 import type {
   Workplace,
   Scale,
@@ -81,7 +83,7 @@ export default function getWorkPlaceForTable(
         headerAlign: 'center',
         align: 'center',
         valueGetter: (params) => {
-          return `${streets.find(street => street.id === params.row.address.street).name}, ${params.row.address.number}, ${neighborhoods.find(neighborhood => neighborhood.id === params.row.address.neighborhood).name}, ${cities.find(city => city.id === params.row.address.city).name} - ${districts.find(district => district.id === params.row.address.district).name}`;
+          return `${streets.find(street => street.id === params.row.address.street).name}, ${params.row.address.number} - ${neighborhoods.find(neighborhood => neighborhood.id === params.row.address.neighborhood).name}, ${cities.find(city => city.id === params.row.address.city).name} - ${districts.find(district => district.id === params.row.address.district).name}, ${StringEx.maskZipcode(String(params.row.address.zipCode).padStart(8, '0'))}`;
         }
       }
     ],

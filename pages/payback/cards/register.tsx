@@ -34,7 +34,6 @@ import {
   LotItem,
   appendItemLot
 } from '@/app/features/payback/payback.slice'
-import { StringBuilder } from 'lzutf8'
 
 const serverSideProps: PageProps = {
   title: 'Pagamentos/Cartões Benefício/Cadastro',
@@ -463,7 +462,7 @@ function compose_ready(
                   if (lotItems.filter(lot => lot.serialNumber === String(numSerialNumber).padStart(15, '0')).length > 0)
                     return Alerting.create('Já existe um lote com esse número de série!');
 
-                  if (lotItems.filter(lot => lot.lastCardNumber === StringBuilder(numLastCardNumber).padStart(4, '0')).length > 0)
+                  if (lotItems.filter(lot => lot.lastCardNumber === String(numLastCardNumber).padStart(4, '0')).length > 0)
                     return Alerting.create('Já existe um lote com os mesmos 4 últimos dígitos do número do cartão!');
 
                   handleRegister({

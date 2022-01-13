@@ -1,12 +1,13 @@
 /**
- * @description Efetuada uma chamada para a API para enviar varios arquivos
+ * @description Efetuada uma chamada para a API para enviar vários arquivos
  * @author GuilhermeSantos001
- * @update 14/11/2021
+ * @update 11/01/2022
  */
 
 import Fetch from '@/src/utils/fetch';
 import Variables from '@/src/db/variables';
 import signURL from '@/src/functions/signURL'
+
 export interface File {
   authorId: string
   name: string
@@ -17,7 +18,7 @@ export interface File {
   status: string
 }
 
-const multipleUpload = async (_fetch: Fetch, files: globalThis.File[]): Promise<File[]> => {
+const multipleUpload = async (_fetch: Fetch, files: globalThis.File[], randomName: boolean): Promise<File[]> => {
   const formData = new FormData(),
     signedUrl = await signURL(),
     variables = new Variables(1, 'IndexedDB'),
@@ -40,7 +41,7 @@ const multipleUpload = async (_fetch: Fetch, files: globalThis.File[]): Promise<
   const filesData = JSON.stringify(
     Array.from({ length: files.length }).map(() => null)
   ),
-    operations = `{ "query": "mutation ($files: [Upload!]!, $sizes: [String!]!, $signedUrl: String!, $auth: String!) { multipleUpload(files: $files, sizes: $sizes, signedUrl: $signedUrl, auth: $auth) { authorId name size compressedSize fileId version status } }", "variables": { "files": ${filesData}, "sizes": ${sizes}, "signedUrl": "${signedUrl}", "auth": "${auth}" } }`
+    operations = `{ "query": "mutation ($files: [Upload!]!, $sizes: [String!]!, $signedUrl: String!, $auth: String!, $randomName: Boolean!) { multipleUpload(files: $files, sizes: $sizes, signedUrl: $signedUrl, auth: $auth) { authorId name size compressedSize fileId version status } }", "variables": { "files": ${filesData}, "sizes": ${sizes}, "signedUrl": "${signedUrl}", "auth": "${auth}", "randomName": ${randomName} } }`
 
   formData.append('operations', operations)
   formData.append('map', map)

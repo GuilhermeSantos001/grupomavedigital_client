@@ -53,6 +53,14 @@ html {
     animation-fill-mode: forwards;
     transition: opacity 2s linear;
   }
+  &.active-alternate {
+    visibility: visible;
+    opacity: 1;
+    animation: fadeInUp;
+    animation-duration: 400ms;
+    animation-fill-mode: forwards;
+    transition: opacity 2s linear;
+  }
   &.deactivate {
     opacity: 0;
     visibility: hidden;

@@ -1,7 +1,7 @@
 /**
  * @description Reducer -> Payback
  * @author GuilhermeSantos001
- * @update 08/01/2022
+ * @update 10/01/2022
  */
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
@@ -35,14 +35,13 @@ export type Posting = {
   costCenter: string // ? Centro de Custo
   periodStart: string // ? Data de início do período
   periodEnd: string // ? Data de fim do período
-  owner: string // ? Usuário que criou o lançamento
-  responsible: string // ? Usuário responsável pelo lançamento
+  author: string // ? Usuário que criou o lançamento
   originDate: string // ? Data de origem do lançamento
   description: string // ? Descrição do lançamento
   coverage: PersonPosting // ? Pessoa que está realizando a cobertura do lançamento
   covering: PersonPosting // ? Pessoa que está sendo substituída no lançamento
-  coverageWorkplace: Workplace // ? Local de trabalho da pessoa que está realizando a cobertura do lançamento
-  coveringWorkplace: Workplace // ? Local de trabalho da pessoa que está sendo substituída no lançamento
+  coverageWorkplace: string // ? Local de trabalho da pessoa que está realizando a cobertura do lançamento
+  coveringWorkplace: string // ? Local de trabalho da pessoa que está sendo substituída no lançamento
   paymentMethod: string // ? Forma de pagamento do lançamento
   paymentValue: number // ? Valor de pagamento do lançamento
   paymentDatePayable: string // ? Data há pagar do lançamento

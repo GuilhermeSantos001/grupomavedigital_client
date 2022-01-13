@@ -1,3 +1,9 @@
+/**
+ * @description Componentes de layout
+ * @author GuilhermeSantos001
+ * @update 13/01/2022
+ */
+
 import React from 'react'
 
 import { SnackbarProvider } from 'notistack';
@@ -16,13 +22,14 @@ type MyProps = {
 
 type myStates = {
   menuShow: boolean
+  fetchAPI: NodeJS.Timeout | null
 }
 
 class Layout extends React.Component<MyProps, myStates> {
   constructor(props) {
     super(props)
 
-    this.state = { menuShow: false }
+    this.state = { menuShow: false, fetchAPI: null }
 
     this.handleMenuShowClick = this.handleMenuShowClick.bind(this)
   }
@@ -32,8 +39,6 @@ class Layout extends React.Component<MyProps, myStates> {
   }
 
   render() {
-    const children = this.props.children
-
     return (
       <SnackbarProvider maxSnack={3}>
         <Alerting />
@@ -48,7 +53,7 @@ class Layout extends React.Component<MyProps, myStates> {
           menu={this.props.menu}
           fullwidth={this.props.fullwidth}
         >
-          {children}
+          {this.props.children}
         </GridContent>
       </SnackbarProvider>
     )

@@ -2,7 +2,7 @@
  * @description Componente que permite retornar a parte superior da pagina
  * @author GuilhermeSantos001
  * @credits Skillthrive (https://www.youtube.com/watch?v=Xz2Z8xKH-R0) & Gautam Kumar (https://www.coderomeos.org/scroll-to-top-of-the-page-a-simple-react-component)
- * @update 29/12/2021
+ * @update 13/01/2022
  */
 
 import { useEffect, useState } from "react";
@@ -30,10 +30,14 @@ const ScrollToTop = (): JSX.Element => {
 
   useEffect(() => {
     window.addEventListener("scroll", toggleVisibility);
+
+    return () => {
+      window.removeEventListener('scroll', toggleVisibility);
+    }
   }, []);
 
   return (
-    <div className={`d-flex fixed-top justify-content-end fade-effect m-2 ${isVisible ? 'active': 'deactivate'}`}>
+    <div className={`d-flex fixed-top justify-content-end fade-effect m-2 ${isVisible ? 'active' : 'deactivate'}`}>
       <div className='hover-color-scrollToTop' onClick={scrollToTop}>
         <FontAwesomeIcon
           icon={Icon.render('fas', 'caret-square-up')}
