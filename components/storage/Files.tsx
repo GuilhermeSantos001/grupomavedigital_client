@@ -691,7 +691,7 @@ export default class Files extends React.Component<MyProps, MyStates> {
     if (!this.props.socket.hasListeners(eventError))
       this.props.socket.on(eventError, (room: string[], error) => {
         if (this.inRoom(room))
-          Alerting.create(error);
+          Alerting.create('error',error);
       })
   }
 
@@ -722,7 +722,7 @@ export default class Files extends React.Component<MyProps, MyStates> {
     if (!this.props.socket.hasListeners(eventError))
       this.props.socket.on(eventError, (room: string[], error) => {
         if (this.inRoom(room))
-          Alerting.create(error);
+          Alerting.create('error',error);
       })
   }
 
@@ -753,7 +753,7 @@ export default class Files extends React.Component<MyProps, MyStates> {
     if (!this.props.socket.hasListeners(eventError))
       this.props.socket.on(eventError, (room: string[], error) => {
         if (this.inRoom(room))
-          Alerting.create(error);
+          Alerting.create('error',error);
       })
   }
 
@@ -784,7 +784,7 @@ export default class Files extends React.Component<MyProps, MyStates> {
     if (!this.props.socket.hasListeners(eventError))
       this.props.socket.on(eventError, (room: string[], error) => {
         if (this.inRoom(room))
-          Alerting.create(error);
+          Alerting.create('error',error);
       })
   }
 

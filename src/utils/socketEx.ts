@@ -20,10 +20,10 @@ export default class SocketEX {
   }
 
   private async initialize(
-    reconnectionAttempts: number = 10,
-    reconnectionDelay: number = 1000,
-    reconnectionDelayMax: number = 5000,
-    reconnection: boolean = true
+    reconnectionAttempts = 10,
+    reconnectionDelay= 1000,
+    reconnectionDelayMax = 5000,
+    reconnection = true
   ) {
     this.reconnectionAttempts = reconnectionAttempts;
     this.reconnectionDelay = reconnectionDelay;

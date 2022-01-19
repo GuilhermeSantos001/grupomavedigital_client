@@ -1,7 +1,7 @@
 /**
  * @description Modal -> Modal de Cadastro de pessoa
  * @author GuilhermeSantos001
- * @update 10/01/2022
+ * @update 18/01/2022
  */
 
 import React, { useState } from 'react';
@@ -19,28 +19,29 @@ import CloseIcon from '@mui/icons-material/Close';
 import Slide from '@mui/material/Slide';
 import { TransitionProps } from '@mui/material/transitions';
 
-import MobileDatePicker from '@/components/inputs/mobileDatePicker'
-import SelectScale from '@/components/inputs/selectScale'
-import SelectService from '@/components/inputs/selectService'
-import SelectCard from '@/components/inputs/selectCard'
-import SelectStreet from '@/components/inputs/selectStreet'
-import SelectNeighborhood from '@/components/inputs/selectNeighborhood'
-import SelectCity from '@/components/inputs/selectCity'
-import SelectDistrict from '@/components/inputs/selectDistrict'
+import MobileDatePicker from '@/components/selects/mobileDatePicker'
+import SelectScale from '@/components/selects/selectScale'
+import SelectService from '@/components/selects/selectService'
+import SelectCard from '@/components/selects/selectCard'
+import SelectStreet from '@/components/selects/selectStreet'
+import SelectNeighborhood from '@/components/selects/selectNeighborhood'
+import SelectCity from '@/components/selects/selectCity'
+import SelectDistrict from '@/components/selects/selectDistrict'
 
+import DateEx from '@/src/utils/dateEx'
 import StringEx from '@/src/utils/stringEx'
 import Alerting from '@/src/utils/alerting'
 
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 
 import {
-  Person,
-  appendPerson,
+  PersonCreate,
+  SystemActions
 } from '@/app/features/system/system.slice'
 
 import {
   LotItem,
-  editItemLot
+  PaybackActions,
 } from '@/app/features/payback/payback.slice'
 
 export interface Props {
@@ -79,7 +80,6 @@ export default function RegisterPeople(props: Props) {
 
   const
     dispatch = useAppDispatch(),
-    people = useAppSelector(state => state.system.people),
     lotItems = useAppSelector(state => state.payback.lotItems || []),
     services = useAppSelector((state) => state.system.services || []),
     scales = useAppSelector((state) => state.system.scales || []),
@@ -148,7 +148,7 @@ export default function RegisterPeople(props: Props) {
   }
 
   const handleRegisterPerson = () => {
-    const person: Person = {
+    const person: PersonCreate = {
       id: StringEx.id(),
       matricule,
       name,
@@ -161,7 +161,6 @@ export default function RegisterPeople(props: Props) {
       services: appliedServices,
       scale: scales.find(_scale => _scale.id === scale).id,
       cards: lotItems.filter(_lotItem => appliedCards.includes(`${_lotItem.id} - ${_lotItem.lastCardNumber}`)).map(_lotItem => `${_lotItem.id} - ${_lotItem.lastCardNumber}`),
-      status: 'available',
       address: {
         street: streets.find(_street => _street.id === street).id,
         neighborhood: neighborhoods.find(_neighborhood => _neighborhood.id === neighborhood).id,
@@ -173,32 +172,28 @@ export default function RegisterPeople(props: Props) {
       },
     }
 
-    if (people.find(_person =>
-      _person.matricule === matricule ||
-      _person.cpf === cpf ||
-      _person.rg === rg ||
-      _person.cards.filter(card => appliedCards.includes(card)).length > 0
-    ))
-      return Alerting.create('Já existe uma pessoa com esses dados.');
+    try {
+      // ? Associa o cartão a pessoa
+      lotItems
+        .filter(
+          _lotItem => appliedCards.includes(`${_lotItem.id} - ${_lotItem.lastCardNumber}`)
+        )
+        .forEach(
+          _lotItem => {
+            const card: LotItem = {
+              ..._lotItem,
+              person: person.id
+            }
 
-    // ? Associa o cartão a pessoa
-    lotItems
-      .filter(
-        _lotItem => appliedCards.includes(`${_lotItem.id} - ${_lotItem.lastCardNumber}`)
-      )
-      .forEach(
-        _lotItem => {
-          const card: LotItem = {
-            ..._lotItem,
-            person: person.id
-          }
+            dispatch(PaybackActions.UPDATE_LOT(card));
+          })
 
-          dispatch(editItemLot(card));
-        })
-
-    dispatch(appendPerson(person));
-    handleResetInputs();
-    props.handleClose();
+      dispatch(SystemActions.CREATE_PERSON(person));
+      handleResetInputs();
+      props.handleClose();
+    } catch (error) {
+      Alerting.create('error', error.message);
+    }
   }
 
   return (
@@ -311,6 +306,8 @@ export default function RegisterPeople(props: Props) {
               className='col-12'
               label="Data de Nascimento"
               value={birthDate}
+              maxDate={DateEx.addYears(DateEx.subYears(new Date(), 75), 55)}
+              minDate={DateEx.subYears(new Date(), 75)}
               handleChangeValue={handleChangeBirthDate}
             />
           </ListItem>

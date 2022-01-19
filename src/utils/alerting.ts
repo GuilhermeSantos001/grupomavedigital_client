@@ -1,10 +1,13 @@
 /**
  * @description Gerenciador de alertas
  * @author GuilhermeSantos001
- * @update 22/10/2021
+ * @update 18/01/2022
  */
 
+type AlertType = 'question' | 'success' | 'warning' | 'error' | 'info'
+
 interface IAlert {
+  type: AlertType
   message: string;
   delay: number;
 }
@@ -15,7 +18,9 @@ declare global {
       show: boolean
       messageValue: string
       messageDelay: number
+      typeValue: AlertType
       cache: IAlert[]
+      type: AlertType
       noCache: boolean
       delay: NodeJS.Timeout
     }
@@ -50,23 +55,34 @@ class Alert {
     return window.Alerting && window.Alerting.messageDelay;
   }
 
+  setTypeValue(type: AlertType): void {
+    if (window.Alerting)
+      window.Alerting.typeValue = type;
+  }
+
+  getType(): AlertType {
+    return window.Alerting ? window.Alerting.type : "question";
+  }
+
   /**
    * @description Cria um novo alerta
    */
-  create(message: string, delay = 2500): void {
+  create(type: AlertType, message: string, delay = 2500): void {
     if (!window.Alerting) {
       window.Alerting = {
         noCache: true,
         show: false,
         delay: undefined,
+        type: type,
         cache: [],
         messageDelay: 0,
-        messageValue: ''
+        messageValue: '',
+        typeValue: 'question'
       }
     };
 
     if (!window.Alerting.noCache) {
-      window.Alerting.cache.push({ message, delay });
+      window.Alerting.cache.push({ type, message, delay });
     } else {
       window.Alerting.noCache = false;
     }
@@ -74,6 +90,8 @@ class Alert {
     if (!this.isShowing()) {
       this.setMessage(message);
       this.setMessageDelay(delay);
+      this.setTypeValue(type);
+
       window.Alerting.show = true;
     }
 
@@ -94,13 +112,14 @@ class Alert {
       window.Alerting.cache.shift();
 
       const data: IAlert = {
+        type: window.Alerting.cache.at(0)?.type || "question",
         message: window.Alerting.cache.at(0)?.message || "",
         delay: window.Alerting.cache.at(0)?.delay || 0
       };
 
       if (data.message.length > 0 && data.delay > 0) {
         window.Alerting.noCache = true;
-        this.create(data.message, data.delay);
+        this.create(data.type, data.message, data.delay);
       }
     }
   }

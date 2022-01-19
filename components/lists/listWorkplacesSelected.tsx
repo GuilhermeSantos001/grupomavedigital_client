@@ -1,10 +1,9 @@
 /**
  * @description Lista -> Lista com ícones (MUI)
  * @author GuilhermeSantos001
- * @update 05/01/2022
+ * @update 18/01/2022
  */
 
-import * as React from 'react';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
@@ -35,7 +34,7 @@ export function renderListItem(key: string, title: string, subtitle: string) {
   )
 }
 
-export default function listWorkplacesSelected(props: Props) {
+export default function ListWorkplacesSelected(props: Props) {
   const
     scales = useAppSelector(state => state.system.scales || []),
     services = useAppSelector(state => state.system.services || []);

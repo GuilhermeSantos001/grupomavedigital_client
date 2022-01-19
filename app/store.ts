@@ -5,13 +5,13 @@ import thunk from 'redux-thunk'
 
 import storage from '@/app/storage'
 
-// ! Reducer -> System
+// ! Slice -> System
 import systemReducer from './features/system/system.slice'
 
-// ! Reducer -> Payback
+// ! Slice -> Payback
 import paybackReducer from '@/app/features/payback/payback.slice'
 
-// ! Reducer -> Hercules
+// ! Slice -> Hercules
 import herculesReducer from '@/app/features/hercules/hercules.slice'
 import herculesTreeNavigationReducer from '@/app/features/hercules/treeNavigation.slice'
 

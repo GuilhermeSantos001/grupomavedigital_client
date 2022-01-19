@@ -53,6 +53,14 @@ html {
     animation-fill-mode: forwards;
     transition: opacity 2s linear;
   }
+  &.active-classic {
+    visibility: visible;
+    opacity: 1;
+    animation: fadeIn;
+    animation-duration: 400ms;
+    animation-fill-mode: forwards;
+    transition: opacity 2s linear;
+  }
   &.active-alternate {
     visibility: visible;
     opacity: 1;
@@ -70,6 +78,32 @@ html {
     -ms-user-select: none;
     user-select: none;
     animation: fadeOutUp;
+    animation-duration: 400ms;
+    animation-fill-mode: forwards;
+    transition: visibility 0s 2s, opacity 2s linear;
+  }
+  &.deactivate-classic {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    animation: fadeOut;
+    animation-duration: 400ms;
+    animation-fill-mode: forwards;
+    transition: visibility 0s 2s, opacity 2s linear;
+  }
+  &.deactivate-alternate {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    animation: fadeOutInDown;
     animation-duration: 400ms;
     animation-fill-mode: forwards;
     transition: visibility 0s 2s, opacity 2s linear;

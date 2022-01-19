@@ -1,7 +1,7 @@
 /**
  * @description Janela de super administrador
  * @author GuilhermeSantos001
- * @update 13/01/2022
+ * @update 18/01/2022
 */
 
 import { useState, useEffect } from 'react';
@@ -17,7 +17,7 @@ import Collapse from '@mui/material/Collapse';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import PlayIcon from '@mui/icons-material/PlayArrow';
-import BookmarkIcon from '@mui/icons-material/Bookmark';
+import DataObject from '@mui/icons-material/DataObject';
 
 import hasPrivilege from '@/src/functions/hasPrivilege'
 import Alerting from '@/src/utils/alerting'
@@ -27,21 +27,11 @@ import { useSnackbar } from 'notistack';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 
 import {
-  clearCostCenters,
-  clearWorkplaces,
-  clearServices,
-  clearPeople,
-  clearScales,
-  clearStreets,
-  clearNeighborhoods,
-  clearCities,
-  clearDistricts,
-  clearUploads,
+  SystemActions
 } from '@/app/features/system/system.slice'
 
 import {
-  clearLot,
-  clearPostings,
+  PaybackActions
 } from '@/app/features/payback/payback.slice'
 
 declare type OptionClear = {
@@ -123,6 +113,15 @@ export default function WindowSuperAdmin() {
       setHasChanges(true);
 
       exec();
+    },
+    handleConsoleShowData = (data: any) => {
+      console.warn(data);
+
+      enqueueSnackbar(
+        'Abra o seu terminal e verifique os dados.', {
+        variant: 'info',
+        className: 'bg-primary fw-bold text-secondary'
+      });
     }
 
   const
@@ -132,6 +131,7 @@ export default function WindowSuperAdmin() {
     workplaces = useAppSelector(state => state.system.workplaces || []),
     services = useAppSelector(state => state.system.services || []),
     people = useAppSelector(state => state.system.people || []),
+    reasonForAbsences = useAppSelector(state => state.system.reasonForAbsences || []),
     scales = useAppSelector(state => state.system.scales || []),
     streets = useAppSelector(state => state.system.streets || []),
     neighborhoods = useAppSelector(state => state.system.neighborhoods || []),
@@ -141,130 +141,141 @@ export default function WindowSuperAdmin() {
     optionsClear: OptionClear[] = [
       {
         id: 'all',
-        title: 'Limpar registros do banco de dados',
+        title: 'Limpar todos os registros',
         exec: () => {
-          dispatch(clearCostCenters());
-          dispatch(clearLot());
-          dispatch(clearPostings());
-          dispatch(clearWorkplaces());
-          dispatch(clearServices());
-          dispatch(clearPeople());
-          dispatch(clearScales());
-          dispatch(clearStreets());
-          dispatch(clearNeighborhoods());
-          dispatch(clearCities());
-          dispatch(clearDistricts());
+          dispatch(PaybackActions.CLEAR_LOTS());
+          dispatch(PaybackActions.CLEAR_POSTINGS());
+          dispatch(SystemActions.CLEAR_COSTCENTERS());
+          dispatch(SystemActions.CLEAR_WORKPLACES());
+          dispatch(SystemActions.CLEAR_SERVICES());
+          dispatch(SystemActions.CLEAR_PEOPLE());
+          dispatch(SystemActions.CLEAR_REASONFORABSENCES());
+          dispatch(SystemActions.CLEAR_SCALES());
+          dispatch(SystemActions.CLEAR_STREETS());
+          dispatch(SystemActions.CLEAR_NEIGHBORHOODS());
+          dispatch(SystemActions.CLEAR_CITIES());
+          dispatch(SystemActions.CLEAR_DISTRICTS());
+          dispatch(SystemActions.CLEAR_UPLOADS());
         }
       },
       {
         title: 'Limpar registros dos centros de custo',
-        exec: () => dispatch(clearCostCenters())
+        exec: () => dispatch(SystemActions.CLEAR_COSTCENTERS())
       },
       {
         title: 'Limpar registros dos lotes de cartão',
-        exec: () => dispatch(clearLot())
+        exec: () => dispatch(PaybackActions.CLEAR_LOTS())
       },
       {
         title: 'Limpar registros dos lançamentos financeiros',
-        exec: () => dispatch(clearPostings())
+        exec: () => dispatch(PaybackActions.CLEAR_POSTINGS())
       },
       {
         title: 'Limpar registros dos locais de trabalho',
-        exec: () => dispatch(clearWorkplaces())
+        exec: () => dispatch(SystemActions.CLEAR_WORKPLACES())
       },
       {
         title: 'Limpar registros dos serviços',
-        exec: () => dispatch(clearServices())
+        exec: () => dispatch(SystemActions.CLEAR_SERVICES())
       },
       {
         title: 'Limpar registros das pessoas',
-        exec: () => dispatch(clearPeople())
+        exec: () => dispatch(SystemActions.CLEAR_PEOPLE())
+      },
+      {
+        title: 'Limpar registros dos motivos de falta',
+        exec: () => dispatch(SystemActions.CLEAR_REASONFORABSENCES())
       },
       {
         title: 'Limpar registros das escalas',
-        exec: () => dispatch(clearScales())
+        exec: () => dispatch(SystemActions.CLEAR_SCALES())
       },
       {
         title: 'Limpar registros das ruas',
-        exec: () => dispatch(clearStreets())
+        exec: () => dispatch(SystemActions.CLEAR_STREETS())
       },
       {
         title: 'Limpar registros dos bairros',
-        exec: () => dispatch(clearNeighborhoods())
+        exec: () => dispatch(SystemActions.CLEAR_NEIGHBORHOODS())
       },
       {
         title: 'Limpar registros das cidades',
-        exec: () => dispatch(clearCities())
+        exec: () => dispatch(SystemActions.CLEAR_CITIES())
       },
       {
         title: 'Limpar registros dos estados',
-        exec: () => dispatch(clearDistricts())
+        exec: () => dispatch(SystemActions.CLEAR_DISTRICTS())
       },
       {
         title: 'Limpar registros dos uploads',
-        exec: () => dispatch(clearUploads())
+        exec: () => dispatch(SystemActions.CLEAR_UPLOADS())
       },
     ],
     optionsQtRegisters: OptionQtRegisters[] = [
       {
         title: 'Cartões Benefício',
         length: lotItems.length,
-        exec: () => console.log(lotItems)
+        exec: () => handleConsoleShowData(lotItems)
       },
       {
         title: 'Lançamentos Financeiros',
         length: postings.length,
-        exec: () => console.log(postings)
+        exec: () => handleConsoleShowData(postings)
       },
       {
         title: 'Centros de custo',
         length: costCenters.length,
-        exec: () => console.info(costCenters)
+        exec: () => handleConsoleShowData(costCenters)
       },
       {
         title: 'Locais de trabalho',
         length: workplaces.length,
-        exec: () => console.info(workplaces)
+        exec: () => handleConsoleShowData(workplaces)
       },
       {
         title: 'Serviços',
         length: services.length,
-        exec: () => console.info(services)
+        exec: () => handleConsoleShowData(services)
       },
       {
         title: 'Pessoas',
         length: people.length,
-        exec: () => console.info(people)
+        exec: () => handleConsoleShowData(people)
+      },
+      {
+        title: 'Motivos de Falta',
+        length: reasonForAbsences.length,
+        exec: () => handleConsoleShowData(reasonForAbsences)
       },
       {
         title: 'Escalas',
         length: scales.length,
-        exec: () => console.info(scales)
+        exec: () => handleConsoleShowData(scales)
       },
       {
         title: 'Ruas',
         length: streets.length,
-        exec: () => console.info(streets)
+        exec: () => handleConsoleShowData(streets)
       },
       {
         title: 'Bairros',
         length: neighborhoods.length,
-        exec: () => console.info(neighborhoods)
+        exec: () => handleConsoleShowData(neighborhoods)
       },
       {
         title: 'Cidades',
         length: cities.length,
-        exec: () => console.info(cities)
+        exec: () => handleConsoleShowData(cities)
       },
       {
         title: 'Estados',
         length: districts.length,
-        exec: () => console.info(districts)
+        exec: () => handleConsoleShowData(districts)
       },
       {
         title: 'Uploads',
         length: uploads.length,
-        exec: () => console.info(uploads)
+        exec: () => handleConsoleShowData(uploads)
       },
     ]
 
@@ -273,11 +284,11 @@ export default function WindowSuperAdmin() {
       if (e.key === 'F2') {
         try {
           if (!(await hasPrivilege('administrador')))
-          return;
+            return;
 
-        setShow(true);
-        } catch (error){
-          Alerting.create('Você não pode abrir a janela de administrador agora!');
+          setShow(true);
+        } catch (error) {
+          Alerting.create('error', 'Você não pode abrir a janela de administrador agora!');
           console.error(error);
         }
       }
@@ -333,7 +344,7 @@ export default function WindowSuperAdmin() {
         >
           <ListItemAvatar className='px-2'>
             <Avatar className='bg-light-gray'>
-              <BookmarkIcon className='text-muted' />
+              <DataObject className='text-muted' />
             </Avatar>
           </ListItemAvatar>
           <ListItemText primary={`${title} (${length})`} />
@@ -349,43 +360,10 @@ export default function WindowSuperAdmin() {
           <Button
             color="error"
             variant="contained"
-            onClick={() => handleCollapseExpand('optionsClear')}
-            className='col-12'
-          >
-            Registros dos Banco de Dados
-          </Button>
-          <Collapse className='col-12' in={collapseExpandedOptionsClear} timeout="auto" unmountOnExit>
-            <TextField
-              className='col-12 mt-4'
-              label="Procurar..."
-              variant="outlined"
-              value={textSearchOptionsClear}
-              onChange={(e) => setTextSearchOptionsClear(e.target.value)}
-            />
-            <List>
-              {
-                optionsClear
-                  .filter(option => textSearchOptionsClear.length > 0 ? option.title.toLowerCase().includes(textSearchOptionsClear.toLowerCase()) : true)
-                  .map((option, index) => {
-                    return renderOptionClear(
-                      index,
-                      option.title,
-                      option.exec,
-                      option.id
-                    )
-                  })
-              }
-            </List>
-          </Collapse>
-        </ListItem>
-        <ListItem className='d-flex flex-column'>
-          <Button
-            color="error"
-            variant="contained"
             onClick={() => handleCollapseExpand('qtRegisters')}
             className='col-12'
           >
-            Quantidade de Registros
+            Registros
           </Button>
           <Collapse className='col-12' in={collapseExpandedQtRegisters} timeout="auto" unmountOnExit>
             <TextField
@@ -405,6 +383,39 @@ export default function WindowSuperAdmin() {
                       option.title,
                       option.length,
                       option.exec
+                    )
+                  })
+              }
+            </List>
+          </Collapse>
+        </ListItem>
+        <ListItem className='d-flex flex-column'>
+          <Button
+            color="error"
+            variant="contained"
+            onClick={() => handleCollapseExpand('optionsClear')}
+            className='col-12'
+          >
+            Limpar
+          </Button>
+          <Collapse className='col-12' in={collapseExpandedOptionsClear} timeout="auto" unmountOnExit>
+            <TextField
+              className='col-12 mt-4'
+              label="Procurar..."
+              variant="outlined"
+              value={textSearchOptionsClear}
+              onChange={(e) => setTextSearchOptionsClear(e.target.value)}
+            />
+            <List>
+              {
+                optionsClear
+                  .filter(option => textSearchOptionsClear.length > 0 ? option.title.toLowerCase().includes(textSearchOptionsClear.toLowerCase()) : true)
+                  .map((option, index) => {
+                    return renderOptionClear(
+                      index,
+                      option.title,
+                      option.exec,
+                      option.id
                     )
                   })
               }

@@ -1,7 +1,7 @@
 /**
  * @description Payback -> Cartões Beneficio (Alelo) -> Cadastro
  * @author GuilhermeSantos001
- * @update 08/01/2022
+ * @update 18/01/2022
  */
 
 import { useEffect, useState } from 'react'
@@ -29,18 +29,20 @@ import { tokenValidate } from '@/src/functions/tokenValidate'
 import hasPrivilege from '@/src/functions/hasPrivilege'
 import Alerting from '@/src/utils/alerting'
 import StringEx from '@/src/utils/stringEx'
+import canDeleteLotItems from '@/src/functions/canDeleteLotItems'
 
 import { useAppSelector, useAppDispatch } from '@/app/hooks'
 
 import {
   LotItem,
-  removeItemLot,
+  Posting,
+  PaybackActions
 } from '@/app/features/payback/payback.slice'
 
 import {
   CostCenter,
   Person,
-  editPerson
+  SystemActions,
 } from '@/app/features/system/system.slice'
 
 const serverSideProps: PageProps = {
@@ -297,14 +299,12 @@ function compose_noAuth(handleClick) {
 function compose_ready(
   handleClickBackPage: () => void,
   lotItems: LotItem[],
+  postings: Posting[],
   costCenters: CostCenter[],
   people: Person[],
   updatePerson: (person: Person) => void,
   removeMultipleLotItems: (items: string[]) => void,
-  removeLotItem: (id: string) => {
-    payload: string;
-    type: string;
-  },
+  removeLotItem: (id: string) => void,
   showCanvasDateInfo: boolean,
   showCanvasUserInfo: boolean,
   openCanvasDateInfo: () => void,
@@ -391,16 +391,20 @@ function compose_ready(
                   enabled: true,
                   handleClick: (items) => {
                     const filter = items.filter(item => {
-                      const lot = lotItems.find(lot => lot.serialNumber === item);
+                      const lot = lotItems.find(lot => `${lot.id} - ${lot.lastCardNumber}` === item);
 
                       if (lot.status === 'available') {
-                        if (lot.person) {
+                        const itemId = `${lot.id} - ${lot.lastCardNumber}`;
+
+                        if (canDeleteLotItems(people, postings, itemId)) {
                           const person = people.find(person => person.id == lot.person);
 
                           updatePerson({
                             ...person,
-                            cards: person.cards.filter(card => card != `${lot.id} - ${lot.lastCardNumber}`)
+                            cards: person.cards.filter(card => card != itemId)
                           });
+
+                          return true;
                         }
                       }
 
@@ -410,7 +414,7 @@ function compose_ready(
                     if (filter.length > 0)
                       removeMultipleLotItems(filter)
                     else
-                      Alerting.create('Nenhum lote pode ser removido.')
+                      Alerting.create('warning', 'Nenhum lote pode ser removido.')
                   }
                 },
               ]
@@ -437,7 +441,7 @@ function compose_ready(
               })
               .map(item => {
                 return {
-                  id: item.serialNumber,
+                  id: `${item.id} - ${item.lastCardNumber}`,
                   values: [
                     {
                       data: item.id,
@@ -469,8 +473,8 @@ function compose_ready(
                         openCanvasDateInfo();
                       },
                       popover: {
-                        title: 'Data de Criação & Atualização',
-                        description: 'Informações sobre a data de criação e atualização do lote.'
+                        title: 'Data de Criação',
+                        description: 'Informações sobre a data de criação do lote.'
                       }
                     },
                     {
@@ -496,16 +500,25 @@ function compose_ready(
                       },
                       enabled: item.status === 'available',
                       handleClick: () => {
-                        if (item.person) {
-                          const person = people.find(person => person.id == item.person);
+                        if (item.status !== 'available')
+                          return Alerting.create('error', 'O lote não pode ser removido.');
 
-                          updatePerson({
-                            ...person,
-                            cards: person.cards.filter(card => card != `${item.id} - ${item.lastCardNumber}`)
-                          });
+                        const itemId = `${item.id} - ${item.lastCardNumber}`;
+
+                        if (canDeleteLotItems(people, postings, itemId)) {
+                          if (item.person) {
+                            const person = people.find(person => person.id == item.person);
+
+                            updatePerson({
+                              ...person,
+                              cards: person.cards.filter(card => card != itemId)
+                            });
+                          }
+
+                          removeLotItem(itemId);
+                        } else {
+                          Alerting.create('warning', 'Não é possível excluir o cartão. Existem pessoas usando esse cartão.')
                         }
-
-                        removeLotItem(item.serialNumber)
                       },
                       popover: {
                         title: 'Remova o lote',
@@ -609,6 +622,7 @@ export default function CardsRemove() {
     dispatch = useAppDispatch(),
     costCenters = useAppSelector((state) => state.system.costCenters || []),
     lotItems = useAppSelector((state) => state.payback.lotItems || []),
+    postings = useAppSelector((state) => state.payback.postings || []),
     people = useAppSelector((state) => state.system.people || []);
 
   const router = useRouter()
@@ -630,9 +644,27 @@ export default function CardsRemove() {
       router.push(path)
     },
     handleClickBackPage = () => router.push('/payback/cards'),
-    updatePerson = (person: Person) => dispatch(editPerson(person)),
-    removeMultipleLotItems = (items: string[]) => items.forEach(item => dispatch(removeItemLot(item))),
-    removeLotItem = (id: string) => dispatch(removeItemLot(id)),
+    updatePerson = (person: Person) => {
+      try {
+        dispatch(SystemActions.UPDATE_PERSON(person));
+      } catch (error) {
+        Alerting.create('error', error.message);
+      }
+    },
+    removeMultipleLotItems = (ids: string[]) => ids.forEach(id => {
+      try {
+        dispatch(PaybackActions.DELETE_LOT(id));
+      } catch (error) {
+        Alerting.create('error', error.message);
+      }
+    }),
+    removeLotItem = (id: string) => {
+      try {
+        dispatch(PaybackActions.DELETE_LOT(id));
+      } catch (error) {
+        Alerting.create('error', error.message);
+      }
+    },
     openCanvasDateInfo = () => setShowModalDateInfo(true),
     closeCanvasDateInfo = () => setShowModalDateInfo(false),
     openCanvasUserInfo = () => setShowModalUserInfo(true),
@@ -676,6 +708,7 @@ export default function CardsRemove() {
   if (isReady) return compose_ready(
     handleClickBackPage,
     lotItems,
+    postings,
     costCenters,
     people,
     updatePerson,

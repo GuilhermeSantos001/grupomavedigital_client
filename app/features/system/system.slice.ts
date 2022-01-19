@@ -1,7 +1,7 @@
 /**
  * @description Reducer -> System
  * @author GuilhermeSantos001
- * @update 07/01/2022
+ * @update 18/01/2022
  */
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
@@ -42,6 +42,8 @@ export type Person = {
   cards: string[] // ? Lista de cartões da pessoa
   status: Status // ? Status da pessoa
 }
+
+export type PersonCreate = Omit<Person, 'status'>
 
 // ? Dados dos Locais de Trabalho
 export type Workplace = {
@@ -139,390 +141,771 @@ const initialState: PaybackState = {
   uploads: []
 };
 
-export const reducerSlice = createSlice({
+export const slice = createSlice({
   name: 'system',
   initialState,
   reducers: {
-    // ? Usado para adicionar um novo centro de custo
-    appendCostCenter: (state, action: PayloadAction<CostCenter>) => {
+    CREATE_COSTCENTER: (state, action: PayloadAction<CostCenter>) => {
       if (!state.costCenters)
         state.costCenters = [];
 
-      if (state.costCenters.filter(item => item.title === action.payload.title).length <= 0)
-        state.costCenters.push(action.payload);
+      if (
+        action.payload.id.length > 0 ||
+        action.payload.title.length > 0
+      ) {
+        if (state.costCenters.filter(item => item.title === action.payload.title).length <= 0)
+          state.costCenters.push(action.payload);
+        else
+          throw new Error(`Centro de custo com o ID ${action.payload.id} já existe!`);
+      } else {
+        throw new Error(`O ID e o nome do Centro de Custo não podem ser vazios!`);
+      }
     },
-    // ? Usado para editar um centro de custo
-    editCostCenter: (state, action: PayloadAction<CostCenter>) => {
+    UPDATE_COSTCENTER: (state, action: PayloadAction<CostCenter>) => {
       if (!state.costCenters)
         state.costCenters = [];
 
-      const index = state.costCenters.findIndex(item => item.id === action.payload.id);
+      if (
+        action.payload.id.length > 0 ||
+        action.payload.title.length > 0
+      ) {
+        if (state.costCenters.filter(item => item.title === action.payload.title).length > 0)
+          throw new Error(`Já existe um centro de custo com esse nome.`);
 
-      if (index !== -1 && state.costCenters.filter(item => item.title === action.payload.title).length <= 0)
-        state.costCenters[index] = action.payload;
+        const index = state.costCenters.findIndex(item => item.id === action.payload.id);
+
+        if (index !== -1)
+          state.costCenters[index] = action.payload;
+        else
+          throw new Error(`Centro de custo com o ID ${action.payload.id} não existe!`);
+      } else {
+        throw new Error(`O ID e o nome do Centro de Custo não podem ser vazios!`);
+      }
     },
-    // ? Usado para remover um centro de custo
-    removeCostCenter: (state, action: PayloadAction<string>) => {
+    DELETE_COSTCENTER: (state, action: PayloadAction<string>) => {
       if (!state.costCenters)
         state.costCenters = [];
 
-      state.costCenters = state.costCenters.filter(item => item.id !== action.payload);
+      const index = state.costCenters.findIndex(item => item.id === action.payload);
+
+      if (index !== -1)
+        state.costCenters = state.costCenters.filter(item => item.id !== action.payload);
+      else
+        throw new Error(`Centro de custo com o ID ${action.payload} não existe!`);
     },
-    // ? Usado para limpar os centros de custo
-    clearCostCenters: (state) => {
+    CLEAR_COSTCENTERS: (state) => {
       state.costCenters = [];
     },
-    // ? Usado para adicionar uma nova pessoa
-    appendPerson: (state, action: PayloadAction<Person>) => {
-      if (!state.people)
-        state.people = [];
+    CREATE_PERSON: {
+      reducer: (state, action: PayloadAction<Person>) => {
+        if (!state.people)
+          state.people = [];
 
-      if (state.people.filter(item =>
-        item.matricule === action.payload.matricule ||
-        item.cpf === action.payload.cpf ||
-        item.rg === action.payload.rg
-      ).length <= 0)
-        state.people.push(action.payload);
+        if (
+          action.payload.name.length > 0 &&
+          action.payload.matricule > 0 &&
+          action.payload.cpf.length > 0 &&
+          action.payload.rg.length > 0 &&
+          action.payload.motherName.length > 0 &&
+          action.payload.birthDate != null &&
+          action.payload.phone.length > 0 &&
+          action.payload.mail.length > 0 &&
+          action.payload.scale.length > 0 &&
+          action.payload.services.length > 0 &&
+          action.payload.address.street.length > 0 &&
+          action.payload.address.number > 0 &&
+          // ! Complemento não é obrigatório
+          // ! action.payload.address.complement.length > 0 &&
+          action.payload.address.neighborhood.length > 0 &&
+          action.payload.address.city.length > 0 &&
+          action.payload.address.district.length > 0 &&
+          action.payload.address.zipCode > 0
+        ) {
+          if (state.people.filter(item =>
+            item.matricule === action.payload.matricule ||
+            item.cpf === action.payload.cpf ||
+            item.rg === action.payload.rg
+          ).length <= 0)
+            state.people.push(action.payload);
+          else
+            throw new Error(`Já existe uma pessoa com essa matrícula, CPF ou RG.`);
+        } else {
+          throw new Error(`Não é possível criar a pessoa. Existem campos obrigatórios em branco.`);
+        }
+      },
+      prepare: (item: PersonCreate) => {
+        const
+          status: Status = 'available';
+
+        return {
+          payload: {
+            ...item,
+            status
+          }
+        }
+      }
     },
-    // ? Usado para editar uma pessoa
-    editPerson: (state, action: PayloadAction<Person>) => {
+    UPDATE_PERSON: (state, action: PayloadAction<Person>) => {
       if (!state.people)
         state.people = [];
 
-      const index = state.people.findIndex(item => item.id === action.payload.id);
+      if (
+        action.payload.name.length > 0 &&
+        action.payload.matricule > 0 &&
+        action.payload.cpf.length > 0 &&
+        action.payload.rg.length > 0 &&
+        action.payload.motherName.length > 0 &&
+        action.payload.birthDate != null &&
+        action.payload.phone.length > 0 &&
+        action.payload.mail.length > 0 &&
+        action.payload.scale.length > 0 &&
+        action.payload.services.length > 0 &&
+        action.payload.address.street.length > 0 &&
+        action.payload.address.number > 0 &&
+        // ! Complemento não é obrigatório
+        // ! action.payload.address.complement.length > 0 &&
+        action.payload.address.neighborhood.length > 0 &&
+        action.payload.address.city.length > 0 &&
+        action.payload.address.district.length > 0 &&
+        action.payload.address.zipCode > 0
+      ) {
+        if (state.people.filter(person =>
+          person.id !== action.payload.id && person.matricule === action.payload.matricule ||
+          person.id !== action.payload.id && person.cpf === action.payload.cpf ||
+          person.id !== action.payload.id && person.rg === action.payload.rg
+        ).length > 0)
+          throw new Error(`Já existe uma pessoa com essa matrícula, CPF ou RG.`);
+
+        const index = state.people.findIndex(item => item.id === action.payload.id);
+
+        if (index !== -1)
+          state.people[index] = action.payload;
+        else
+          throw new Error(`Pessoa com o ID ${action.payload.id} não existe!`);
+      } else {
+        throw new Error(`Não é possível atualizar a pessoa com o ID ${action.payload.id}. Existem campos obrigatórios em branco.`);
+      }
+    },
+    DELETE_PERSON: (state, action: PayloadAction<string>) => {
+      if (!state.people)
+        state.people = [];
+
+      const index = state.people.findIndex(item => item.id === action.payload);
 
       if (index !== -1)
-        state.people[index] = action.payload;
+        state.people = state.people.filter(item => item.id !== action.payload);
+      else
+        throw new Error(`Pessoa com o ID ${action.payload} não existe!`);
     },
-    // ? Usado para remover uma pessoa
-    removePerson: (state, action: PayloadAction<string>) => {
-      if (!state.people)
-        state.people = [];
-
-      state.people = state.people.filter(item => item.id !== action.payload);
-    },
-    // ? Usado para limpar as pessoas
-    clearPeople: (state) => {
+    CLEAR_PEOPLE: (state) => {
       state.people = [];
     },
-    // ? Adiciona um novo local de trabalho
-    appendWorkplace: (state, action: PayloadAction<Workplace>) => {
+    CREATE_WORKPLACE: (state, action: PayloadAction<Workplace>) => {
       if (!state.workplaces)
         state.workplaces = [];
 
-      if (state.workplaces.filter(item =>
-        item.name === action.payload.name &&
-        item.scale === action.payload.scale
-      ).length <= 0)
-        state.workplaces.push(action.payload);
+      if (
+        action.payload.name.length > 0 &&
+        action.payload.scale.length > 0 &&
+        action.payload.entryTime !== null &&
+        action.payload.exitTime !== null &&
+        action.payload.services.length > 0 &&
+        action.payload.address.street.length > 0 &&
+        action.payload.address.number > 0 &&
+        // ! Complemento não é obrigatório
+        // ! action.payload.address.complement.length > 0 &&
+        action.payload.address.neighborhood.length > 0 &&
+        action.payload.address.city.length > 0 &&
+        action.payload.address.district.length > 0 &&
+        action.payload.address.zipCode > 0
+      ) {
+        if (state.workplaces.filter(item =>
+          item.name === action.payload.name &&
+          item.scale === action.payload.scale
+        ).length <= 0)
+          state.workplaces.push(action.payload);
+        else
+          throw new Error(`Já existe um local de trabalho com esse nome e escala.`);
+      } else {
+        throw new Error(`Não é possível criar o local de trabalho. Existem campos obrigatórios em branco.`);
+      }
     },
-    // ? Edita um local de trabalho
-    editWorkplace: (state, action: PayloadAction<Workplace>) => {
+    UPDATE_WORKPLACE: (state, action: PayloadAction<Workplace>) => {
       if (!state.workplaces)
         state.workplaces = [];
 
-      const index = state.workplaces.findIndex(item => item.id === action.payload.id);
+      if (
+        action.payload.name.length > 0 &&
+        action.payload.scale.length > 0 &&
+        action.payload.entryTime !== null &&
+        action.payload.exitTime !== null &&
+        action.payload.services.length > 0 &&
+        action.payload.address.street.length > 0 &&
+        action.payload.address.number > 0 &&
+        // ! Complemento não é obrigatório
+        // ! action.payload.address.complement.length > 0 &&
+        action.payload.address.neighborhood.length > 0 &&
+        action.payload.address.city.length > 0 &&
+        action.payload.address.district.length > 0 &&
+        action.payload.address.zipCode > 0
+      ) {
+        if (
+          state.workplaces.filter(place =>
+            place.id !== action.payload.id && place.name === action.payload.name &&
+            place.scale === action.payload.scale
+          ).length > 0
+        )
+          throw new Error(`Já existe um local de trabalho com esse nome e escala.`);
+
+        const index = state.workplaces.findIndex(item => item.id === action.payload.id);
+
+        if (index !== -1)
+          state.workplaces[index] = action.payload;
+        else
+          throw new Error(`Local de trabalho com o ID ${action.payload.id} não existe!`);
+      } else {
+        throw new Error(`Não é possível atualizar o local de trabalho. Existem campos obrigatórios em branco.`);
+      }
+    },
+    DELETE_WORKPLACE: (state, action: PayloadAction<string>) => {
+      if (!state.workplaces)
+        state.workplaces = [];
+
+      const index = state.workplaces.findIndex(item => item.id === action.payload);
 
       if (index !== -1)
-        state.workplaces[index] = action.payload;
+        state.workplaces = state.workplaces.filter(item => item.id !== action.payload);
+      else
+        throw new Error(`Local de trabalho com o ID ${action.payload} não existe!`);
     },
-    // ? Remove um local de trabalho
-    removeWorkplace: (state, action: PayloadAction<string>) => {
-      if (!state.workplaces)
-        state.workplaces = [];
-
-      state.workplaces = state.workplaces.filter(item => item.id !== action.payload);
-    },
-    // ? Limpa os locais de trabalho
-    clearWorkplaces: (state) => {
+    CLEAR_WORKPLACES: (state) => {
       state.workplaces = [];
     },
-    // ? Adiciona uma nova escala de trabalho
-    appendScale: (state, action: PayloadAction<Scale>) => {
+    CREATE_SCALE: (state, action: PayloadAction<Scale>) => {
       if (!state.scales)
         state.scales = [];
 
-      if (state.scales.filter(item =>
-        item.value === action.payload.value
-      ).length <= 0)
-        state.scales.push(action.payload);
+      if (
+        action.payload.id.length > 0 &&
+        action.payload.value.length > 0
+      ) {
+        if (state.scales.filter(item =>
+          item.value === action.payload.value
+        ).length <= 0)
+          state.scales.push(action.payload);
+        else
+          throw new Error(`Já existe uma escala com esse valor.`);
+      } else {
+        throw new Error(`Não é possível criar a escala. Existem campos obrigatórios em branco.`);
+      }
     },
-    // ? Edita uma escala de trabalho
-    editScale: (state, action: PayloadAction<Scale>) => {
+    UPDATE_SCALE: (state, action: PayloadAction<Scale>) => {
       if (!state.scales)
         state.scales = [];
 
-      const index = state.scales.findIndex(item => item.id === action.payload.id);
+      if (
+        action.payload.id.length > 0 &&
+        action.payload.value.length > 0
+      ) {
+        if (
+          state.scales.filter(scale =>
+            scale.id !== action.payload.id && scale.value === action.payload.value
+          ).length > 0
+        )
+          throw new Error(`Já existe uma escala com esse valor.`);
+
+        const index = state.scales.findIndex(item => item.id === action.payload.id);
+
+        if (index !== -1)
+          state.scales[index] = action.payload;
+        else
+          throw new Error(`Escala com o ID ${action.payload.id} não existe!`);
+      } else {
+        throw new Error(`Não é possível atualizar a escala. Existem campos obrigatórios em branco.`);
+      }
+    },
+    DELETE_SCALE: (state, action: PayloadAction<string>) => {
+      if (!state.scales)
+        state.scales = [];
+
+      if (
+        state.workplaces.filter(place =>
+          place.scale === action.payload
+        ).length > 0 ||
+        state.people.filter(person =>
+          person.scale === action.payload
+        ).length > 0
+      )
+        throw new Error(`Não é possível excluir a escala. Existem pessoas e/ou locais de trabalho com essa escala.`);
+
+      const index = state.scales.findIndex(item => item.id === action.payload);
 
       if (index !== -1)
-        state.scales[index] = action.payload;
+        state.scales = state.scales.filter(item => item.id !== action.payload);
+      else
+        throw new Error(`Escala com o ID ${action.payload} não existe!`);
     },
-    // ? Remove uma escala de trabalho
-    removeScale: (state, action: PayloadAction<string>) => {
-      if (!state.scales)
-        state.scales = [];
-
-      state.scales = state.scales.filter(item => item.id !== action.payload);
-    },
-    // ? Adiciona um motivo de falta
-    appendReasonForAbsence: (state, action: PayloadAction<ReasonForAbsence>) => {
-      if (!state.reasonForAbsences)
-        state.reasonForAbsences = [];
-
-      if (state.reasonForAbsences.filter(item => item.value === action.payload.value).length <= 0)
-        state.reasonForAbsences.push(action.payload);
-    },
-    //? Edita um motivo de falta
-    editReasonForAbsence: (state, action: PayloadAction<ReasonForAbsence>) => {
-      if (!state.reasonForAbsences)
-        state.reasonForAbsences = [];
-
-      const index = state.reasonForAbsences.findIndex(item => item.id === action.payload.id);
-
-      if (index !== -1)
-        state.reasonForAbsences[index] = action.payload;
-    },
-    // ? Remove um motivo de falta
-    removeReasonForAbsence: (state, action: PayloadAction<string>) => {
-      if (!state.reasonForAbsences)
-        state.reasonForAbsences = [];
-
-      state.reasonForAbsences = state.reasonForAbsences.filter(item => item.id !== action.payload);
-    },
-    // ? Limpa as escalas de trabalho
-    clearScales: (state) => {
+    CLEAR_SCALES: (state) => {
       state.scales = [];
     },
-    // ? Adiciona um novo serviço
-    appendService: (state, action: PayloadAction<Service>) => {
-      if (!state.services)
-        state.services = [];
+    CREATE_REASONFORABSENCE: (state, action: PayloadAction<ReasonForAbsence>) => {
+      if (!state.reasonForAbsences)
+        state.reasonForAbsences = [];
 
-      if (state.services.filter(item =>
-        item.value === action.payload.value
-      ).length <= 0)
-        state.services.push(action.payload);
+      if (
+        action.payload.id.length > 0 &&
+        action.payload.value.length > 0
+      ) {
+        if (state.reasonForAbsences.filter(item => item.value === action.payload.value).length <= 0)
+          state.reasonForAbsences.push(action.payload);
+        else
+          throw new Error(`Já existe um motivo de falta com esse valor.`);
+      } else {
+        throw new Error(`Não é possível criar o motivo de falta. Existem campos obrigatórios em branco.`);
+      }
     },
-    // ? Edita um serviço
-    editService: (state, action: PayloadAction<Service>) => {
-      if (!state.services)
-        state.services = [];
+    UPDATE_REASONFORABSENCE: (state, action: PayloadAction<ReasonForAbsence>) => {
+      if (!state.reasonForAbsences)
+        state.reasonForAbsences = [];
 
-      const index = state.services.findIndex(item => item.id === action.payload.id);
+      if (
+        action.payload.id.length > 0 &&
+        action.payload.value.length > 0
+      ) {
+        if (
+          state.reasonForAbsences.filter(item =>
+            item.id !== action.payload.id && item.value === action.payload.value
+          ).length > 0
+        )
+          throw new Error(`Já existe um motivo de falta com esse valor.`);
+
+        const index = state.reasonForAbsences.findIndex(item => item.id === action.payload.id);
+
+        if (index !== -1)
+          state.reasonForAbsences[index] = action.payload;
+        else
+          throw new Error(`Motivo de falta com o ID ${action.payload.id} não existe!`);
+      } else {
+        throw new Error(`Não é possível atualizar o motivo de falta. Existem campos obrigatórios em branco.`);
+      }
+    },
+    DELETE_REASONFORABSENCE: (state, action: PayloadAction<string>) => {
+      if (!state.reasonForAbsences)
+        state.reasonForAbsences = [];
+
+      const index = state.reasonForAbsences.findIndex(item => item.id === action.payload);
 
       if (index !== -1)
-        state.services[index] = action.payload;
+        state.reasonForAbsences = state.reasonForAbsences.filter(item => item.id !== action.payload);
+      else
+        throw new Error(`Motivo de falta com o ID ${action.payload} não existe!`);
     },
-    // ? Remove um serviço
-    removeService: (state, action: PayloadAction<string>) => {
+    CLEAR_REASONFORABSENCES: (state) => {
+      state.reasonForAbsences = [];
+    },
+    CREATE_SERVICE: (state, action: PayloadAction<Service>) => {
       if (!state.services)
         state.services = [];
 
-      state.services = state.services.filter(item => item.id !== action.payload);
+      if (
+        action.payload.id.length > 0 &&
+        action.payload.value.length > 0
+      ) {
+        if (state.services.filter(item =>
+          item.value === action.payload.value
+        ).length <= 0)
+          state.services.push(action.payload);
+        else
+          throw new Error(`Já existe um serviço com esse valor.`);
+      } else {
+        throw new Error(`Não é possível criar o serviço. Existem campos obrigatórios em branco.`);
+      }
     },
-    // ? Limpa os serviços
-    clearServices: (state) => {
+    UPDATE_SERVICE: (state, action: PayloadAction<Service>) => {
+      if (!state.services)
+        state.services = [];
+
+      if (
+        action.payload.id.length > 0 &&
+        action.payload.value.length > 0
+      ) {
+        if (
+          state.services.filter(item =>
+            item.id !== action.payload.id && item.value === action.payload.value
+          ).length > 0
+        )
+          throw new Error(`Já existe um serviço com esse valor.`);
+
+        const index = state.services.findIndex(item => item.id === action.payload.id);
+
+        if (index !== -1)
+          state.services[index] = action.payload;
+        else
+          throw new Error(`Serviço com o ID ${action.payload.id} não existe!`);
+      } else {
+        throw new Error(`Não é possível atualizar o serviço. Existem campos obrigatórios em branco.`);
+      }
+    },
+    DELETE_SERVICE: (state, action: PayloadAction<string>) => {
+      if (!state.services)
+        state.services = [];
+
+      if (
+        state.workplaces.filter(item =>
+          item.services.includes(action.payload)
+        ).length > 0 ||
+        state.people.filter(item =>
+          item.services.includes(action.payload)
+        ).length > 0
+      )
+        throw new Error(`Não é possível excluir o serviço. Existem pessoas ou locais que possuem esse serviço.`);
+
+      const index = state.services.findIndex(item => item.id === action.payload);
+
+      if (index !== -1)
+        state.services = state.services.filter(item => item.id !== action.payload);
+      else
+        throw new Error(`Serviço com o ID ${action.payload} não existe!`);
+    },
+    CLEAR_SERVICES: (state) => {
       state.services = [];
     },
-    // ? Adiciona uma nova rua
-    appendStreet: (state, action: PayloadAction<Street>) => {
+    CREATE_STREET: (state, action: PayloadAction<Street>) => {
       if (!state.streets)
         state.streets = [];
 
-      if (state.streets.filter(item =>
-        item.name === action.payload.name
-      ).length <= 0)
-        state.streets.push(action.payload);
+      if (
+        action.payload.id.length > 0 &&
+        action.payload.name.length > 0
+      ) {
+        if (state.streets.filter(item =>
+          item.name === action.payload.name
+        ).length <= 0)
+          state.streets.push(action.payload);
+        else
+          throw new Error(`Já existe uma rua com esse nome.`);
+      } else {
+        throw new Error(`Não é possível criar a rua. Existem campos obrigatórios em branco.`);
+      }
     },
-    // ? Edita uma rua
-    editStreet: (state, action: PayloadAction<Street>) => {
+    UPDATE_STREET: (state, action: PayloadAction<Street>) => {
       if (!state.streets)
         state.streets = [];
 
-      const index = state.streets.findIndex(item => item.id === action.payload.id);
+      if (
+        action.payload.id.length > 0 &&
+        action.payload.name.length > 0
+      ) {
+        if (
+          state.streets.filter(item =>
+            item.id !== action.payload.id && item.name === action.payload.name
+          ).length > 0
+        )
+          throw new Error(`Já existe uma rua com esse nome.`);
+
+        const index = state.streets.findIndex(item => item.id === action.payload.id);
+
+        if (index !== -1)
+          state.streets[index] = action.payload;
+        else
+          throw new Error(`Rua com o ID ${action.payload.id} não existe!`);
+      } else {
+        throw new Error(`Não é possível atualizar a rua. Existem campos obrigatórios em branco.`);
+      }
+    },
+    DELETE_STREET: (state, action: PayloadAction<string>) => {
+      if (!state.streets)
+        state.streets = [];
+
+      if (
+        state.workplaces.filter(item =>
+          item.address.street === action.payload
+        ).length > 0 ||
+        state.people.filter(item =>
+          item.address.street === action.payload
+        ).length > 0
+      )
+        throw new Error(`Não é possível excluir a rua. Existem pessoas e/ou endereços sendo usados com essa rua.`);
+
+      const index = state.streets.findIndex(item => item.id === action.payload);
 
       if (index !== -1)
-        state.streets[index] = action.payload;
+        state.streets = state.streets.filter(item => item.id !== action.payload);
+      else
+        throw new Error(`Rua com o ID ${action.payload} não existe!`);
     },
-    // ? Remove uma rua
-    removeStreet: (state, action: PayloadAction<string>) => {
-      if (!state.streets)
-        state.streets = [];
-
-      state.streets = state.streets.filter(item => item.id !== action.payload);
-    },
-    // ? Limpa as ruas
-    clearStreets: (state) => {
+    CLEAR_STREETS: (state) => {
       state.streets = [];
     },
-    // ? Adiciona um novo bairro
-    appendNeighborhood: (state, action: PayloadAction<Neighborhood>) => {
+    CREATE_NEIGHBORHOOD: (state, action: PayloadAction<Neighborhood>) => {
       if (!state.neighborhoods)
         state.neighborhoods = [];
 
-      if (state.neighborhoods.filter(item =>
-        item.name === action.payload.name
-      ).length <= 0)
-        state.neighborhoods.push(action.payload);
+      if (
+        action.payload.id.length > 0 &&
+        action.payload.name.length > 0
+      ) {
+        if (state.neighborhoods.filter(item =>
+          item.name === action.payload.name
+        ).length <= 0)
+          state.neighborhoods.push(action.payload);
+        else
+          throw new Error(`Já existe uma rua com esse nome.`);
+      } else {
+        throw new Error(`Não é possível criar a rua. Existem campos obrigatórios em branco.`);
+      }
     },
-    // ? Edita um bairro
-    editNeighborhood: (state, action: PayloadAction<Neighborhood>) => {
+    UPDATE_NEIGHBORHOOD: (state, action: PayloadAction<Neighborhood>) => {
       if (!state.neighborhoods)
         state.neighborhoods = [];
 
-      const index = state.neighborhoods.findIndex(item => item.id === action.payload.id);
+      if (
+        action.payload.id.length > 0 &&
+        action.payload.name.length > 0
+      ) {
+        if (
+          state.neighborhoods.filter(item =>
+            item.id !== action.payload.id && item.name === action.payload.name
+          ).length > 0
+        )
+          throw new Error(`Já existe uma rua com esse nome.`);
+
+        const index = state.neighborhoods.findIndex(item => item.id === action.payload.id);
+
+        if (index !== -1)
+          state.neighborhoods[index] = action.payload;
+        else
+          throw new Error(`Rua com o ID ${action.payload.id} não existe!`);
+      } else {
+        throw new Error(`Não é possível atualizar a rua. Existem campos obrigatórios em branco.`);
+      }
+    },
+    DELETE_NEIGHBORHOOD: (state, action: PayloadAction<string>) => {
+      if (!state.neighborhoods)
+        state.neighborhoods = [];
+
+      if (
+        state.workplaces.filter(item =>
+          item.address.neighborhood === action.payload
+        ).length > 0 ||
+        state.people.filter(item =>
+          item.address.neighborhood === action.payload
+        ).length > 0
+      )
+        throw new Error(`Não é possível excluir o bairro. Existem pessoas e/ou endereços sendo usados com esse bairro.`);
+
+      const index = state.neighborhoods.findIndex(item => item.id === action.payload);
 
       if (index !== -1)
-        state.neighborhoods[index] = action.payload;
+        state.neighborhoods = state.neighborhoods.filter(item => item.id !== action.payload);
+      else
+        throw new Error(`Rua com o ID ${action.payload} não existe!`);
     },
-    // ? Remove um bairro
-    removeNeighborhood: (state, action: PayloadAction<string>) => {
-      if (!state.neighborhoods)
-        state.neighborhoods = [];
-
-      state.neighborhoods = state.neighborhoods.filter(item => item.id !== action.payload);
-    },
-    // ? Limpa os bairros
-    clearNeighborhoods: (state) => {
+    CLEAR_NEIGHBORHOODS: (state) => {
       state.neighborhoods = [];
     },
-    // ? Adiciona uma nova cidade
-    appendCity: (state, action: PayloadAction<City>) => {
+    CREATE_CITY: (state, action: PayloadAction<City>) => {
       if (!state.cities)
         state.cities = [];
 
-      if (state.cities.filter(item =>
-        item.name === action.payload.name
-      ).length <= 0)
-        state.cities.push(action.payload);
+      if (
+        action.payload.id.length > 0 &&
+        action.payload.name.length > 0
+      ) {
+        if (state.cities.filter(item =>
+          item.name === action.payload.name
+        ).length <= 0)
+          state.cities.push(action.payload);
+        else
+          throw new Error(`Já existe uma cidade com esse nome.`);
+      } else {
+        throw new Error(`Não é possível criar a cidade. Existem campos obrigatórios em branco.`);
+      }
     },
-    // ? Edita uma cidade
-    editCity: (state, action: PayloadAction<City>) => {
+    UPDATE_CITY: (state, action: PayloadAction<City>) => {
       if (!state.cities)
         state.cities = [];
 
-      const index = state.cities.findIndex(item => item.id === action.payload.id);
+      if (
+        action.payload.id.length > 0 &&
+        action.payload.name.length > 0
+      ) {
+        if (
+          state.cities.filter(item =>
+            item.id !== action.payload.id && item.name === action.payload.name
+          ).length > 0
+        )
+          throw new Error(`Já existe uma cidade com esse nome.`);
+
+        const index = state.cities.findIndex(item => item.id === action.payload.id);
+
+        if (index !== -1)
+          state.cities[index] = action.payload;
+        else
+          throw new Error(`Cidade com o ID ${action.payload.id} não existe!`);
+      } else {
+        throw new Error(`Não é possível atualizar a cidade. Existem campos obrigatórios em branco.`);
+      }
+    },
+    DELETE_CITY: (state, action: PayloadAction<string>) => {
+      if (!state.cities)
+        state.cities = [];
+
+      if (
+        state.workplaces.filter(place =>
+          place.address.city === action.payload
+        ).length > 0 ||
+        state.people.filter(item =>
+          item.address.city === action.payload
+        ).length > 0
+      )
+        throw new Error(`Não é possível excluir a cidade. Existem pessoas e/ou endereços sendo usados com essa cidade.`);
+
+      const index = state.cities.findIndex(item => item.id === action.payload);
 
       if (index !== -1)
-        state.cities[index] = action.payload;
+        state.cities = state.cities.filter(item => item.id !== action.payload);
+      else
+        throw new Error(`Cidade com o ID ${action.payload} não existe!`);
     },
-    // ? Remove uma cidade
-    removeCity: (state, action: PayloadAction<string>) => {
-      if (!state.cities)
-        state.cities = [];
-
-      state.cities = state.cities.filter(item => item.id !== action.payload);
-    },
-    // ? Limpa as cidades
-    clearCities: (state) => {
+    CLEAR_CITIES: (state) => {
       state.cities = [];
     },
-    // ? Adiciona um novo distrito
-    appendDistrict: (state, action: PayloadAction<District>) => {
+    CREATE_DISTRICT: (state, action: PayloadAction<District>) => {
       if (!state.districts)
         state.districts = [];
 
-      if (state.districts.filter(item =>
-        item.name === action.payload.name
-      ).length <= 0)
-        state.districts.push(action.payload);
+      if (
+        action.payload.id.length > 0 &&
+        action.payload.name.length > 0
+      ) {
+        if (state.districts.filter(item =>
+          item.name === action.payload.name
+        ).length <= 0)
+          state.districts.push(action.payload);
+        else
+          throw new Error(`Já existe um estado com esse nome.`);
+      } else {
+        throw new Error(`Não é possível criar o estado. Existem campos obrigatórios em branco.`);
+      }
     },
-    // ? Edita um distrito
-    editDistrict: (state, action: PayloadAction<District>) => {
+    UPDATE_DISTRICT: (state, action: PayloadAction<District>) => {
       if (!state.districts)
         state.districts = [];
 
-      const index = state.districts.findIndex(item => item.id === action.payload.id);
+      if (
+        action.payload.id.length > 0 &&
+        action.payload.name.length > 0
+      ) {
+        if (
+          state.districts.filter(item =>
+            item.id !== action.payload.id && item.name === action.payload.name
+          ).length > 0
+        )
+          throw new Error(`Já existe um estado com esse nome.`);
+
+        const index = state.districts.findIndex(item => item.id === action.payload.id);
+
+        if (index !== -1)
+          state.districts[index] = action.payload;
+        else
+          throw new Error(`Estado com o ID ${action.payload.id} não existe!`);
+      }
+    },
+    DELETE_DISTRICT: (state, action: PayloadAction<string>) => {
+      if (!state.districts)
+        state.districts = [];
+
+      if (
+        state.workplaces.filter(place =>
+          place.address.district === action.payload
+        ).length > 0 ||
+        state.people.filter(item =>
+          item.address.district === action.payload
+        ).length > 0
+      )
+        throw new Error(`Não é possível excluir o estado. Existem pessoas e/ou endereços sendo usados com esse estado.`);
+
+      const index = state.districts.findIndex(item => item.id === action.payload);
 
       if (index !== -1)
-        state.districts[index] = action.payload;
+        state.districts = state.districts.filter(item => item.id !== action.payload);
+      else
+        throw new Error(`Estado com o ID ${action.payload} não existe!`);
     },
-    // ? Remove um distrito
-    removeDistrict: (state, action: PayloadAction<string>) => {
-      if (!state.districts)
-        state.districts = [];
-
-      state.districts = state.districts.filter(item => item.id !== action.payload);
-    },
-    // ? Limpa os distritos
-    clearDistricts: (state) => {
+    CLEAR_DISTRICTS: (state) => {
       state.districts = [];
     },
-    // ? Adiciona um novo upload
-    appendUploads: (state, action: PayloadAction<Upload>) => {
+    CREATE_UPLOAD: (state, action: PayloadAction<Upload>) => {
       if (!state.uploads)
         state.uploads = [];
 
-      state.uploads.push(action.payload);
+      if (
+        action.payload.fileId.length > 0 &&
+        action.payload.filename.length > 0 &&
+        action.payload.filetype.length > 0
+      ) {
+        if (
+          state.uploads.filter(item =>
+            item.filename === action.payload.filename &&
+            item.filetype === action.payload.filetype &&
+            item.version === action.payload.version &&
+            item.temporary === action.payload.temporary
+          ).length <= 0
+        )
+          state.uploads.push(action.payload);
+        else
+          throw new Error(`Já existe um upload com esse nome, tipo e versão.`);
+      } else {
+        throw new Error(`Não é possível criar o upload. Existem campos obrigatórios em branco.`);
+      }
     },
-    // ? Edita um upload
-    editUploads: (state, action: PayloadAction<Upload>) => {
+    UPDATE_UPLOAD: (state, action: PayloadAction<Upload>) => {
       if (!state.uploads)
         state.uploads = [];
 
-      const index = state.uploads.findIndex(item => item.fileId === action.payload.fileId);
+      if (
+        action.payload.fileId.length > 0 &&
+        action.payload.filename.length > 0 &&
+        action.payload.filetype.length > 0
+      ) {
+        if (
+          state.uploads.filter(item =>
+            item.filename === action.payload.filename &&
+            item.filetype === action.payload.filetype &&
+            item.version === action.payload.version &&
+            item.temporary === action.payload.temporary
+          ).length > 0
+        )
+          throw new Error(`Já existe um upload com esse nome, tipo e versão.`);
+
+        const index = state.uploads.findIndex(item => item.fileId === action.payload.fileId);
+
+        if (index !== -1)
+          state.uploads[index] = action.payload;
+        else
+          throw new Error(`Upload com o ID ${action.payload.fileId} não existe!`);
+      } else {
+        throw new Error(`Não é possível atualizar o upload. Existem campos obrigatórios em branco.`);
+      }
+    },
+    DELETE_UPLOAD: (state, action: PayloadAction<string>) => {
+      if (!state.uploads)
+        state.uploads = [];
+
+      const index = state.uploads.findIndex(item => item.fileId === action.payload);
 
       if (index !== -1)
-        state.uploads[index] = action.payload;
+        state.uploads = state.uploads.filter(item => item.fileId !== action.payload);
+      else
+        throw new Error(`Upload com o ID ${action.payload} não existe!`);
     },
-    // ? Remove um upload
-    removeUploads: (state, action: PayloadAction<string>) => {
-      if (!state.uploads)
-        state.uploads = [];
-
-      state.uploads = state.uploads.filter(item => item.fileId !== action.payload);
-    },
-    // ? Limpa os uploads
-    clearUploads: (state) => {
+    CLEAR_UPLOADS: (state) => {
       state.uploads = [];
     }
   }
 })
 
-export const {
-  appendCostCenter,
-  editCostCenter,
-  removeCostCenter,
-  clearCostCenters,
-  appendPerson,
-  editPerson,
-  removePerson,
-  clearPeople,
-  appendWorkplace,
-  editWorkplace,
-  removeWorkplace,
-  clearWorkplaces,
-  appendScale,
-  editScale,
-  removeScale,
-  clearScales,
-  appendReasonForAbsence,
-  editReasonForAbsence,
-  removeReasonForAbsence,
-  appendService,
-  editService,
-  removeService,
-  clearServices,
-  appendStreet,
-  editStreet,
-  removeStreet,
-  clearStreets,
-  appendNeighborhood,
-  editNeighborhood,
-  removeNeighborhood,
-  clearNeighborhoods,
-  appendCity,
-  editCity,
-  removeCity,
-  clearCities,
-  appendDistrict,
-  editDistrict,
-  removeDistrict,
-  clearDistricts,
-  appendUploads,
-  editUploads,
-  removeUploads,
-  clearUploads,
-} = reducerSlice.actions
+export const SystemActions = slice.actions;
 
-export default reducerSlice.reducer
+export default slice.reducer

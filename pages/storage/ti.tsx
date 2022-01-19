@@ -541,7 +541,7 @@ function socket_events(
   // ? Evento emitido quando o usuario se conecta ao servidor
   if (!socket.hasListeners('connect'))
     socket.on("connect", async () => {
-      Alerting.create('Você está conectado!');
+      Alerting.create('info', 'Você está conectado!');
 
       await loadFoldersAndFiles(socket, room, itemsHistoryNavigation);
     });
@@ -549,27 +549,27 @@ function socket_events(
   // ? Evento emitido quando o usuario se reconecta com o servidor
   if (!socket.hasListeners('reconnect'))
     socket.on("reconnect", () => {
-      Alerting.create('Você está conectado novamente!');
+      Alerting.create('info', 'Você está conectado novamente!');
     });
 
   // ? Evento emitido quando a conexão do usuario é perdida
   if (!socket.hasListeners('connect_error'))
     socket.on("connect_error", (error) => {
-      Alerting.create('Ocorreu um erro na conexão com o servidor. Tente novamente, mais tarde!');
+      Alerting.create('error', 'Ocorreu um erro na conexão com o servidor. Tente novamente, mais tarde!');
       console.error(JSON.stringify(error));
     });
 
   // ? Evento emitido quando a conexão do usuario é desconectada
   if (!socket.hasListeners('disconnect'))
     socket.on("disconnect", (reason) => {
-      Alerting.create(`Conexão perdida com o servidor, devido: ${reason}`);
+      Alerting.create('warning', `Conexão perdida com o servidor, devido: ${reason}`);
     });
 
   // ? Evento emitido quando não é possivel recuperar as pastas pelo grupo do usuario
   if (!socket.hasListeners('GET-FOLDERS-BY-GROUP-ERROR'))
     socket.on('GET-FOLDERS-BY-GROUP-ERROR', (_room, error) => {
       if (_room.filter(r => room.find(rr => r === rr)).length > 0) {
-        Alerting.create(`Não foi possível recuperar as pastas. Fale com o administrador do sistema.`);
+        Alerting.create('error',`Não foi possível recuperar as pastas. Fale com o administrador do sistema.`);
         console.error(error);
       }
     });
@@ -578,7 +578,7 @@ function socket_events(
   if (!socket.hasListeners('CREATE-FOLDER-ERROR'))
     socket.on('CREATE-FOLDER-ERROR', (_room, error) => {
       if (_room.filter(r => room.find(rr => r === rr)).length > 0) {
-        Alerting.create(`Não foi possível criar a pasta. Fale com o administrador do sistema.`);
+        Alerting.create('error',`Não foi possível criar a pasta. Fale com o administrador do sistema.`);
         console.error(error);
       }
     });
@@ -587,7 +587,7 @@ function socket_events(
   if (!socket.hasListeners('CREATE-FILE-ERROR'))
     socket.on('CREATE-FILE-ERROR', (_room, error) => {
       if (_room.filter(r => room.find(rr => r === rr)).length > 0) {
-        Alerting.create(`Não foi possível criar o arquivo. Fale com o administrador do sistema.`);
+        Alerting.create('error',`Não foi possível criar o arquivo. Fale com o administrador do sistema.`);
         console.error(error);
       }
     });
@@ -641,7 +641,7 @@ function socket_events(
   if (!socket.hasListeners('FOLDER-RENDER-ERROR'))
     socket.on('FOLDER-RENDER-ERROR', (_room, error) => {
       if (_room.filter(r => room.find(rr => r === rr)).length > 0) {
-        Alerting.create(`Não foi possível renderizar a pasta. Fale com o administrador do sistema.`);
+        Alerting.create('error',`Não foi possível renderizar a pasta. Fale com o administrador do sistema.`);
         console.error(error);
       }
     });
@@ -701,7 +701,7 @@ function socket_events(
   if (!socket.hasListeners('FILE-RENDER-ERROR'))
     socket.on('FILE-RENDER-ERROR', (_room, error) => {
       if (_room.filter(r => room.find(rr => r === rr)).length > 0) {
-        Alerting.create(`Não foi possível renderizar o arquivo. Fale com o administrador do sistema.`);
+        Alerting.create('error',`Não foi possível renderizar o arquivo. Fale com o administrador do sistema.`);
         console.error(error);
       }
     });

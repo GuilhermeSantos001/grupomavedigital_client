@@ -1,14 +1,16 @@
 /**
  * @description Métodos essenciais para se trabalhar com datas
  * @author GuilhermeSantos001
- * @update 29/12/2021
+ * @update 14/01/2022
  */
 
 import ptBRLocale from 'date-fns/locale/pt-BR';
 
 import {
+  format,
   formatDistance,
   formatRelative,
+  differenceInCalendarDays,
   addHours,
   subHours,
   addMinutes,
@@ -33,112 +35,173 @@ import {
   isBefore,
   isAfter,
   isEqual,
+  isWithinInterval,
 } from 'date-fns'
 
 class DateEx {
+  // ? Formata a data
+  format(date: Date, formatDate: string): string {
+    return format(date, formatDate);
+  }
   // ? Retorna a diferença entre as duas datas
-  getDifference(now: Date, old: Date): string {
-    return formatDistance(now, old, { includeSeconds: true, locale: ptBRLocale });
+  formatDistance(date: Date, baseDate: Date): string {
+    return formatDistance(date, baseDate, { includeSeconds: true, locale: ptBRLocale });
   }
   // ? Retorna a última vez que a data foi atualizada
-  getRelative(now: Date, old: Date): string {
-    return formatRelative(now, old, { locale: ptBRLocale });
+  formatRelative(date: Date, baseDate: Date): string {
+    return formatRelative(date, baseDate, { locale: ptBRLocale });
   }
-  // ? Adiciona horas a data
+  // ? Retorna a diferença entre as duas datas em dias
+  differenceInCalendarDays(dateLeft: Date, dateRight: Date): number {
+    return differenceInCalendarDays(dateLeft, dateRight);
+  }
+  // ? Adiciona horas na data
   addHours(date: Date, hours: number): Date {
     return addHours(date, hours);
   }
-  // ? Subtrai horas a data
+  // ? Subtrai horas da data
   subHours(date: Date, hours: number): Date {
     return subHours(date, hours);
   }
-  // ? Adiciona minutos a data
+  // ? Adiciona minutos na data
   addMinutes(date: Date, minutes: number): Date {
     return addMinutes(date, minutes);
   }
-  // ? Subtrai minutos a data
+  // ? Subtrai minutos da data
   subMinutes(date: Date, minutes: number): Date {
     return subMinutes(date, minutes);
   }
-  // ? Adiciona segundos a data
+  // ? Adiciona segundos na data
   addSeconds(date: Date, seconds: number): Date {
     return addSeconds(date, seconds);
   }
-  // ? Subtrai segundos a data
+  // ? Subtrai segundos da data
   subSeconds(date: Date, seconds: number): Date {
     return subSeconds(date, seconds);
   }
-  // ? Adiciona dias a data
+  // ? Adiciona dias na data
   addDays(date: Date, days: number): Date {
     return addDays(date, days);
   }
-  // ? Subtrai dias a data
+  // ? Subtrai dias da data
   subDays(date: Date, days: number): Date {
     return subDays(date, days);
   }
-  // ? Adiciona semanas a data
+  // ? Adiciona semanas na data
   addWeeks(date: Date, weeks: number): Date {
     return addWeeks(date, weeks);
   }
-  // ? Subtrai semanas a data
+  // ? Subtrai semanas da data
   subWeeks(date: Date, weeks: number): Date {
     return subWeeks(date, weeks);
   }
-  // ? Adiciona meses a data
+  // ? Adiciona meses na data
   addMonths(date: Date, months: number): Date {
     return addMonths(date, months);
   }
-  // ? Subtrai meses a data
+  // ? Subtrai meses da data
   subMonths(date: Date, months: number): Date {
     return subMonths(date, months);
   }
-  // ? Adiciona anos a data
+  // ? Adiciona anos na data
   addYears(date: Date, years: number): Date {
     return addYears(date, years);
   }
-  // ? Subtrai anos a data
+  // ? Subtrai anos da data
   subYears(date: Date, years: number): Date {
     return subYears(date, years);
   }
   // ? Verifica se é o mesmo dia
-  isSameDay(old: Date, now: Date): boolean {
-    return isSameDay(old, now);
+  isSameDay(date: Date, dateToCompare: Date): boolean {
+    return isSameDay(date, dateToCompare);
   }
   // ? Verifica se é a mesma semana
-  isSameWeek(old: Date, now: Date): boolean {
-    return isSameWeek(old, now);
+  isSameWeek(date: Date, dateToCompare: Date): boolean {
+    return isSameWeek(date, dateToCompare);
   }
   // ? Verifica se é o mesmo mês
-  isSameMonth(old: Date, now: Date): boolean {
-    return isSameMonth(old, now);
+  isSameMonth(date: Date, dateToCompare: Date): boolean {
+    return isSameMonth(date, dateToCompare);
   }
   // ? Verifica se é o mesmo ano
-  isSameYear(old: Date, now: Date): boolean {
-    return isSameYear(old, now);
+  isSameYear(date: Date, dateToCompare: Date): boolean {
+    return isSameYear(date, dateToCompare);
   }
   // ? Verifica se é a mesma hora
-  isSameHour(old: Date, now: Date): boolean {
-    return isSameHour(old, now);
+  isSameHour(date: Date, dateToCompare: Date): boolean {
+    return isSameHour(date, dateToCompare);
   }
   // ? Verifica se é o mesmo minuto
-  isSameMinute(old: Date, now: Date): boolean {
-    return isSameMinute(old, now);
+  isSameMinute(date: Date, dateToCompare: Date): boolean {
+    return isSameMinute(date, dateToCompare);
   }
   // ? Verifica se é o mesmo segundo
-  isSameSecond(old: Date, now: Date): boolean {
-    return isSameSecond(old, now);
+  isSameSecond(date: Date, dateToCompare: Date): boolean {
+    return isSameSecond(date, dateToCompare);
   }
   // ? Verifica se a data é antes da data atual
-  isBefore(old: Date, now: Date): boolean {
-    return isBefore(old, now);
+  isBefore(date: Date, dateToCompare: Date, compareTime?: boolean): boolean {
+    if (!compareTime) {
+      date.setHours(0);
+      date.setMinutes(0);
+      date.setSeconds(0);
+      date.setMilliseconds(0);
+      dateToCompare.setHours(0);
+      dateToCompare.setMinutes(0);
+      dateToCompare.setSeconds(0);
+      dateToCompare.setMilliseconds(0);
+    }
+
+    return isBefore(date, dateToCompare);
   }
   // ? Verifica se a data é depois da data atual
-  isAfter(old: Date, now: Date): boolean {
-    return isAfter(old, now);
+  isAfter(date: Date, dateToCompare: Date, compareTime?: boolean): boolean {
+    if (!compareTime) {
+      date.setHours(0);
+      date.setMinutes(0);
+      date.setSeconds(0);
+      date.setMilliseconds(0);
+      dateToCompare.setHours(0);
+      dateToCompare.setMinutes(0);
+      dateToCompare.setSeconds(0);
+      dateToCompare.setMilliseconds(0);
+    }
+
+    return isAfter(date, dateToCompare);
   }
   // ? Verifica se a data é igual a data atual
-  isEqual(old: Date, now: Date): boolean {
-    return isEqual(old, now);
+  isEqual(date: Date, dateToCompare: Date, compareTime?: boolean): boolean {
+    if (!compareTime) {
+      date.setHours(0);
+      date.setMinutes(0);
+      date.setSeconds(0);
+      date.setMilliseconds(0);
+      dateToCompare.setHours(0);
+      dateToCompare.setMinutes(0);
+      dateToCompare.setSeconds(0);
+      dateToCompare.setMilliseconds(0);
+    }
+
+    return isEqual(date, dateToCompare);
+  }
+  // ? Verifica se a data está dentro do intervalo
+  isWithinInterval(date: Date, interval: { start: Date, end: Date }, compareTime?: boolean): boolean {
+    if (!compareTime) {
+      date.setHours(0);
+      date.setMinutes(0);
+      date.setSeconds(0);
+      date.setMilliseconds(0);
+      interval.start.setHours(0);
+      interval.start.setMinutes(0);
+      interval.start.setSeconds(0);
+      interval.start.setMilliseconds(0);
+      interval.end.setHours(0);
+      interval.end.setMinutes(0);
+      interval.end.setSeconds(0);
+      interval.end.setMilliseconds(0);
+    }
+
+    return isWithinInterval(date, interval);
   }
 }
 

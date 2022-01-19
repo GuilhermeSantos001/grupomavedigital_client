@@ -1,10 +1,10 @@
 /**
  * @description Modal -> Modal de Edição de local de trabalho
  * @author GuilhermeSantos001
- * @update 07/01/2022
+ * @update 13/01/2022
  */
 
-import React,{ useState } from 'react';
+import React, { useState } from 'react';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
@@ -19,22 +19,23 @@ import UpdateIcon from '@mui/icons-material/Update';
 import Slide from '@mui/material/Slide';
 import { TransitionProps } from '@mui/material/transitions';
 
-import MobileTimePicker from '@/components/inputs/mobileTimePicker'
-import SelectScale from '@/components/inputs/selectScale'
-import SelectService from '@/components/inputs/selectService'
-import SelectStreet from '@/components/inputs/selectStreet'
-import SelectNeighborhood from '@/components/inputs/selectNeighborhood'
-import SelectCity from '@/components/inputs/selectCity'
-import SelectDistrict from '@/components/inputs/selectDistrict'
+import MobileTimePicker from '@/components/selects/mobileTimePicker'
+import SelectScale from '@/components/selects/selectScale'
+import SelectService from '@/components/selects/selectService'
+import SelectStreet from '@/components/selects/selectStreet'
+import SelectNeighborhood from '@/components/selects/selectNeighborhood'
+import SelectCity from '@/components/selects/selectCity'
+import SelectDistrict from '@/components/selects/selectDistrict'
 
 import Alerting from '@/src/utils/alerting'
 import ArrayEx from '@/src/utils/arrayEx'
+import StringEx from '@/src/utils/stringEx'
 
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 
 import {
   Workplace,
-  editWorkplace,
+  SystemActions,
 } from '@/app/features/system/system.slice'
 
 export interface Props {
@@ -80,7 +81,6 @@ export default function RegisterWorkplace(props: Props) {
 
   const
     dispatch = useAppDispatch(),
-    workplaces = useAppSelector(state => state.system.workplaces || []),
     services = useAppSelector((state) => state.system.services || []),
     scales = useAppSelector((state) => state.system.scales || []),
     streets = useAppSelector((state) => state.system.streets || []),
@@ -142,11 +142,12 @@ export default function RegisterWorkplace(props: Props) {
       },
     }
 
-    if (workplaces.find(workplace => workplace.name === name && workplace.scale === scale && workplace.id !== props.id))
-      return Alerting.create('Já existe um local de trabalho com esse nome e escala.');
-
-    dispatch(editWorkplace(workplace));
-    props.handleClose();
+    try {
+      dispatch(SystemActions.UPDATE_WORKPLACE(workplace));
+      props.handleClose();
+    } catch (error) {
+      Alerting.create('error', error.message);
+    }
   }
 
   return (
@@ -264,13 +265,8 @@ export default function RegisterWorkplace(props: Props) {
               className='col'
               label="Número"
               variant="standard"
-              value={String(numberHome).padStart(4, '0')}
-              onChange={(e) => {
-                const value = parseInt(e.target.value);
-
-                if (value >= 0 && value <= 9999)
-                  handleChangeNumberHome(value)
-              }}
+              value={StringEx.maskHouseNumber(String(numberHome).padStart(4, '0'))}
+              onChange={(e) => handleChangeNumberHome(parseInt(StringEx.removeMaskNum(e.target.value)))}
             />
           </ListItem>
           <ListItem>
@@ -288,13 +284,8 @@ export default function RegisterWorkplace(props: Props) {
               className='col'
               label="CEP"
               variant="standard"
-              value={String(zipCode).padStart(8, '0')}
-              onChange={(e) => {
-                const value = parseInt(e.target.value);
-
-                if (value >= 0 && value <= 99999999)
-                  handleChangeZipCode(value)
-              }}
+              value={StringEx.maskZipcode(String(zipCode).padStart(8, '0'))}
+              onChange={(e) => handleChangeZipCode(parseInt(StringEx.removeMaskNum(e.target.value)))}
             />
           </ListItem>
         </List>

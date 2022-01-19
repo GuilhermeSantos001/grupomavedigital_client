@@ -1,7 +1,7 @@
 /**
  * @description Modal -> Modal de Edição das pessoas
  * @author GuilhermeSantos001
- * @update 10/01/2022
+ * @update 18/01/2022
  */
 
 import React, { useState } from 'react';
@@ -19,14 +19,15 @@ import UpdateIcon from '@mui/icons-material/Update';
 import Slide from '@mui/material/Slide';
 import { TransitionProps } from '@mui/material/transitions';
 
-import MobileDatePicker from '@/components/inputs/mobileDatePicker'
-import SelectScale from '@/components/inputs/selectScale'
-import SelectService from '@/components/inputs/selectService'
-import SelectStreet from '@/components/inputs/selectStreet'
-import SelectNeighborhood from '@/components/inputs/selectNeighborhood'
-import SelectCity from '@/components/inputs/selectCity'
-import SelectDistrict from '@/components/inputs/selectDistrict'
+import MobileDatePicker from '@/components/selects/mobileDatePicker'
+import SelectScale from '@/components/selects/selectScale'
+import SelectService from '@/components/selects/selectService'
+import SelectStreet from '@/components/selects/selectStreet'
+import SelectNeighborhood from '@/components/selects/selectNeighborhood'
+import SelectCity from '@/components/selects/selectCity'
+import SelectDistrict from '@/components/selects/selectDistrict'
 
+import DateEx from '@/src/utils/dateEx'
 import StringEx from '@/src/utils/stringEx'
 import ArrayEx from '@/src/utils/arrayEx'
 import Alerting from '@/src/utils/alerting'
@@ -35,7 +36,7 @@ import { useAppDispatch, useAppSelector } from '@/app/hooks';
 
 import {
   Person,
-  editPerson,
+  SystemActions
 } from '@/app/features/system/system.slice'
 
 export interface Props {
@@ -92,7 +93,6 @@ export default function RegisterPeople(props: Props) {
 
   const
     dispatch = useAppDispatch(),
-    people = useAppSelector(state => state.system.people),
     lotItems = useAppSelector(state => state.payback.lotItems || []),
     services = useAppSelector((state) => state.system.services || []),
     scales = useAppSelector((state) => state.system.scales || []),
@@ -173,15 +173,12 @@ export default function RegisterPeople(props: Props) {
       },
     }
 
-    if (people.find(_person =>
-      _person.id !== person.id && _person.matricule === matricule ||
-      _person.id !== person.id && _person.cpf === cpf ||
-      _person.id !== person.id && _person.rg === rg
-    ))
-      return Alerting.create('Já existe uma pessoa com esses dados.');
-
-    dispatch(editPerson(person));
-    props.handleClose();
+    try {
+      dispatch(SystemActions.UPDATE_PERSON(person));
+      props.handleClose();
+    } catch(error) {
+      Alerting.create('error', error.message);
+    }
   }
 
   return (
@@ -286,6 +283,8 @@ export default function RegisterPeople(props: Props) {
               className='col-12'
               label="Data de Nascimento"
               value={birthDate}
+              maxDate={DateEx.addYears(DateEx.subYears(new Date(), 75), 55)}
+              minDate={DateEx.subYears(new Date(), 75)}
               handleChangeValue={handleChangeBirthDate}
             />
           </ListItem>

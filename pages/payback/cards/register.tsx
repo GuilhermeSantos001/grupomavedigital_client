@@ -1,7 +1,7 @@
 /**
  * @description Payback -> Cartões Beneficio (Alelo) -> Cadastro
  * @author GuilhermeSantos001
- * @update 07/01/2022
+ * @update 18/01/2022
  */
 
 import { useEffect, useState } from 'react'
@@ -16,7 +16,7 @@ import Icon from '@/src/utils/fontAwesomeIcons'
 import RenderPageError from '@/components/renderPageError'
 import NoPrivilege from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
-import SelectCostCenter from '@/components/inputs/selectCostCenter'
+import SelectCostCenter from '@/components/selects/selectCostCenter'
 
 import { PageProps } from '@/pages/_app'
 import PageMenu from '@/bin/main_menu'
@@ -31,8 +31,13 @@ import StringEx from '@/src/utils/stringEx'
 import { useAppSelector, useAppDispatch } from '@/app/hooks'
 
 import {
+  CostCenter
+} from '@/app/features/system/system.slice'
+
+import {
   LotItem,
-  appendItemLot
+  LotItemCreate,
+  PaybackActions
 } from '@/app/features/payback/payback.slice'
 
 const serverSideProps: PageProps = {
@@ -287,9 +292,9 @@ function compose_noAuth(handleClick) {
 
 function compose_ready(
   handleClickBackPage: () => void,
+  costCenters: CostCenter[],
   costCenter: string,
-  handleDefineCostCenter: (e: any) => void,
-  handleResetCostCenter: () => void,
+  handleChangeCostCenter: (id: string) => void,
   numLot: number,
   handleChangeNumLot: (val: number) => void,
   numSerialNumber: number,
@@ -297,10 +302,7 @@ function compose_ready(
   numLastCardNumber: number,
   handleChangeNumLastCardNumber: (val: number) => void,
   lotItems: LotItem[],
-  handleRegister: (lotItem: LotItem) => {
-    payload: LotItem;
-    type: string;
-  }
+  handleRegister: (lotItem: LotItemCreate) => void
 ) {
   const
     enableCancel = () => {
@@ -331,7 +333,6 @@ function compose_ready(
       handleChangeNumLot(0);
       handleChangeNumSerialNumber(0);
       handleChangeNumLastCardNumber(0);
-      handleResetCostCenter();
     }
 
   return (
@@ -397,12 +398,11 @@ function compose_ready(
           <p className="fw-bold border-bottom text-center my-2">
             Centro de Custo {'&'} Número de Série
           </p>
+          <SelectCostCenter
+            costCenter={costCenters.find(_costCenter => _costCenter.id === costCenter)}
+            handleChangeCostCenter={handleChangeCostCenter}
+          />
           <div className='d-flex flex-column flex-md-row'>
-            <SelectCostCenter
-              costCenter={costCenter}
-              handleDefineCostCenter={handleDefineCostCenter}
-              handleResetCostCenter={handleResetCostCenter}
-            />
             <div className="input-group my-2 m-md-2">
               <span className="input-group-text" id="serialNumber-addon">
                 <FontAwesomeIcon
@@ -459,22 +459,12 @@ function compose_ready(
                 type="button"
                 className="btn btn-primary"
                 onClick={() => {
-                  if (lotItems.filter(lot => lot.serialNumber === String(numSerialNumber).padStart(15, '0')).length > 0)
-                    return Alerting.create('Já existe um lote com esse número de série!');
-
-                  if (lotItems.filter(lot => lot.lastCardNumber === String(numLastCardNumber).padStart(4, '0')).length > 0)
-                    return Alerting.create('Já existe um lote com os mesmos 4 últimos dígitos do número do cartão!');
-
                   handleRegister({
                     id: String(numLot).padStart(9, '0'),
                     costCenter,
                     serialNumber: String(numSerialNumber).padStart(15, '0'),
-                    lastCardNumber: String(numLastCardNumber).padStart(4, '0'),
-                    status: 'available',
-                    createdAt: new Date().toISOString()
+                    lastCardNumber: String(numLastCardNumber).padStart(4, '0')
                   });
-
-                  Alerting.create('Lote registrado com sucesso!');
                 }}
                 disabled={enableRegister() ? false : true}
               >
@@ -502,6 +492,7 @@ export default function CardsRegister() {
 
   const
     dispatch = useAppDispatch(),
+    costCenters = useAppSelector(state => state.system.costCenters || []),
     lotItems = useAppSelector((state) => state.payback.lotItems || [])
 
   const router = useRouter()
@@ -523,13 +514,7 @@ export default function CardsRegister() {
       router.push(path)
     },
     handleClickBackPage = () => router.push('/payback/cards'),
-    handleDefineCostCenter = (title: string) => {
-      if (title === 'Centro de Custo')
-        setCostCenter('');
-      else
-        setCostCenter(title);
-    },
-    handleResetCostCenter = () => setCostCenter(''),
+    handleChangeCostCenter = (id: string) => setCostCenter(id),
     handleChangeNumLot = (val: number) => {
       if (String(val).length <= 9)
         setNumLot(val);
@@ -542,7 +527,14 @@ export default function CardsRegister() {
       if (String(val).length <= 4)
         setNumLastCardNumber(val);
     },
-    handleRegister = (lotItem: LotItem) => dispatch(appendItemLot(lotItem));
+    handleRegister = (lotItem: LotItem) => {
+      try {
+        dispatch(PaybackActions.CREATE_LOT(lotItem));
+        Alerting.create('info', 'Lote registrado com sucesso!');
+      } catch (error) {
+        Alerting.create('error', error.message);
+      }
+    };
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -577,9 +569,9 @@ export default function CardsRegister() {
 
   if (isReady) return compose_ready(
     handleClickBackPage,
+    costCenters,
     costCenter,
-    handleDefineCostCenter,
-    handleResetCostCenter,
+    handleChangeCostCenter,
     numLot,
     handleChangeNumLot,
     numSerialNumber,

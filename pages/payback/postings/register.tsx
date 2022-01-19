@@ -13,11 +13,13 @@ import SkeletonLoader from 'tiny-skeleton-loader-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
 
+import Button from '@mui/material/Button'
+
 import RenderPageError from '@/components/renderPageError'
 import NoPrivilege from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
-import SelectCostCenter from '@/components/inputs/selectCostCenter'
-import MobileDatePicker from '@/components/inputs/mobileDatePicker'
+import SelectCostCenter from '@/components/selects/selectCostCenter'
+import MobileDatePicker from '@/components/selects/mobileDatePicker'
 import AssistantPostingsRegister from '@/components/assistants/assistantPostingsRegister'
 import AssistantCoverageDefine from '@/components/assistants/assistantCoverageDefine'
 import ListWithCheckboxMUI from '@/components/lists/listWithCheckboxMUI'
@@ -26,15 +28,20 @@ import RegisterWorkplace from '@/components/modals/registerWorkplace'
 import RegisterPeople from '@/components/modals/registerPeople'
 import EditWorkplace from '@/components/modals/editWorkplace'
 import EditPeople from '@/components/modals/editPeople'
+import ListCoverageDefined from '@/components/lists/listCoverageDefined'
 
 import { PageProps } from '@/pages/_app'
 import PageMenu from '@/bin/main_menu'
+
+import SocketIO from '@/components/socket-io'
 
 import Fetch from '@/src/utils/fetch'
 import Variables from '@/src/db/variables'
 import { tokenValidate } from '@/src/functions/tokenValidate'
 import hasPrivilege from '@/src/functions/hasPrivilege'
+import Alerting from '@/src/utils/alerting'
 import StringEx from '@/src/utils/stringEx'
+import DateEx from '@/src/utils/dateEx'
 
 import getWorkPlaceForTable from '@/src/functions/getWorkPlaceForTable'
 import getPeopleForTable from '@/src/functions/getPeopleForTable'
@@ -42,6 +49,7 @@ import getPeopleForTable from '@/src/functions/getPeopleForTable'
 import { useAppSelector, useAppDispatch } from '@/app/hooks'
 
 import type {
+  CostCenter,
   Workplace,
   Person,
   Scale,
@@ -53,17 +61,14 @@ import type {
 } from '@/app/features/system/system.slice'
 
 import {
-  removeWorkplace,
-  removePerson,
+  SystemActions
 } from '@/app/features/system/system.slice'
 
-import type {
-  LotItem,
-  Posting
-} from '@/app/features/payback/payback.slice'
-
 import {
-  appendPosting
+  LotItem,
+  Posting,
+  PostingCreate,
+  PaybackActions,
 } from '@/app/features/payback/payback.slice'
 
 const serverSideProps: PageProps = {
@@ -330,9 +335,9 @@ function compose_ready(
   pageSizeOptionsTablePeopleInWorkplaces: number[],
   handleChangePageSizeTableWorkplaces: (pageSize: number) => void,
   handleChangePageSizeTablePeopleInWorkplaces: (pageSize: number) => void,
+  costCenters: CostCenter[],
   costCenter: string,
-  handleDefineCostCenter: (e: any) => void,
-  handleResetCostCenter: () => void,
+  handleChangeCostCenter: (id: string) => void,
   periodStart: Date,
   setPeriodStart: React.Dispatch<React.SetStateAction<Date>>,
   periodEnd: Date,
@@ -360,8 +365,8 @@ function compose_ready(
   selectPeopleInWorkplaces: string[],
   handleDefineSelectWorkplaces: (itens: string[]) => void,
   handleDefineSelectPeopleInWorkplaces: (itens: string[]) => void,
-  handleDeleteWorkplaces: (itens: string[]) => void,
-  handleDeletePeopleInWorkplaces: (itens: string[]) => void,
+  handleDeleteWorkplaces: (ids: string[]) => void,
+  handleDeletePeopleInWorkplaces: (ids: string[]) => void,
   people: Person[],
   appliedWorkplaces: Workplace[],
   appliedPeopleInWorkplaces: Person[],
@@ -374,6 +379,10 @@ function compose_ready(
   showModalAssistantCoverageDefine: boolean,
   handleOpenModalAssistantCoverageDefine: () => void,
   handleCloseModalAssistantCoverageDefine: () => void,
+  postingsDefined: PostingCreate[],
+  handleAppendPostingDefined: (postings: PostingCreate[]) => void,
+  handleResetPostingDefined: () => void,
+  handleRemovePostingDefined: (id: string) => void,
 ) {
   const
     { columns: workPlaceColumns, rows: workPlaceRows } =
@@ -395,10 +404,35 @@ function compose_ready(
         neighborhoods,
         cities,
         districts
-      )
+      ),
+    searchPostingsDefined = () => {
+      const search = postings.filter(posting => {
+        if (posting.costCenter === costCenter && posting.paymentStatus === 'payable') {
+          if (DateEx.isWithinInterval(new Date(posting.originDate), {
+            start: periodStart,
+            end: periodEnd
+          }))
+            return true;
+        }
+
+        return false;
+      });
+
+      if (search.length > 0)
+        handleAppendPostingDefined(search);
+      else {
+        Alerting.create('warning', `Nenhum lançamento encontrado, dentro do período informado.`);
+
+        if (postings.filter(posting => posting.costCenter === costCenter && posting.paymentStatus === 'payable').length > 0)
+          Alerting.create('info', `Existem ${postings.filter(posting => posting.paymentStatus === 'payable').length} lançamento(s) a pagar.`);
+        else
+          Alerting.create('info', `Não existem lançamentos a pagar.`);
+        }
+    };
 
   return (
     <>
+      <SocketIO />
       <div className="row g-2">
         <div className="col-12">
           <div className="p-3 bg-primary bg-gradient rounded">
@@ -458,9 +492,9 @@ function compose_ready(
                         />
                       }
                       <p className="fw-bold border-bottom text-center my-2">
-                        Data de Criação {'&'} Código do Lote
+                        Informações Básicas
                       </p>
-                      <div className='d-flex flex-column flex-md-row'>
+                      <div className='d-flex flex-column flex-md-row my-2'>
                         <div className="input-group my-2 m-md-2">
                           <span className="input-group-text" id="date-addon">
                             <FontAwesomeIcon
@@ -478,24 +512,48 @@ function compose_ready(
                             disabled={true}
                           />
                         </div>
-                        <SelectCostCenter
-                          costCenter={costCenter}
-                          handleDefineCostCenter={handleDefineCostCenter}
-                          handleResetCostCenter={handleResetCostCenter}
-                        />
                       </div>
-                      <div className='d-flex flex-column flex-md-row'>
+                      <SelectCostCenter
+                        costCenter={costCenters.find(_costCenter => _costCenter.id === costCenter)}
+                        disabled={postingsDefined.length > 0}
+                        handleChangeCostCenter={handleChangeCostCenter}
+                      />
+                      <div className='d-flex flex-column flex-md-row my-2'>
                         <MobileDatePicker
                           className="col px-2 my-2"
                           label="Período de Apuração (Inicial)"
                           value={periodStart}
-                          handleChangeValue={(value) => setPeriodStart(value)}
+                          maxDate={periodEnd}
+                          minDate={DateEx.subDays(new Date(), 7)}
+                          disabled={postingsDefined.length > 0}
+                          handleChangeValue={(value) => {
+                            if (
+                              DateEx.isEqual(value, periodEnd) ||
+                              DateEx.isBefore(value, periodEnd)
+                            ) {
+                              setPeriodStart(value);
+                            } else {
+                              Alerting.create('warning', `A data inicial não pode ser maior que a data final.`, 3600);
+                            }
+                          }}
                         />
                         <MobileDatePicker
                           className="col px-2 my-2"
                           label="Período de Apuração (Final)"
                           value={periodEnd}
-                          handleChangeValue={(value) => setPeriodEnd(value)}
+                          maxDate={DateEx.addYears(new Date(), 1)}
+                          minDate={periodStart}
+                          disabled={postingsDefined.length > 0}
+                          handleChangeValue={(value) => {
+                            if (
+                              DateEx.isEqual(value, periodStart) ||
+                              DateEx.isAfter(value, periodStart)
+                            ) {
+                              setPeriodEnd(value);
+                            } else {
+                              Alerting.create('warning', `A data final não pode ser menor que a data inicial.`, 3600);
+                            }
+                          }}
                         />
                       </div>
                       <p className="fw-bold border-bottom text-center my-2">
@@ -619,10 +677,51 @@ function compose_ready(
                           handleClose={handleCloseModalEditPeopleInWorkplace}
                         />
                       }
+                      <ListCoverageDefined
+                        postings={postingsDefined}
+                        handlePostingRemove={handleRemovePostingDefined}
+                      />
+                      <Button
+                        variant="outlined"
+                        onClick={() => searchPostingsDefined()}
+                        className='col-12 m-2'
+                      >
+                        <FontAwesomeIcon
+                          icon={Icon.render('fas', 'search')}
+                          className="me-2 flex-shrink-1 my-auto"
+                        />
+                        Procurar Coberturas disponíveis
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        onClick={() => handleResetPostingDefined()}
+                        disabled={postingsDefined.length <= 0}
+                        className='col-12 m-2'
+                        color={'error'}
+                      >
+                        <FontAwesomeIcon
+                          icon={Icon.render('fas', 'history')}
+                          className="me-2 flex-shrink-1 my-auto"
+                        />
+                        Limpar Coberturas Aplicadas
+                      </Button>
                       <AssistantCoverageDefine
                         show={showModalAssistantCoverageDefine}
                         availableWorkplaces={appliedWorkplaces.map(place => place.id)}
-                        handleClose={handleCloseModalAssistantCoverageDefine}
+                        availablePeopleInWorkplace={appliedPeopleInWorkplaces.map(person => person.id)}
+                        postingCostCenter={costCenter}
+                        periodStart={periodStart}
+                        periodEnd={periodEnd}
+                        handleFinish={(postings: PostingCreate[]) => {
+                          if (postings.length > 0) {
+                            Alerting.create('success', 'Cobertura(s) aplicada(s) com sucesso!');
+                            handleAppendPostingDefined(postings);
+                          }
+                        }}
+                        handleClose={() => {
+                          handleRemoveAppliedPeopleInWorkplaces(appliedPeopleInWorkplaces);
+                          handleCloseModalAssistantCoverageDefine();
+                        }}
                       />
                       <p className="fw-bold border-bottom text-center my-2">
                         Funcionários
@@ -639,7 +738,7 @@ function compose_ready(
                         <button
                           type="button"
                           className="btn btn-link"
-                          disabled={selectPeopleInWorkplaces.length <= 0}
+                          disabled={selectPeopleInWorkplaces.length <= 0 || selectPeopleInWorkplaces.length % 2 !== 0}
                           onClick={() => {
                             const filtered = selectPeopleInWorkplaces.filter(id => {
                               if (appliedPeopleInWorkplaces.find(applied => applied.id === id))
@@ -658,17 +757,6 @@ function compose_ready(
                             icon={Icon.render('fas', 'check')}
                             className="me-1 flex-shrink-1 my-auto"
                           /> Aplicar
-                        </button>
-                        <button
-                          type="button"
-                          className="btn btn-link"
-                          disabled={selectPeopleInWorkplaces.length <= 0}
-                          onClick={() => handleRemoveAppliedPeopleInWorkplaces(people.filter(person => selectPeopleInWorkplaces.includes(person.id)))}
-                        >
-                          <FontAwesomeIcon
-                            icon={Icon.render('fas', 'times')}
-                            className="me-1 flex-shrink-1 my-auto"
-                          /> Desaplicar
                         </button>
                         <button
                           type="button"
@@ -724,9 +812,10 @@ function compose_ready(
   )
 }
 
-const Register = (): JSX.Element => {
+export default function Register() {
   const
     dispatch = useAppDispatch(),
+    costCenters = useAppSelector(state => state.system.costCenters || []),
     workplaces = useAppSelector((state) => state.system.workplaces || []),
     people = useAppSelector((state) => state.system.people || []),
     scales = useAppSelector((state) => state.system.scales || []),
@@ -736,8 +825,7 @@ const Register = (): JSX.Element => {
     cities = useAppSelector((state) => state.system.cities || []),
     districts = useAppSelector((state) => state.system.districts || []),
     lotItems = useAppSelector((state) => state.payback.lotItems || []),
-    postings = useAppSelector((state) => state.payback.postings || []),
-    uploads = useAppSelector((state) => state.system.uploads || []);
+    postings = useAppSelector((state) => state.payback.postings || []);
 
   const [isReady, setReady] = useState<boolean>(false)
   const [isError, setError] = useState<boolean>(false)
@@ -772,7 +860,7 @@ const Register = (): JSX.Element => {
 
   const [showModalAssistantCoverageDefine, setShowModalAssistantCoverageDefine] = useState<boolean>(false)
 
-  console.log('HI', uploads);
+  const [postingsDefined, setPostingsDefined] = useState<PostingCreate[]>([])
 
   const router = useRouter()
   const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
@@ -799,6 +887,7 @@ const Register = (): JSX.Element => {
       switch (step) {
         case 0:
           return appliedWorkplaces.length > 0 &&
+            appliedWorkplaces.length % 2 == 0 &&
             costCenter.length > 0 &&
             periodStart !== null &&
             periodEnd !== null
@@ -810,13 +899,7 @@ const Register = (): JSX.Element => {
     },
     handleChangePageSizeTableWorkplaces = (pageSize: number) => setPageSizeTableWorkplaces(pageSize),
     handleChangePageSizeTablePeopleInWorkplaces = (pageSize: number) => setPageSizeTablePeopleInWorkplaces(pageSize),
-    handleDefineCostCenter = (title: string) => {
-      if (title === 'Centro de Custo')
-        setCostCenter('');
-      else
-        setCostCenter(title);
-    },
-    handleResetCostCenter = () => setCostCenter(''),
+    handleChangeCostCenter = (id: string) => setCostCenter(id),
     handleShowModalRegisterWorkplace = () => setShowModalRegisterWorkplace(true),
     handleShowModalRegisterPeopleInWorkplace = () => setShowModalRegisterPeopleInWorkplace(true),
     handleCloseModalRegisterWorkplace = () => setShowModalRegisterWorkplace(false),
@@ -827,8 +910,20 @@ const Register = (): JSX.Element => {
     handleCloseModalEditPeopleInWorkplace = () => setShowModalEditPeopleInWorkplace(false),
     handleDefineSelectWorkplaces = (itens: string[]) => setSelectWorkplaces(itens),
     handleDefineSelectPeopleInWorkplaces = (itens: string[]) => setSelectPeopleInWorkplaces(itens),
-    handleDeleteWorkplaces = (itens: string[]) => itens.forEach(id => dispatch(removeWorkplace(id))),
-    handleDeletePeopleInWorkplaces = (itens: string[]) => itens.forEach(id => dispatch(removePerson(id))),
+    handleDeleteWorkplaces = (ids: string[]) => ids.forEach(id => {
+      try {
+        dispatch(SystemActions.DELETE_WORKPLACE(id))
+      } catch (error) {
+        Alerting.create('error', error.message);
+      }
+    }),
+    handleDeletePeopleInWorkplaces = (ids: string[]) => ids.forEach(id => {
+      try {
+        dispatch(SystemActions.DELETE_PERSON(id))
+      } catch (error) {
+        Alerting.create('error', error.message);
+      }
+    }),
     handleAppendAppliedWorkplaces = (itens: Workplace[]) => setAppliedWorkplaces([...appliedWorkplaces, ...itens]),
     handleAppendAppliedPeopleInWorkplaces = (itens: Person[]) => setAppliedPeopleInWorkplaces([...appliedPeopleInWorkplaces, ...itens]),
     handleRemoveAppliedWorkplaces = (itens: Workplace[]) => {
@@ -838,7 +933,42 @@ const Register = (): JSX.Element => {
       setAppliedPeopleInWorkplaces(appliedPeopleInWorkplaces.filter(item => !itens.some(item2 => item2.id === item.id)))
     },
     handleOpenModalAssistantCoverageDefine = () => setShowModalAssistantCoverageDefine(true),
-    handleCloseModalAssistantCoverageDefine = () => setShowModalAssistantCoverageDefine(false);
+    handleCloseModalAssistantCoverageDefine = () => setShowModalAssistantCoverageDefine(false),
+    handleAppendPostingDefined = (postings: PostingCreate[]) => setPostingsDefined([...postingsDefined, ...postings]),
+    handleResetPostingDefined = () => setPostingsDefined([]),
+    handleRemovePostingDefined = (id: string) => {
+      try {
+        const
+          posting = postings.find(item => item.id === id),
+          deleteFile = async (
+            filesId: string[]
+          ) => window.socket.emit('PAYBACK-DELETE-MIRROR', filesId, ['COVERING', 'COVERAGE']),
+          deleteMirrors = [];
+
+        if (posting.covering && posting.covering.mirror.fileId) {
+          deleteMirrors.push(posting.covering.mirror.fileId);
+        }
+
+        if (posting.coverage.modalityOfCoverage === 'ft') {
+          deleteMirrors.push(posting.coverage.mirror.fileId);
+        }
+
+        if (deleteMirrors.length > 0)
+          deleteFile(deleteMirrors);
+
+        dispatch(PaybackActions.DELETE_POSTING(id));
+        setPostingsDefined(postingsDefined.filter(item => item.id !== id));
+      } catch (error) {
+        Alerting.create('error', error.message);
+      }
+    },
+    handleDeleteUpload = (fileId: string) => {
+      try {
+        dispatch(SystemActions.DELETE_UPLOAD(fileId));
+      } catch (error) {
+        Alerting.create('error', error.message);
+      }
+    };
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -871,64 +1001,108 @@ const Register = (): JSX.Element => {
 
   if (notAuth) return compose_noAuth(handleClickNoAuth)
 
-  if (isReady) return compose_ready(
-    handleClickBackPage,
-    assistantStep,
-    assistantFinish,
-    handleChangeAssistantStep,
-    handleFinishAssistant,
-    hasCompletedAssistantStep,
-    pageSizeTableWorkplaces,
-    pageSizeTablePeopleInWorkplaces,
-    pageSizeOptionsTableWorkplaces,
-    pageSizeOptionsTablePeopleInWorkplaces,
-    handleChangePageSizeTableWorkplaces,
-    handleChangePageSizeTablePeopleInWorkplaces,
-    costCenter,
-    handleDefineCostCenter,
-    handleResetCostCenter,
-    periodStart,
-    setPeriodStart,
-    periodEnd,
-    setPeriodEnd,
-    workplaces,
-    showModalRegisterWorkplace,
-    showModalRegisterPeopleInWorkplace,
-    showModalEditWorkplace,
-    showModalEditPeopleInWorkplace,
-    handleShowModalRegisterWorkplace,
-    handleShowModalRegisterPeopleInWorkplace,
-    handleCloseModalRegisterWorkplace,
-    handleCloseModalRegisterPeopleInWorkplace,
-    handleShowModalEditWorkplace,
-    handleShowModalEditPeopleInWorkplace,
-    handleCloseModalEditWorkplace,
-    handleCloseModalEditPeopleInWorkplace,
-    scales,
-    services,
-    streets,
-    neighborhoods,
-    cities,
-    districts,
-    selectWorkplaces,
-    selectPeopleInWorkplaces,
-    handleDefineSelectWorkplaces,
-    handleDefineSelectPeopleInWorkplaces,
-    handleDeleteWorkplaces,
-    handleDeletePeopleInWorkplaces,
-    people,
-    appliedWorkplaces,
-    appliedPeopleInWorkplaces,
-    handleAppendAppliedWorkplaces,
-    handleAppendAppliedPeopleInWorkplaces,
-    handleRemoveAppliedWorkplaces,
-    handleRemoveAppliedPeopleInWorkplaces,
-    lotItems,
-    postings,
-    showModalAssistantCoverageDefine,
-    handleOpenModalAssistantCoverageDefine,
-    handleCloseModalAssistantCoverageDefine,
-  )
+  if (isReady) {
+    onSocketEvents(
+      handleDeleteUpload
+    )
+
+    return compose_ready(
+      handleClickBackPage,
+      assistantStep,
+      assistantFinish,
+      handleChangeAssistantStep,
+      handleFinishAssistant,
+      hasCompletedAssistantStep,
+      pageSizeTableWorkplaces,
+      pageSizeTablePeopleInWorkplaces,
+      pageSizeOptionsTableWorkplaces,
+      pageSizeOptionsTablePeopleInWorkplaces,
+      handleChangePageSizeTableWorkplaces,
+      handleChangePageSizeTablePeopleInWorkplaces,
+      costCenters,
+      costCenter,
+      handleChangeCostCenter,
+      periodStart,
+      setPeriodStart,
+      periodEnd,
+      setPeriodEnd,
+      workplaces,
+      showModalRegisterWorkplace,
+      showModalRegisterPeopleInWorkplace,
+      showModalEditWorkplace,
+      showModalEditPeopleInWorkplace,
+      handleShowModalRegisterWorkplace,
+      handleShowModalRegisterPeopleInWorkplace,
+      handleCloseModalRegisterWorkplace,
+      handleCloseModalRegisterPeopleInWorkplace,
+      handleShowModalEditWorkplace,
+      handleShowModalEditPeopleInWorkplace,
+      handleCloseModalEditWorkplace,
+      handleCloseModalEditPeopleInWorkplace,
+      scales,
+      services,
+      streets,
+      neighborhoods,
+      cities,
+      districts,
+      selectWorkplaces,
+      selectPeopleInWorkplaces,
+      handleDefineSelectWorkplaces,
+      handleDefineSelectPeopleInWorkplaces,
+      handleDeleteWorkplaces,
+      handleDeletePeopleInWorkplaces,
+      people,
+      appliedWorkplaces,
+      appliedPeopleInWorkplaces,
+      handleAppendAppliedWorkplaces,
+      handleAppendAppliedPeopleInWorkplaces,
+      handleRemoveAppliedWorkplaces,
+      handleRemoveAppliedPeopleInWorkplaces,
+      lotItems,
+      postings,
+      showModalAssistantCoverageDefine,
+      handleOpenModalAssistantCoverageDefine,
+      handleCloseModalAssistantCoverageDefine,
+      postingsDefined,
+      handleAppendPostingDefined,
+      handleResetPostingDefined,
+      handleRemovePostingDefined,
+    )
+  }
 }
 
-export default Register
+
+/**
+ * @description Adiciona os ouvintes dos eventos do socket.io
+ */
+function onSocketEvents(
+  handleDeleteUpload: (fileId: string) => void
+) {
+  const socket = window.socket;
+
+  if (socket) {
+    const
+      events = [
+        'PAYBACK-DELETE-MIRROR-SUCCESS',
+        'PAYBACK-DELETE-MIRROR-FAILURE'
+      ]
+
+    events
+      .forEach(event => {
+        if (socket.hasListeners(event))
+          socket.off(event);
+      })
+
+    socket
+      .on(
+        events[0], // * PAYBACK-DELETE-MIRROR-SUCCESS
+        (
+          filesId: string[]
+        ) => filesId.forEach(fileId => handleDeleteUpload(fileId))
+      )
+      .on(
+        events[1], // * PAYBACK-DELETE-MIRROR-FAILURE
+        (error: string) => console.error(error)
+      )
+  }
+}

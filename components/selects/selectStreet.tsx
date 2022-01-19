@@ -1,7 +1,7 @@
 /**
- * @description Input -> Seleciona um Motivo de Falta
+ * @description Input -> Seleciona uma rua
  * @author GuilhermeSantos001
- * @update 10/01/2022
+ * @update 18/01/2022
  */
 
 import { useState } from 'react';
@@ -9,48 +9,60 @@ import { Autocomplete, TextField, createFilterOptions, Button } from '@mui/mater
 
 import { useAppSelector, useAppDispatch } from '@/app/hooks'
 
+import canDeleteStreet from '@/src/functions/canDeleteAddressAssociation'
+
+import Alerting from '@/src/utils/alerting'
 import StringEx from '@/src/utils/stringEx'
 
 import {
-  ReasonForAbsence,
-  appendReasonForAbsence,
-  editReasonForAbsence,
-  removeReasonForAbsence,
+  Street,
+  SystemActions
 } from '@/app/features/system/system.slice'
 
 export type Props = {
-  reasonForAbsence?: FilmOptionType
-  handleChangeReasonForAbsence: (id: string) => void
+  street?: FilmOptionType
+  handleChangeStreet: (id: string) => void
 }
 
-export type FilmOptionType = ReasonForAbsence & {
+export type FilmOptionType = Street & {
   inputValue?: string;
   inputUpdate?: boolean;
 }
 
 const filter = createFilterOptions<FilmOptionType>();
 
-export default function selectReasonForAbsence(props: Props) {
-  const [value, setValue] = useState<FilmOptionType | null>(props.reasonForAbsence || null);
+export default function SelectStreet(props: Props) {
+  const [value, setValue] = useState<FilmOptionType | null>(props.street || null);
   const [hasEdit, setHasEdit] = useState<boolean>(false);
   const [editValue, setEditValue] = useState<string>('');
 
   const
-    reasonForAbsences = useAppSelector(state => state.system.reasonForAbsences || []),
-    postings = useAppSelector((state) => state.payback.postings || []);
+    streets = useAppSelector((state) => state.system.streets || []),
+    workplaces = useAppSelector((state) => state.system.workplaces || []);
 
   const
     dispatch = useAppDispatch(),
-    handleAppendReasonForAbsence = (reasonForAbsence: ReasonForAbsence) => dispatch(appendReasonForAbsence(reasonForAbsence)),
-    handleUpdateReasonForAbsence = (reasonForAbsence: ReasonForAbsence) => dispatch(editReasonForAbsence(reasonForAbsence)),
-    handleRemoveReasonForAbsence = (id: string) => dispatch(removeReasonForAbsence(id));
-
-  const canDeleteReasonForAbsence = (itemId: string) => {
-    const
-      posting = postings.find((item) => item.covering.reasonForAbsence === itemId);
-
-    return posting === undefined;
-  }
+    handleAppendStreet = (street: Street) => {
+      try {
+        dispatch(SystemActions.CREATE_STREET(street));
+      } catch (error) {
+        Alerting.create('error', error.message);
+      }
+    },
+    handleUpdateStreet = (street: Street) => {
+      try {
+        dispatch(SystemActions.UPDATE_STREET(street));
+      } catch (error) {
+        Alerting.create('error', error.message);
+      }
+    },
+    handleRemoveStreet = (id: string) => {
+      try {
+        dispatch(SystemActions.DELETE_STREET(id));
+      } catch (error) {
+        Alerting.create('error', error.message);
+      }
+    };
 
   if (!value && hasEdit)
     setHasEdit(false);
@@ -62,9 +74,9 @@ export default function selectReasonForAbsence(props: Props) {
         value={value}
         onChange={(event: any, newValue) => {
           if (typeof newValue === 'string') {
-            const value: ReasonForAbsence = {
+            const value: Street = {
               id: StringEx.id(),
-              value: newValue,
+              name: newValue,
             };
 
             setValue(value);
@@ -75,29 +87,29 @@ export default function selectReasonForAbsence(props: Props) {
                 String(event.code).toLowerCase() === 'numpadenter'
               ) {
                 if (hasEdit) {
-                  const reasonForAbsence = reasonForAbsences.find(reasonForAbsence => reasonForAbsence.id === editValue);
+                  const street = streets.find(street => street.id === editValue);
 
-                  if (reasonForAbsence) {
-                    const update: ReasonForAbsence = {
-                      ...reasonForAbsence,
-                      value: newValue
+                  if (street) {
+                    const update: Street = {
+                      ...street,
+                      name: newValue
                     };
 
                     setValue(update);
 
-                    handleUpdateReasonForAbsence(update);
-                    props.handleChangeReasonForAbsence(update.id);
+                    handleUpdateStreet(update);
+                    props.handleChangeStreet(update.id);
                   }
                 } else {
-                  if (reasonForAbsences.filter(reasonForAbsence => reasonForAbsence.value === newValue).length <= 0) {
-                    handleAppendReasonForAbsence(value);
-                    props.handleChangeReasonForAbsence(value.id);
+                  if (streets.filter(street => street.name === newValue).length <= 0) {
+                    handleAppendStreet(value);
+                    props.handleChangeStreet(value.id);
                   } else {
-                    const reasonForAbsence = reasonForAbsences.find(reasonForAbsence => reasonForAbsence.value === newValue);
+                    const street = streets.find(street => street.name === newValue);
 
-                    if (reasonForAbsence) {
-                      setValue(reasonForAbsence);
-                      props.handleChangeReasonForAbsence(reasonForAbsence.id)
+                    if (street) {
+                      setValue(street);
+                      props.handleChangeStreet(street.id)
                     }
                   }
                 }
@@ -105,24 +117,24 @@ export default function selectReasonForAbsence(props: Props) {
             }
           } else if (newValue && newValue.inputValue) {
             // Create a new value from the user input
-            const reasonForAbsence: ReasonForAbsence = {
+            const street: Street = {
               id: hasEdit ? value.id : StringEx.id(),
-              value: newValue.inputValue,
+              name: newValue.inputValue,
             };
 
-            setValue(reasonForAbsence);
+            setValue(street);
 
             if (!newValue.inputUpdate) {
-              handleAppendReasonForAbsence(reasonForAbsence);
+              handleAppendStreet(street);
             } else {
-              handleUpdateReasonForAbsence(reasonForAbsence);
+              handleUpdateStreet(street);
             }
 
-            props.handleChangeReasonForAbsence(reasonForAbsence.id);
+            props.handleChangeStreet(street.id);
           } else {
             setValue(newValue);
 
-            props.handleChangeReasonForAbsence(newValue ? newValue.id : '');
+            props.handleChangeStreet(newValue ? newValue.id : '');
           }
         }}
         filterOptions={(options, params) => {
@@ -131,12 +143,12 @@ export default function selectReasonForAbsence(props: Props) {
           const { inputValue } = params;
 
           // Suggest the creation of a new value
-          const isExisting = options.some((option) => inputValue === option.value);
+          const isExisting = options.some((option) => inputValue === option.name);
 
           if (inputValue !== '' && !isExisting) {
             filtered.push({
               id: hasEdit ? value.id : StringEx.id(),
-              value: hasEdit ? `Atualizar "${value.value}" para "${inputValue}"` : `Adicionar "${inputValue}"`,
+              name: hasEdit ? `Atualizar "${value.name}" para "${inputValue}"` : `Adicionar "${inputValue}"`,
               inputValue,
               inputUpdate: hasEdit ? true : false
             });
@@ -148,8 +160,8 @@ export default function selectReasonForAbsence(props: Props) {
         clearOnBlur
         handleHomeEndKeys
         id="free-solo-with-text-demo"
-        options={reasonForAbsences.map(reasonForAbsence => {
-          return { ...reasonForAbsence, inputValue: '', inputUpdate: false }
+        options={streets.map(street => {
+          return { ...street, inputValue: '', inputUpdate: false }
         })}
         getOptionLabel={(option) => {
           // Value selected with enter, right from the input
@@ -161,12 +173,12 @@ export default function selectReasonForAbsence(props: Props) {
             return option.inputValue;
           }
           // Regular option
-          return option.value;
+          return option.name;
         }}
-        renderOption={(props, option) => <li {...props}>{option.value}</li>}
+        renderOption={(props, option) => <li {...props}>{option.name}</li>}
         freeSolo
         renderInput={(params) => (
-          <TextField {...params} label="Motivo da Falta" />
+          <TextField {...params} label="Nome da Rua" />
         )}
       />
       <Button
@@ -190,11 +202,11 @@ export default function selectReasonForAbsence(props: Props) {
         className='col mx-1'
         variant="contained"
         color='error'
-        disabled={hasEdit || !value || !canDeleteReasonForAbsence(value.id)}
+        disabled={hasEdit || !value || !canDeleteStreet(workplaces, 'street', value.id)}
         onClick={() => {
           setValue(null);
-          handleRemoveReasonForAbsence(value.id);
-          props.handleChangeReasonForAbsence('');
+          handleRemoveStreet(value.id);
+          props.handleChangeStreet('');
         }}
       >
         Deletar

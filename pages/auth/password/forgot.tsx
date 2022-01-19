@@ -120,10 +120,11 @@ const Forgot = (): JSX.Element => {
   },
     handleClickChangePassword = async () => {
       if (await authForgotPassword(_fetch, username)) {
-        Alerting.create('Um e-mail será enviado para você em breve.')
+        Alerting.create('info','Um e-mail será enviado para você em breve.')
         setUsername('')
       } else {
         Alerting.create(
+          'error',
           'Não foi possível salvar sua solicitação. Tente novamente, mais tarde!'
         )
       }

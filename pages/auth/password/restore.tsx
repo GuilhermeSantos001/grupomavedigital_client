@@ -1,7 +1,7 @@
 /**
- * @description Pagina para confirmação do e-mail usuario
+ * @description Pagina para confirmação do e-mail usuário
  * @author GuilhermeSantos001
- * @update 21/11/2021
+ * @update 18/01/2022
  */
 
 import React, { useEffect, useState } from 'react'
@@ -103,8 +103,8 @@ const PasswordRestore = ({ token }): JSX.Element => {
   const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
 
   const handleChangeSignature = (e) => {
-      setSignature(e.target.value)
-    },
+    setSignature(e.target.value)
+  },
     handleChangePassword = (e) => {
       setPassword(e.target.value)
     },
@@ -114,17 +114,19 @@ const PasswordRestore = ({ token }): JSX.Element => {
     handleClickChangePassword = async () => {
       const test = checkPassword(password)
 
-      if (typeof test === 'string') return Alerting.create(test)
+      if (typeof test === 'string')
+        return Alerting.create('warning', test)
 
       if (test) {
         if (
           await processOrderForgotPassword(_fetch, signature, token, password)
         ) {
-          Alerting.create('Senha alterada com sucesso!')
+          Alerting.create('info', 'Senha alterada com sucesso!')
           setSignature('')
           setPassword('')
         } else {
           Alerting.create(
+            'error',
             'Não foi possível alterar sua senha. Tente novamente!'
           )
         }

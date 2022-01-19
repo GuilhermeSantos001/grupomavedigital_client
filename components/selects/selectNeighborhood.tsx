@@ -1,7 +1,7 @@
 /**
- * @description Input -> Seleciona um distrito(Estado)
+ * @description Input -> Seleciona um bairro
  * @author GuilhermeSantos001
- * @update 07/01/2022
+ * @update 18/01/2022
  */
 
 import { useState } from 'react';
@@ -9,22 +9,22 @@ import { Autocomplete, TextField, createFilterOptions, Button } from '@mui/mater
 
 import { useAppSelector, useAppDispatch } from '@/app/hooks'
 
-import canDeleteDistrict from '@/src/functions/canDeleteAddressAssociation'
+import canDeleteNeighborhood from '@/src/functions/canDeleteAddressAssociation'
+
+import Alerting from '@/src/utils/alerting'
 import StringEx from '@/src/utils/stringEx'
 
 import {
-  District,
-  appendDistrict,
-  editDistrict,
-  removeDistrict,
+  Neighborhood,
+  SystemActions
 } from '@/app/features/system/system.slice'
 
 export type Props = {
-  district?: FilmOptionType
-  handleChangeDistrict: (id: string) => void
+  neighborhood?: FilmOptionType
+  handleChangeNeighborhood: (id: string) => void
 }
 
-export type FilmOptionType = District & {
+export type FilmOptionType = Neighborhood & {
   inputValue?: string;
   inputUpdate?: boolean;
 }
@@ -32,19 +32,37 @@ export type FilmOptionType = District & {
 const filter = createFilterOptions<FilmOptionType>();
 
 export default function SelectStreet(props: Props) {
-  const [value, setValue] = useState<FilmOptionType | null>(props.district || null);
+  const [value, setValue] = useState<FilmOptionType | null>(props.neighborhood || null);
   const [hasEdit, setHasEdit] = useState<boolean>(false);
   const [editValue, setEditValue] = useState<string>('');
 
   const
-    districts = useAppSelector((state) => state.system.districts || []),
+    neighborhoods = useAppSelector((state) => state.system.neighborhoods || []),
     workplaces = useAppSelector((state) => state.system.workplaces || []);
 
   const
     dispatch = useAppDispatch(),
-    handleAppendDistrict = (district: District) => dispatch(appendDistrict(district)),
-    handleUpdateDistrict = (district: District) => dispatch(editDistrict(district)),
-    handleRemoveDistrict = (id: string) => dispatch(removeDistrict(id));
+    handleAppendNeighborhood = (neighborhood: Neighborhood) => {
+      try {
+        dispatch(SystemActions.CREATE_NEIGHBORHOOD(neighborhood));
+      } catch (error) {
+        Alerting.create('error', error.message);
+      }
+    },
+    handleUpdateNeighborhood = (neighborhood: Neighborhood) => {
+      try {
+        dispatch(SystemActions.UPDATE_NEIGHBORHOOD(neighborhood));
+      } catch (error) {
+        Alerting.create('error', error.message);
+      }
+    },
+    handleRemoveNeighborhood = (id: string) => {
+      try {
+        dispatch(SystemActions.DELETE_NEIGHBORHOOD(id));
+      } catch (error) {
+        Alerting.create('error', error.message);
+      }
+    };
 
   if (!value && hasEdit)
     setHasEdit(false);
@@ -56,7 +74,7 @@ export default function SelectStreet(props: Props) {
         value={value}
         onChange={(event: any, newValue) => {
           if (typeof newValue === 'string') {
-            const value: District = {
+            const value: Neighborhood = {
               id: StringEx.id(),
               name: newValue,
             };
@@ -69,29 +87,29 @@ export default function SelectStreet(props: Props) {
                 String(event.code).toLowerCase() === 'numpadenter'
               ) {
                 if (hasEdit) {
-                  const district = districts.find(district => district.id === editValue);
+                  const neighborhood = neighborhoods.find(neighborhood => neighborhood.id === editValue);
 
-                  if (district) {
-                    const update: District = {
-                      ...district,
+                  if (neighborhood) {
+                    const update: Neighborhood = {
+                      ...neighborhood,
                       name: newValue
                     };
 
                     setValue(update);
 
-                    handleUpdateDistrict(update);
-                    props.handleChangeDistrict(update.id);
+                    handleUpdateNeighborhood(update);
+                    props.handleChangeNeighborhood(update.id);
                   }
                 } else {
-                  if (districts.filter(district => district.name === newValue).length <= 0) {
-                    handleAppendDistrict(value);
-                    props.handleChangeDistrict(value.id);
+                  if (neighborhoods.filter(neighborhood => neighborhood.name === newValue).length <= 0) {
+                    handleAppendNeighborhood(value);
+                    props.handleChangeNeighborhood(value.id);
                   } else {
-                    const district = districts.find(district => district.name === newValue);
+                    const neighborhood = neighborhoods.find(neighborhood => neighborhood.name === newValue);
 
-                    if (district) {
-                      setValue(district);
-                      props.handleChangeDistrict(district.id)
+                    if (neighborhood) {
+                      setValue(neighborhood);
+                      props.handleChangeNeighborhood(neighborhood.id)
                     }
                   }
                 }
@@ -99,24 +117,24 @@ export default function SelectStreet(props: Props) {
             }
           } else if (newValue && newValue.inputValue) {
             // Create a new value from the user input
-            const district: District = {
+            const neighborhood: Neighborhood = {
               id: hasEdit ? value.id : StringEx.id(),
               name: newValue.inputValue,
             };
 
-            setValue(district);
+            setValue(neighborhood);
 
             if (!newValue.inputUpdate) {
-              handleAppendDistrict(district);
+              handleAppendNeighborhood(neighborhood);
             } else {
-              handleUpdateDistrict(district);
+              handleUpdateNeighborhood(neighborhood);
             }
 
-            props.handleChangeDistrict(district.id);
+            props.handleChangeNeighborhood(neighborhood.id);
           } else {
             setValue(newValue);
 
-            props.handleChangeDistrict(newValue ? newValue.id : '');
+            props.handleChangeNeighborhood(newValue ? newValue.id : '');
           }
         }}
         filterOptions={(options, params) => {
@@ -142,8 +160,8 @@ export default function SelectStreet(props: Props) {
         clearOnBlur
         handleHomeEndKeys
         id="free-solo-with-text-demo"
-        options={districts.map(district => {
-          return { ...district, inputValue: '', inputUpdate: false }
+        options={neighborhoods.map(neighborhood => {
+          return { ...neighborhood, inputValue: '', inputUpdate: false }
         })}
         getOptionLabel={(option) => {
           // Value selected with enter, right from the input
@@ -160,7 +178,7 @@ export default function SelectStreet(props: Props) {
         renderOption={(props, option) => <li {...props}>{option.name}</li>}
         freeSolo
         renderInput={(params) => (
-          <TextField {...params} label="Estado" />
+          <TextField {...params} label="Bairro" />
         )}
       />
       <Button
@@ -184,11 +202,11 @@ export default function SelectStreet(props: Props) {
         className='col mx-1'
         variant="contained"
         color='error'
-        disabled={hasEdit || !value || !canDeleteDistrict(workplaces, 'district', value.id)}
+        disabled={hasEdit || !value || !canDeleteNeighborhood(workplaces, 'neighborhood', value.id)}
         onClick={() => {
           setValue(null);
-          handleRemoveDistrict(value.id);
-          props.handleChangeDistrict('');
+          handleRemoveNeighborhood(value.id);
+          props.handleChangeNeighborhood('');
         }}
       >
         Deletar

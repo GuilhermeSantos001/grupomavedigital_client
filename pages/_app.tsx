@@ -15,7 +15,7 @@ import Head from 'next/head'
 import Script from 'next/script'
 
 import Layout from '@/components/Layout'
-import Loading, { LoadingFullWidth } from '@/components/Loading'
+import Loading from '@/components/Loading'
 
 import { ImpulseSpinner } from "react-spinners-kit"
 

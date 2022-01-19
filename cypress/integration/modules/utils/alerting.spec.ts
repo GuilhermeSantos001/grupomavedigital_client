@@ -10,7 +10,7 @@ describe('Testando a utilidade para criação de alertas', () => {
             message = 'Testando o alerta',
             delay = 2500; // Delay padrão
 
-        Alerting.create(message);
+        Alerting.create('question', message);
 
         assert.strictEqual(Alerting.isShowing(), true, 'alerta está sendo exibido');
         assert.equal(Alerting.getMessage(), message, 'alerta está com a mensagem correta');

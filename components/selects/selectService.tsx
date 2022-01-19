@@ -1,10 +1,10 @@
 /**
  * @description Input -> Seleciona um serviço
  * @author GuilhermeSantos001
- * @update 07/01/2022
+ * @update 18/01/2022
  */
 
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import Grid from '@mui/material/Grid';
 import List from '@mui/material/List';
 import Card from '@mui/material/Card';
@@ -25,9 +25,7 @@ import { useAppDispatch, useAppSelector } from '@/app/hooks';
 
 import {
   Service,
-  appendService,
-  editService,
-  removeService,
+  SystemActions
 } from '@/app/features/system/system.slice'
 
 export interface Props {
@@ -50,9 +48,27 @@ export default function SelectService(props: Props) {
   const workplaces = useAppSelector((state) => state.system.workplaces || []);
 
   const
-    handleClickAdd = (item: Service) => dispatch(appendService(item)),
-    handleClickEdit = (item: Service) => dispatch(editService(item)),
-    handleClickDelete = (id: string) => dispatch(removeService(id));
+    handleClickAdd = (item: Service) => {
+      try {
+        dispatch(SystemActions.CREATE_SERVICE(item));
+      } catch (error) {
+        Alerting.create('error', error.message);
+      }
+    },
+    handleClickEdit = (item: Service) => {
+      try {
+        dispatch(SystemActions.UPDATE_SERVICE(item));
+      } catch (error) {
+        Alerting.create('error', error.message);
+      }
+    },
+    handleClickDelete = (id: string) => {
+      try {
+        dispatch(SystemActions.DELETE_SERVICE(id));
+      } catch (error) {
+        Alerting.create('error', error.message);
+      }
+    };
 
   const leftChecked = ArrayEx.intersection(checked, left);
   const rightChecked = ArrayEx.intersection(checked, right);
@@ -217,7 +233,7 @@ export default function SelectService(props: Props) {
               setNewService('');
               setLeft([...left, newService]);
             } else {
-              Alerting.create('O serviço já existe');
+              Alerting.create('warning', 'O serviço já existe');
             }
           }
         }}
@@ -236,7 +252,7 @@ export default function SelectService(props: Props) {
             setTextUpdateService(leftChecked[0]);
           } else {
             if (services.filter(service => service.value === textUpdateService && service.id !== idUpdateService).length > 0)
-              return Alerting.create('Já existe um serviço com esse nome.');
+              return Alerting.create('warning', 'Já existe um serviço com esse nome.');
 
             const updateService = {
               ...services.find(service => service.id === idUpdateService),
@@ -245,7 +261,7 @@ export default function SelectService(props: Props) {
 
             setLeft([...left.map(service => {
               if (service === leftChecked[0])
-              service = textUpdateService;
+                service = textUpdateService;
 
               return service;
             })]);

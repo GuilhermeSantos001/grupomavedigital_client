@@ -2,7 +2,7 @@
 /**
  * @description DropZone usado para arrastar arquivos/pastas para upload
  * @author GuilhermeSantos001
- * @update 11/10/2022
+ * @update 18/01/2022
  */
 
 import React from 'react'
@@ -18,7 +18,6 @@ import singleUpload, { File as IUploadFile } from '@/src/functions/singleUpload'
 import multipleUpload from '@/src/functions/multipleUpload'
 
 import Alerting from '@/src/utils/alerting'
-import StringEx from '@/src/utils/stringEx'
 import Fetch from '@/src/utils/fetch'
 
 declare function callbackAfterUpload(files: IUploadFile | IUploadFile[]): void
@@ -485,6 +484,7 @@ export default class DropZone extends React.Component<MyProps, MyState> {
   ) {
     if (alertType == 'ext') {
       Alerting.create(
+        'error',
         `Extensão do arquivo não é aceita. Extensões aceitas: ${this.props.ext.join(
           ', '
         )}`,
@@ -492,19 +492,20 @@ export default class DropZone extends React.Component<MyProps, MyState> {
       )
     } else if (alertType == 'maxSize') {
       Alerting.create(
+        'error',
         'Seu arquivo irá exceder o limite máximo permitido.',
         3600
       )
     } else if (alertType == 'duplicate') {
       if (duplicateNames.length <= 5) {
         duplicateNames.forEach((name) =>
-          Alerting.create(`Arquivo "${name}" já está na lista.`)
+          Alerting.create('error',`Arquivo "${name}" já está na lista.`)
         )
       } else {
-        Alerting.create(`Varios arquivos informados já estão na lista.`)
+        Alerting.create('error',`Varios arquivos informados já estão na lista.`)
       }
     } else if (alertType == 'exceedLimit') {
-      Alerting.create(`Você atingiu o limite máximo de ${this.props.limit} arquivo(s) para upload por vêz.`)
+      Alerting.create('error',`Você atingiu o limite máximo de ${this.props.limit} arquivo(s) para upload por vêz.`)
     }
 
     this.setState({

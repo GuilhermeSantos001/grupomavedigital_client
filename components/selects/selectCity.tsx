@@ -1,7 +1,7 @@
 /**
- * @description Input -> Seleciona uma rua
+ * @description Input -> Seleciona uma cidade
  * @author GuilhermeSantos001
- * @update 07/01/2022
+ * @update 18/02/2022
  */
 
 import { useState } from 'react';
@@ -9,22 +9,22 @@ import { Autocomplete, TextField, createFilterOptions, Button } from '@mui/mater
 
 import { useAppSelector, useAppDispatch } from '@/app/hooks'
 
-import canDeleteStreet from '@/src/functions/canDeleteAddressAssociation'
+import canDeleteCity from '@/src/functions/canDeleteAddressAssociation'
+
+import Alerting from '@/src/utils/alerting'
 import StringEx from '@/src/utils/stringEx'
 
 import {
-  Street,
-  appendStreet,
-  editStreet,
-  removeStreet,
+  City,
+  SystemActions
 } from '@/app/features/system/system.slice'
 
 export type Props = {
-  street?: FilmOptionType
-  handleChangeStreet: (id: string) => void
+  city?: FilmOptionType
+  handleChangeCity: (id: string) => void
 }
 
-export type FilmOptionType = Street & {
+export type FilmOptionType = City & {
   inputValue?: string;
   inputUpdate?: boolean;
 }
@@ -32,19 +32,36 @@ export type FilmOptionType = Street & {
 const filter = createFilterOptions<FilmOptionType>();
 
 export default function SelectStreet(props: Props) {
-  const [value, setValue] = useState<FilmOptionType | null>(props.street || null);
+  const [value, setValue] = useState<FilmOptionType | null>(props.city || null);
   const [hasEdit, setHasEdit] = useState<boolean>(false);
   const [editValue, setEditValue] = useState<string>('');
 
   const
-    streets = useAppSelector((state) => state.system.streets || []),
+    cities = useAppSelector(state => state.system.cities),
     workplaces = useAppSelector((state) => state.system.workplaces || []);
 
-  const
-    dispatch = useAppDispatch(),
-    handleAppendStreet = (street: Street) => dispatch(appendStreet(street)),
-    handleUpdateStreet = (street: Street) => dispatch(editStreet(street)),
-    handleRemoveStreet = (id: string) => dispatch(removeStreet(id));
+  const dispatch = useAppDispatch(),
+    handleAppendCity = (city: City) => {
+      try {
+        dispatch(SystemActions.CREATE_CITY(city));
+      } catch (error) {
+        Alerting.create('error', error.message);
+      }
+    },
+    handleUpdateCity = (city: City) => {
+      try {
+        dispatch(SystemActions.UPDATE_CITY(city));
+      } catch (error) {
+        Alerting.create('error', error.message);
+      }
+    },
+    handleRemoveCity = (id: string) => {
+      try {
+        dispatch(SystemActions.DELETE_CITY(id));
+      } catch (error) {
+        Alerting.create('error', error.message);
+      }
+    };
 
   if (!value && hasEdit)
     setHasEdit(false);
@@ -56,7 +73,7 @@ export default function SelectStreet(props: Props) {
         value={value}
         onChange={(event: any, newValue) => {
           if (typeof newValue === 'string') {
-            const value: Street = {
+            const value: City = {
               id: StringEx.id(),
               name: newValue,
             };
@@ -69,29 +86,29 @@ export default function SelectStreet(props: Props) {
                 String(event.code).toLowerCase() === 'numpadenter'
               ) {
                 if (hasEdit) {
-                  const street = streets.find(street => street.id === editValue);
+                  const city = cities.find(city => city.id === editValue);
 
-                  if (street) {
-                    const update: Street = {
-                      ...street,
+                  if (city) {
+                    const update: City = {
+                      ...city,
                       name: newValue
                     };
 
                     setValue(update);
+                    handleUpdateCity(update);
 
-                    handleUpdateStreet(update);
-                    props.handleChangeStreet(update.id);
+                    props.handleChangeCity(update.id);
                   }
                 } else {
-                  if (streets.filter(street => street.name === newValue).length <= 0) {
-                    handleAppendStreet(value);
-                    props.handleChangeStreet(value.id);
+                  if (cities.filter(city => city.name === newValue).length <= 0) {
+                    handleAppendCity(value);
+                    props.handleChangeCity(value.id);
                   } else {
-                    const street = streets.find(street => street.name === newValue);
+                    const city = cities.find(city => city.name === newValue);
 
-                    if (street) {
-                      setValue(street);
-                      props.handleChangeStreet(street.id)
+                    if (city) {
+                      setValue(city);
+                      props.handleChangeCity(city.id)
                     }
                   }
                 }
@@ -99,24 +116,24 @@ export default function SelectStreet(props: Props) {
             }
           } else if (newValue && newValue.inputValue) {
             // Create a new value from the user input
-            const street: Street = {
+            const city: City = {
               id: hasEdit ? value.id : StringEx.id(),
               name: newValue.inputValue,
             };
 
-            setValue(street);
+            setValue(city);
 
             if (!newValue.inputUpdate) {
-              handleAppendStreet(street);
+              handleAppendCity(city);
             } else {
-              handleUpdateStreet(street);
+              handleUpdateCity(city);
             }
 
-            props.handleChangeStreet(street.id);
+            props.handleChangeCity(city.id);
           } else {
             setValue(newValue);
 
-            props.handleChangeStreet(newValue ? newValue.id : '');
+            props.handleChangeCity(newValue ? newValue.id : '');
           }
         }}
         filterOptions={(options, params) => {
@@ -142,8 +159,8 @@ export default function SelectStreet(props: Props) {
         clearOnBlur
         handleHomeEndKeys
         id="free-solo-with-text-demo"
-        options={streets.map(street => {
-          return { ...street, inputValue: '', inputUpdate: false }
+        options={cities.map(city => {
+          return { ...city, inputValue: '', inputUpdate: false }
         })}
         getOptionLabel={(option) => {
           // Value selected with enter, right from the input
@@ -160,7 +177,7 @@ export default function SelectStreet(props: Props) {
         renderOption={(props, option) => <li {...props}>{option.name}</li>}
         freeSolo
         renderInput={(params) => (
-          <TextField {...params} label="Nome da Rua" />
+          <TextField {...params} label="Cidade" />
         )}
       />
       <Button
@@ -184,11 +201,11 @@ export default function SelectStreet(props: Props) {
         className='col mx-1'
         variant="contained"
         color='error'
-        disabled={hasEdit || !value || !canDeleteStreet(workplaces, 'street', value.id)}
+        disabled={hasEdit || !value || !canDeleteCity(workplaces, 'city', value.id)}
         onClick={() => {
           setValue(null);
-          handleRemoveStreet(value.id);
-          props.handleChangeStreet('');
+          handleRemoveCity(value.id);
+          props.handleChangeCity('');
         }}
       >
         Deletar

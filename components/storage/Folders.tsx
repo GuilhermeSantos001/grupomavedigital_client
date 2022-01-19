@@ -994,7 +994,7 @@ export default class Folders extends React.Component<MyProps, MyStates> {
     if (!this.props.socket.hasListeners(eventError))
       this.props.socket.on(eventError, (room: string[], error) => {
         if (this.inRoom(room)) {
-          Alerting.create(error);
+          Alerting.create('error',error);
           this.setState({ description: this.getTmp('description') });
         }
       })
@@ -1027,7 +1027,7 @@ export default class Folders extends React.Component<MyProps, MyStates> {
     if (!this.props.socket.hasListeners(eventError))
       this.props.socket.on(eventError, (room: string[], error) => {
         if (this.inRoom(room)) {
-          Alerting.create(error);
+          Alerting.create('error',error);
           this.setState({ name: this.getTmp('name') });
         }
       })
@@ -1060,7 +1060,7 @@ export default class Folders extends React.Component<MyProps, MyStates> {
     if (!this.props.socket.hasListeners(eventError))
       this.props.socket.on(eventError, (room: string[], error) => {
         if (this.inRoom(room)) {
-          Alerting.create(error);
+          Alerting.create('error',error);
           this.setState({ tag: this.getTmp('tag') });
         }
       })
@@ -1093,7 +1093,7 @@ export default class Folders extends React.Component<MyProps, MyStates> {
     if (!this.props.socket.hasListeners(eventError))
       this.props.socket.on(eventError, (room: string[], error) => {
         if (this.inRoom(room)) {
-          Alerting.create(error);
+          Alerting.create('error',error);
           this.setState({ type: this.getTmp('type') });
         }
       })
@@ -1120,7 +1120,7 @@ export default class Folders extends React.Component<MyProps, MyStates> {
         data: string
       ) => {
         if (this.inRoom(room) && cid === this.props.cid) {
-          Alerting.create(`Pastas/Arquivos movidos para a pasta: ${this.state.name}`);
+          Alerting.create('info',`Pastas/Arquivos movidos para a pasta: ${this.state.name}`);
 
           const itemsForAppend = JSON.parse(decompressFromEncodedURIComponent(data));
 
@@ -1132,7 +1132,7 @@ export default class Folders extends React.Component<MyProps, MyStates> {
     if (!this.props.socket.hasListeners(eventError))
       this.props.socket.on(eventError, (room: string[], error) => {
         if (this.inRoom(room))
-          Alerting.create(error);
+          Alerting.create('error',error);
       })
   }
 
@@ -1157,7 +1157,7 @@ export default class Folders extends React.Component<MyProps, MyStates> {
         data: string
       ) => {
         if (this.inRoom(room) && cid === this.props.cid) {
-          Alerting.create(`Pastas/Arquivos retirados da pasta: ${this.state.name}`);
+          Alerting.create('info',`Pastas/Arquivos retirados da pasta: ${this.state.name}`);
 
           const itemsForSplice = JSON.parse(decompressFromEncodedURIComponent(data));
 
@@ -1169,7 +1169,7 @@ export default class Folders extends React.Component<MyProps, MyStates> {
     if (!this.props.socket.hasListeners(eventError))
       this.props.socket.on(eventError, (room: string[], error) => {
         if (this.inRoom(room))
-          Alerting.create(error);
+          Alerting.create('error',error);
       })
   }
 

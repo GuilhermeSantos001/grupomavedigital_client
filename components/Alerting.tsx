@@ -1,7 +1,7 @@
 /**
  * @description Componente para exibição dos alertas
  * @author GuilhermeSantos001
- * @update 22/10/2021
+ * @update 18/01/2022
  */
 
 import { useState, useEffect } from 'react'
@@ -23,17 +23,33 @@ const Alerting = (): JSX.Element => {
   }
 
   useEffect(() => {
-    setInterval(() => {
+    const interval = setInterval(() => {
       if (alerting.isShowing()) {
         setMessage(alerting.getMessage())
         setShow(true)
-      }
-
-      if (!alerting.isShowing()) {
+      } else {
         setShow(false)
       }
-    })
+    });
+
+    return () => clearInterval(interval);
   }, [])
+
+  const icon = () => {
+    switch (alerting.getType()) {
+      case 'success':
+        return Icon.render('fas', 'check-circle')
+      case 'warning':
+        return Icon.render('fas', 'exclamation-triangle')
+      case 'error':
+        return Icon.render('fas', 'times')
+      case 'info':
+        return Icon.render('fas', 'info-circle')
+      case 'question':
+      default:
+        return Icon.render('fas', 'question-circle')
+    }
+  }
 
   return (
     <Toast show={show} onClose={toggleShow} className='col-12 fixed-bottom m-2' style={{ left: 'auto', right: 0, zIndex: 9999 }}>
@@ -42,7 +58,7 @@ const Alerting = (): JSX.Element => {
         closeVariant="white"
       >
         <FontAwesomeIcon
-          icon={Icon.render('fas', 'exclamation-circle')}
+          icon={icon()}
           className="flex-shrink-1 my-auto me-2 text-secondary"
         />
         <strong className="me-auto">Alerta</strong>

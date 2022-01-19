@@ -1,7 +1,7 @@
 /**
  * @description Input -> Seleção de Data
  * @author GuilhermeSantos001
- * @update 30/12/2021
+ * @update 13/01/2022
  */
 
 import { ThemeProvider } from '@mui/material/styles';
@@ -17,6 +17,9 @@ export type Props = {
   label: string
   value: Date
   className: string
+  maxDate: Date
+  minDate: Date
+  disabled?: boolean
   handleChangeValue: (value: Date) => void
 }
 
@@ -30,6 +33,9 @@ const DatePicker = (props: Props): JSX.Element => {
       <MobileDatePicker
         label={props.label}
         value={props.value}
+        maxDate={props.maxDate}
+        minDate={props.minDate}
+        disabled={props.disabled !== undefined ? props.disabled : false}
         onChange={(newValue) => props.handleChangeValue(newValue)}
         renderInput={(params) => <TextField className={props.className} {...params} />}
       />

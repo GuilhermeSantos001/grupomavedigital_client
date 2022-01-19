@@ -1,7 +1,7 @@
 /**
  * @description Gestor online de documentos -> Pagina Inicial
  * @author GuilhermeSantos001
- * @update 16/12/2021
+ * @update 18/01/2022
  */
 
 import React, { useEffect, useState } from 'react'
@@ -220,7 +220,7 @@ function render_folder(active: boolean, title: string, url: string, handleClickF
         if (active)
           return handleClickFolder(e, url);
 
-        Alerting.create('Você não tem permissão para acessar esta pasta.');
+        Alerting.create('error', 'Você não tem permissão para acessar esta pasta.');
       }}
       disabled={active ? false : true}
     >

@@ -1,15 +1,11 @@
 /**
  * @description Componentes de layout
  * @author GuilhermeSantos001
- * @update 13/01/2022
+ * @update 17/01/2022
  */
 
 import React from 'react'
 
-import { SnackbarProvider } from 'notistack';
-
-import Alerting from '@/components/Alerting'
-import WindowSuperAdmin from '@/components/WindowSuperAdmin'
 import Navbar from '@/components/Navbar'
 import GridContent from '@/components/GridContent'
 
@@ -39,24 +35,20 @@ class Layout extends React.Component<MyProps, myStates> {
   }
 
   render() {
-    return (
-      <SnackbarProvider maxSnack={3}>
-        <Alerting />
-        <WindowSuperAdmin />
-        <Navbar
-          menuShow={this.state.menuShow}
-          setMenuShow={this.handleMenuShowClick}
-          fullwidth={this.props.fullwidth}
-        />
-        <GridContent
-          menuShow={this.state.menuShow}
-          menu={this.props.menu}
-          fullwidth={this.props.fullwidth}
-        >
-          {this.props.children}
-        </GridContent>
-      </SnackbarProvider>
-    )
+    return <>
+      <Navbar
+        menuShow={this.state.menuShow}
+        setMenuShow={this.handleMenuShowClick}
+        fullwidth={this.props.fullwidth}
+      />
+      <GridContent
+        menuShow={this.state.menuShow}
+        menu={this.props.menu}
+        fullwidth={this.props.fullwidth}
+      >
+        {this.props.children}
+      </GridContent>
+    </>
   }
 }
 

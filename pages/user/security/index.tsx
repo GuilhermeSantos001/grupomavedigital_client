@@ -1,7 +1,7 @@
 /**
  * @description Pagina usada para alterar as informações de segurança do usuario
  * @author GuilhermeSantos001
- * @update 16/12/2021
+ * @update 18/01/2022
  */
 
 import React, { useEffect, useState } from 'react'
@@ -700,7 +700,8 @@ const Security = (): JSX.Element => {
     handleClickChangePassword = async () => {
       const test = checkPassword(newPassword)
 
-      if (typeof test === 'string') return Alerting.create(test)
+      if (typeof test === 'string')
+        return Alerting.create('warning', test)
 
       if (test) {
         const { success, updatedToken } = await changePassword(_fetch, password, newPassword);
@@ -709,11 +710,12 @@ const Security = (): JSX.Element => {
           await saveUpdatedToken(updatedToken.signature, updatedToken.token);
 
         if (success) {
-          Alerting.create('Senha alterada com sucesso!')
+          Alerting.create('info','Senha alterada com sucesso!')
           setPassword('')
           setNewPassword('')
         } else {
           Alerting.create(
+            'error',
             'Não foi possível alterar sua senha. Tente novamente!'
           )
         }
@@ -747,16 +749,17 @@ const Security = (): JSX.Element => {
           await saveUpdatedToken(updatedToken2.signature, updatedToken2.token);
 
         if (success2) {
-          Alerting.create('Sua autenticação de duas etapas está habilitada.')
+          Alerting.create('info','Sua autenticação de duas etapas está habilitada.')
           handleTriggerTwoFactorModal(false)
           setTwofactor(true)
         } else {
           Alerting.create(
+            'error',
             'Não foi possível habilitar sua autenticação de duas etapas. Tente novamente!'
           )
         }
       } else {
-        Alerting.create('Código invalido. Tente novamente!')
+        Alerting.create('error','Código invalido. Tente novamente!')
       }
     },
     handleClickTwoFactorDisable = async () => {
@@ -766,10 +769,11 @@ const Security = (): JSX.Element => {
         await saveUpdatedToken(updatedToken.signature, updatedToken.token);
 
       if (success) {
-        Alerting.create('Sua autenticação de duas etapas foi desabilitada.')
+        Alerting.create('info','Sua autenticação de duas etapas foi desabilitada.')
         setTwofactor(false)
       } else {
         Alerting.create(
+          'error',
           'Não foi possível desativar sua autenticação de duas etapas. Tente novamente!'
         )
       }

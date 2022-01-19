@@ -1,7 +1,7 @@
 /**
  * @description Input -> Seleciona uma escala de trabalho
  * @author GuilhermeSantos001
- * @update 07/01/2022
+ * @update 18/01/2022
  */
 
 import { useState } from 'react';
@@ -9,13 +9,12 @@ import { Autocomplete, TextField, createFilterOptions, Button } from '@mui/mater
 
 import { useAppSelector, useAppDispatch } from '@/app/hooks'
 
+import Alerting from '@/src/utils/alerting'
 import StringEx from '@/src/utils/stringEx'
 
 import {
   Scale,
-  appendScale,
-  editScale,
-  removeScale,
+  SystemActions,
 } from '@/app/features/system/system.slice'
 
 export type Props = {
@@ -42,9 +41,27 @@ export default function SelectScale(props: Props) {
 
   const
     dispatch = useAppDispatch(),
-    handleAppendScale = (scale: Scale) => dispatch(appendScale(scale)),
-    handleUpdateScale = (scale: Scale) => dispatch(editScale(scale)),
-    handleRemoveScale = (id: string) => dispatch(removeScale(id));
+    handleAppendScale = (scale: Scale) => {
+      try {
+        dispatch(SystemActions.CREATE_SCALE(scale));
+      } catch (error) {
+        Alerting.create('error', error.message);
+      }
+    },
+    handleUpdateScale = (scale: Scale) => {
+      try {
+        dispatch(SystemActions.UPDATE_SCALE(scale));
+      } catch (error) {
+        Alerting.create('error', error.message);
+      }
+    },
+    handleRemoveScale = (id: string) => {
+      try {
+        dispatch(SystemActions.DELETE_SCALE(id));
+      } catch (error) {
+        Alerting.create('error', error.message);
+      }
+    };
 
   const canDeleteScale = (itemId: string) => {
     const

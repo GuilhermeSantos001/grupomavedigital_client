@@ -1,7 +1,7 @@
 /**
  * @description Modal -> Modal de Cadastro de local de trabalho
  * @author GuilhermeSantos001
- * @update 10/01/2022
+ * @update 18/01/2022
  */
 
 import React, { useState } from 'react';
@@ -19,13 +19,13 @@ import CloseIcon from '@mui/icons-material/Close';
 import Slide from '@mui/material/Slide';
 import { TransitionProps } from '@mui/material/transitions';
 
-import MobileTimePicker from '@/components/inputs/mobileTimePicker'
-import SelectScale from '@/components/inputs/selectScale'
-import SelectService from '@/components/inputs/selectService'
-import SelectStreet from '@/components/inputs/selectStreet'
-import SelectNeighborhood from '@/components/inputs/selectNeighborhood'
-import SelectCity from '@/components/inputs/selectCity'
-import SelectDistrict from '@/components/inputs/selectDistrict'
+import MobileTimePicker from '@/components/selects/mobileTimePicker'
+import SelectScale from '@/components/selects/selectScale'
+import SelectService from '@/components/selects/selectService'
+import SelectStreet from '@/components/selects/selectStreet'
+import SelectNeighborhood from '@/components/selects/selectNeighborhood'
+import SelectCity from '@/components/selects/selectCity'
+import SelectDistrict from '@/components/selects/selectDistrict'
 
 import StringEx from '@/src/utils/stringEx'
 import Alerting from '@/src/utils/alerting'
@@ -34,7 +34,7 @@ import { useAppDispatch, useAppSelector } from '@/app/hooks';
 
 import {
   Workplace,
-  appendWorkplace,
+  SystemActions
 } from '@/app/features/system/system.slice'
 
 export interface Props {
@@ -67,7 +67,6 @@ export default function RegisterWorkplace(props: Props) {
 
   const
     dispatch = useAppDispatch(),
-    workplaces = useAppSelector(state => state.system.workplaces || []),
     services = useAppSelector((state) => state.system.services || []),
     scales = useAppSelector((state) => state.system.scales || []),
     streets = useAppSelector((state) => state.system.streets || []),
@@ -136,12 +135,14 @@ export default function RegisterWorkplace(props: Props) {
       },
     }
 
-    if (workplaces.find(_workplace => _workplace.name === name && _workplace.scale === scale))
-      return Alerting.create('Já existe um local de trabalho com esse nome e escala.');
+    try {
+      dispatch(SystemActions.CREATE_WORKPLACE(workplace));
 
-    dispatch(appendWorkplace(workplace));
-    handleResetInputs();
-    props.handleClose();
+      handleResetInputs();
+      props.handleClose();
+    } catch(error) {
+      Alerting.create('error', error.message);
+    }
   }
 
   return (
@@ -263,7 +264,7 @@ export default function RegisterWorkplace(props: Props) {
               label="Número"
               variant="standard"
               value={StringEx.maskHouseNumber(String(numberHome).padStart(4, '0'))}
-              onChange={(e) => handleChangeNumberHome(parseInt(e.target.value))}
+              onChange={(e) => handleChangeNumberHome(parseInt(StringEx.removeMaskNum(e.target.value)))}
             />
           </ListItem>
           <ListItem>
@@ -282,7 +283,7 @@ export default function RegisterWorkplace(props: Props) {
               label="CEP"
               variant="standard"
               value={StringEx.maskZipcode(String(zipCode).padStart(8, '0'))}
-              onChange={(e) => handleChangeZipCode(parseInt(e.target.value))}
+              onChange={(e) => handleChangeZipCode(parseInt(StringEx.removeMaskNum(e.target.value)))}
             />
           </ListItem>
         </List>

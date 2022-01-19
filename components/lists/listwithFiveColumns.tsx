@@ -73,7 +73,8 @@ const ListwithFiveColumns = (props: Props): JSX.Element => {
       setAllSelected(false);
     },
     actionMenu = (
-      <div className={`card w-50 bg-light-gray shadow rounded fixed-top my-2 mx-auto fade-effect ${selected.length > 0 ? 'active' : 'deactivate'}`}>
+      // TODO: Criar componente de janela de ação, deve ser adicionado na camada de loading
+      <div className={`card w-50 bg-light-gray shadow rounded my-2 mx-auto fixed-top fade-effect ${selected.length > 0 ? 'active' : 'deactivate'}`}>
         <div className="card-body p-0">
           <p className='bg-primary bg-gradient fw-bold fs-3 text-secondary text-center border-bottom p-2'>
             Ações
