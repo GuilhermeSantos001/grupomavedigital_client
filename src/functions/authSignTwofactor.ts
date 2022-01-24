@@ -62,7 +62,7 @@ const authSignTwofactor = async (_fetch: Fetch): Promise<AuthSignTwofactorRespon
     } = req
 
   if (errors)
-    throw new TypeError("Não foi possível retornar o QRCode");
+    throw new Error("Não foi possível retornar o QRCode");
 
   return data.response;
 }

@@ -1,7 +1,7 @@
 /**
  * @description Componentes do menu de ações do GED
  * @author GuilhermeSantos001
- * @update 08/12/2021
+ * @update 24/01/2022
  */
 
 import React from 'react'
@@ -43,7 +43,7 @@ export default class MenuAction extends React.Component<MyProps, MyStates> {
     static contextType = HerculesContext
     declare context: React.ContextType<typeof HerculesContext>
 
-    constructor(props) {
+    constructor(props: MyProps) {
         super(props)
 
         this.state = {
@@ -68,9 +68,9 @@ export default class MenuAction extends React.Component<MyProps, MyStates> {
     }
 
     getOptions(type: Type, except: (keyof IOptionsAll)[] = ['share', 'delete', 'protect']) {
-        const keys: any = Object.keys(this.state.options[type]).filter((key: any) => !except.includes(key));
+        const keys = Object.keys(this.state.options[type]).filter((key: any) => !except.includes(key));
 
-        return keys.map((key) => {
+        return keys.map((key: any) => {
             const name = this.getOptionName(key);
 
             return <Dropdown.Item key={`actionOption-${name}`} className='d-flex flex-row justify-content-center align-items-center text-white'>

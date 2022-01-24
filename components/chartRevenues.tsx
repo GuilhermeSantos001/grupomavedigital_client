@@ -1,7 +1,7 @@
 /**
  * @description Componente do painel de "Faturamento"
  * @author GuilhermeSantos001
- * @update 18/01/2022
+ * @update 24/01/2022
  */
 
 import React from 'react'
@@ -72,7 +72,7 @@ type optionFilters =
   | 'Por período, todas as empresas e todos os clientes'
 
 export default class ChartRevenues extends React.Component<MyProps, MyState> {
-  constructor(props) {
+  constructor(props: MyProps) {
     super(props)
 
     const optionsFilters: optionFilters[] = [
@@ -95,22 +95,27 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
           </option>
         )
       }),
-      optionsClients: undefined,
+      optionsClients: [],
       selectedFilter: 'Por empresa e cliente',
       selectedBranch: 'Selecionar',
       selectedClient: 'Selecionar',
       selectedClientStore: 'Selecionar',
       renderInfoIsReady: false,
       processInfo: false,
-      amount_sales: undefined,
-      total_sales: undefined,
-      chartData_loading: undefined,
-      chartData_filial: undefined,
-      chartData_client: undefined,
-      chartData_clientStore: undefined,
-      chartData_date: undefined,
-      chartDataset_monthlyValueLoading: undefined,
-      chartDataset_monthlyValue: undefined,
+      amount_sales: <></>,
+      total_sales: <></>,
+      chartData_loading: false,
+      chartData_filial: "",
+      chartData_client: "",
+      chartData_clientStore: "",
+      chartData_date: "",
+      chartDataset_monthlyValueLoading: false,
+      chartDataset_monthlyValue: {
+        dataset: {
+          data: { datasets: [], labels: [] },
+          options: {}
+        }
+      },
     }
   }
 
@@ -183,10 +188,10 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
         </option>
       )
     }),
-      handleFocusOrBlurInput = (status) => {
+      handleFocusOrBlurInput = (status: boolean) => {
         this.setState({ userFocusInput: status })
       },
-      handleChangePeriodStart = (e) => {
+      handleChangePeriodStart = (e: React.ChangeEvent<HTMLInputElement>) => {
         this.setState({
           period: [e.target.value, this.state.period[1]],
         })
@@ -202,7 +207,7 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
             processInfo: false,
           })
       },
-      handleChangePeriodEnd = (e) => {
+      handleChangePeriodEnd = (e: React.ChangeEvent<HTMLInputElement>) => {
         this.setState({
           period: [this.state.period[0], e.target.value],
         })
@@ -218,7 +223,7 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
             processInfo: false,
           })
       },
-      handleSelectOptionFilters = async (e) => {
+      handleSelectOptionFilters = async (e: React.ChangeEvent<HTMLSelectElement>) => {
         if (
           this.state.processInfo &&
           this.state.selectedFilter !== e.target.value
@@ -227,9 +232,11 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
             processInfo: false,
           })
 
-        this.setState({ selectedFilter: e.target.value })
+        const value: any = e.target.value;
+
+        this.setState({ selectedFilter: value })
       },
-      handleSelectOptionBranch = async (e) => {
+      handleSelectOptionBranch = async (e: React.ChangeEvent<HTMLSelectElement>) => {
         const value = e.target.value
 
         if (value !== 'Selecionar') {
@@ -266,7 +273,7 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
             processInfo: false,
           })
       },
-      handleSelectOptionClient = (e) => {
+      handleSelectOptionClient = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const value: string = e.target.value
 
         let selectedClient = 'Selecionar',
@@ -304,7 +311,7 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
               id="select-filter"
               className="form-select"
               aria-label="Floating label select example"
-              onChange={handleSelectOptionFilters}
+              onChange={(e) => handleSelectOptionFilters(e)}
               disabled={this.state.chartData_loading}
               value={this.state.selectedFilter}
             >
@@ -321,7 +328,7 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
               className="form-control"
               aria-label="Selecione o período inicial"
               aria-describedby="date-addon"
-              onChange={handleChangePeriodStart}
+              onChange={(e) => handleChangePeriodStart(e)}
               onFocus={() => handleFocusOrBlurInput(true)}
               onBlur={() => handleFocusOrBlurInput(false)}
               value={this.state.period[0]}
@@ -343,7 +350,7 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
               className="form-control"
               aria-label="Selecione o período final"
               aria-describedby="date-addon"
-              onChange={handleChangePeriodEnd}
+              onChange={(e) => handleChangePeriodEnd(e)}
               onFocus={() => handleFocusOrBlurInput(true)}
               onBlur={() => handleFocusOrBlurInput(false)}
               value={this.state.period[1]}
@@ -358,7 +365,7 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
               id="select-filial"
               className="form-select"
               aria-label="Selecione a filial"
-              onChange={handleSelectOptionBranch}
+              onChange={(e) => handleSelectOptionBranch(e)}
               disabled={this.state.chartData_loading}
               value={this.state.selectedBranch}
             >
@@ -372,7 +379,7 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
               id="select-client"
               className="form-select"
               aria-label="Selecione o cliente"
-              onChange={handleSelectOptionClient}
+              onChange={(e) => handleSelectOptionClient(e)}
               disabled={
                 this.state.chartData_loading ||
                 this.state.selectedBranch === 'Selecionar'

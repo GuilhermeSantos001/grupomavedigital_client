@@ -1,7 +1,7 @@
 /**
  * @description Payback -> Cartões Beneficio (Alelo) -> Cadastro
  * @author GuilhermeSantos001
- * @update 18/01/2022
+ * @update 21/01/2022
  */
 
 import { useEffect, useState } from 'react'
@@ -13,7 +13,6 @@ import SkeletonLoader from 'tiny-skeleton-loader-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
 
-import RenderPageError from '@/components/renderPageError'
 import NoPrivilege from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
 import SelectCostCenter from '@/components/selects/selectCostCenter'
@@ -21,9 +20,7 @@ import SelectCostCenter from '@/components/selects/selectCostCenter'
 import { PageProps } from '@/pages/_app'
 import PageMenu from '@/bin/main_menu'
 
-import Fetch from '@/src/utils/fetch'
 import Variables from '@/src/db/variables'
-import { tokenValidate } from '@/src/functions/tokenValidate'
 import hasPrivilege from '@/src/functions/hasPrivilege'
 import Alerting from '@/src/utils/alerting'
 import StringEx from '@/src/utils/stringEx'
@@ -278,10 +275,6 @@ function compose_load() {
   )
 }
 
-function compose_error(handleClick) {
-  return <RenderPageError handleClick={handleClick} />
-}
-
 function compose_noPrivilege(handleClick) {
   return <NoPrivilege handleClick={handleClick} />
 }
@@ -480,7 +473,6 @@ function compose_ready(
 
 export default function CardsRegister() {
   const [isReady, setReady] = useState<boolean>(false)
-  const [isError, setError] = useState<boolean>(false)
   const [notPrivilege, setNotPrivilege] = useState<boolean>(false)
   const [notAuth, setNotAuth] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(true)
@@ -496,7 +488,6 @@ export default function CardsRegister() {
     lotItems = useAppSelector((state) => state.payback.lotItems || [])
 
   const router = useRouter()
-  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
 
   const
     handleClickNoAuth = async (e, path) => {
@@ -537,31 +528,23 @@ export default function CardsRegister() {
     };
 
   useEffect(() => {
-    const timer = setTimeout(async () => {
-      const isAllowViewPage = await tokenValidate(_fetch)
-
-      if (!isAllowViewPage) {
-        setNotAuth(true)
-        setLoading(false)
-      } else {
-        try {
-          if (!(await hasPrivilege('administrador', 'fin_gerente', 'fin_assistente'))) setNotPrivilege(true)
-
-          setReady(true)
-          return setLoading(false)
-        } catch {
-          setError(true)
-          return setLoading(false)
+    hasPrivilege('administrador', 'fin_gerente', 'fin_assistente')
+      .then((isAllowViewPage) => {
+        if (isAllowViewPage) {
+          setReady(true);
+        } else {
+          setNotPrivilege(true);
         }
-      }
-    })
 
-    return () => clearTimeout(timer)
+        return setLoading(false);
+      })
+      .catch(() => {
+        setNotAuth(true);
+        return setLoading(false)
+      });
   }, [])
 
   if (loading) return compose_load()
-
-  if (isError) return compose_error(handleClickNoAuth)
 
   if (notPrivilege) return compose_noPrivilege(handleClickNoPrivilege)
 

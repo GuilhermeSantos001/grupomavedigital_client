@@ -59,7 +59,7 @@ const getBillsType = async (_fetch: Fetch, cache: boolean): Promise<BillsType[]>
 
   if (errors) {
     console.error(errors);
-    throw new TypeError('Não foi possível retornar as informações dos tipos de titulos.')
+    throw new Error('Não foi possível retornar as informações dos tipos de titulos.')
   }
 
   return data.response;

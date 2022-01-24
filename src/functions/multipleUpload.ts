@@ -64,7 +64,7 @@ const multipleUpload = async (_fetch: Fetch, files: globalThis.File[], randomNam
     } = req
 
   if (errors)
-  throw new TypeError(JSON.stringify(errors));
+  throw new Error(JSON.stringify(errors));
 
   return data.multipleUpload;
 }

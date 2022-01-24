@@ -1,7 +1,7 @@
 /**
  * @description Modal -> Modal de Edição de local de trabalho
  * @author GuilhermeSantos001
- * @update 13/01/2022
+ * @update 24/01/2022
  */
 
 import React, { useState } from 'react';
@@ -130,12 +130,12 @@ export default function RegisterWorkplace(props: Props) {
       entryTime: entryTime.toISOString(),
       exitTime: exitTime.toISOString(),
       services: appliedServices,
-      scale: scales.find(_scale => _scale.id === scale).id,
+      scale: scales.find(_scale => _scale.id === scale)?.id || "",
       address: {
-        street: streets.find(_street => _street.id === street).id,
-        neighborhood: neighborhoods.find(_neighborhood => _neighborhood.id === neighborhood).id,
-        city: cities.find(_city => _city.id === city).id,
-        district: districts.find(_district => _district.id === district).id,
+        street: streets.find(_street => _street.id === street)?.id || "",
+        neighborhood: neighborhoods.find(_neighborhood => _neighborhood.id === neighborhood)?.id || "",
+        city: cities.find(_city => _city.id === city)?.id || "",
+        district: districts.find(_district => _district.id === district)?.id || "",
         number: numberHome,
         complement,
         zipCode,
@@ -146,7 +146,7 @@ export default function RegisterWorkplace(props: Props) {
       dispatch(SystemActions.UPDATE_WORKPLACE(workplace));
       props.handleClose();
     } catch (error) {
-      Alerting.create('error', error.message);
+      Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
     }
   }
 

@@ -1,7 +1,7 @@
 /**
  * @description Lista -> Lista com ícones (MUI)
  * @author GuilhermeSantos001
- * @update 18/01/2022
+ * @update 24/01/2022
  */
 
 import List from '@mui/material/List';
@@ -43,7 +43,7 @@ export default function ListWorkplacesSelected(props: Props) {
     <List className='col-12 bg-light-gray border rounded m-2'>
       {
         props.workplaces.length > 0 ?
-          props.workplaces.map(workplace => renderListItem(workplace.id, workplace.name, `Escala: ${scales.find(scale => scale.id === workplace.scale).value} - Serviços: ${services.filter(service => workplace.services.includes(service.id)).map(service => service.value).join(', ')}`))
+          props.workplaces.map(workplace => renderListItem(workplace.id, workplace.name, `Escala: ${scales.find(scale => scale.id === workplace.scale)?.value || "???"} - Serviços: ${services.filter(service => workplace.services.includes(service.id)).map(service => service.value).join(', ')}`))
           :
           <ListItem>
             <ListItemText primary='Nenhum local de trabalho aplicado.' />

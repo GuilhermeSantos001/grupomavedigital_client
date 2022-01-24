@@ -1,7 +1,7 @@
 /**
- * @description Verifica se o usuario tem os privilegios informados
+ * @description Verifica se o usuário tem os privilégios informados
  * @author GuilhermeSantos001
- * @update 06/10/2021
+ * @update 21/01/2022
  */
 
 import Fetch from '@/src/utils/fetch'
@@ -10,12 +10,16 @@ import getUserInfo from '@/src/functions/getUserInfo'
 import { saveUpdatedToken } from '@/src/functions/tokenValidate'
 
 export default async function HasPrivilege(...privileges: PrivilegesSystem[]): Promise<boolean> {
-  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
+  try {
+    const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
 
-  const { privileges: usr_privileges, updatedToken } = await getUserInfo(_fetch)
+    const { privileges: usr_privileges, updatedToken } = await getUserInfo(_fetch)
 
-  if (updatedToken)
-    await saveUpdatedToken(updatedToken.signature, updatedToken.token)
+    if (updatedToken)
+      await saveUpdatedToken(updatedToken.signature, updatedToken.token)
 
-  return privileges.filter(privilege => usr_privileges.includes(privilege)).length > 0;
+    return privileges.filter(privilege => usr_privileges.includes(privilege)).length > 0;
+  } catch {
+    throw new Error('Não foi possível verificar os privilégios do usuário');
+  }
 }

@@ -1,7 +1,7 @@
 /**
  * @description Componente de exibição dos arquivos do GED
  * @author GuilhermeSantos001
- * @update 10/12/2021
+ * @update 24/01/2022
  */
 
 import React from 'react'
@@ -103,7 +103,7 @@ export default class Files extends React.Component<MyProps, MyStates> {
   static contextType = HerculesContext
   declare context: React.ContextType<typeof HerculesContext>
 
-  constructor(props) {
+  constructor(props: MyProps) {
     super(props);
 
     this.state = {

@@ -1,7 +1,7 @@
 /**
  * @description Componentes de loading
  * @author GuilhermeSantos001
- * @update 18/01/2022
+ * @update 24/01/2022
  */
 
 import { useState, useEffect } from 'react'
@@ -16,15 +16,7 @@ import ScrollToTop from '@/components/scrollToTop'
 import Alerting from '@/components/Alerting'
 import WindowSuperAdmin from '@/components/WindowSuperAdmin'
 
-import AlertingCore from '@/src/utils/alerting'
-
-import { uploadsAll } from '@/src/functions/getUploads'
-
 import { useAppDispatch } from '@/app/hooks'
-
-import {
-  SystemActions,
-} from '@/app/features/system/system.slice'
 
 export type Props = {
   children: React.ReactElement
@@ -32,7 +24,7 @@ export type Props = {
 
 declare global {
   interface Window {
-    loading: 'show' | 'hide'
+    loading: 'show' | 'hide' | 'none'
     loading_screen: any
     pleaseWait: any
   }
@@ -73,7 +65,7 @@ export function LoadingFullWidth(lastRouterPathVisited: string | null, children?
             `d-flex flex-column p-2 fade-effect ${!children ? 'active' : 'deactivate'}`
           }>
             <div className='align-self-center m-2'>
-              <RainbowSpinner size={70} color="white" loading={true} />
+              <RainbowSpinner size={70} color="#f6d816" loading={true} />
             </div>
             <p className='fw-bold text-secondary' style={{ fontFamily: 'Bebas Regular', fontSize: '2rem' }}>
               Ambiente Digital Interativo
@@ -93,7 +85,7 @@ export function LoadingFullWidth(lastRouterPathVisited: string | null, children?
             :
             !lastRouterPathVisited ? <></> :
               <div className='align-self-center m-2'>
-                <GooSpinner size={70} color="white" loading={true} />
+                <GooSpinner size={70} color="#f6d816" loading={true} />
               </div>
       }
     </div>
@@ -107,12 +99,11 @@ export default function Loading(props: Props) {
   const [loadingOverlay, setLoadingOverlay] = useState<boolean>(false)
 
   const
-    dispatch = useAppDispatch(),
     router = useRouter();
 
   const
     hasLoadedAPI = () => {
-      if (loadedAPI['uploads'])
+      if (loadedAPI['loaded'])
         return true;
 
       return false;
@@ -121,10 +112,10 @@ export default function Loading(props: Props) {
   useEffect(() => {
     const interval = setInterval(() => {
       if (window.loading === 'show') {
-        window.loading = undefined;
+        window.loading = 'none';
         setLoadingOverlay(true);
       } else if (window.loading === 'hide') {
-        window.loading = undefined;
+        window.loading = 'none';
         setLoadingOverlay(false);
       }
     }, 1000);
@@ -136,28 +127,8 @@ export default function Loading(props: Props) {
 
 
   useEffect(() => {
-    if (!loadedAPI['uploads']) {
-      setFetchAPI(setTimeout(async () => {
-        try {
-          const uploads = await uploadsAll();
-
-          dispatch(SystemActions.CLEAR_UPLOADS());
-
-          if (uploads.length > 0) {
-            uploads.forEach(file => {
-              try {
-                dispatch(SystemActions.CREATE_UPLOAD(file));
-              } catch(error) {
-                AlertingCore.create('error', error);
-              }
-            });
-          }
-
-          setLoadedAPI((prevState) => ({ ...prevState, uploads: true }));
-        } catch {
-          setLoadedAPI((prevState) => ({ ...prevState, uploads: true }));
-        }
-      }, 1000));
+    if (!loadedAPI['loaded']) {
+      setFetchAPI(setTimeout(async () => setLoadedAPI({ loaded: true }), 1000));
     } else {
       setLastRouterPathVisited(router.pathname);
     }

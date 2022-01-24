@@ -1,7 +1,7 @@
 /**
  * @description Lista -> Lista de coberturas operacionais lançadas
  * @author GuilhermeSantos001
- * @update 19/01/2022
+ * @update 24/01/2022
  */
 
 import List from '@mui/material/List';
@@ -23,6 +23,10 @@ import type {
   PostingCreate
 } from '@/app/features/payback/payback.slice';
 
+import type {
+  Person
+} from '@/app/features/system/system.slice';
+
 export type Props = {
   postings: PostingCreate[]
   handlePostingRemove: (id: string) => void
@@ -43,16 +47,19 @@ export default function ListCoverageDefined(props: Props) {
               coveringWorkplace = workplaces.find(place => place.id === posting.coveringWorkplace),
               coverageWorkplace = workplaces.find(place => place.id === posting.coverageWorkplace);
 
-            let coveringPerson, coveragePerson, coveringReasonForAbsence;
+            let
+              coveringPerson: Person | undefined = undefined,
+              coveragePerson: Person | undefined = undefined,
+              coveringReasonForAbsence: string | undefined = undefined;
 
             if (posting.covering)
-              coveringPerson = people.find(person => person.id === posting.covering.id);
+              coveringPerson = people.find(person => posting.covering && person.id === posting.covering.id);
 
             if (posting.coverage)
               coveragePerson = people.find(person => person.id === posting.coverage.id);
 
             if (coveringPerson)
-              coveringReasonForAbsence = reasonForAbsences.find(reason => reason.id === posting.covering.reasonForAbsence).value;
+              coveringReasonForAbsence = reasonForAbsences.find(reason => posting.covering && reason.id === posting.covering.reasonForAbsence)?.value || "???";
 
             return (
               <div key={posting.id} className='d-flex flex-column flex-md-row justify-content-center align-items-center p-2'>
@@ -63,7 +70,7 @@ export default function ListCoverageDefined(props: Props) {
                       <ArrowCircleDown className='text-white fw-bold fs-1' />
                     </Avatar>
                   </ListItemAvatar>
-                  <ListItemText primary={`Posto de Cobertura: ${coveringWorkplace.name}`} secondary={coveringPerson ? `[${coveringPerson.matricule}] - ${coveringPerson.name}` : 'Descoberto'} />
+                  <ListItemText primary={`Posto de Cobertura: ${coveringWorkplace?.name || "???"}`} secondary={coveringPerson ? `[${coveringPerson.matricule}] - ${coveringPerson.name}` : 'Descoberto'} />
                 </ListItem>
                 <ListItem>
                   <ListItemAvatar>
@@ -71,7 +78,7 @@ export default function ListCoverageDefined(props: Props) {
                       <ArrowCircleUp className='text-white fw-bold fs-1' />
                     </Avatar>
                   </ListItemAvatar>
-                  <ListItemText primary={coverageWorkplace ? `Posto de Origem: ${coverageWorkplace.name}` : `Freelancer`} secondary={`[${coveragePerson.matricule}] - ${coveragePerson.name}`} />
+                  <ListItemText primary={coverageWorkplace ? `Posto de Origem: ${coverageWorkplace.name}` : `Freelancer`} secondary={`[${coveragePerson?.matricule || "???"}] - ${coveragePerson?.name || "???"}`} />
                 </ListItem>
                 <Chip label={`Motivo: ${coveringReasonForAbsence ? coveringReasonForAbsence : 'Falta de Efetivo'}`} className='bg-primary text-white shadow' />
                 <Button

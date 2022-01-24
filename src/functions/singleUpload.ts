@@ -45,7 +45,7 @@ const singleUpload = async (_fetch: Fetch, file: globalThis.File, randomName: bo
     } = req
 
   if (errors)
-    throw new TypeError(JSON.stringify(errors))
+    throw new Error(JSON.stringify(errors))
 
   return data.singleUpload;
 }

@@ -50,7 +50,7 @@ const authLogout = async (_fetch: Fetch): Promise<boolean> => {
 
   if (errors) {
     console.error(errors);
-    throw new TypeError(`Não foi possível desconectar sua sessão no momento. Contacte o administrador do sistema!`);
+    throw new Error(`Não foi possível desconectar sua sessão no momento. Contacte o administrador do sistema!`);
   }
 
   return data.response;

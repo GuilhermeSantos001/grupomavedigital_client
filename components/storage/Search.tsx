@@ -1,7 +1,7 @@
 /**
  * @description Componentes da barra de pesquisa do GED
  * @author GuilhermeSantos001
- * @update 08/12/2021
+ * @update 24/01/2022
  */
 
 import React from 'react'
@@ -25,7 +25,7 @@ declare interface IText {
 }
 
 export default class Search extends React.Component<MyProps, MyStates> {
-    constructor(props) {
+    constructor(props: MyProps) {
         super(props)
 
         this.state = {
@@ -41,9 +41,9 @@ export default class Search extends React.Component<MyProps, MyStates> {
     handleChangeText = (text: string) => {
         this.setState({ text: { ...this.state.text, [this.props.type]: text } })
 
-        if (this.props.type === 'folder')
+        if (this.props.type === 'folder' && this.props.handleChangeFolderText)
             this.props.handleChangeFolderText(text)
-        else if (this.props.type === 'file')
+        else if (this.props.type === 'file' && this.props.handleChangeFileText)
             this.props.handleChangeFileText(text)
     }
 

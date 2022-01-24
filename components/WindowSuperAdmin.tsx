@@ -1,7 +1,7 @@
 /**
  * @description Janela de super administrador
  * @author GuilhermeSantos001
- * @update 18/01/2022
+ * @update 24/01/2022
 */
 
 import { useState, useEffect } from 'react';
@@ -280,7 +280,7 @@ export default function WindowSuperAdmin() {
     ]
 
   useEffect(() => {
-    const listener = async (e) => {
+    const listener = async (e: KeyboardEvent) => {
       if (e.key === 'F2') {
         try {
           if (!(await hasPrivilege('administrador')))

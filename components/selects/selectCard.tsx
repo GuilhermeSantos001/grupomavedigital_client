@@ -1,7 +1,7 @@
 /**
  * @description Input -> Seleciona um cartão (Alelo)
  * @author GuilhermeSantos001
- * @update 08/01/2022
+ * @update 24/01/2022
  */
 
 import { useState } from 'react';
@@ -62,7 +62,7 @@ export default function SelectCard(props: Props) {
       return `${id} - ${lastCardNumber}`;
     };
 
-  const availableCards = [];
+  const availableCards: string[] = [];
 
   if (lotItems.length > 0 && lotItems.filter(item => !item.person).length > 0)
     return <FormControl className='col-12'>
@@ -93,8 +93,8 @@ export default function SelectCard(props: Props) {
         }).map(card => {
           const
             key = `${card.id}_${card.serialNumber}(${card.lastCardNumber})`,
-            value = `${costCenters.find(costCenter => costCenter.id === card.costCenter).title} - N° de Série: ${card.serialNumber} (4 Últimos Dígitos: ${card.lastCardNumber})`,
-            id = `${costCenters.find(costCenter => costCenter.id === card.costCenter).title} - ${card.id} (4 Últimos Dígitos: ${card.lastCardNumber})`
+            value = `${costCenters.find(costCenter => costCenter.id === card.costCenter)?.title || "???"} - N° de Série: ${card.serialNumber} (4 Últimos Dígitos: ${card.lastCardNumber})`,
+            id = `${costCenters.find(costCenter => costCenter.id === card.costCenter)?.title || "???"} - ${card.id} (4 Últimos Dígitos: ${card.lastCardNumber})`
 
           return (
             <MenuItem key={key} value={id}>

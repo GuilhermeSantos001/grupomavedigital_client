@@ -1,7 +1,7 @@
 /**
  * @description Gestor online de documentos -> TI
  * @author GuilhermeSantos001
- * @update 16/12/2021
+ * @update 21/01/2022
  */
 
 import React, { useEffect, useState } from 'react'
@@ -17,7 +17,6 @@ import SkeletonLoader from 'tiny-skeleton-loader-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
 
-import RenderPageError from '@/components/renderPageError'
 import NoPrivilege from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
 
@@ -27,7 +26,6 @@ import { getGroupId, getUserAuth } from '@/pages/storage/index'
 
 import Fetch from '@/src/utils/fetch'
 import Variables from '@/src/db/variables'
-import { tokenValidate } from '@/src/functions/tokenValidate'
 import hasPrivilege from '@/src/functions/hasPrivilege'
 import signURL from '@/src/functions/signURL'
 import Alerting from '@/src/utils/alerting'
@@ -149,10 +147,6 @@ function compose_load() {
       </div>
     </div>
   )
-}
-
-function compose_error(handleClick) {
-  return <RenderPageError handleClick={handleClick} />
 }
 
 function compose_noPrivilege(handleClick) {
@@ -569,7 +563,7 @@ function socket_events(
   if (!socket.hasListeners('GET-FOLDERS-BY-GROUP-ERROR'))
     socket.on('GET-FOLDERS-BY-GROUP-ERROR', (_room, error) => {
       if (_room.filter(r => room.find(rr => r === rr)).length > 0) {
-        Alerting.create('error',`Não foi possível recuperar as pastas. Fale com o administrador do sistema.`);
+        Alerting.create('error', `Não foi possível recuperar as pastas. Fale com o administrador do sistema.`);
         console.error(error);
       }
     });
@@ -578,7 +572,7 @@ function socket_events(
   if (!socket.hasListeners('CREATE-FOLDER-ERROR'))
     socket.on('CREATE-FOLDER-ERROR', (_room, error) => {
       if (_room.filter(r => room.find(rr => r === rr)).length > 0) {
-        Alerting.create('error',`Não foi possível criar a pasta. Fale com o administrador do sistema.`);
+        Alerting.create('error', `Não foi possível criar a pasta. Fale com o administrador do sistema.`);
         console.error(error);
       }
     });
@@ -587,7 +581,7 @@ function socket_events(
   if (!socket.hasListeners('CREATE-FILE-ERROR'))
     socket.on('CREATE-FILE-ERROR', (_room, error) => {
       if (_room.filter(r => room.find(rr => r === rr)).length > 0) {
-        Alerting.create('error',`Não foi possível criar o arquivo. Fale com o administrador do sistema.`);
+        Alerting.create('error', `Não foi possível criar o arquivo. Fale com o administrador do sistema.`);
         console.error(error);
       }
     });
@@ -641,7 +635,7 @@ function socket_events(
   if (!socket.hasListeners('FOLDER-RENDER-ERROR'))
     socket.on('FOLDER-RENDER-ERROR', (_room, error) => {
       if (_room.filter(r => room.find(rr => r === rr)).length > 0) {
-        Alerting.create('error',`Não foi possível renderizar a pasta. Fale com o administrador do sistema.`);
+        Alerting.create('error', `Não foi possível renderizar a pasta. Fale com o administrador do sistema.`);
         console.error(error);
       }
     });
@@ -701,7 +695,7 @@ function socket_events(
   if (!socket.hasListeners('FILE-RENDER-ERROR'))
     socket.on('FILE-RENDER-ERROR', (_room, error) => {
       if (_room.filter(r => room.find(rr => r === rr)).length > 0) {
-        Alerting.create('error',`Não foi possível renderizar o arquivo. Fale com o administrador do sistema.`);
+        Alerting.create('error', `Não foi possível renderizar o arquivo. Fale com o administrador do sistema.`);
         console.error(error);
       }
     });
@@ -737,7 +731,6 @@ async function loadFoldersAndFiles(
 
 const Storage = ({ socketIO }: PageProps): JSX.Element => {
   const [isReady, setReady] = useState<boolean>(false)
-  const [isError, setError] = useState<boolean>(false)
   const [notPrivilege, setNotPrivilege] = useState<boolean>(false)
   const [notAuth, setNotAuth] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(true)
@@ -906,58 +899,46 @@ const Storage = ({ socketIO }: PageProps): JSX.Element => {
     }
 
   useEffect(() => {
-    const timer = setTimeout(async () => {
-      const isAllowViewPage = await tokenValidate(_fetch);
+    hasPrivilege('common')
+      .then(async (isAllowViewPage) => {
+        if (isAllowViewPage) {
+          setSocket(io(process.env.NEXT_PUBLIC_WEBSOCKET_HOST, {
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000,
+            reconnectionDelayMax: 5000,
+            reconnection: true,
+            auth: {
+              signedUrl: await signURL()
+            },
+            secure: process.env.NODE_ENV === 'production'
+          }));
 
-      if (!isAllowViewPage) {
-        setNotAuth(true)
-        setLoading(false)
-      } else {
-        try {
-          if (!(await hasPrivilege('common', 'administrador'))) setNotPrivilege(true);
+          // ? Reseta a árvore de navegação
+          dispatch(resetItemHistoryNavigation());
 
-          if (!notPrivilege) {
-            setSocket(io(process.env.NEXT_PUBLIC_WEBSOCKET_HOST, {
-              reconnectionAttempts: 5,
-              reconnectionDelay: 1000,
-              reconnectionDelayMax: 5000,
-              reconnection: true,
-              auth: {
-                signedUrl: await signURL()
-              },
-              secure: process.env.NODE_ENV === 'production'
-            }));
+          // ? Adiciona o nó root da árvore de navegação
+          addHistoryItemNavigation({
+            id: '_root',
+            name: 'Tecnologia da Informação',
+            root: true,
+            folderId: null,
+            foldersId: [],
+          });
 
-            // ? Reseta a árvore de navegação
-            dispatch(resetItemHistoryNavigation());
-
-            // ? Adiciona o nó root da árvore de navegação
-            addHistoryItemNavigation({
-              id: '_root',
-              name: 'Tecnologia da Informação',
-              root: true,
-              folderId: null,
-              foldersId: [],
-            });
-
-            setReady(true)
-          }
-
-          return setLoading(false)
-        } catch (error) {
-          console.error(error);
-          setError(true)
-          return setLoading(false)
+          setReady(true)
+        } else {
+          setNotPrivilege(true);
         }
-      }
-    })
 
-    return () => clearTimeout(timer)
+        return setLoading(false);
+      })
+      .catch(() => {
+        setNotAuth(true);
+        return setLoading(false)
+      });
   }, [])
 
   if (loading) return compose_load()
-
-  if (isError) return compose_error(handleClickNoAuth)
 
   if (notPrivilege) return compose_noPrivilege(handleClickNoPrivilege)
 

@@ -1,7 +1,7 @@
 /**
  * @description Modal -> Modal de Cadastro de pessoa
  * @author GuilhermeSantos001
- * @update 18/01/2022
+ * @update 24/01/2022
  */
 
 import React, { useState } from 'react';
@@ -64,7 +64,7 @@ export default function RegisterPeople(props: Props) {
   const [cpf, setCPF] = useState<string>('')
   const [rg, setRG] = useState<string>('')
   const [motherName, setMotherName] = useState<string>('')
-  const [birthDate, setBirthDate] = useState<Date>(null)
+  const [birthDate, setBirthDate] = useState<Date>(DateEx.subYears(new Date(), 75))
   const [phone, setPhone] = useState<string>('')
   const [mail, setMail] = useState<string>('')
   const [scale, setScale] = useState<string>('')
@@ -95,7 +95,7 @@ export default function RegisterPeople(props: Props) {
       setCPF('');
       setRG('');
       setMotherName('');
-      setBirthDate(null);
+      setBirthDate(DateEx.subYears(new Date(), 75));
       setPhone('');
       setMail('');
       setScale('');
@@ -159,13 +159,13 @@ export default function RegisterPeople(props: Props) {
       phone,
       mail,
       services: appliedServices,
-      scale: scales.find(_scale => _scale.id === scale).id,
+      scale: scales.find(_scale => _scale.id === scale)?.id || "",
       cards: lotItems.filter(_lotItem => appliedCards.includes(`${_lotItem.id} - ${_lotItem.lastCardNumber}`)).map(_lotItem => `${_lotItem.id} - ${_lotItem.lastCardNumber}`),
       address: {
-        street: streets.find(_street => _street.id === street).id,
-        neighborhood: neighborhoods.find(_neighborhood => _neighborhood.id === neighborhood).id,
-        city: cities.find(_city => _city.id === city).id,
-        district: districts.find(_district => _district.id === district).id,
+        street: streets.find(_street => _street.id === street)?.id || "",
+        neighborhood: neighborhoods.find(_neighborhood => _neighborhood.id === neighborhood)?.id || "",
+        city: cities.find(_city => _city.id === city)?.id || "",
+        district: districts.find(_district => _district.id === district)?.id || "",
         number: numberHome,
         complement,
         zipCode,
@@ -192,7 +192,7 @@ export default function RegisterPeople(props: Props) {
       handleResetInputs();
       props.handleClose();
     } catch (error) {
-      Alerting.create('error', error.message);
+      Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
     }
   }
 

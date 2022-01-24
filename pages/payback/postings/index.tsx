@@ -1,7 +1,7 @@
 /**
  * @description Payback -> Lançamentos Financeiros
  * @author GuilhermeSantos001
- * @update 29/12/2021
+ * @update 24/01/2022
  */
 
 import React, { useEffect, useState } from 'react'
@@ -15,16 +15,13 @@ import SkeletonLoader from 'tiny-skeleton-loader-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
 
-import RenderPageError from '@/components/renderPageError'
-import NoPrivilege from '@/components/noPrivilege'
+import NoPrivilege, { handleClickFunction } from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
 
 import { PageProps } from '@/pages/_app'
 import PageMenu from '@/bin/main_menu'
 
-import Fetch from '@/src/utils/fetch'
 import Variables from '@/src/db/variables'
-import { tokenValidate } from '@/src/functions/tokenValidate'
 import hasPrivilege from '@/src/functions/hasPrivilege'
 
 const serverSideProps: PageProps = {
@@ -106,15 +103,11 @@ function compose_load() {
   )
 }
 
-function compose_error(handleClick) {
-  return <RenderPageError handleClick={handleClick} />
-}
-
-function compose_noPrivilege(handleClick) {
+function compose_noPrivilege(handleClick: handleClickFunction) {
   return <NoPrivilege handleClick={handleClick} />
 }
 
-function compose_noAuth(handleClick) {
+function compose_noAuth(handleClick: handleClickFunction) {
   return <NoAuth handleClick={handleClick} />
 }
 
@@ -293,19 +286,20 @@ function compose_ready() {
   )
 }
 
-const Postings = (): JSX.Element => {
+export default function Postings() {
   const [isReady, setReady] = useState<boolean>(false)
-  const [isError, setError] = useState<boolean>(false)
   const [notPrivilege, setNotPrivilege] = useState<boolean>(false)
   const [notAuth, setNotAuth] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(true)
 
   const router = useRouter()
-  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
 
   const
-    handleClickNoAuth = async (e, path) => {
-      e.preventDefault()
+    handleClickNoAuth: handleClickFunction = async (
+      event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+      path: string
+    ) => {
+      event.preventDefault()
 
       if (path === '/auth/login') {
         const variables = new Variables(1, 'IndexedDB')
@@ -314,37 +308,32 @@ const Postings = (): JSX.Element => {
         })
       }
     },
-    handleClickNoPrivilege = async (e, path) => {
-      e.preventDefault()
+    handleClickNoPrivilege: handleClickFunction = async (
+      event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+      path: string
+    ) => {
+      event.preventDefault()
       router.push(path)
     }
 
   useEffect(() => {
-    const timer = setTimeout(async () => {
-      const isAllowViewPage = await tokenValidate(_fetch)
-
-      if (!isAllowViewPage) {
-        setNotAuth(true)
-        setLoading(false)
-      } else {
-        try {
-          if (!(await hasPrivilege('administrador', 'fin_gerente', 'fin_assistente', 'ope_gerente', 'ope_coordenador', 'ope_mesa'))) setNotPrivilege(true)
-
-          setReady(true)
-          return setLoading(false)
-        } catch {
-          setError(true)
-          return setLoading(false)
+    hasPrivilege('administrador', 'ope_gerente', 'ope_coordenador', 'ope_mesa')
+      .then((isAllowViewPage) => {
+        if (isAllowViewPage) {
+          setReady(true);
+        } else {
+          setNotPrivilege(true);
         }
-      }
-    })
 
-    return () => clearTimeout(timer)
+        return setLoading(false);
+      })
+      .catch(() => {
+        setNotAuth(true);
+        return setLoading(false)
+      });
   }, [])
 
   if (loading) return compose_load()
-
-  if (isError) return compose_error(handleClickNoAuth)
 
   if (notPrivilege) return compose_noPrivilege(handleClickNoPrivilege)
 
@@ -352,5 +341,3 @@ const Postings = (): JSX.Element => {
 
   if (isReady) return compose_ready()
 }
-
-export default Postings

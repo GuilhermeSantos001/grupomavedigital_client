@@ -1,10 +1,20 @@
 /**
  * @description Assistente -> Definição de cobertura
  * @author GuilhermeSantos001
- * @update 18/01/2022
+ * @update 24/01/2022
  */
 
 import { useState } from 'react'
+
+import { PaybackSocketEvents } from '@/constants/socketEvents';
+import {
+  TYPEOF_EMITTER_PAYBACK_UPLOAD_MIRROR,
+  TYPEOF_LISTENER_PAYBACK_UPLOAD_MIRROR,
+  TYPEOF_EMITTER_PAYBACK_CHANGE_TYPE_MIRROR,
+  TYPEOF_LISTENER_PAYBACK_CHANGE_TYPE_MIRROR,
+  TYPEOF_EMITTER_PAYBACK_DELETE_MIRROR,
+  TYPEOF_LISTENER_PAYBACK_DELETE_MIRROR,
+} from '@/constants/SocketTypes';
 
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -101,27 +111,33 @@ export default function AssistantCoverageDefine(props: Props) {
   const
     dispatch = useAppDispatch(),
     uploadMakeTemporary = (fileId: string) => {
-      const upload = uploads.find(upload => upload.fileId === fileId);
-
       try {
-        dispatch(SystemActions.UPDATE_UPLOAD({
-          ...upload,
-          temporary: true
-        }))
+        const upload = uploads.find(upload => upload.fileId === fileId);
+
+        if (upload)
+          dispatch(SystemActions.UPDATE_UPLOAD({
+            ...upload,
+            temporary: true
+          }))
+        else
+          throw new Error('Upload não encontrado');
       } catch (error) {
-        Alerting.create('error', error.message);
+        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
       }
     },
     uploadMakePermanent = (fileId: string) => {
-      const upload = uploads.find(upload => upload.fileId === fileId);
-
       try {
-        dispatch(SystemActions.UPDATE_UPLOAD({
-          ...upload,
-          temporary: false
-        }))
+        const upload = uploads.find(upload => upload.fileId === fileId);
+
+        if (upload)
+          dispatch(SystemActions.UPDATE_UPLOAD({
+            ...upload,
+            temporary: false
+          }))
+        else
+          throw new Error('Upload não encontrado');
       } catch (error) {
-        Alerting.create('error', error.message);
+        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
       }
     },
     clearInputs = () => {
@@ -150,103 +166,137 @@ export default function AssistantCoverageDefine(props: Props) {
       setPostingType('');
       setPostingDescription('');
     },
-    handleNext = () => {
+    hasChangeStep = (step: number) => {
       // ? Passo 1° -> Data de Origem
-      if (activeStep === 0) {
-        if (originDate === null)
-          return Alerting.create('warning', 'Data de origem não definida.');
+      if (step === 0) {
+        if (originDate === null) {
+          Alerting.create('warning', 'Data de origem não definida.');
+          return false;
+        }
       }
       // ? Passo 2° -> Tipo de Movimentação
-      else if (activeStep === 1) {
-        if (postingType === '')
-          return Alerting.create('warning', 'Tipo de Movimentação não definida.');
+      else if (step === 1) {
+        if (postingType === '') {
+          Alerting.create('warning', 'Tipo de Movimentação não definida.');
+          return false;
+        }
       }
       // ? Passo 3° -> Local de Trabalho
-      else if (activeStep === 2) {
-        if (coveringWorkplace === '')
-          return Alerting.create('warning', 'Local de trabalho não definido.');
+      else if (step === 2) {
+        if (coveringWorkplace === '') {
+          Alerting.create('warning', 'Local de trabalho não definido.');
+          return false;
+        }
       }
       // ? Passo 4° -> Funcionário(a)
-      else if (activeStep === 3) {
+      else if (step === 3) {
         // ! Falta do Efetivo
         if (postingType === 'absence_person')
-          if (coveringPersonId === '')
-            return Alerting.create('warning', 'Funcionário(a) não definido.');
+          if (coveringPersonId === '') {
+            Alerting.create('warning', 'Funcionário(a) não definido.');
+            return false;
+          }
       }
       // ? Passo 5° -> Motivo da Ausência
-      else if (activeStep === 4) {
+      else if (step === 4) {
         // ! Falta do Efetivo
         if (postingType === 'absence_person')
-          if (coveringReasonForAbsence === '')
-            return Alerting.create('warning', 'Motivo da ausência não definido.');
+          if (coveringReasonForAbsence === '') {
+            Alerting.create('warning', 'Motivo da ausência não definido.');
+            return false;
+          }
       }
       // ? Passo 6° -> Espelho de Ponto
-      else if (activeStep === 5) {
+      else if (step === 5) {
         // ! Falta do Efetivo
         if (postingType === 'absence_person')
-          if (coveringMirrorFileId === '')
-            return Alerting.create('warning', 'Espelho de ponto não definido.');
+          if (coveringMirrorFileId === '') {
+            Alerting.create('warning', 'Espelho de ponto não definido.');
+            return false;
+          }
       }
       // ? Passo 7° -> Modalidade de Cobertura
-      else if (activeStep === 6) {
-        if (coveringModality === '')
-          return Alerting.create('warning', 'Modalidade de cobertura não definida.');
+      else if (step === 6) {
+        if (coveringModality === '') {
+          Alerting.create('warning', 'Modalidade de cobertura não definida.');
+          return false;
+        }
       }
       // ? Passo 8° -> Modalidade -> Folga Trabalhada
       else if (
-        activeStep === 7 &&
+        step === 7 &&
         coveringModality === 'ft'
       ) {
-        if (coverageWorkplace === '')
-          return Alerting.create('warning', 'Local de trabalho não definido.');
+        if (coverageWorkplace === '') {
+          Alerting.create('warning', 'Local de trabalho não definido.');
+          return false;
+        }
 
-        if (coveragePersonId === '')
-          return Alerting.create('warning', 'Funcionário(a) não definido.');
+        if (coveragePersonId === '') {
+          Alerting.create('warning', 'Funcionário(a) não definido.');
+          return false;
+        }
 
-        if (coverageMirrorFileId === '')
-          return Alerting.create('warning', 'Espelho de ponto não definido.');
+        if (coverageMirrorFileId === '') {
+          Alerting.create('warning', 'Espelho de ponto não definido.');
+          return false;
+        }
       }
       // ? Passo 8° -> Modalidade -> Freelancer
       else if (
-        activeStep === 7 &&
+        step === 7 &&
         coveringModality === 'free'
       ) {
-        if (coveragePersonId === '')
-          return Alerting.create('warning', 'Funcionário(a) não definido.');
+        if (coveragePersonId === '') {
+          Alerting.create('warning', 'Funcionário(a) não definido.');
+          return false;
+        }
       }
       // ? Passo 9° -> Forma de Pagamento
-      else if (activeStep === 8) {
-        if (paymentMethod === '')
-          return Alerting.create('warning', 'Forma de pagamento não definida.');
+      else if (step === 8) {
+        if (paymentMethod === '') {
+          Alerting.create('warning', 'Forma de pagamento não definida.');
+          return false;
+        }
       }
       // ? Passo 10° -> Valor do Pagamento
-      else if (activeStep === 9) {
-        if (paymentValue === 0)
-          return Alerting.create('warning', 'Valor do pagamento não definido.');
+      else if (step === 9) {
+        if (paymentValue === 0) {
+          Alerting.create('warning', 'Valor do pagamento não definido.');
+          return false;
+        }
       }
       // ? Passo 11° -> Data há Pagar
-      else if (activeStep === 10) {
-        if (paymentDatePayable === null)
-          return Alerting.create('warning', 'Data de pagamento não definida.');
+      else if (step === 10) {
+        if (paymentDatePayable === null) {
+          Alerting.create('warning', 'Data de pagamento não definida.');
+          return false;
+        }
       }
 
-      if (
-        // ! Falta do Efetivo
-        postingType === 'absence_person' ||
-        postingType === ''
-      ) {
-        setActiveStep((prevActiveStep) => prevActiveStep + 1);
-      } else if (
-        // ! Falta de Efetivo
-        postingType === 'lack_people'
-      ) {
-        setActiveStep((prevActiveStep) => prevActiveStep === 2 ? 6 : prevActiveStep + 1);
+      return true;
+    },
+    handleNext = () => {
+      if (hasChangeStep(activeStep)) {
+        if (
+          // ! Falta do Efetivo
+          postingType === 'absence_person' ||
+          postingType === ''
+        ) {
+          setActiveStep((prevActiveStep) => prevActiveStep + 1);
+        } else if (
+          // ! Falta de Efetivo
+          postingType === 'lack_people'
+        ) {
+          setActiveStep((prevActiveStep) => prevActiveStep === 2 ? 6 : prevActiveStep + 1);
+        }
       }
     },
     handleBack = () => {
       if (
         // ! Falta do Efetivo
-        postingType === 'absence_person'
+        postingType === 'absence_person' ||
+        postingType === ''
       ) {
         setActiveStep((prevActiveStep) => prevActiveStep - 1);
       } else if (
@@ -265,14 +315,16 @@ export default function AssistantCoverageDefine(props: Props) {
       // ! Confirma o anexo dos espelhos de ponto
       setTimeout(() => {
         window.socket.emit(
-          'PAYBACK-CHANGE-TYPE-MIRROR',
-          [
-            coveringMirrorFileId,
-            coverageMirrorFileId,
-          ],
-          'PERMANENT'
+          PaybackSocketEvents.PAYBACK_CHANGE_TYPE_MIRROR,
+          window.socket.compress<TYPEOF_EMITTER_PAYBACK_CHANGE_TYPE_MIRROR>({
+            filesId: [
+              coveringMirrorFileId,
+              coverageMirrorFileId,
+            ],
+            type: 'PERMANENT'
+          })
         );
-      }, window.socketUtils.emitDelay);
+      }, 1000);
 
       if (window.socket.hasListeners('PAYBACK-CHANGE-TYPE-MIRROR-SUCCESS'))
         window.socket.off('PAYBACK-CHANGE-TYPE-MIRROR-SUCCESS');
@@ -282,62 +334,98 @@ export default function AssistantCoverageDefine(props: Props) {
 
       window
         .socket.
-        on('PAYBACK-CHANGE-TYPE-MIRROR-SUCCESS', async (filesId: string[], type: string) => {
-          if (type === 'TEMPORARY') {
-            filesId
-              .filter(fileId => fileId.length > 0)
-              .forEach(fileId => uploadMakeTemporary(fileId));
-          } else if (type === 'PERMANENT') {
-            filesId
-              .filter(fileId => fileId.length > 0)
-              .forEach(fileId => uploadMakePermanent(fileId));
-          }
+        on(
+          `${PaybackSocketEvents.PAYBACK_CHANGE_TYPE_MIRROR}-SUCCESS`,
+          async (data: string) => {
+            const {
+              filesId,
+              type,
+            } = window.socket.decompress<TYPEOF_LISTENER_PAYBACK_CHANGE_TYPE_MIRROR>(data);
 
-          const posting: PostingCreate = {
-            id: StringEx.id(),
-            author: await getUserAuth(),
-            costCenter: props.postingCostCenter,
-            periodStart: props.periodStart.toISOString(),
-            periodEnd: props.periodEnd.toISOString(),
-            originDate: originDate.toISOString(),
-            description: postingDescription,
-            coverage: {
-              id: coveragePersonId,
-              mirror: {
-                fileId: coverageMirrorFileId,
-                filename: coverageMirrorFileName,
-                filetype: coverageMirrorFileType
-              },
-              modalityOfCoverage: coveringModality
-            },
-            covering: coveringPersonId.length > 0 ? {
-              id: coveringPersonId,
-              mirror: {
-                fileId: coveringMirrorFileId,
-                filename: coveringMirrorFileName,
-                filetype: coveringMirrorFileType
-              },
-              reasonForAbsence: coveringReasonForAbsence,
-            } : undefined,
-            coverageWorkplace: coverageWorkplace.length > 0 ? coverageWorkplace : undefined,
-            coveringWorkplace: coveringWorkplace,
-            paymentMethod: paymentMethod,
-            paymentValue: paymentValue,
-            paymentDatePayable: paymentDatePayable.toISOString()
-          };
+            if (type === 'TEMPORARY') {
+              filesId
+                .filter(fileId => fileId.length > 0)
+                .forEach(fileId => uploadMakeTemporary(fileId));
+            } else if (type === 'PERMANENT') {
+              filesId
+                .filter(fileId => fileId.length > 0)
+                .forEach(fileId => uploadMakePermanent(fileId));
+            }
 
-          try {
-            window.loading = 'hide';
-            dispatch(PaybackActions.CREATE_POSTING(posting));
-            clearInputs();
-            setPostings([...postings, posting]);
-            Alerting.create('success', 'Lançamento registrado com sucesso.');
-          } catch (error) {
-            window.loading = 'hide';
-            Alerting.create('error', error.message);
-          }
-        })
-        .on('PAYBACK-CHANGE-TYPE-MIRROR-FAILURE', (error) => {
+            const posting: PostingCreate = {
+              id: StringEx.id(),
+              author: await getUserAuth(),
+              costCenter: props.postingCostCenter,
+              periodStart: props.periodStart.toISOString(),
+              periodEnd: props.periodEnd.toISOString(),
+              originDate: originDate.toISOString(),
+              description: postingDescription,
+              coverage: {
+                id: coveragePersonId,
+                mirror: {
+                  fileId: coverageMirrorFileId,
+                  filename: coverageMirrorFileName,
+                  filetype: coverageMirrorFileType
+                },
+                modalityOfCoverage: coveringModality
+              },
+              covering: coveringPersonId.length > 0 ? {
+                id: coveringPersonId,
+                mirror: {
+                  fileId: coveringMirrorFileId,
+                  filename: coveringMirrorFileName,
+                  filetype: coveringMirrorFileType
+                },
+                reasonForAbsence: coveringReasonForAbsence,
+              } : undefined,
+              coverageWorkplace: coverageWorkplace.length > 0 ? coverageWorkplace : undefined,
+              coveringWorkplace: coveringWorkplace,
+              paymentMethod: paymentMethod,
+              paymentValue: paymentValue,
+              paymentDatePayable: paymentDatePayable.toISOString()
+            };
+
+            try {
+              dispatch(PaybackActions.CREATE_POSTING(posting));
+              clearInputs();
+              setPostings([...postings, posting]);
+
+              window.loading = 'hide';
+              Alerting.create('success', 'Lançamento registrado com sucesso.');
+            } catch (error) {
+              window.loading = 'hide';
+              Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
+
+              // ! Falta do efetivo
+              if (
+                postingType === 'absence_person'
+              )
+                setActiveStep(3);
+              // ! Falta de Efetivo
+              else if (postingType === 'lack_people')
+                setActiveStep(7);
+
+              const deleteMirrors = [];
+
+              if (coveringMirrorFileId.length > 0)
+                deleteMirrors.push('COVERING');
+
+              if (coverageMirrorFileId.length > 0)
+                deleteMirrors.push('COVERAGE');
+
+              if (filesId.filter(fileId => fileId.length > 0).length > 0)
+                window.socket.emit(
+                  PaybackSocketEvents.PAYBACK_DELETE_MIRROR,
+                  window.socket.compress<TYPEOF_EMITTER_PAYBACK_DELETE_MIRROR>({
+                    filesId: filesId.filter(fileId => fileId.length > 0),
+                    types: deleteMirrors
+                  }));
+            }
+          })
+
+      window
+        .socket.
+        on(`${PaybackSocketEvents.PAYBACK_CHANGE_TYPE_MIRROR}-FAILURE`, (error) => {
           Alerting.create('error', 'Não foi possível confirmar o anexo do espelho de ponto. Tente novamente, mais tarde!');
           window.loading = 'hide';
           console.error(error);
@@ -350,14 +438,14 @@ export default function AssistantCoverageDefine(props: Props) {
       try {
         dispatch(SystemActions.CREATE_UPLOAD(file));
       } catch (error) {
-        Alerting.create('error', error.message);
+        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
       }
     },
     handleDeleteUpload = (fileId: string) => {
       try {
         dispatch(SystemActions.DELETE_UPLOAD(fileId));
       } catch (error) {
-        Alerting.create('error', error.message);
+        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
       }
     },
     handleChangeCoveringMirrorFileId = (fileId: string) => setCoveringMirrorFileId(fileId),
@@ -374,6 +462,7 @@ export default function AssistantCoverageDefine(props: Props) {
         const cards = people.find(person => person.id === coveragePersonId)?.cards;
 
         if (
+          cards &&
           cards
             .filter(card => {
               const
@@ -403,7 +492,13 @@ export default function AssistantCoverageDefine(props: Props) {
       }
     },
     handleChangePaymentValue = (value: number) => setPaymentValue(value),
-    handleChangePostingType = (type: string) => setPostingType(type),
+    handleChangePostingType = (type: string) => {
+      const _backup_originDate = originDate;
+      clearInputs();
+      setPostingType(type);
+      setOriginDate(_backup_originDate);
+      setActiveStep(1);
+    },
     handleChangeDescription = (text: string) => setPostingDescription(text);
 
   const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
@@ -490,7 +585,7 @@ export default function AssistantCoverageDefine(props: Props) {
                   <MenuItem
                     key={place.id}
                     value={place.id}>
-                    {place.name} ({scales.find(scale => scale.id === place.scale).value} - {services.filter(service => place.services.includes(service.id)).map(service => service.value).join(', ')})
+                    {place.name} ({scales.find(scale => scale.id === place.scale)?.value || "???"} - {services.filter(service => place.services.includes(service.id)).map(service => service.value).join(', ')})
                   </MenuItem>
                 ))
             }
@@ -524,7 +619,7 @@ export default function AssistantCoverageDefine(props: Props) {
                   <MenuItem
                     key={person.id}
                     value={person.id}>
-                    [{person.matricule}]: {person.name} ({scales.find(scale => scale.id === person.scale).value} - {services.filter(service => person.services.includes(service.id)).map(service => service.value).join(', ')})
+                    [{person.matricule}]: {person.name} ({scales.find(scale => scale.id === person.scale)?.value || "???"} - {services.filter(service => person.services.includes(service.id)).map(service => service.value).join(', ')})
                   </MenuItem>
                 ))
             }
@@ -565,19 +660,26 @@ export default function AssistantCoverageDefine(props: Props) {
                   compressedSize: number,
                   fileId: string,
                   version: number
-                ) => window.socket.emit('PAYBACK-UPLOAD-MIRROR',
-                  authorId,
-                  name,
-                  description,
-                  size,
-                  compressedSize,
-                  fileId,
-                  version,
-                  'COVERING'
-                ),
+                ) => window.socket.emit(
+                  PaybackSocketEvents.PAYBACK_UPLOAD_MIRROR,
+                  window.socket.compress<TYPEOF_EMITTER_PAYBACK_UPLOAD_MIRROR>({
+                    authorId,
+                    name,
+                    description,
+                    size,
+                    compressedSize,
+                    fileId,
+                    version,
+                    type: 'COVERING'
+                  })),
                 deleteFile = async (
                   filesId: string[]
-                ) => window.socket.emit('PAYBACK-DELETE-MIRROR', filesId, ['COVERING']);
+                ) => window.socket.emit(
+                  PaybackSocketEvents.PAYBACK_DELETE_MIRROR,
+                  window.socket.compress<TYPEOF_EMITTER_PAYBACK_DELETE_MIRROR>({
+                    filesId,
+                    types: ['COVERING']
+                  }));
 
               if (files instanceof Array) {
                 for (let i = 0; i < files.length; i++) {
@@ -689,7 +791,7 @@ export default function AssistantCoverageDefine(props: Props) {
                           <MenuItem
                             key={place.id}
                             value={place.id}>
-                            {place.name} ({scales.find(scale => scale.id === place.scale).value} - {services.filter(service => place.services.includes(service.id)).map(service => service.value).join(', ')})
+                            {place.name} ({scales.find(scale => scale.id === place.scale)?.value || "???"} - {services.filter(service => place.services.includes(service.id)).map(service => service.value).join(', ')})
                           </MenuItem>
                         ))
                     }
@@ -717,7 +819,7 @@ export default function AssistantCoverageDefine(props: Props) {
                           <MenuItem
                             key={person.id}
                             value={person.id}>
-                            [{person.matricule}]: {person.name} ({scales.find(scale => scale.id === person.scale).value} - {services.filter(service => person.services.includes(service.id)).map(service => service.value).join(', ')})
+                            [{person.matricule}]: {person.name} ({scales.find(scale => scale.id === person.scale)?.value || ""} - {services.filter(service => person.services.includes(service.id)).map(service => service.value).join(', ')})
                           </MenuItem>
                         ))
                     }
@@ -739,19 +841,26 @@ export default function AssistantCoverageDefine(props: Props) {
                         compressedSize: number,
                         fileId: string,
                         version: number
-                      ) => window.socket.emit('PAYBACK-UPLOAD-MIRROR',
-                        authorId,
-                        name,
-                        description,
-                        size,
-                        compressedSize,
-                        fileId,
-                        version,
-                        'COVERAGE'
-                      ),
+                      ) => window.socket.emit(
+                        PaybackSocketEvents.PAYBACK_UPLOAD_MIRROR,
+                        window.socket.compress<TYPEOF_EMITTER_PAYBACK_UPLOAD_MIRROR>({
+                          authorId,
+                          name,
+                          description,
+                          size,
+                          compressedSize,
+                          fileId,
+                          version,
+                          type: 'COVERAGE'
+                        })),
                       deleteFile = async (
                         filesId: string[]
-                      ) => window.socket.emit('PAYBACK-DELETE-MIRROR', filesId, ['COVERAGE']);
+                      ) => window.socket.emit(
+                        PaybackSocketEvents.PAYBACK_DELETE_MIRROR,
+                        window.socket.compress<TYPEOF_EMITTER_PAYBACK_DELETE_MIRROR>({
+                          filesId,
+                          types: ['COVERAGE']
+                        }));
 
                     if (files instanceof Array) {
                       for (let i = 0; i < files.length; i++) {
@@ -829,7 +938,7 @@ export default function AssistantCoverageDefine(props: Props) {
                           <MenuItem
                             key={person.id}
                             value={person.id}>
-                            [{person.matricule}]: {person.name} ({scales.find(scale => scale.id === person.scale).value} - {services.filter(service => person.services.includes(service.id)).map(service => service.value).join(', ')})
+                            [{person.matricule}]: {person.name} ({scales.find(scale => scale.id === person.scale)?.value || "???"} - {services.filter(service => person.services.includes(service.id)).map(service => service.value).join(', ')})
                           </MenuItem>
                         ))
                     }
@@ -943,7 +1052,7 @@ export default function AssistantCoverageDefine(props: Props) {
           <div className='d-flex flex-column flex-md-row p-3'>
             <Stepper activeStep={activeStep} orientation="vertical" className='col-12 col-md-8 overflow-auto' style={{ height: '85vh' }}>
               {steps.map((step, index) => (
-                <Step key={step.label}>
+                <Step key={`${step.label}`}>
                   <StepLabel
                     optional={
                       index === steps.length - 1 ? (
@@ -1080,12 +1189,12 @@ function onSocketEvents(
   if (socket) {
     const
       events = [
-        'PAYBACK-UPLOAD-COVERING-MIRROR-SUCCESS',
-        'PAYBACK-UPLOAD-COVERING-MIRROR-FAILURE',
-        'PAYBACK-UPLOAD-COVERAGE-MIRROR-SUCCESS',
-        'PAYBACK-UPLOAD-COVERAGE-MIRROR-FAILURE',
-        'PAYBACK-DELETE-MIRROR-SUCCESS',
-        'PAYBACK-DELETE-MIRROR-FAILURE'
+        `${PaybackSocketEvents.PAYBACK_UPLOAD_COVERING_MIRROR}-SUCCESS`,
+        `${PaybackSocketEvents.PAYBACK_UPLOAD_COVERING_MIRROR}-FAILURE`,
+        `${PaybackSocketEvents.PAYBACK_UPLOAD_COVERAGE_MIRROR}-SUCCESS`,
+        `${PaybackSocketEvents.PAYBACK_UPLOAD_COVERAGE_MIRROR}-FAILURE`,
+        `${PaybackSocketEvents.PAYBACK_DELETE_MIRROR}-SUCCESS`,
+        `${PaybackSocketEvents.PAYBACK_DELETE_MIRROR}-FAILURE`
       ]
 
     events
@@ -1098,38 +1207,42 @@ function onSocketEvents(
       .on(
         events[0], // * PAYBACK-UPLOAD-COVERING-MIRROR-SUCCESS
         (
-          fileId: string,
-          authorId: string,
-          filename: string,
-          filetype: string,
-          description: string,
-          size: number,
-          compressedSize: number,
-          version: number,
-          temporary: boolean,
-          expiredAt: string,
-          createdAt: string,
+          data: string
         ) => {
-          const file: Upload = {
-            fileId,
+          const {
             authorId,
+            fileId,
             filename,
             filetype,
             description,
             size,
             compressedSize,
-            version,
             temporary,
+            version,
+            createdAt,
             expiredAt,
-            createdAt
-          };
+          } = window.socket.decompress<TYPEOF_LISTENER_PAYBACK_UPLOAD_MIRROR>(data);
 
-          handleAppendUploads(file);
+          handleAppendUploads({
+            authorId,
+            fileId,
+            filename,
+            filetype,
+            description,
+            size,
+            compressedSize,
+            temporary,
+            version,
+            createdAt,
+            expiredAt,
+          });
           handleChangeCoveringMirrorFileId(fileId);
           handleChangeCoveringMirrorFileName(filename);
           handleChangeCoveringMirrorFileType(filetype);
         }
       )
+
+    socket
       .on(
         events[1], // * PAYBACK-UPLOAD-COVERING-MIRROR-FAILURE
         (error: string) => console.error(error)
@@ -1139,38 +1252,42 @@ function onSocketEvents(
       .on(
         events[2], // * PAYBACK-UPLOAD-COVERAGE-MIRROR-SUCCESS
         (
-          fileId: string,
-          authorId: string,
-          filename: string,
-          filetype: string,
-          description: string,
-          size: number,
-          compressedSize: number,
-          version: number,
-          temporary: boolean,
-          expiredAt: string,
-          createdAt: string,
+          data: string
         ) => {
-          const file: Upload = {
-            fileId,
+          const {
             authorId,
+            fileId,
             filename,
             filetype,
             description,
             size,
             compressedSize,
-            version,
             temporary,
+            version,
+            createdAt,
             expiredAt,
-            createdAt
-          };
+          } = window.socket.decompress<TYPEOF_LISTENER_PAYBACK_UPLOAD_MIRROR>(data);
 
-          handleAppendUploads(file);
+          handleAppendUploads({
+            authorId,
+            fileId,
+            filename,
+            filetype,
+            description,
+            size,
+            compressedSize,
+            temporary,
+            version,
+            createdAt,
+            expiredAt,
+          });
           handleChangeCoverageMirrorFileId(fileId);
           handleChangeCoverageMirrorFileName(filename);
           handleChangeCoverageMirrorFileType(filetype);
         }
       )
+
+    socket
       .on(
         events[3], // * PAYBACK-UPLOAD-COVERAGE-MIRROR-FAILURE
         (error: string) => console.error(error)
@@ -1180,22 +1297,28 @@ function onSocketEvents(
       .on(
         events[4], // * PAYBACK-DELETE-MIRROR-SUCCESS
         (
-          filesId: string[],
-          types: string[]
+          data: string
         ) => {
+          const {
+            filesId,
+            types,
+          } = window.socket.decompress<TYPEOF_LISTENER_PAYBACK_DELETE_MIRROR>(data);
+
           filesId.forEach(fileId => handleDeleteUpload(fileId));
 
           if (types.includes('COVERING')) {
-            handleChangeCoverageMirrorFileId('');
-            handleChangeCoverageMirrorFileName('');
-            handleChangeCoverageMirrorFileType('');
-          } else if (types.includes('COVERAGE')) {
             handleChangeCoveringMirrorFileId('');
             handleChangeCoveringMirrorFileName('');
             handleChangeCoveringMirrorFileType('');
+          } else if (types.includes('COVERAGE')) {
+            handleChangeCoverageMirrorFileId('');
+            handleChangeCoverageMirrorFileName('');
+            handleChangeCoverageMirrorFileType('');
           }
         }
       )
+
+    socket
       .on(
         events[5], // * PAYBACK-DELETE-MIRROR-FAILURE
         (error: string) => console.error(error)

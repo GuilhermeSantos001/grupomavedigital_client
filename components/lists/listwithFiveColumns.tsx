@@ -1,7 +1,7 @@
 /**
  * @description Lista -> Lista com 5 colunas
  * @author GuilhermeSantos001
- * @update 29/12/2021
+ * @update 24/01/2022
  */
 
 import { useState } from 'react'
@@ -255,7 +255,7 @@ const ListwithFiveColumns = (props: Props): JSX.Element => {
         </li>
         {
           lines.length > 0 ?
-            lines.map((line, index) => {
+            lines.map((line: Line, index) => {
               return (
                 <li key={index} className="list-group-item list-group-item-action d-flex flex-row bg-light-gray bg-gradient text-primary">
                   <input
@@ -271,15 +271,15 @@ const ListwithFiveColumns = (props: Props): JSX.Element => {
                     </b>
                   })}
                   <b className='col py-2 text-end mx-2 text-truncate'>
-                    {line.actions.map((action, index3) => {
+                    {line.actions.map((action: Action, index3) => {
                       return (
                         <OverlayTrigger key={index3} trigger={['focus', 'hover']} placement="auto" overlay={
                           <Popover id={`popover-action-buttom-${index3}`}>
                             <Popover.Header as="h3">
-                              {action.popover.title}
+                              {action.popover?.title || "???"}
                             </Popover.Header>
                             <Popover.Body>
-                              {action.popover.description}
+                              {action.popover?.description || "???"}
                             </Popover.Body>
                           </Popover>
                         }>

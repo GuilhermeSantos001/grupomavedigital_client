@@ -1,12 +1,10 @@
 /**
  * @description Componente do input para login
  * @author GuilhermeSantos001
- * @update 13/01/2022
+ * @update 24/01/2022
  */
 
 import React from 'react'
-
-import LoadingBar from 'react-top-loading-bar'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon, { iconsName } from '@/src/utils/fontAwesomeIcons'
@@ -15,7 +13,7 @@ import { compressToEncodedURIComponent } from 'lz-string'
 import Sugar from 'sugar'
 
 import Fetch from '@/src/utils/fetch'
-import Alert from '@/src/utils/alerting'
+import Alerting from '@/src/utils/alerting'
 import Variables from '@/src/db/variables'
 
 type MyProps = {
@@ -30,13 +28,12 @@ type MyState = {
   twofactorRequest: boolean
   twofactorValue: string
   twofactorValidation: boolean
-  progress: number
 }
 
 export default class InputLogin extends React.Component<MyProps, MyState> {
   fetch: Fetch
 
-  constructor(props) {
+  constructor(props: MyProps) {
     super(props)
 
     this.fetch = new Fetch(this.props.api)
@@ -48,8 +45,7 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
       password: '',
       twofactorRequest: false,
       twofactorValue: '',
-      twofactorValidation: false,
-      progress: 0,
+      twofactorValidation: false
     }
 
     this.handlePasswordEyeClick = this.handlePasswordEyeClick.bind(this)
@@ -70,21 +66,19 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
     }
   }
 
-  handleUsernameChange(event) {
+  handleUsernameChange(event: React.ChangeEvent<HTMLInputElement>) {
     this.setState({
       username: Sugar.String.removeAll(event.target.value, ' '),
     })
   }
 
-  handlePasswordChange(event) {
+  handlePasswordChange(event:React.ChangeEvent<HTMLInputElement>) {
     this.setState({
       password: Sugar.String.removeAll(event.target.value, ' '),
     })
   }
 
   handleClickAccess() {
-    this.setState({ progress: this.state.progress + 100 })
-
     this.fetch
       .exec<{
         data: {
@@ -128,14 +122,15 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
       )
       .then(async ({ data, errors }) => {
         if (errors)
-          return errors.forEach((error) => Alert.create(error.message))
+          return errors.forEach((error) => Alerting.create('error', error.message))
 
         const { user } = data || {}
 
         if (user.token === 'twofactorVerify')
           return this.setState({ twofactorRequest: true })
         else if (user.token === 'twofactorDenied')
-          return Alert.create(
+          return Alerting.create(
+            'error',
             'O código informado está inválido. Tente Novamente!'
           )
 
@@ -152,23 +147,25 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
         } catch (error) {
           console.error(error)
 
-          return Alert.create(
+          return Alerting.create(
+            'error',
             'Ocorreu um erro na hora de salvar suas informações. Tente Novamente!'
           )
         }
 
-        return (document.location = `${location.origin}/system`)
+        return (document.location = `${location.origin}/system`);
       })
       .catch((error) => {
-        Alert.create(
+        Alerting.create(
+          'error',
           'Ocorreu um erro com o servidor. Tente novamente mais tarde!'
         )
 
-        throw new TypeError(error)
+        console.error(error);
       })
   }
 
-  handleTwofactorTokenChange(event) {
+  handleTwofactorTokenChange(event: React.ChangeEvent<HTMLInputElement>) {
     this.setState({
       twofactorValue: Sugar.String.removeAll(event.target.value, ' '),
     })
@@ -180,8 +177,6 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
   }
 
   handleTwofactorRetrieve() {
-    this.setState({ progress: this.state.progress + 100 })
-
     this.fetch
       .exec<{
         data: {
@@ -207,24 +202,25 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
       )
       .then(({ data, errors }) => {
         if (errors)
-          return errors.forEach((error) => Alert.create(error.message))
+          return errors.forEach((error) => Alerting.create('error', error.message))
 
         if (data.authRetrieveTwofactor) {
           this.handleTwofactorBack()
 
-          return Alert.create(`Email de recuperação da conta enviado!`)
+          return Alerting.create('warning', `Email de recuperação da conta enviado!`)
         } else {
-          return Alert.create(
+          return Alerting.create(
+            'warning',
             `Email de recuperação da conta não pode ser enviado!`
           )
         }
       })
       .catch((error) => {
-        Alert.create(
+        Alerting.create(
+          'error',
           'Ocorreu um erro com o servidor. Tente novamente mais tarde!'
         )
-
-        throw new TypeError(error)
+        console.error(error);
       })
   }
 
@@ -239,11 +235,6 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
   render() {
     return (
       <div data-testid="container-input-login" className="col-12 p-2">
-        <LoadingBar
-          color="#f6d816"
-          progress={this.state.progress}
-          onLoaderFinished={() => this.setState({ progress: 0 })}
-        />
         <div
           data-testid="input-container-username"
           className="input-group mb-3"
@@ -267,7 +258,7 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
             aria-label="Username"
             aria-describedby="username-addon"
             value={this.state.username}
-            onChange={this.handleUsernameChange}
+            onChange={(e) => this.handleUsernameChange(e)}
           />
         </div>
         <div data-testid="container-input-password" className="input-group">
@@ -290,7 +281,7 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
             aria-label="Password"
             aria-describedby="password-addon"
             value={this.state.password}
-            onChange={this.handlePasswordChange}
+            onChange={(e) => this.handlePasswordChange}
           />
           <span
             data-testid="span-password-eye"
@@ -351,7 +342,7 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
                 type="tel"
                 className="form-control mb-2"
                 value={this.state.twofactorValue}
-                onChange={this.handleTwofactorTokenChange}
+                onChange={(e) => this.handleTwofactorTokenChange(e)}
               />
               <button
                 type="button"

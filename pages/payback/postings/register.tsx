@@ -1,10 +1,17 @@
 /**
  * @description Payback -> Lançamentos Financeiros -> Cadastro
  * @author GuilhermeSantos001
- * @update 07/01/2022
+ * @update 24/01/2022
  */
 
 import React, { useEffect, useState } from 'react'
+
+import { PaybackSocketEvents } from '@/constants/socketEvents'
+
+import {
+  TYPEOF_EMITTER_PAYBACK_DELETE_MIRROR,
+  TYPEOF_LISTENER_PAYBACK_DELETE_MIRROR,
+} from '@/constants/SocketTypes'
 
 import { useRouter } from 'next/router'
 
@@ -15,9 +22,9 @@ import Icon from '@/src/utils/fontAwesomeIcons'
 
 import Button from '@mui/material/Button'
 
-import RenderPageError from '@/components/renderPageError'
-import NoPrivilege from '@/components/noPrivilege'
+import NoPrivilege, { handleClickFunction } from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
+
 import SelectCostCenter from '@/components/selects/selectCostCenter'
 import MobileDatePicker from '@/components/selects/mobileDatePicker'
 import AssistantPostingsRegister from '@/components/assistants/assistantPostingsRegister'
@@ -35,9 +42,7 @@ import PageMenu from '@/bin/main_menu'
 
 import SocketIO from '@/components/socket-io'
 
-import Fetch from '@/src/utils/fetch'
 import Variables from '@/src/db/variables'
-import { tokenValidate } from '@/src/functions/tokenValidate'
 import hasPrivilege from '@/src/functions/hasPrivilege'
 import Alerting from '@/src/utils/alerting'
 import StringEx from '@/src/utils/stringEx'
@@ -310,15 +315,11 @@ function compose_load() {
   )
 }
 
-function compose_error(handleClick) {
-  return <RenderPageError handleClick={handleClick} />
-}
-
-function compose_noPrivilege(handleClick) {
+function compose_noPrivilege(handleClick: handleClickFunction) {
   return <NoPrivilege handleClick={handleClick} />
 }
 
-function compose_noAuth(handleClick) {
+function compose_noAuth(handleClick: handleClickFunction) {
   return <NoAuth handleClick={handleClick} />
 }
 
@@ -381,6 +382,7 @@ function compose_ready(
   handleCloseModalAssistantCoverageDefine: () => void,
   postingsDefined: PostingCreate[],
   handleAppendPostingDefined: (postings: PostingCreate[]) => void,
+  handleDefinePostingDefined: (postings: PostingCreate[]) => void,
   handleResetPostingDefined: () => void,
   handleRemovePostingDefined: (id: string) => void,
 ) {
@@ -419,7 +421,7 @@ function compose_ready(
       });
 
       if (search.length > 0)
-        handleAppendPostingDefined(search);
+        handleDefinePostingDefined(search);
       else {
         Alerting.create('warning', `Nenhum lançamento encontrado, dentro do período informado.`);
 
@@ -427,7 +429,7 @@ function compose_ready(
           Alerting.create('info', `Existem ${postings.filter(posting => posting.paymentStatus === 'payable').length} lançamento(s) a pagar.`);
         else
           Alerting.create('info', `Não existem lançamentos a pagar.`);
-        }
+      }
     };
 
   return (
@@ -475,19 +477,19 @@ function compose_ready(
                         selectWorkplaces.length === 1 &&
                         <EditWorkplace
                           show={showModalEditWorkplace}
-                          id={workplaces.find(place => place.id === selectWorkplaces[0]).id}
-                          name={workplaces.find(place => place.id === selectWorkplaces[0]).name}
-                          entryTime={workplaces.find(place => place.id === selectWorkplaces[0]).entryTime}
-                          exitTime={workplaces.find(place => place.id === selectWorkplaces[0]).exitTime}
-                          services={workplaces.find(place => place.id === selectWorkplaces[0]).services}
-                          scale={workplaces.find(place => place.id === selectWorkplaces[0]).scale}
-                          street={workplaces.find(place => place.id === selectWorkplaces[0]).address.street}
-                          numberHome={workplaces.find(place => place.id === selectWorkplaces[0]).address.number}
-                          complement={workplaces.find(place => place.id === selectWorkplaces[0]).address.complement}
-                          zipCode={workplaces.find(place => place.id === selectWorkplaces[0]).address.zipCode}
-                          neighborhood={workplaces.find(place => place.id === selectWorkplaces[0]).address.neighborhood}
-                          city={workplaces.find(place => place.id === selectWorkplaces[0]).address.city}
-                          district={workplaces.find(place => place.id === selectWorkplaces[0]).address.district}
+                          id={workplaces.find(place => place.id === selectWorkplaces[0])?.id || ""}
+                          name={workplaces.find(place => place.id === selectWorkplaces[0])?.name || ""}
+                          entryTime={workplaces.find(place => place.id === selectWorkplaces[0])?.entryTime || ""}
+                          exitTime={workplaces.find(place => place.id === selectWorkplaces[0])?.exitTime || ""}
+                          services={workplaces.find(place => place.id === selectWorkplaces[0])?.services || []}
+                          scale={workplaces.find(place => place.id === selectWorkplaces[0])?.scale || ""}
+                          street={workplaces.find(place => place.id === selectWorkplaces[0])?.address.street || ""}
+                          numberHome={workplaces.find(place => place.id === selectWorkplaces[0])?.address.number || 0}
+                          complement={workplaces.find(place => place.id === selectWorkplaces[0])?.address.complement || ""}
+                          zipCode={workplaces.find(place => place.id === selectWorkplaces[0])?.address.zipCode || 0}
+                          neighborhood={workplaces.find(place => place.id === selectWorkplaces[0])?.address.neighborhood || ""}
+                          city={workplaces.find(place => place.id === selectWorkplaces[0])?.address.city || ""}
+                          district={workplaces.find(place => place.id === selectWorkplaces[0])?.address.district || ""}
                           handleClose={handleCloseModalEditWorkplace}
                         />
                       }
@@ -655,25 +657,25 @@ function compose_ready(
                         selectPeopleInWorkplaces.length === 1 &&
                         <EditPeople
                           show={showModalEditPeopleInWorkplace}
-                          id={people.find(person => person.id === selectPeopleInWorkplaces[0]).id}
-                          matricule={people.find(person => person.id === selectPeopleInWorkplaces[0]).matricule}
-                          name={people.find(person => person.id === selectPeopleInWorkplaces[0]).name}
-                          cpf={people.find(person => person.id === selectPeopleInWorkplaces[0]).cpf}
-                          rg={people.find(person => person.id === selectPeopleInWorkplaces[0]).rg}
-                          motherName={people.find(person => person.id === selectPeopleInWorkplaces[0]).motherName}
-                          birthDate={people.find(person => person.id === selectPeopleInWorkplaces[0]).birthDate}
-                          phone={people.find(person => person.id === selectPeopleInWorkplaces[0]).phone}
-                          mail={people.find(person => person.id === selectPeopleInWorkplaces[0]).mail}
-                          scale={people.find(person => person.id === selectPeopleInWorkplaces[0]).scale}
-                          cards={people.find(person => person.id === selectPeopleInWorkplaces[0]).cards}
-                          services={people.find(person => person.id === selectPeopleInWorkplaces[0]).services}
-                          street={people.find(person => person.id === selectPeopleInWorkplaces[0]).address.street}
-                          numberHome={people.find(person => person.id === selectPeopleInWorkplaces[0]).address.number}
-                          complement={people.find(person => person.id === selectPeopleInWorkplaces[0]).address.complement}
-                          neighborhood={people.find(person => person.id === selectPeopleInWorkplaces[0]).address.neighborhood}
-                          city={people.find(person => person.id === selectPeopleInWorkplaces[0]).address.city}
-                          district={people.find(person => person.id === selectPeopleInWorkplaces[0]).address.district}
-                          zipCode={people.find(person => person.id === selectPeopleInWorkplaces[0]).address.zipCode}
+                          id={people.find(person => person.id === selectPeopleInWorkplaces[0])?.id || ""}
+                          matricule={people.find(person => person.id === selectPeopleInWorkplaces[0])?.matricule || 0}
+                          name={people.find(person => person.id === selectPeopleInWorkplaces[0])?.name || ""}
+                          cpf={people.find(person => person.id === selectPeopleInWorkplaces[0])?.cpf || ""}
+                          rg={people.find(person => person.id === selectPeopleInWorkplaces[0])?.rg || ""}
+                          motherName={people.find(person => person.id === selectPeopleInWorkplaces[0])?.motherName || ""}
+                          birthDate={people.find(person => person.id === selectPeopleInWorkplaces[0])?.birthDate || ""}
+                          phone={people.find(person => person.id === selectPeopleInWorkplaces[0])?.phone || ""}
+                          mail={people.find(person => person.id === selectPeopleInWorkplaces[0])?.mail || ""}
+                          scale={people.find(person => person.id === selectPeopleInWorkplaces[0])?.scale || ""}
+                          cards={people.find(person => person.id === selectPeopleInWorkplaces[0])?.cards || []}
+                          services={people.find(person => person.id === selectPeopleInWorkplaces[0])?.services || []}
+                          street={people.find(person => person.id === selectPeopleInWorkplaces[0])?.address.street || ""}
+                          numberHome={people.find(person => person.id === selectPeopleInWorkplaces[0])?.address.number || 0}
+                          complement={people.find(person => person.id === selectPeopleInWorkplaces[0])?.address.complement || ""}
+                          neighborhood={people.find(person => person.id === selectPeopleInWorkplaces[0])?.address.neighborhood || ""}
+                          city={people.find(person => person.id === selectPeopleInWorkplaces[0])?.address.city || ""}
+                          district={people.find(person => person.id === selectPeopleInWorkplaces[0])?.address.district || ""}
+                          zipCode={people.find(person => person.id === selectPeopleInWorkplaces[0])?.address.zipCode || 0}
                           handleClose={handleCloseModalEditPeopleInWorkplace}
                         />
                       }
@@ -775,10 +777,12 @@ function compose_ready(
                           disabled={
                             selectPeopleInWorkplaces.length <= 0 ||
                             lotItems.filter(item =>
+                              item.person &&
                               selectPeopleInWorkplaces.includes(item.person)
                             ).length > 0 ||
                             postings.filter(posting =>
                               selectPeopleInWorkplaces.includes(posting.coverage.id) ||
+                              posting.covering &&
                               selectPeopleInWorkplaces.includes(posting.covering.id)
                             ).length > 0
                           }
@@ -828,7 +832,6 @@ export default function Register() {
     postings = useAppSelector((state) => state.payback.postings || []);
 
   const [isReady, setReady] = useState<boolean>(false)
-  const [isError, setError] = useState<boolean>(false)
   const [notPrivilege, setNotPrivilege] = useState<boolean>(false)
   const [notAuth, setNotAuth] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(true)
@@ -863,11 +866,13 @@ export default function Register() {
   const [postingsDefined, setPostingsDefined] = useState<PostingCreate[]>([])
 
   const router = useRouter()
-  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
 
   const
-    handleClickNoAuth = async (e, path) => {
-      e.preventDefault()
+    handleClickNoAuth: handleClickFunction = async (
+      event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+      path: string
+    ) => {
+      event.preventDefault()
 
       if (path === '/auth/login') {
         const variables = new Variables(1, 'IndexedDB')
@@ -876,8 +881,11 @@ export default function Register() {
         })
       }
     },
-    handleClickNoPrivilege = async (e, path) => {
-      e.preventDefault()
+    handleClickNoPrivilege: handleClickFunction = async (
+      event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+      path: string
+    ) => {
+      event.preventDefault()
       router.push(path)
     },
     handleClickBackPage = () => router.push('/payback/postings'),
@@ -914,14 +922,14 @@ export default function Register() {
       try {
         dispatch(SystemActions.DELETE_WORKPLACE(id))
       } catch (error) {
-        Alerting.create('error', error.message);
+        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
       }
     }),
     handleDeletePeopleInWorkplaces = (ids: string[]) => ids.forEach(id => {
       try {
         dispatch(SystemActions.DELETE_PERSON(id))
       } catch (error) {
-        Alerting.create('error', error.message);
+        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
       }
     }),
     handleAppendAppliedWorkplaces = (itens: Workplace[]) => setAppliedWorkplaces([...appliedWorkplaces, ...itens]),
@@ -935,6 +943,7 @@ export default function Register() {
     handleOpenModalAssistantCoverageDefine = () => setShowModalAssistantCoverageDefine(true),
     handleCloseModalAssistantCoverageDefine = () => setShowModalAssistantCoverageDefine(false),
     handleAppendPostingDefined = (postings: PostingCreate[]) => setPostingsDefined([...postingsDefined, ...postings]),
+    handleDefinePostingDefined = (postings: PostingCreate[]) => setPostingsDefined(postings),
     handleResetPostingDefined = () => setPostingsDefined([]),
     handleRemovePostingDefined = (id: string) => {
       try {
@@ -942,60 +951,61 @@ export default function Register() {
           posting = postings.find(item => item.id === id),
           deleteFile = async (
             filesId: string[]
-          ) => window.socket.emit('PAYBACK-DELETE-MIRROR', filesId, ['COVERING', 'COVERAGE']),
+          ) => window.socket.emit(
+            'PAYBACK-DELETE-MIRROR',
+            window.socket.compress<TYPEOF_EMITTER_PAYBACK_DELETE_MIRROR>({
+              filesId,
+              types: ['COVERING', 'COVERAGE']
+            })),
           deleteMirrors = [];
 
-        if (posting.covering && posting.covering.mirror.fileId) {
-          deleteMirrors.push(posting.covering.mirror.fileId);
+        if (posting) {
+          if (posting.covering && posting.covering.mirror.fileId) {
+            deleteMirrors.push(posting.covering.mirror.fileId);
+          }
+
+          if (posting.coverage.modalityOfCoverage === 'ft') {
+            deleteMirrors.push(posting.coverage.mirror.fileId);
+          }
+
+          if (deleteMirrors.length > 0)
+            deleteFile(deleteMirrors);
+
+          dispatch(PaybackActions.DELETE_POSTING(id));
+          setPostingsDefined(postingsDefined.filter(item => item.id !== id));
+        } else {
+          throw new Error('Lançamento financeiro não encontrado.');
         }
-
-        if (posting.coverage.modalityOfCoverage === 'ft') {
-          deleteMirrors.push(posting.coverage.mirror.fileId);
-        }
-
-        if (deleteMirrors.length > 0)
-          deleteFile(deleteMirrors);
-
-        dispatch(PaybackActions.DELETE_POSTING(id));
-        setPostingsDefined(postingsDefined.filter(item => item.id !== id));
       } catch (error) {
-        Alerting.create('error', error.message);
+        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
       }
     },
     handleDeleteUpload = (fileId: string) => {
       try {
         dispatch(SystemActions.DELETE_UPLOAD(fileId));
       } catch (error) {
-        Alerting.create('error', error.message);
+        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
       }
     };
 
   useEffect(() => {
-    const timer = setTimeout(async () => {
-      const isAllowViewPage = await tokenValidate(_fetch)
-
-      if (!isAllowViewPage) {
-        setNotAuth(true)
-        setLoading(false)
-      } else {
-        try {
-          if (!(await hasPrivilege('administrador', 'fin_gerente', 'fin_assistente'))) setNotPrivilege(true)
-
-          setReady(true)
-          return setLoading(false)
-        } catch {
-          setError(true)
-          return setLoading(false)
+    hasPrivilege('administrador', 'ope_gerente', 'ope_coordenador', 'ope_mesa')
+      .then((isAllowViewPage) => {
+        if (isAllowViewPage) {
+          setReady(true);
+        } else {
+          setNotPrivilege(true);
         }
-      }
-    })
 
-    return () => clearTimeout(timer)
+        return setLoading(false);
+      })
+      .catch(() => {
+        setNotAuth(true);
+        return setLoading(false)
+      });
   }, [])
 
   if (loading) return compose_load()
-
-  if (isError) return compose_error(handleClickNoAuth)
 
   if (notPrivilege) return compose_noPrivilege(handleClickNoPrivilege)
 
@@ -1065,6 +1075,7 @@ export default function Register() {
       handleCloseModalAssistantCoverageDefine,
       postingsDefined,
       handleAppendPostingDefined,
+      handleDefinePostingDefined,
       handleResetPostingDefined,
       handleRemovePostingDefined,
     )
@@ -1083,8 +1094,8 @@ function onSocketEvents(
   if (socket) {
     const
       events = [
-        'PAYBACK-DELETE-MIRROR-SUCCESS',
-        'PAYBACK-DELETE-MIRROR-FAILURE'
+        `${PaybackSocketEvents.PAYBACK_DELETE_MIRROR}-SUCCESS`,
+        `${PaybackSocketEvents.PAYBACK_DELETE_MIRROR}-FAILURE`
       ]
 
     events
@@ -1097,9 +1108,17 @@ function onSocketEvents(
       .on(
         events[0], // * PAYBACK-DELETE-MIRROR-SUCCESS
         (
-          filesId: string[]
-        ) => filesId.forEach(fileId => handleDeleteUpload(fileId))
+          data: string
+        ) => {
+          const {
+            filesId,
+          } = window.socket.decompress<TYPEOF_LISTENER_PAYBACK_DELETE_MIRROR>(data);
+
+          filesId.forEach(fileId => handleDeleteUpload(fileId));
+        }
       )
+
+    socket
       .on(
         events[1], // * PAYBACK-DELETE-MIRROR-FAILURE
         (error: string) => console.error(error)

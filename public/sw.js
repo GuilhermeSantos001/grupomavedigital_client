@@ -35,7 +35,7 @@ if (!self.define) {
     }
     return promise.then(() => {
       if (!registry[name]) {
-        throw new TypeError(`Module ${name} didn’t register its module`);
+        throw new Error(`Module ${name} didn’t register its module`);
       }
       return registry[name];
     });

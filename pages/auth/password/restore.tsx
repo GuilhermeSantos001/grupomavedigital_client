@@ -134,11 +134,7 @@ const PasswordRestore = ({ token }): JSX.Element => {
     }
 
   useEffect(() => {
-    const timer = setTimeout(async () => {
-      setIsLoading(false)
-    })
-
-    return () => clearTimeout(timer)
+    setIsLoading(false);
   }, [])
 
   if (isLoading) return compose_loading()

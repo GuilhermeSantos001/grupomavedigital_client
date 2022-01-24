@@ -5,6 +5,8 @@
     "paths": {
       "@/bin/*": ["bin/*"],
       "@/app/*": ["app/*"],
+      "@/constants/*": ["constants/*"],
+      "@/controllers/*": ["controllers/*"],
       "@/context/*": ["context/*"],
       "@/lib/*": ["lib/*"],
       "@/components/*": ["components/*"],

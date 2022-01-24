@@ -21,6 +21,10 @@ html {
   transition: all 5s ease;
 }
 
+.bar-of-progress {
+  z-index: 99999;
+}
+
 .bg-light-gray {
   background-color: map-get($theme-colors, 'light-gray');
 }

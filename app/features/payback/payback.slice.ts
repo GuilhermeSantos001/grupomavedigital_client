@@ -6,6 +6,8 @@
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
+import DateEx from '@/src/utils/dateEx'
+
 import { Status, Upload } from '@/app/features/system/system.slice'
 
 export type PaymentStatus = 'payable' | 'paid' | 'cancelled'
@@ -130,7 +132,7 @@ export const slice = createSlice({
         }).length > 0)
           throw new Error('Já existe um lote com esse número de série ou com os 4 últimos dígitos do número do cartão.');
 
-        const index = state.lotItems.findIndex(item => `${item.id} - ${item.lastCardNumber}`=== `${action.payload.id} - ${action.payload.lastCardNumber}`);
+        const index = state.lotItems.findIndex(item => `${item.id} - ${item.lastCardNumber}` === `${action.payload.id} - ${action.payload.lastCardNumber}`);
 
         if (index !== -1)
           state.lotItems[index] = action.payload;
@@ -159,24 +161,82 @@ export const slice = createSlice({
         if (!state.postings)
           state.postings = [];
 
+        let errorMessage = 'Não foi possível registrar o lançamento, verifique os dados e tente novamente.';
+
         if (
           state.postings.filter(item => {
+            // * Verifica se o posto de cobertura já está sendo coberto na mesma data
             if (
-              // ? Verifica se o posto já está sendo coberto no mesmo dia
+              // ! Falta do Efetivo
+              action.payload.covering && item.covering &&
               item.coveringWorkplace === action.payload.coveringWorkplace &&
-              item.originDate == action.payload.originDate ||
-              // ? Verifica se a pessoa que está cobrindo já possui um lançamento no mesmo dia
-              item.coverage.id === action.payload.coverage.id &&
-              item.originDate === action.payload.originDate
-            )
+              item.covering.id === action.payload.covering.id &&
+              DateEx.isEqual(new Date(item.originDate), new Date(action.payload.originDate)) ||
+              // ! Falta de Efetivo
+              item.coveringWorkplace === action.payload.coveringWorkplace &&
+              DateEx.isEqual(new Date(item.originDate), new Date(action.payload.originDate))
+            ) {
+              errorMessage = 'Posto de cobertura já está sendo coberto.';
               return true;
+            }
+            // * Verifica se o posto de cobertura já está sendo usado como origem na mesma data
+            if (
+              item.coverageWorkplace === action.payload.coveringWorkplace &&
+              DateEx.isEqual(new Date(item.originDate), new Date(action.payload.originDate))
+            ) {
+              errorMessage = 'Posto de cobertura já está sendo usado como posto de origem em outro lançamento.';
+              return true;
+            }
+            // * Verifica se o posto de origem já está sendo usado como cobertura na mesma data
+            if (
+              item.coveringWorkplace === action.payload.coverageWorkplace &&
+              DateEx.isEqual(new Date(item.originDate), new Date(action.payload.originDate))
+            ) {
+              errorMessage = 'Posto de origem já está sendo usado como posto de cobertura em outro lançamento.';
+              return true;
+            }
+            // * Verifica se o funcionário que foi substituído já teve a falta apontada no mesmo dia
+            if (
+              action.payload.covering && item.covering &&
+              item.covering.id === action.payload.covering.id &&
+              DateEx.isEqual(new Date(item.originDate), new Date(action.payload.originDate))
+            ) {
+              errorMessage = 'Funcionário que está sendo substituído já teve a falta apontada.';
+              return true;
+            }
+            // * Verifica se o funcionário que está sendo substituído realizou uma cobertura no mesmo dia
+            if (
+              action.payload.covering &&
+              item.coverage.id === action.payload.covering.id &&
+              DateEx.isEqual(new Date(item.originDate), new Date(action.payload.originDate))
+            ) {
+              errorMessage = 'Funcionário que está sendo substituído realizou uma cobertura no mesmo dia.';
+              return true;
+            }
+            // * Verifica se o funcionário que está realizando a cobertura está com falta apontada no mesmo dia
+            if (
+              item.covering &&
+              item.covering.id === action.payload.coverage.id &&
+              DateEx.isEqual(new Date(item.originDate), new Date(action.payload.originDate))
+            ) {
+              errorMessage = 'Funcionário que está realizando a cobertura tem uma falta apontada.';
+              return true;
+            }
+            //* Verifica se o funcionário que está realizando a cobertura já está cobrindo outro posto de cobertura no mesmo dia
+            if (
+              item.coverage.id === action.payload.coverage.id &&
+              DateEx.isEqual(new Date(item.originDate), new Date(action.payload.originDate))
+            ) {
+              errorMessage = 'Funcionário que está realizando a cobertura já está cobrindo outro posto.';
+              return true;
+            }
 
             return false;
           }).length <= 0
         )
           state.postings.push(action.payload);
         else
-          throw new Error('Posto já está sendo coberto no mesmo dia (Data de Origem) e/ou pessoa que está cobrindo já possui um lançamento no mesmo dia (Data de Origem).');
+          throw new Error(errorMessage);
       },
       prepare: (item: PostingCreate) => {
         const

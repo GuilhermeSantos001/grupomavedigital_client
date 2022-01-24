@@ -1,7 +1,7 @@
 /**
  * @description Componentes da grade do layout da pagina
  * @author GuilhermeSantos001
- * @update 13/01/2022
+ * @update 24/01/2022
  */
 
 import React from 'react'
@@ -13,7 +13,9 @@ import Link from 'next/link'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
 
-import { Menu } from '@/pages/_app'
+import type {
+  Menu,
+} from '@/pages/_app'
 
 type MyProps = {
   menu: Menu[]
@@ -24,8 +26,8 @@ type MyProps = {
 type MyState = Record<string, never>
 
 export default class GridContent extends React.Component<MyProps, MyState> {
-  composeItemsMenu(items) {
-    return items.map((item) => {
+  composeItemsMenu(items: Menu[]) {
+    return items.map((item: any) => {
       if (item.type === 'dropdown') {
         const itemNormal = (
           <div
@@ -130,8 +132,8 @@ export default class GridContent extends React.Component<MyProps, MyState> {
     })
   }
 
-  composeSubItemsMenu(items) {
-    return items.map((item) => {
+  composeSubItemsMenu(items: Menu[]) {
+    return items.map((item: any) => {
       if (item.type === 'separator') {
         return (
           <li key={item.id}>

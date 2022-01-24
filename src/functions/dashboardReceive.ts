@@ -119,7 +119,7 @@ const dashboardReceive = async (_fetch: Fetch, filial: string | null, client: st
 
   if (errors) {
     console.error(errors);
-    throw new TypeError('Não foi possível retornar as informações do painel: Contas a Receber.')
+    throw new Error('Não foi possível retornar as informações do painel: Contas a Receber.')
   }
 
   return data.response;

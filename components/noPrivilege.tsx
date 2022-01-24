@@ -1,7 +1,7 @@
 /**
- * @description Componentes exibido quando o usuario não tem privilegio
+ * @description Componentes exibido quando o usuário não tem privilegio
  * @author GuilhermeSantos001
- * @update 06/10/2021
+ * @update 21/01/2022
  */
 
 import React from 'react'
@@ -9,7 +9,7 @@ import React from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
 
-type handleClickFunction = (
+export type handleClickFunction = (
   event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
   path: string
 ) => void
@@ -21,7 +21,7 @@ type MyProps = {
 type MyState = Record<string, never>
 
 export default class NoAuth extends React.Component<MyProps, MyState> {
-  constructor(props) {
+  constructor(props: MyProps) {
     super(props)
   }
 

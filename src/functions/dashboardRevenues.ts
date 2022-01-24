@@ -69,7 +69,7 @@ const dashboardRevenues = async (_fetch: Fetch, filial: string | null, client: s
 
   if (errors) {
     console.error(errors);
-    throw new TypeError('Não foi possível retornar as informações do painel: Faturamento.')
+    throw new Error('Não foi possível retornar as informações do painel: Faturamento.')
   }
 
   return data.response;

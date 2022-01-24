@@ -1,7 +1,7 @@
 /**
  * @description Payback -> Cartões Beneficio (Alelo)
  * @author GuilhermeSantos001
- * @update 08/01/2022
+ * @update 21/01/2022
  */
 
 import { useEffect, useState } from 'react'
@@ -15,16 +15,13 @@ import SkeletonLoader from 'tiny-skeleton-loader-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
 
-import RenderPageError from '@/components/renderPageError'
 import NoPrivilege from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
 
 import { PageProps } from '@/pages/_app'
 import PageMenu from '@/bin/main_menu'
 
-import Fetch from '@/src/utils/fetch'
 import Variables from '@/src/db/variables'
-import { tokenValidate } from '@/src/functions/tokenValidate'
 import hasPrivilege from '@/src/functions/hasPrivilege'
 
 const serverSideProps: PageProps = {
@@ -104,10 +101,6 @@ function compose_load() {
       </div>
     </div>
   )
-}
-
-function compose_error(handleClick) {
-  return <RenderPageError handleClick={handleClick} />
 }
 
 function compose_noPrivilege(handleClick) {
@@ -275,13 +268,11 @@ function compose_ready() {
 
 export default function Cards() {
   const [isReady, setReady] = useState<boolean>(false)
-  const [isError, setError] = useState<boolean>(false)
   const [notPrivilege, setNotPrivilege] = useState<boolean>(false)
   const [notAuth, setNotAuth] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(true)
 
   const router = useRouter()
-  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
 
   const
     handleClickNoAuth = async (e, path) => {
@@ -300,31 +291,23 @@ export default function Cards() {
     }
 
   useEffect(() => {
-    const timer = setTimeout(async () => {
-      const isAllowViewPage = await tokenValidate(_fetch)
-
-      if (!isAllowViewPage) {
-        setNotAuth(true)
-        setLoading(false)
-      } else {
-        try {
-          if (!(await hasPrivilege('administrador', 'fin_gerente', 'fin_assistente'))) setNotPrivilege(true)
-
-          setReady(true)
-          return setLoading(false)
-        } catch {
-          setError(true)
-          return setLoading(false)
+    hasPrivilege('administrador', 'fin_gerente', 'fin_assistente')
+      .then((isAllowViewPage) => {
+        if (isAllowViewPage) {
+          setReady(true);
+        } else {
+          setNotPrivilege(true);
         }
-      }
-    })
 
-    return () => clearTimeout(timer)
+        return setLoading(false);
+      })
+      .catch(() => {
+        setNotAuth(true);
+        return setLoading(false)
+      });
   }, [])
 
   if (loading) return compose_load()
-
-  if (isError) return compose_error(handleClickNoAuth)
 
   if (notPrivilege) return compose_noPrivilege(handleClickNoPrivilege)
 

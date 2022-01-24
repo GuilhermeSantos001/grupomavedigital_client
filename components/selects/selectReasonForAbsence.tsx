@@ -1,7 +1,7 @@
 /**
  * @description Input -> Seleciona um Motivo de Falta
  * @author GuilhermeSantos001
- * @update 18/01/2022
+ * @update 24/01/2022
  */
 
 import { useState } from 'react';
@@ -44,27 +44,27 @@ export default function selectReasonForAbsence(props: Props) {
       try {
         dispatch(SystemActions.CREATE_REASONFORABSENCE(reasonForAbsence));
       } catch (error) {
-        Alerting.create('error', error.message);
+        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
       }
     },
     handleUpdateReasonForAbsence = (reasonForAbsence: ReasonForAbsence) => {
       try {
         dispatch(SystemActions.UPDATE_REASONFORABSENCE(reasonForAbsence));
       } catch (error) {
-        Alerting.create('error', error.message);
+        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
       }
     },
     handleRemoveReasonForAbsence = (id: string) => {
       try {
         dispatch(SystemActions.DELETE_REASONFORABSENCE(id));
       } catch (error) {
-        Alerting.create('error', error.message);
+        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
       }
     };
 
   const canDeleteReasonForAbsence = (itemId: string) => {
     const
-      posting = postings.find((item) => item.covering.reasonForAbsence === itemId);
+      posting = postings.find((item) => item.covering && item.covering.reasonForAbsence === itemId);
 
     return posting === undefined;
   }
@@ -122,10 +122,12 @@ export default function selectReasonForAbsence(props: Props) {
             }
           } else if (newValue && newValue.inputValue) {
             // Create a new value from the user input
-            const reasonForAbsence: ReasonForAbsence = {
-              id: hasEdit ? value.id : StringEx.id(),
-              value: newValue.inputValue,
-            };
+            const
+              valueId = StringEx.id(),
+              reasonForAbsence: ReasonForAbsence = {
+                id: hasEdit ? value?.id || valueId : valueId,
+                value: newValue.inputValue,
+              };
 
             setValue(reasonForAbsence);
 
@@ -151,9 +153,11 @@ export default function selectReasonForAbsence(props: Props) {
           const isExisting = options.some((option) => inputValue === option.value);
 
           if (inputValue !== '' && !isExisting) {
+            const valueId = StringEx.id();
+
             filtered.push({
-              id: hasEdit ? value.id : StringEx.id(),
-              value: hasEdit ? `Atualizar "${value.value}" para "${inputValue}"` : `Adicionar "${inputValue}"`,
+              id: hasEdit ? value?.id || valueId : valueId,
+              value: hasEdit ? `Atualizar "${value?.value || "???"}" para "${inputValue}"` : `Adicionar "${inputValue}"`,
               inputValue,
               inputUpdate: hasEdit ? true : false
             });
@@ -209,9 +213,11 @@ export default function selectReasonForAbsence(props: Props) {
         color='error'
         disabled={hasEdit || !value || !canDeleteReasonForAbsence(value.id)}
         onClick={() => {
-          setValue(null);
-          handleRemoveReasonForAbsence(value.id);
-          props.handleChangeReasonForAbsence('');
+          if (value) {
+            setValue(null);
+            handleRemoveReasonForAbsence(value.id);
+            props.handleChangeReasonForAbsence('');
+          }
         }}
       >
         Deletar

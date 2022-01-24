@@ -1,7 +1,7 @@
 /**
  * @description Input -> Seleciona um local de trabalho
  * @author GuilhermeSantos001
- * @update 18/01/2022
+ * @update 24/01/2022
  */
 
 import { useState } from 'react';
@@ -44,7 +44,7 @@ export default function SelectWorkplace(props: Props) {
               key={place.id}
               value={place.id}
             >
-              <em>{place.name}({scales.find(scale => scale.id === place.scale).value})</em>
+              <em>{place.name}({scales.find(scale => scale.id === place.scale)?.value || "???"})</em>
             </MenuItem>
           )
         })}

@@ -60,12 +60,9 @@ const MailConfirm = ({ token }): JSX.Element => {
   const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
 
   useEffect(() => {
-    const timer = setTimeout(async () => {
-      if (await mailConfirm(_fetch, token)) setIsReady(true)
-      setIsLoading(false)
-    })
-
-    return () => clearTimeout(timer)
+    mailConfirm(_fetch, token)
+      .then(() => setIsReady(true))
+      .finally(() => setIsLoading(false))
   }, [])
 
   return (
@@ -76,7 +73,7 @@ const MailConfirm = ({ token }): JSX.Element => {
         ) : isReady ? (
           <p>Conta confirmada</p>
         ) : (
-          <p>Não foi possivel confirmar sua conta!</p>
+          <p>Não foi possível confirmar sua conta!</p>
         )}
       </h1>
       {isReady ? (

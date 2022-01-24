@@ -63,7 +63,7 @@ const getBankingNatures = async (_fetch: Fetch, cache: boolean, id?: string): Pr
 
   if (errors) {
     console.error(errors);
-    throw new TypeError('Não foi possível retornar as informações das naturezas bancarias.')
+    throw new Error('Não foi possível retornar as informações das naturezas bancarias.')
   }
 
   return data.response;

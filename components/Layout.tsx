@@ -1,7 +1,7 @@
 /**
  * @description Componentes de layout
  * @author GuilhermeSantos001
- * @update 17/01/2022
+ * @update 24/01/2022
  */
 
 import React from 'react'
@@ -22,7 +22,7 @@ type myStates = {
 }
 
 class Layout extends React.Component<MyProps, myStates> {
-  constructor(props) {
+  constructor(props: MyProps) {
     super(props)
 
     this.state = { menuShow: false, fetchAPI: null }

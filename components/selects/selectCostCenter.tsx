@@ -1,7 +1,7 @@
 /**
  * @description Input -> Seleciona um centro de custo
  * @author GuilhermeSantos001
- * @update 17/01/2022
+ * @update 24/01/2022
  */
 
 import { useState } from 'react';
@@ -45,21 +45,21 @@ export default function SelectStreet(props: Props) {
       try {
         dispatch(SystemActions.CREATE_COSTCENTER(costCenter));
       } catch (error) {
-        Alerting.create('error', error.message);
+        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
       }
     },
     handleUpdateCostCenter = (costCenter: CostCenter) => {
       try {
         dispatch(SystemActions.UPDATE_COSTCENTER(costCenter));
       } catch (error) {
-        Alerting.create('error', error.message);
+        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
       }
     },
     handleRemoveCostCenter = (id: string) => {
       try {
         dispatch(SystemActions.DELETE_COSTCENTER(id));
       } catch (error) {
-        Alerting.create('error', error.message);
+        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
       }
     },
     canDeleteCostCenter = (id: string) => {
@@ -126,10 +126,12 @@ export default function SelectStreet(props: Props) {
             }
           } else if (newValue && newValue.inputValue) {
             // Create a new value from the user input
-            const costCenter: CostCenter = {
-              id: hasEdit ? value.id : StringEx.id(),
-              title: newValue.inputValue,
-            };
+            const
+              valueId = StringEx.id(),
+              costCenter: CostCenter = {
+                id: hasEdit ? value?.id || valueId : valueId,
+                title: newValue.inputValue,
+              };
 
             setValue(costCenter);
 
@@ -155,9 +157,11 @@ export default function SelectStreet(props: Props) {
           const isExisting = options.some((option) => inputValue === option.title);
 
           if (inputValue !== '' && !isExisting) {
+            const valueId = StringEx.id();
+
             filtered.push({
-              id: hasEdit ? value.id : StringEx.id(),
-              title: hasEdit ? `Atualizar "${value.title}" para "${inputValue}"` : `Adicionar "${inputValue}"`,
+              id: hasEdit ? value?.id || valueId : valueId,
+              title: hasEdit ? `Atualizar "${value?.title || "???"}" para "${inputValue}"` : `Adicionar "${inputValue}"`,
               inputValue,
               inputUpdate: hasEdit ? true : false
             });
@@ -194,7 +198,7 @@ export default function SelectStreet(props: Props) {
         className='col mx-1'
         variant="contained"
         color={hasEdit ? 'primary' : 'warning'}
-        disabled={props.disabled !== undefined ? props.disabled : !value}
+        disabled={props.disabled ? true : !value}
         onClick={() => {
           if (!hasEdit) {
             setHasEdit(true);
@@ -211,11 +215,13 @@ export default function SelectStreet(props: Props) {
         className='col mx-1'
         variant="contained"
         color='error'
-        disabled={props.disabled !== undefined ? props.disabled : hasEdit || !value || !canDeleteCostCenter(value.id)}
+        disabled={props.disabled ? true : hasEdit || !value || !canDeleteCostCenter(value.id)}
         onClick={() => {
-          setValue(null);
-          handleRemoveCostCenter(value.id);
-          props.handleChangeCostCenter('');
+          if (value) {
+            setValue(null);
+            handleRemoveCostCenter(value.id);
+            props.handleChangeCostCenter('');
+          }
         }}
       >
         Deletar

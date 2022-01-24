@@ -1,7 +1,7 @@
 /**
  * @description Lista -> Lista com checkbox (MUI)
  * @author GuilhermeSantos001
- * @update 31/12/2021
+ * @update 24/01/2022
  */
 
 import * as React from 'react';
@@ -24,7 +24,7 @@ export default function listWithCheckboxMUI(props: Props): JSX.Element {
         columns={props.columns}
         pageSize={props.pageSize}
         checkboxSelection={true}
-        onSelectionModelChange={(selection: string[]) => props.onChangeSelection(selection)}
+        onSelectionModelChange={(selection) => props.onChangeSelection(selection.map((item) => item.toString()))}
         rowsPerPageOptions={props.pageSizeOptions}
         onPageSizeChange={(pageSize: number) => props.onPageSizeChange(pageSize)}
         localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}

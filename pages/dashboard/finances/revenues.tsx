@@ -1,7 +1,7 @@
 /**
  * @description Dashboard do "Faturamento"
  * @author GuilhermeSantos001
- * @update 21/11/2021
+ * @update 21/01/2022
  */
 
 import React, { useEffect, useState } from 'react'
@@ -10,7 +10,6 @@ import { useRouter } from 'next/router'
 
 import SkeletonLoader from 'tiny-skeleton-loader-react'
 
-import RenderPageError from '@/components/renderPageError'
 import NoPrivilege from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
 import ChartRevenues from '@/components/chartRevenues'
@@ -21,7 +20,6 @@ import PageMenu from '@/bin/main_menu'
 import Fetch from '@/src/utils/fetch'
 import Variables from '@/src/db/variables'
 import hasPrivilege from '@/src/functions/hasPrivilege'
-import { tokenValidate } from '@/src/functions/tokenValidate'
 
 const serverSideProps: PageProps = {
   title: 'Dashboard/Faturamento',
@@ -76,10 +74,6 @@ function compose_load() {
   )
 }
 
-function compose_error(handleClick) {
-  return <RenderPageError handleClick={handleClick} />
-}
-
 function compose_noPrivilege(handleClick) {
   return <NoPrivilege handleClick={handleClick} />
 }
@@ -109,13 +103,11 @@ function compose_ready() {
 
 const Revenues = (): JSX.Element => {
   const [isReady, setReady] = useState<boolean>(false)
-  const [isError, setError] = useState<boolean>(false)
   const [notPrivilege, setNotPrivilege] = useState<boolean>(false)
   const [notAuth, setNotAuth] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(true)
 
   const router = useRouter()
-  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
 
   const
     handleClickNoAuth = async (e, path) => {
@@ -134,31 +126,23 @@ const Revenues = (): JSX.Element => {
     }
 
   useEffect(() => {
-    const timer = setTimeout(async () => {
-      const isAllowViewPage = await tokenValidate(_fetch)
-
-      if (!isAllowViewPage) {
-        setNotAuth(true)
-        setLoading(false)
-      } else {
-        try {
-          if (!(await hasPrivilege('administrador'))) setNotPrivilege(true)
-
-          setReady(true)
-          return setLoading(false)
-        } catch {
-          setError(true)
-          return setLoading(false)
+    hasPrivilege('administrador')
+      .then((isAllowViewPage) => {
+        if (isAllowViewPage) {
+          setReady(true);
+        } else {
+          setNotPrivilege(true);
         }
-      }
-    })
 
-    return () => clearTimeout(timer)
+        return setLoading(false);
+      })
+      .catch(() => {
+        setNotAuth(true);
+        return setLoading(false)
+      });
   }, [])
 
   if (loading) return compose_load()
-
-  if (isError) return compose_error(handleClickNoAuth)
 
   if (notPrivilege) return compose_noPrivilege(handleClickNoPrivilege)
 

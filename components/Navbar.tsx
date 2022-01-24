@@ -1,7 +1,7 @@
 /**
  * @description Componentes da navbar
  * @author GuilhermeSantos001
- * @update 06/10/2021
+ * @update 24/01/2022
  */
 
 import React from 'react'
@@ -12,26 +12,22 @@ import MobileMenu from '@/components/MobileMenu'
 
 type MyProps = {
   menuShow: boolean
-  setMenuShow: any
+  setMenuShow: () => void
   fullwidth: boolean
 }
 
 type MyState = Record<string, never>
 
 export default class Navbar extends React.Component<MyProps, MyState> {
-  constructor(props) {
+  constructor(props: MyProps) {
     super(props)
 
     this.handleImageClick = this.handleImageClick.bind(this)
   }
 
   handleImageClick() {
-    const win: any = window
-
-    if (win.location.pathname !== '/') {
-      win.loading = true
-      win.location = '/'
-    }
+    if (window.location.pathname !== '/')
+      window.location.replace('/');
   }
 
   render() {

@@ -1,7 +1,7 @@
 /**
  * @description Componente de exibição das pastas do GED
  * @author GuilhermeSantos001
- * @update 14/12/2021
+ * @update 24/01/2022
  */
 
 import React from 'react'
@@ -129,7 +129,7 @@ export default class Folders extends React.Component<MyProps, MyStates> {
   static contextType = HerculesContext
   declare context: React.ContextType<typeof HerculesContext>
 
-  constructor(props) {
+  constructor(props: MyProps) {
     super(props);
 
     this.state = {
@@ -492,7 +492,7 @@ export default class Folders extends React.Component<MyProps, MyStates> {
                         type="checkbox"
                         id="checkbox-append-item"
                         checked={inListForAppend(item.cid)}
-                        onChange={(e) => e.target.checked ? addItemsForAppend(item.cid, item.name, item.type, item.whichIs) : removeItemsForAppend(item.cid)}
+                        onChange={(e) => e.target.checked ? addItemsForAppend(item.cid, item.name, item?.type || "", item.whichIs) : removeItemsForAppend(item.cid)}
                       />
                       <label className="form-check-label" htmlFor="checkbox-append-item">
                         {name}
@@ -1122,7 +1122,7 @@ export default class Folders extends React.Component<MyProps, MyStates> {
         if (this.inRoom(room) && cid === this.props.cid) {
           Alerting.create('info',`Pastas/Arquivos movidos para a pasta: ${this.state.name}`);
 
-          const itemsForAppend = JSON.parse(decompressFromEncodedURIComponent(data));
+          const itemsForAppend = JSON.parse(decompressFromEncodedURIComponent(data) || "");
 
           this.moveItemsForFolder(itemsForAppend);
           this.setState({ itemsForAppend: [], updated: new Date().toString() });
@@ -1159,7 +1159,7 @@ export default class Folders extends React.Component<MyProps, MyStates> {
         if (this.inRoom(room) && cid === this.props.cid) {
           Alerting.create('info',`Pastas/Arquivos retirados da pasta: ${this.state.name}`);
 
-          const itemsForSplice = JSON.parse(decompressFromEncodedURIComponent(data));
+          const itemsForSplice = JSON.parse(decompressFromEncodedURIComponent(data) || "");
 
           this.removeItemsOfFolder(itemsForSplice);
           this.setState({ itemsForSplice: [], updated: new Date().toString() });

@@ -60,6 +60,11 @@ export default class Fetch {
       if (keys.length <= 0)
         return reject(`Nenhuma credencial encontrada.`);
 
+      console.log('KEYS SEND');
+      console.log(await variables.get<string>('token'));
+      console.log(await variables.get<string>('signature'));
+      console.log('\n');
+
       Promise.all([
         variables.get<string>('auth'),
         variables.get<string>('token'),

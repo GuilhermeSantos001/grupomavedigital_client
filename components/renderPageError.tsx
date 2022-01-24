@@ -1,7 +1,7 @@
 /**
  * @description Componentes exibido quando a pagina apresentou um erro
  * @author GuilhermeSantos001
- * @update 06/10/2021
+ * @update 24/01/2022
  */
 
 import React from 'react'
@@ -21,7 +21,7 @@ type MyProps = {
 type MyState = Record<string, never>
 
 export default class RenderPageError extends React.Component<MyProps, MyState> {
-  constructor(props) {
+  constructor(props: MyProps) {
     super(props)
   }
 

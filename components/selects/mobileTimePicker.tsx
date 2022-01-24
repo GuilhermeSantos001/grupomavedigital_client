@@ -1,7 +1,7 @@
 /**
  * @description Input -> Seleção de Hora
  * @author GuilhermeSantos001
- * @update 30/12/2021
+ * @update 24/01/2022
  */
 
 import { ThemeProvider } from '@mui/material/styles';
@@ -30,7 +30,7 @@ const TimePicker = (props: Props): JSX.Element => {
       <MobileTimePicker
         label={props.label}
         value={props.value}
-        onChange={(newValue: Date) => props.handleChangeValue(newValue)}
+        onChange={(newValue) => props.handleChangeValue(newValue || new Date())}
         renderInput={(params) => <TextField className={props.className} {...params} />}
       />
     </LocalizationProvider>

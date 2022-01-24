@@ -1,7 +1,7 @@
 /**
- * @description Pagina usada para alterar as informações de segurança do usuario
+ * @description Pagina usada para alterar as informações de segurança do usuário
  * @author GuilhermeSantos001
- * @update 18/01/2022
+ * @update 21/01/2022
  */
 
 import React, { useEffect, useState } from 'react'
@@ -17,7 +17,6 @@ import Icon from '@/src/utils/fontAwesomeIcons'
 
 import Sugar from 'sugar'
 
-import RenderPageError from '@/components/renderPageError'
 import NoAuth from '@/components/noAuth'
 import Alerting from '@/src/utils/alerting'
 
@@ -27,7 +26,7 @@ import PageMenu from '@/bin/main_menu'
 import Fetch from '@/src/utils/fetch'
 import Variables from '@/src/db/variables'
 import getUserInfo from '@/src/functions/getUserInfo'
-import { tokenValidate, saveUpdatedToken } from '@/src/functions/tokenValidate'
+import {  saveUpdatedToken } from '@/src/functions/tokenValidate'
 import hasConfiguredTwoFactor from '@/src/functions/hasConfiguredTwoFactor'
 import authSignTwofactor from '@/src/functions/authSignTwofactor'
 import authVerifyTwofactor from '@/src/functions/authVerifyTwofactor'
@@ -204,10 +203,6 @@ function compose_load() {
       </div>
     </div>
   )
-}
-
-function compose_error(handleClick) {
-  return <RenderPageError handleClick={handleClick} />
 }
 
 function compose_noAuth(handleClick) {
@@ -658,7 +653,6 @@ function compose_twoFactor(
 
 const Security = (): JSX.Element => {
   const [isReady, setReady] = useState<boolean>(false)
-  const [isError, setError] = useState<boolean>(false)
   const [notAuth, setNotAuth] = useState<boolean>(false)
   const [data, setData] = useState<PageData>()
   const [password, setPassword] = useState<string>('')
@@ -710,7 +704,7 @@ const Security = (): JSX.Element => {
           await saveUpdatedToken(updatedToken.signature, updatedToken.token);
 
         if (success) {
-          Alerting.create('info','Senha alterada com sucesso!')
+          Alerting.create('info', 'Senha alterada com sucesso!')
           setPassword('')
           setNewPassword('')
         } else {
@@ -730,7 +724,7 @@ const Security = (): JSX.Element => {
 
         setTwoFactorQRCode(qrcode)
       } catch (error) {
-        throw new TypeError(error)
+        throw new Error(error)
       }
     },
     handleChangeTwoFactorCode = async (e) => {
@@ -749,7 +743,7 @@ const Security = (): JSX.Element => {
           await saveUpdatedToken(updatedToken2.signature, updatedToken2.token);
 
         if (success2) {
-          Alerting.create('info','Sua autenticação de duas etapas está habilitada.')
+          Alerting.create('info', 'Sua autenticação de duas etapas está habilitada.')
           handleTriggerTwoFactorModal(false)
           setTwofactor(true)
         } else {
@@ -759,7 +753,7 @@ const Security = (): JSX.Element => {
           )
         }
       } else {
-        Alerting.create('error','Código invalido. Tente novamente!')
+        Alerting.create('error', 'Código invalido. Tente novamente!')
       }
     },
     handleClickTwoFactorDisable = async () => {
@@ -769,7 +763,7 @@ const Security = (): JSX.Element => {
         await saveUpdatedToken(updatedToken.signature, updatedToken.token);
 
       if (success) {
-        Alerting.create('info','Sua autenticação de duas etapas foi desabilitada.')
+        Alerting.create('info', 'Sua autenticação de duas etapas foi desabilitada.')
         setTwofactor(false)
       } else {
         Alerting.create(
@@ -785,49 +779,34 @@ const Security = (): JSX.Element => {
     }
 
   useEffect(() => {
-    const timer = setTimeout(async () => {
-      const isAllowViewPage = await tokenValidate(_fetch)
+    getUserInfo(_fetch)
+      .then(async ({ photoProfile, username, privilege, updatedToken: updatedToken1 }) => {
+        if (updatedToken1)
+          await saveUpdatedToken(updatedToken1.signature, updatedToken1.token);
 
-      if (!isAllowViewPage) {
-        setNotAuth(true)
-        setLoading(false)
-      } else {
-        try {
-          const { photoProfile, username, privilege, updatedToken: updatedToken1 } = await getUserInfo(
-            _fetch
-          )
+        const { success, updatedToken: updatedToken2 } = await hasConfiguredTwoFactor(_fetch);
 
-          if (updatedToken1)
-            await saveUpdatedToken(updatedToken1.signature, updatedToken1.token);
+        if (updatedToken2)
+          await saveUpdatedToken(updatedToken2.signature, updatedToken2.token);
 
-          const { success, updatedToken: updatedToken2 } = await hasConfiguredTwoFactor(_fetch);
+        setTwofactor(success)
 
-          if (updatedToken2)
-            await saveUpdatedToken(updatedToken2.signature, updatedToken2.token);
+        setData({
+          photoProfile,
+          username,
+          privilege,
+        })
 
-          setTwofactor(success)
-
-          setData({
-            photoProfile,
-            username,
-            privilege,
-          })
-
-          setReady(true)
-          return setLoading(false)
-        } catch {
-          setError(true)
-          setLoading(false)
-        }
-      }
-    })
-
-    return () => clearTimeout(timer)
+        setReady(true)
+        return setLoading(false)
+      })
+      .catch(() => {
+        setNotAuth(true);
+        return setLoading(false)
+      });
   }, [])
 
   if (loading) return compose_load()
-
-  if (isError) return compose_error(handleClick)
 
   if (notAuth) return compose_noAuth(handleClick)
 

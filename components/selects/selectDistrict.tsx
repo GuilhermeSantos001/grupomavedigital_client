@@ -1,7 +1,7 @@
 /**
  * @description Input -> Seleciona um distrito(Estado)
  * @author GuilhermeSantos001
- * @update 18/01/2022
+ * @update 24/01/2022
  */
 
 import { useState } from 'react';
@@ -46,21 +46,21 @@ export default function SelectStreet(props: Props) {
       try {
         dispatch(SystemActions.CREATE_DISTRICT(district));
       } catch (error) {
-        Alerting.create('error', error.message);
+        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
       }
     },
     handleUpdateDistrict = (district: District) => {
       try {
         dispatch(SystemActions.UPDATE_DISTRICT(district));
       } catch (error) {
-        Alerting.create('error', error.message);
+        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
       }
     },
     handleRemoveDistrict = (id: string) => {
       try {
         dispatch(SystemActions.DELETE_DISTRICT(id));
       } catch (error) {
-        Alerting.create('error', error.message);
+        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
       }
     };
 
@@ -117,10 +117,12 @@ export default function SelectStreet(props: Props) {
             }
           } else if (newValue && newValue.inputValue) {
             // Create a new value from the user input
-            const district: District = {
-              id: hasEdit ? value.id : StringEx.id(),
-              name: newValue.inputValue,
-            };
+            const
+              valueId = StringEx.id(),
+              district: District = {
+                id: hasEdit ? value?.id || valueId : valueId,
+                name: newValue.inputValue,
+              };
 
             setValue(district);
 
@@ -146,9 +148,11 @@ export default function SelectStreet(props: Props) {
           const isExisting = options.some((option) => inputValue === option.name);
 
           if (inputValue !== '' && !isExisting) {
+            const valueId = StringEx.id();
+
             filtered.push({
-              id: hasEdit ? value.id : StringEx.id(),
-              name: hasEdit ? `Atualizar "${value.name}" para "${inputValue}"` : `Adicionar "${inputValue}"`,
+              id: hasEdit ? value?.id || valueId : valueId,
+              name: hasEdit ? `Atualizar "${value?.name || "???"}" para "${inputValue}"` : `Adicionar "${inputValue}"`,
               inputValue,
               inputUpdate: hasEdit ? true : false
             });
@@ -204,9 +208,11 @@ export default function SelectStreet(props: Props) {
         color='error'
         disabled={hasEdit || !value || !canDeleteDistrict(workplaces, 'district', value.id)}
         onClick={() => {
-          setValue(null);
-          handleRemoveDistrict(value.id);
-          props.handleChangeDistrict('');
+          if (value) {
+            setValue(null);
+            handleRemoveDistrict(value.id);
+            props.handleChangeDistrict('');
+          }
         }}
       >
         Deletar

@@ -1,12 +1,10 @@
 /**
  * @description Componente do painel de "Contas a Receber"
  * @author GuilhermeSantos001
- * @update 13/10/2021
+ * @update 24/01/2022
  */
 
 import React from 'react'
-
-import moment from 'moment'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
@@ -20,7 +18,6 @@ import {
 
 import type * as Chart from 'chart.js'
 import { Line } from 'react-chartjs-2'
-import randomColor from 'randomcolor'
 
 import Fetch from '@/src/utils/fetch'
 import getFilial, { Filial } from '@/src/functions/getFilial'
@@ -34,6 +31,7 @@ import getChartDataRevenuesByMonthly from '@/src/functions/getChartDataRevenuesB
 
 import Alerting from '@/src/utils/alerting'
 import verifyPeriodIsValid from '@/src/functions/verifyPeriodIsValid'
+import { ModalUnstyledProps } from '@mui/material'
 
 type MyProps = {
   fetch: Fetch
@@ -65,7 +63,7 @@ export default class ChartBillsReceive extends React.Component<
   MyProps,
   MyState
 > {
-  constructor(props) {
+  constructor(props: MyProps) {
     super(props)
 
     this.state = {
@@ -74,19 +72,19 @@ export default class ChartBillsReceive extends React.Component<
       loadingChart: false,
       infoDataLoaded: false,
       infoDataLoadedError: false,
-      receives: undefined,
-      branchs: undefined,
+      receives: [],
+      branchs: [],
       branchSelected: 'Selecionar',
-      branchsOptions: undefined,
-      clients: undefined,
+      branchsOptions: [],
+      clients: [],
       clientSelected: 'Selecionar',
-      clientsOptions: undefined,
-      billsType: undefined,
+      clientsOptions: [],
+      billsType: [],
       billsTypeSelected: 'Selecionar',
-      billsTypeOptions: undefined,
-      bankingNatures: undefined,
+      billsTypeOptions: [],
+      bankingNatures: [],
       bankingNaturesSelected: 'Selecionar',
-      bankingNaturesOptions: undefined,
+      bankingNaturesOptions: [],
       period: ['', ''],
     }
   }
@@ -187,7 +185,7 @@ export default class ChartBillsReceive extends React.Component<
                     onChange={(e) => this.handleChangeClient(e)}
                     disabled={
                       this.state.loadingData ||
-                      this.state.branchSelected === 'Selecionar'
+                        this.state.branchSelected === 'Selecionar'
                         ? true
                         : false
                     }
@@ -294,9 +292,9 @@ export default class ChartBillsReceive extends React.Component<
                   className="btn btn-primary d-flex flex-row col-12 fs-5"
                   disabled={
                     this.hasHandleFilter() &&
-                    !this.state.loadingData &&
-                    !this.state.loadingChart &&
-                    !this.state.loading
+                      !this.state.loadingData &&
+                      !this.state.loadingChart &&
+                      !this.state.loading
                       ? false
                       : true
                   }
@@ -694,7 +692,7 @@ export default class ChartBillsReceive extends React.Component<
     )
   }
 
-  async handleChangeBranch(e) {
+  async handleChangeBranch(e: React.ChangeEvent<HTMLSelectElement>) {
     const value = e.target.value
 
     this.setState({
@@ -727,7 +725,7 @@ export default class ChartBillsReceive extends React.Component<
     }
   }
 
-  handleChangeClient(e) {
+  handleChangeClient(e: React.ChangeEvent<HTMLSelectElement>) {
     const value = e.target.value
 
     this.setState({
@@ -735,7 +733,7 @@ export default class ChartBillsReceive extends React.Component<
     })
   }
 
-  handleChangeBillsType(e) {
+  handleChangeBillsType(e: React.ChangeEvent<HTMLSelectElement>) {
     const value = e.target.value
 
     this.setState({
@@ -743,7 +741,7 @@ export default class ChartBillsReceive extends React.Component<
     })
   }
 
-  handleChangeBankingNatures(e) {
+  handleChangeBankingNatures(e: React.ChangeEvent<HTMLSelectElement>) {
     const value = e.target.value
 
     this.setState({
@@ -751,7 +749,7 @@ export default class ChartBillsReceive extends React.Component<
     })
   }
 
-  handleChangePeriod(e, position: 'start' | 'end') {
+  handleChangePeriod(e: React.ChangeEvent<HTMLInputElement>, position: 'start' | 'end') {
     const value = e.target.value
 
     this.setState({
@@ -764,10 +762,10 @@ export default class ChartBillsReceive extends React.Component<
 
   hasHandleFilter() {
     const start = {
-        year: this.state.period[0].split('-')[0],
-        month: this.state.period[0].split('-')[1],
-        day: this.state.period[0].split('-')[2],
-      },
+      year: this.state.period[0].split('-')[0],
+      month: this.state.period[0].split('-')[1],
+      day: this.state.period[0].split('-')[2],
+    },
       end = {
         year: this.state.period[1].split('-')[0],
         month: this.state.period[1].split('-')[1],
@@ -792,9 +790,9 @@ export default class ChartBillsReceive extends React.Component<
     })
 
     const filial =
-        this.state.branchSelected !== 'Todos'
-          ? this.state.branchSelected
-          : null,
+      this.state.branchSelected !== 'Todos'
+        ? this.state.branchSelected
+        : null,
       client =
         this.state.clientSelected !== 'Todos'
           ? this.state.clientSelected.split('-')[0]

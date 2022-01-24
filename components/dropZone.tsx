@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 /**
  * @description DropZone usado para arrastar arquivos/pastas para upload
  * @author GuilhermeSantos001
- * @update 18/01/2022
+ * @update 24/01/2022
  */
 
 import React from 'react'
@@ -58,7 +57,7 @@ enum dropZoneMessage {
 export default class DropZone extends React.Component<MyProps, MyState> {
   inputFiles: React.RefObject<HTMLInputElement>
 
-  constructor(props) {
+  constructor(props: MyProps) {
     super(props)
 
     this.inputFiles = React.createRef<HTMLInputElement>()
@@ -66,7 +65,7 @@ export default class DropZone extends React.Component<MyProps, MyState> {
     this.state = {
       message: dropZoneMessage.beforeDragEnter,
       overlay: false,
-      invalid: undefined,
+      invalid: false,
       files: [],
       inputFileType: 'file',
       uploading: false,
@@ -264,10 +263,14 @@ export default class DropZone extends React.Component<MyProps, MyState> {
       params = await multipleUpload(
         this.props.fetch,
         this.state.files.map((file) => file.raw),
-        this.props.randomName
+        this.props.randomName !== undefined ? this.props.randomName : false
       )
     } else {
-      params = await singleUpload(this.props.fetch, this.state.files[0].raw, this.props.randomName)
+      params = await singleUpload(
+        this.props.fetch,
+        this.state.files[0].raw,
+        this.props.randomName !== undefined ? this.props.randomName : false
+      )
     }
 
     this.handleClickTrashAll()
@@ -277,9 +280,11 @@ export default class DropZone extends React.Component<MyProps, MyState> {
     setTimeout(() => this.setState({ uploading: false }))
   }
 
-  handleChangeInputFileType(e) {
+  handleChangeInputFileType(e: React.ChangeEvent<HTMLSelectElement>) {
+    const value: any = e.target.value;
+
     this.setState({
-      inputFileType: e.target.value,
+      inputFileType: value,
     })
   }
 
@@ -325,7 +330,7 @@ export default class DropZone extends React.Component<MyProps, MyState> {
     }, 400)
   }
 
-  async handleDrop(e) {
+  async handleDrop(e: React.DragEvent<HTMLDivElement>) {
     e.preventDefault()
     e.stopPropagation()
 
@@ -336,14 +341,17 @@ export default class DropZone extends React.Component<MyProps, MyState> {
   }
 
   async handleUploadFiles() {
-    this.processFiles(this.inputFiles.current.files)
-    this.inputFiles.current.value = ''
-    this.setState({ removeAllItems: false });
+    if (this.inputFiles.current) {
+      this.processFiles(this.inputFiles.current.files)
+      this.inputFiles.current.value = ''
+      this.setState({ removeAllItems: false });
+    }
   }
 
-  async processFiles(items) {
-    if (this.props.limit > 0 && this.state.files.length >= this.props.limit)
-      return this.setDropInvalid('exceedLimit');
+  async processFiles(items: any) {
+    if (this.props.limit !== undefined)
+      if (this.props.limit > 0 && this.state.files.length >= this.props.limit)
+        return this.setDropInvalid('exceedLimit');
 
     const valid = Array.from({ length: items.length }).filter((_, i) =>
       this.props.ext.includes(
@@ -376,7 +384,7 @@ export default class DropZone extends React.Component<MyProps, MyState> {
     if (valid.length > 0) {
       const _files: File[] = [],
         _duplicateNames: string[] = [],
-        process = (index, file) => {
+        process = (index: number, file: any) => {
           if (
             _files.filter((_file) => _file.name == file.name).length <= 0 &&
             this.state.files.filter((_file) => _file.name == file.name).length <= 0
@@ -413,7 +421,7 @@ export default class DropZone extends React.Component<MyProps, MyState> {
         if (isFileList) {
           process(i, items[i])
         } else {
-          items[i].file((file) => {
+          items[i].file((file: any) => {
             process(i, file);
           })
         }
@@ -423,7 +431,7 @@ export default class DropZone extends React.Component<MyProps, MyState> {
     if (valid.length <= 0 && invalid.length > 0) this.setDropInvalid('ext')
   }
 
-  async getAllFileEntries(dataTransferItemList) {
+  async getAllFileEntries(dataTransferItemList: any) {
     const fileEntries = [],
       queue = []
 
@@ -432,7 +440,7 @@ export default class DropZone extends React.Component<MyProps, MyState> {
     )
 
     while (queue.length > 0) {
-      const entry = queue.shift()
+      const entry: any = queue.shift()
 
       if (entry.isFile) {
         fileEntries.push(entry)
@@ -446,7 +454,7 @@ export default class DropZone extends React.Component<MyProps, MyState> {
     return fileEntries
   }
 
-  async readAllDirectoryEntries(directoryReader) {
+  async readAllDirectoryEntries(directoryReader: any) {
     const entries = [];
 
     let readEntries: any = await this.readEntriesPromise(directoryReader)
@@ -459,7 +467,7 @@ export default class DropZone extends React.Component<MyProps, MyState> {
     return entries
   }
 
-  async readEntriesPromise(directoryReader) {
+  async readEntriesPromise(directoryReader: any) {
     try {
       return await new Promise((resolve, reject) => {
         directoryReader.readEntries(resolve, reject)
@@ -469,7 +477,7 @@ export default class DropZone extends React.Component<MyProps, MyState> {
     }
   }
 
-  setDropValid(files) {
+  setDropValid(files: any) {
     this.setState({
       ...this.state,
       overlay: false,
@@ -497,15 +505,15 @@ export default class DropZone extends React.Component<MyProps, MyState> {
         3600
       )
     } else if (alertType == 'duplicate') {
-      if (duplicateNames.length <= 5) {
+      if (duplicateNames && duplicateNames.length <= 5) {
         duplicateNames.forEach((name) =>
-          Alerting.create('error',`Arquivo "${name}" já está na lista.`)
+          Alerting.create('error', `Arquivo "${name}" já está na lista.`)
         )
       } else {
-        Alerting.create('error',`Varios arquivos informados já estão na lista.`)
+        Alerting.create('error', `Varios arquivos informados já estão na lista.`)
       }
     } else if (alertType == 'exceedLimit') {
-      Alerting.create('error',`Você atingiu o limite máximo de ${this.props.limit} arquivo(s) para upload por vêz.`)
+      Alerting.create('error', `Você atingiu o limite máximo de ${this.props.limit} arquivo(s) para upload por vêz.`)
     }
 
     this.setState({
@@ -524,12 +532,12 @@ export default class DropZone extends React.Component<MyProps, MyState> {
     }, 1500)
   }
 
-  handleDragEnter(e) {
+  handleDragEnter(e: React.DragEvent<HTMLDivElement>) {
     e.preventDefault()
     e.stopPropagation()
   }
 
-  handleDragOver(e) {
+  handleDragOver(e: React.DragEvent<HTMLDivElement>) {
     e.preventDefault()
     e.stopPropagation()
 
@@ -541,7 +549,7 @@ export default class DropZone extends React.Component<MyProps, MyState> {
       })
   }
 
-  handleDragLeave(e) {
+  handleDragLeave(e: React.DragEvent<HTMLDivElement>) {
     e.preventDefault()
     e.stopPropagation()
 

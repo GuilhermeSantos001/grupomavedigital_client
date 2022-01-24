@@ -1,7 +1,7 @@
 /**
  * @description Pagina principal do sistema
  * @author GuilhermeSantos001
- * @update 16/12/2021
+ * @update 21/01/2022
  */
 
 import React, { useEffect, useState } from 'react'
@@ -14,7 +14,6 @@ import SkeletonLoader from 'tiny-skeleton-loader-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
 
-import RenderPageError from '@/components/renderPageError'
 import NoAuth from '@/components/noAuth'
 
 import Sugar from 'sugar'
@@ -25,7 +24,7 @@ import PageMenu from '@/bin/main_menu'
 import Fetch from '@/src/utils/fetch'
 import Variables from '@/src/db/variables'
 import getUserInfo from '@/src/functions/getUserInfo'
-import { tokenValidate, saveUpdatedToken } from '@/src/functions/tokenValidate'
+import { saveUpdatedToken } from '@/src/functions/tokenValidate'
 
 interface PageData {
   photoProfile: string
@@ -181,10 +180,6 @@ function compose_load() {
   )
 }
 
-function compose_error(handleClick) {
-  return <RenderPageError handleClick={handleClick} />
-}
-
 function compose_noAuth(handleClick) {
   return <NoAuth handleClick={handleClick} />
 }
@@ -278,9 +273,8 @@ function compose_user_view_1() {
   )
 }
 
-const System = (): JSX.Element => {
+function System() {
   const [isReady, setReady] = useState<boolean>(false)
-  const [isError, setError] = useState<boolean>(false)
   const [notAuth, setNotAuth] = useState<boolean>(false)
   const [data, setData] = useState<PageData>()
   const [loading, setLoading] = useState<boolean>(true)
@@ -301,42 +295,27 @@ const System = (): JSX.Element => {
     }
 
   useEffect(() => {
-    const timer = setTimeout(async () => {
-      const isAllowViewPage = await tokenValidate(_fetch)
+    getUserInfo(_fetch)
+      .then(async ({ photoProfile, username, privilege, updatedToken }) => {
+        setData({
+          photoProfile,
+          username,
+          privilege,
+        })
 
-      if (!isAllowViewPage) {
+        if (updatedToken)
+          await saveUpdatedToken(updatedToken.signature, updatedToken.token);
+
+        setReady(true)
+        return setLoading(false)
+      })
+      .catch(() => {
         setNotAuth(true)
         setLoading(false)
-      } else {
-        try {
-          const { photoProfile, username, privilege, updatedToken } = await getUserInfo(
-            _fetch
-          )
-
-          setData({
-            photoProfile,
-            username,
-            privilege
-          })
-
-          if (updatedToken)
-            await saveUpdatedToken(updatedToken.signature, updatedToken.token);
-
-          setReady(true)
-          return setLoading(false)
-        } catch {
-          setError(true)
-          return setLoading(false)
-        }
-      }
-    })
-
-    return () => clearTimeout(timer)
+      });
   }, [])
 
   if (loading) return compose_load()
-
-  if (isError) return compose_error(handleClick)
 
   if (notAuth) return compose_noAuth(handleClick)
 

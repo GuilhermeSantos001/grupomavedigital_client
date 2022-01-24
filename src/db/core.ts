@@ -82,7 +82,7 @@ export default class Core_Database {
     try {
       return await this.db.storeAdd(store, 'id', this.format_value(name, value));
     } catch (error: any) {
-      throw new TypeError(error);
+      throw new Error(error);
     }
   }
 
@@ -93,7 +93,7 @@ export default class Core_Database {
     try {
       return await this.db.storeUpdate(store, 'id', name, this.format_value(name, newValue))
     } catch (error: any) {
-      throw new TypeError(error);
+      throw new Error(error);
     }
   }
 
@@ -137,7 +137,7 @@ export default class Core_Database {
 
       return undefined;
     } catch (error: any) {
-      throw new TypeError(error);
+      throw new Error(error);
     }
   }
 
@@ -148,7 +148,7 @@ export default class Core_Database {
     try {
       return await this.db.storeGetAllKeys(store, 'id');
     } catch (error: any) {
-      throw new TypeError(error);
+      throw new Error(error);
     }
   }
 
@@ -167,7 +167,7 @@ export default class Core_Database {
           return variable.value;
         });
     } catch (error: any) {
-      throw new TypeError(error);
+      throw new Error(error);
     }
   }
 
@@ -180,7 +180,7 @@ export default class Core_Database {
 
       return true;
     } catch (error: any) {
-      throw new TypeError(error);
+      throw new Error(error);
     }
   }
 
@@ -193,7 +193,7 @@ export default class Core_Database {
 
       return true;
     } catch (error: any) {
-      throw new TypeError(error);
+      throw new Error(error);
     }
   }
 }

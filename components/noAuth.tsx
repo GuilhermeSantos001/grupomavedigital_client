@@ -21,7 +21,7 @@ type MyProps = {
 type MyState = Record<string, never>
 
 export default class NoAuth extends React.Component<MyProps, MyState> {
-  constructor(props) {
+  constructor(props: MyProps) {
     super(props)
   }
 

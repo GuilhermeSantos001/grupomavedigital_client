@@ -1,7 +1,7 @@
 /**
  * @description Input -> Seleciona uma escala de trabalho
  * @author GuilhermeSantos001
- * @update 18/01/2022
+ * @update 24/01/2022
  */
 
 import { useState } from 'react';
@@ -45,21 +45,21 @@ export default function SelectScale(props: Props) {
       try {
         dispatch(SystemActions.CREATE_SCALE(scale));
       } catch (error) {
-        Alerting.create('error', error.message);
+        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
       }
     },
     handleUpdateScale = (scale: Scale) => {
       try {
         dispatch(SystemActions.UPDATE_SCALE(scale));
       } catch (error) {
-        Alerting.create('error', error.message);
+        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
       }
     },
     handleRemoveScale = (id: string) => {
       try {
         dispatch(SystemActions.DELETE_SCALE(id));
       } catch (error) {
-        Alerting.create('error', error.message);
+        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
       }
     };
 
@@ -124,10 +124,12 @@ export default function SelectScale(props: Props) {
             }
           } else if (newValue && newValue.inputValue) {
             // Create a new value from the user input
-            const scale: Scale = {
-              id: hasEdit ? value.id : StringEx.id(),
-              value: newValue.inputValue,
-            };
+            const
+              valueId = StringEx.id(),
+              scale: Scale = {
+                id: hasEdit ? value?.id || valueId : valueId,
+                value: newValue.inputValue,
+              };
 
             setValue(scale);
 
@@ -153,9 +155,11 @@ export default function SelectScale(props: Props) {
           const isExisting = options.some((option) => inputValue === option.value);
 
           if (inputValue !== '' && !isExisting) {
+            const valueId = StringEx.id();
+
             filtered.push({
-              id: hasEdit ? value.id : StringEx.id(),
-              value: hasEdit ? `Atualizar "${value.value}" para "${inputValue}"` : `Adicionar "${inputValue}"`,
+              id: hasEdit ? value?.id || valueId : valueId,
+              value: hasEdit ? `Atualizar "${value?.value || "???"}" para "${inputValue}"` : `Adicionar "${inputValue}"`,
               inputValue,
               inputUpdate: hasEdit ? true : false
             });
@@ -211,9 +215,11 @@ export default function SelectScale(props: Props) {
         color='error'
         disabled={hasEdit || !value || !canDeleteScale(value.id)}
         onClick={() => {
-          setValue(null);
-          handleRemoveScale(value.id);
-          props.handleChangeScale('');
+          if (value) {
+            setValue(null);
+            handleRemoveScale(value.id);
+            props.handleChangeScale('');
+          }
         }}
       >
         Deletar

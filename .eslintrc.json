@@ -6,7 +6,8 @@
     "plugin:react/recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:@next/next/recommended",
-    "prettier"
+    "prettier",
+    "next/core-web-vitals"
   ],
   "env": {
     "es6": true,

@@ -1,7 +1,7 @@
 /**
  * @description Gestor online de documentos -> Pagina Inicial
  * @author GuilhermeSantos001
- * @update 18/01/2022
+ * @update 21/01/2022
  */
 
 import React, { useEffect, useState } from 'react'
@@ -20,9 +20,7 @@ import NoAuth from '@/components/noAuth'
 import { PageProps } from '@/pages/_app'
 import PageMenu from '@/bin/main_menu'
 
-import Fetch from '@/src/utils/fetch'
 import Variables from '@/src/db/variables'
-import { tokenValidate } from '@/src/functions/tokenValidate'
 import hasPrivilege from '@/src/functions/hasPrivilege'
 import { getPrivileges } from '@/src/functions/getPrivilege'
 
@@ -247,10 +245,9 @@ const Storage = (): JSX.Element => {
   const [notPrivilege, setNotPrivilege] = useState<boolean>(false)
   const [notAuth, setNotAuth] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(true)
-  const [privileges, setPrivilages] = useState<string[]>([])
+  const [privileges, setPrivileges] = useState<string[]>([])
 
   const router = useRouter()
-  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
 
   const
     handleClickNoAuth = async (e, path) => {
@@ -273,28 +270,25 @@ const Storage = (): JSX.Element => {
     }
 
   useEffect(() => {
-    const timer = setTimeout(async () => {
-      const isAllowViewPage = await tokenValidate(_fetch);
-
-      if (!isAllowViewPage) {
-        setNotAuth(true)
-        setLoading(false)
-      } else {
-        try {
-          if (!(await hasPrivilege('common'))) setNotPrivilege(true)
-
-          setPrivilages(await getPrivileges());
-
-          setReady(true)
-          return setLoading(false)
-        } catch {
-          setError(true)
-          return setLoading(false)
+    hasPrivilege('common')
+      .then(async (isAllowViewPage) => {
+        if (isAllowViewPage) {
+          try {
+            setPrivileges(await getPrivileges());
+            setReady(true);
+          } catch {
+            setError(true);
+          }
+        } else {
+          setNotPrivilege(true);
         }
-      }
-    })
 
-    return () => clearTimeout(timer)
+        return setLoading(false);
+      })
+      .catch(() => {
+        setNotAuth(true);
+        return setLoading(false)
+      });
   }, [])
 
   if (loading) return compose_load()

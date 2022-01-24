@@ -1,7 +1,7 @@
 /**
  * @description Assistente -> Registro de Lançamento Financeiro
  * @author GuilhermeSantos001
- * @update 30/12/2021
+ * @update 24/01/2022
  */
 
 import * as React from 'react';

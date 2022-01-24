@@ -13,7 +13,7 @@ export default class MemoryDB implements IDatabaseProvider {
 
     constructor(db_name: string, version: number) {
         if (!this.supportBrowser())
-            throw new TypeError('Browser not support for MemoryDB!');
+            throw new Error('Browser not support for MemoryDB!');
         this.name = db_name;
         this.version = version;
     }

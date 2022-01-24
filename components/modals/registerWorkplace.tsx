@@ -1,7 +1,7 @@
 /**
  * @description Modal -> Modal de Cadastro de local de trabalho
  * @author GuilhermeSantos001
- * @update 18/01/2022
+ * @update 24/01/2022
  */
 
 import React, { useState } from 'react';
@@ -54,8 +54,8 @@ const Transition = React.forwardRef(function Transition(
 export default function RegisterWorkplace(props: Props) {
   const [name, setName] = useState<string>('');
   const [scale, setScale] = useState<string>('')
-  const [entryTime, setEntryTime] = useState<Date>(null);
-  const [exitTime, setExitTime] = useState<Date>(null);
+  const [entryTime, setEntryTime] = useState<Date>(new Date());
+  const [exitTime, setExitTime] = useState<Date>(new Date());
   const [appliedServices, setAppliedServices] = useState<string[]>([]);
   const [street, setStreet] = useState<string>('')
   const [numberHome, setNumberHome] = useState<number>(0);
@@ -78,8 +78,8 @@ export default function RegisterWorkplace(props: Props) {
     handleResetInputs = () => {
       setName('');
       setScale('');
-      setEntryTime(null);
-      setExitTime(null);
+      setEntryTime(new Date());
+      setExitTime(new Date());
       setAppliedServices([]);
       setStreet('');
       setNumberHome(0);
@@ -123,12 +123,12 @@ export default function RegisterWorkplace(props: Props) {
       entryTime: entryTime.toISOString(),
       exitTime: exitTime.toISOString(),
       services: appliedServices,
-      scale: scales.find(_scale => _scale.id === scale).id,
+      scale: scales.find(_scale => _scale.id === scale)?.id || "",
       address: {
-        street: streets.find(_street => _street.id === street).id,
-        neighborhood: neighborhoods.find(_neighborhood => _neighborhood.id === neighborhood).id,
-        city: cities.find(_city => _city.id === city).id,
-        district: districts.find(_district => _district.id === district).id,
+        street: streets.find(_street => _street.id === street)?.id || "",
+        neighborhood: neighborhoods.find(_neighborhood => _neighborhood.id === neighborhood)?.id || "",
+        city: cities.find(_city => _city.id === city)?.id || "",
+        district: districts.find(_district => _district.id === district)?.id || "",
         number: numberHome,
         complement,
         zipCode,
@@ -140,8 +140,8 @@ export default function RegisterWorkplace(props: Props) {
 
       handleResetInputs();
       props.handleClose();
-    } catch(error) {
-      Alerting.create('error', error.message);
+    } catch (error) {
+      Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
     }
   }
 

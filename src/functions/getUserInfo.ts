@@ -111,7 +111,7 @@ const getUserInfo = async (_fetch: Fetch): Promise<User> => {
 
   if (errors) {
     console.error(errors);
-    throw new TypeError('Não foi possível retornar as informações do usuário.')
+    throw new Error('Não foi possível retornar as informações do usuário.')
   }
 
   return data.response;

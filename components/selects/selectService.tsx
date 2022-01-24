@@ -1,7 +1,7 @@
 /**
  * @description Input -> Seleciona um serviço
  * @author GuilhermeSantos001
- * @update 18/01/2022
+ * @update 24/01/2022
  */
 
 import React, { useState } from 'react';
@@ -52,21 +52,21 @@ export default function SelectService(props: Props) {
       try {
         dispatch(SystemActions.CREATE_SERVICE(item));
       } catch (error) {
-        Alerting.create('error', error.message);
+        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
       }
     },
     handleClickEdit = (item: Service) => {
       try {
         dispatch(SystemActions.UPDATE_SERVICE(item));
       } catch (error) {
-        Alerting.create('error', error.message);
+        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
       }
     },
     handleClickDelete = (id: string) => {
       try {
         dispatch(SystemActions.DELETE_SERVICE(id));
       } catch (error) {
-        Alerting.create('error', error.message);
+        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
       }
     };
 
@@ -248,7 +248,7 @@ export default function SelectService(props: Props) {
         onClick={() => {
           if (!hasEditService) {
             setHasEditService(true);
-            setIdUpdateService(services.find(service => service.value === leftChecked[0]).id);
+            setIdUpdateService(services.find(service => service.value === leftChecked[0])?.id || "");
             setTextUpdateService(leftChecked[0]);
           } else {
             if (services.filter(service => service.value === textUpdateService && service.id !== idUpdateService).length > 0)
@@ -265,9 +265,13 @@ export default function SelectService(props: Props) {
 
               return service;
             })]);
+
             setChecked([textUpdateService]);
             setHasEditService(false);
-            handleClickEdit(updateService);
+            handleClickEdit({
+              id: updateService?.id || "",
+              value: updateService.value
+            });
           }
         }}
       >
@@ -283,7 +287,7 @@ export default function SelectService(props: Props) {
           workplaces.filter(place => place.services.filter(service => leftChecked.indexOf(service) !== -1).length > 0).length > 0
         }
         onClick={() => {
-          leftChecked.forEach(value => handleClickDelete(services.find(service => service.value === value).id));
+          leftChecked.forEach(value => handleClickDelete(services.find(service => service.value === value)?.id || ""));
           setLeft([...left.filter(value => leftChecked.indexOf(value) === -1)]);
         }}
       >

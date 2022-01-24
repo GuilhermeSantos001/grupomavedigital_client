@@ -9,7 +9,6 @@ import Variables from '@/src/db/variables'
 
 export const saveUpdatedToken = async (signature: string, token) => {
   const variables = new Variables(1, 'IndexedDB')
-
   await variables.define('signature', signature);
   await variables.define('token', token);
 }

@@ -28,14 +28,18 @@ export async function getPrivilege(): Promise<string> {
 }
 
 export async function getPrivileges(): Promise<PrivilegesSystem[]> {
-    const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
+    try {
+        const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
 
-    const { privileges, updatedToken } = await getUserInfo(_fetch)
+        const { privileges, updatedToken } = await getUserInfo(_fetch)
 
-    if (updatedToken)
-        await saveUpdatedToken(updatedToken.signature, updatedToken.token);
+        if (updatedToken)
+            await saveUpdatedToken(updatedToken.signature, updatedToken.token);
 
-    return privileges;
+        return privileges;
+    } catch {
+        throw new Error('Não foi possível obter os privilégios do usuário');
+    }
 }
 
 export async function getPrivilegeAlias(group: GroupId): Promise<string> {
