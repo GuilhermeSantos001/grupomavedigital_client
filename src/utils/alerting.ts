@@ -19,9 +19,7 @@ declare global {
       messageValue: string
       messageDelay: number
       typeValue: AlertType
-      cache: IAlert[]
       type: AlertType
-      noCache: boolean
       delay: NodeJS.Timeout | undefined
     }
   }
@@ -29,6 +27,7 @@ declare global {
 
 class Alert {
   private timeout = 1500;
+  private cache: IAlert[] = [];
 
   /**
    * @description Verifica se o alerta está sendo exibido
@@ -70,22 +69,14 @@ class Alert {
   create(type: AlertType, message: string, delay = 3600): void {
     if (!window.Alerting) {
       window.Alerting = {
-        noCache: true,
         show: false,
         delay: undefined,
         type: type,
-        cache: [],
         messageDelay: 0,
         messageValue: '',
         typeValue: 'question'
       }
     };
-
-    if (!window.Alerting.noCache) {
-      window.Alerting.cache.push({ type, message, delay });
-    } else {
-      window.Alerting.noCache = false;
-    }
 
     if (!this.isShowing()) {
       this.setMessage(message);
@@ -93,10 +84,9 @@ class Alert {
       this.setTypeValue(type);
 
       window.Alerting.show = true;
-    }
-
-    if (!window.Alerting.delay) {
       window.Alerting.delay = setTimeout(this.close.bind(this), delay + this.timeout);
+    } else {
+      this.cache.push({ type, message, delay });
     }
   }
 
@@ -111,17 +101,18 @@ class Alert {
       window.Alerting.delay = undefined;
       window.Alerting.show = false;
 
-      window.Alerting.cache.shift();
+      if (this.cache.length > 0) {
+        const cache = this.cache.reverse();
 
-      const data: IAlert = {
-        type: window.Alerting.cache.at(0)?.type || "question",
-        message: window.Alerting.cache.at(0)?.message || "",
-        delay: window.Alerting.cache.at(0)?.delay || 0
-      };
+        const data: IAlert = {
+          type: cache.at(0)?.type || "question",
+          message: cache.at(0)?.message || "",
+          delay: cache.at(0)?.delay || 0
+        };
 
-      if (data.message.length > 0 && data.delay > 0) {
-        window.Alerting.noCache = true;
-        this.create(data.type, data.message, data.delay);
+        if (data.message.length > 0 && data.delay > 0) {
+          this.create(data.type, data.message, data.delay);
+        }
       }
     }
   }
