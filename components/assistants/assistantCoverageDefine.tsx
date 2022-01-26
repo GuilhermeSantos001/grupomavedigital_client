@@ -1,7 +1,7 @@
 /**
  * @description Assistente -> Definição de cobertura
  * @author GuilhermeSantos001
- * @update 24/01/2022
+ * @update 26/01/2022
  */
 
 import { useState } from 'react'
@@ -12,8 +12,6 @@ import {
   TYPEOF_LISTENER_PAYBACK_UPLOAD_MIRROR,
   TYPEOF_EMITTER_PAYBACK_CHANGE_TYPE_MIRROR,
   TYPEOF_LISTENER_PAYBACK_CHANGE_TYPE_MIRROR,
-  TYPEOF_EMITTER_PAYBACK_DELETE_MIRROR,
-  TYPEOF_LISTENER_PAYBACK_DELETE_MIRROR,
 } from '@/constants/SocketTypes';
 
 import Box from '@mui/material/Box'
@@ -326,11 +324,11 @@ export default function AssistantCoverageDefine(props: Props) {
         );
       }, 1000);
 
-      if (window.socket.hasListeners('PAYBACK-CHANGE-TYPE-MIRROR-SUCCESS'))
-        window.socket.off('PAYBACK-CHANGE-TYPE-MIRROR-SUCCESS');
+      if (window.socket.hasListeners(`${PaybackSocketEvents.PAYBACK_CHANGE_TYPE_MIRROR}-SUCCESS`))
+        window.socket.off(`${PaybackSocketEvents.PAYBACK_CHANGE_TYPE_MIRROR}-SUCCESS`);
 
-      if (window.socket.hasListeners('PAYBACK-CHANGE-TYPE-MIRROR-FAILURE'))
-        window.socket.off('PAYBACK-CHANGE-TYPE-MIRROR-FAILURE');
+      if (window.socket.hasListeners(`${PaybackSocketEvents.PAYBACK_CHANGE_TYPE_MIRROR}-FAILURE`))
+        window.socket.off(`${PaybackSocketEvents.PAYBACK_CHANGE_TYPE_MIRROR}-FAILURE`);
 
       window
         .socket.
@@ -396,6 +394,14 @@ export default function AssistantCoverageDefine(props: Props) {
               window.loading = 'hide';
               Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
 
+              // ! Limpa os anexos dos espelhos de ponto
+              setCoveringMirrorFileId('');
+              setCoveringMirrorFileName('');
+              setCoveringMirrorFileType('');
+              setCoverageMirrorFileId('');
+              setCoverageMirrorFileName('');
+              setCoverageMirrorFileType('');
+
               // ! Falta do efetivo
               if (
                 postingType === 'absence_person'
@@ -404,22 +410,6 @@ export default function AssistantCoverageDefine(props: Props) {
               // ! Falta de Efetivo
               else if (postingType === 'lack_people')
                 setActiveStep(7);
-
-              const deleteMirrors = [];
-
-              if (coveringMirrorFileId.length > 0)
-                deleteMirrors.push('COVERING');
-
-              if (coverageMirrorFileId.length > 0)
-                deleteMirrors.push('COVERAGE');
-
-              if (filesId.filter(fileId => fileId.length > 0).length > 0)
-                window.socket.emit(
-                  PaybackSocketEvents.PAYBACK_DELETE_MIRROR,
-                  window.socket.compress<TYPEOF_EMITTER_PAYBACK_DELETE_MIRROR>({
-                    filesId: filesId.filter(fileId => fileId.length > 0),
-                    types: deleteMirrors
-                  }));
             }
           })
 
@@ -437,13 +427,6 @@ export default function AssistantCoverageDefine(props: Props) {
     handleAppendUploads = (file: Upload) => {
       try {
         dispatch(SystemActions.CREATE_UPLOAD(file));
-      } catch (error) {
-        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
-      }
-    },
-    handleDeleteUpload = (fileId: string) => {
-      try {
-        dispatch(SystemActions.DELETE_UPLOAD(fileId));
       } catch (error) {
         Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
       }
@@ -671,44 +654,20 @@ export default function AssistantCoverageDefine(props: Props) {
                     fileId,
                     version,
                     type: 'COVERING'
-                  })),
-                deleteFile = async (
-                  filesId: string[]
-                ) => window.socket.emit(
-                  PaybackSocketEvents.PAYBACK_DELETE_MIRROR,
-                  window.socket.compress<TYPEOF_EMITTER_PAYBACK_DELETE_MIRROR>({
-                    filesId,
-                    types: ['COVERING']
                   }));
 
               if (files instanceof Array) {
                 for (let i = 0; i < files.length; i++) {
                   const
                     { authorId, name, size, compressedSize, fileId, version } = files[i],
-                    description = `Arquivo enviado na "Definição de Cobertura". Espelho de ponto da pessoa que está sendo substituída.`,
-                    deleteMirrors = [];
-
-                  if (coveringMirrorFileId) {
-                    deleteMirrors.push(coveringMirrorFileId);
-                  }
-
-                  if (deleteMirrors.length > 0)
-                    deleteFile(deleteMirrors);
+                    description = `Arquivo enviado na "Definição de Cobertura". Espelho de ponto da pessoa que está sendo substituída.`;
 
                   emitCreateFile(authorId, name, description, size, compressedSize, fileId, version);
                 }
               } else {
                 const
                   { authorId, name, size, compressedSize, fileId, version } = files,
-                  description = `Arquivo enviado na "Definição de Cobertura". Espelho de ponto da pessoa que está sendo substituída.`,
-                  deleteMirrors = [];
-
-                if (coveringMirrorFileId) {
-                  deleteMirrors.push(coveringMirrorFileId);
-                }
-
-                if (deleteMirrors.length > 0)
-                  deleteFile(deleteMirrors);
+                  description = `Arquivo enviado na "Definição de Cobertura". Espelho de ponto da pessoa que está sendo substituída.`;
 
                 emitCreateFile(authorId, name, description, size, compressedSize, fileId, version);
               }
@@ -852,44 +811,20 @@ export default function AssistantCoverageDefine(props: Props) {
                           fileId,
                           version,
                           type: 'COVERAGE'
-                        })),
-                      deleteFile = async (
-                        filesId: string[]
-                      ) => window.socket.emit(
-                        PaybackSocketEvents.PAYBACK_DELETE_MIRROR,
-                        window.socket.compress<TYPEOF_EMITTER_PAYBACK_DELETE_MIRROR>({
-                          filesId,
-                          types: ['COVERAGE']
                         }));
 
                     if (files instanceof Array) {
                       for (let i = 0; i < files.length; i++) {
                         const
                           { authorId, name, size, compressedSize, fileId, version } = files[i],
-                          description = `Arquivo enviado na "Definição de Cobertura". Espelho de ponto da pessoa que está cobrindo.`,
-                          deleteMirrors = [];
-
-                        if (coverageMirrorFileId.length > 0) {
-                          deleteMirrors.push(coverageMirrorFileId);
-                        }
-
-                        if (deleteMirrors.length > 0)
-                          deleteFile(deleteMirrors);
+                          description = `Arquivo enviado na "Definição de Cobertura". Espelho de ponto da pessoa que está cobrindo.`;
 
                         emitCreateFile(authorId, name, description, size, compressedSize, fileId, version);
                       }
                     } else {
                       const
                         { authorId, name, size, compressedSize, fileId, version } = files,
-                        description = `Arquivo enviado na "Definição de Cobertura". Espelho de ponto da pessoa que está cobrindo.`,
-                        deleteMirrors = [];
-
-                      if (coverageMirrorFileId.length > 0) {
-                        deleteMirrors.push(coverageMirrorFileId);
-                      }
-
-                      if (deleteMirrors.length > 0)
-                        deleteFile(deleteMirrors);
+                        description = `Arquivo enviado na "Definição de Cobertura". Espelho de ponto da pessoa que está cobrindo.`;
 
                       emitCreateFile(authorId, name, description, size, compressedSize, fileId, version);
                     }
@@ -1018,7 +953,6 @@ export default function AssistantCoverageDefine(props: Props) {
 
   onSocketEvents(
     handleAppendUploads,
-    handleDeleteUpload,
     handleChangeCoveringMirrorFileId,
     handleChangeCoveringMirrorFileName,
     handleChangeCoveringMirrorFileType,
@@ -1176,7 +1110,6 @@ export default function AssistantCoverageDefine(props: Props) {
  */
 function onSocketEvents(
   handleAppendUploads: (file: Upload) => void,
-  handleDeleteUpload: (fileId: string) => void,
   handleChangeCoveringMirrorFileId: (fileId: string) => void,
   handleChangeCoveringMirrorFileName: (fileName: string) => void,
   handleChangeCoveringMirrorFileType: (fileType: string) => void,
@@ -1192,9 +1125,7 @@ function onSocketEvents(
         `${PaybackSocketEvents.PAYBACK_UPLOAD_COVERING_MIRROR}-SUCCESS`,
         `${PaybackSocketEvents.PAYBACK_UPLOAD_COVERING_MIRROR}-FAILURE`,
         `${PaybackSocketEvents.PAYBACK_UPLOAD_COVERAGE_MIRROR}-SUCCESS`,
-        `${PaybackSocketEvents.PAYBACK_UPLOAD_COVERAGE_MIRROR}-FAILURE`,
-        `${PaybackSocketEvents.PAYBACK_DELETE_MIRROR}-SUCCESS`,
-        `${PaybackSocketEvents.PAYBACK_DELETE_MIRROR}-FAILURE`
+        `${PaybackSocketEvents.PAYBACK_UPLOAD_COVERAGE_MIRROR}-FAILURE`
       ]
 
     events
@@ -1236,6 +1167,7 @@ function onSocketEvents(
             createdAt,
             expiredAt,
           });
+
           handleChangeCoveringMirrorFileId(fileId);
           handleChangeCoveringMirrorFileName(filename);
           handleChangeCoveringMirrorFileType(filetype);
@@ -1281,6 +1213,7 @@ function onSocketEvents(
             createdAt,
             expiredAt,
           });
+
           handleChangeCoverageMirrorFileId(fileId);
           handleChangeCoverageMirrorFileName(filename);
           handleChangeCoverageMirrorFileType(filetype);
@@ -1290,37 +1223,6 @@ function onSocketEvents(
     socket
       .on(
         events[3], // * PAYBACK-UPLOAD-COVERAGE-MIRROR-FAILURE
-        (error: string) => console.error(error)
-      )
-
-    socket
-      .on(
-        events[4], // * PAYBACK-DELETE-MIRROR-SUCCESS
-        (
-          data: string
-        ) => {
-          const {
-            filesId,
-            types,
-          } = window.socket.decompress<TYPEOF_LISTENER_PAYBACK_DELETE_MIRROR>(data);
-
-          filesId.forEach(fileId => handleDeleteUpload(fileId));
-
-          if (types.includes('COVERING')) {
-            handleChangeCoveringMirrorFileId('');
-            handleChangeCoveringMirrorFileName('');
-            handleChangeCoveringMirrorFileType('');
-          } else if (types.includes('COVERAGE')) {
-            handleChangeCoverageMirrorFileId('');
-            handleChangeCoverageMirrorFileName('');
-            handleChangeCoverageMirrorFileType('');
-          }
-        }
-      )
-
-    socket
-      .on(
-        events[5], // * PAYBACK-DELETE-MIRROR-FAILURE
         (error: string) => console.error(error)
       )
   }

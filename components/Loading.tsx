@@ -74,13 +74,6 @@ export function LoadingFullWidth(lastRouterPathVisited: string | null, children?
           children ?
             <>
               {children}
-              <div
-                className='d-flex flex-row justify-content-center align-items-center bg-light-gray border-top p-2 mt-5 bg-light-gray'
-              >
-                <p className='text-muted my-auto'>
-                  Grupo Mave 2020-2022 © Todos direitos reservados.
-                </p>
-              </div>
             </>
             :
             !lastRouterPathVisited ? <></> :

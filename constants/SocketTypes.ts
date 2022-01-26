@@ -40,11 +40,9 @@ export type TYPEOF_LISTENER_PAYBACK_CHANGE_TYPE_MIRROR = {
 }
 
 export type TYPEOF_EMITTER_PAYBACK_DELETE_MIRROR = {
-  filesId: string[],
-  types: string[],
+  filesId: string[]
 }
 
 export type TYPEOF_LISTENER_PAYBACK_DELETE_MIRROR = {
-  filesId: string[],
-  types: string[],
+  filesId: string[]
 }

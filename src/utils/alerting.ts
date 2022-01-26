@@ -1,7 +1,7 @@
 /**
  * @description Gerenciador de alertas
  * @author GuilhermeSantos001
- * @update 18/01/2022
+ * @update 26/01/2022
  */
 
 type AlertType = 'question' | 'success' | 'warning' | 'error' | 'info'
@@ -22,7 +22,7 @@ declare global {
       cache: IAlert[]
       type: AlertType
       noCache: boolean
-      delay: NodeJS.Timeout
+      delay: NodeJS.Timeout | undefined
     }
   }
 }
@@ -67,7 +67,7 @@ class Alert {
   /**
    * @description Cria um novo alerta
    */
-  create(type: AlertType, message: string, delay = 2500): void {
+  create(type: AlertType, message: string, delay = 3600): void {
     if (!window.Alerting) {
       window.Alerting = {
         noCache: true,
@@ -105,7 +105,9 @@ class Alert {
    */
   close(): void {
     if (window.Alerting.show) {
-      clearTimeout(window.Alerting.delay);
+      if (window.Alerting.delay)
+        clearTimeout(window.Alerting.delay);
+
       window.Alerting.delay = undefined;
       window.Alerting.show = false;
 

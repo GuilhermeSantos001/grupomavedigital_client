@@ -258,7 +258,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         <Provider store={store}>
           <PersistGate loading={reduxLoading} persistor={persistor}>
             <Loading>
-              <Layout fullwidth={fullwidth} menu={menu}>
+              <Layout fullwidth={fullwidth !== undefined ? fullwidth : false} menu={menu}>
                 <Component {...pageProps} />
               </Layout>
             </Loading>

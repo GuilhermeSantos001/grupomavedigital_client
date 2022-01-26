@@ -1,6 +1,6 @@
 /**
  * @author GuilhermeSantos001
- * @update 24/01/2022
+ * @update 26/01/2022
  */
 
 import { io, Socket } from 'socket.io-client';
@@ -14,6 +14,14 @@ export default class SocketConnectionController {
         this.socket = io(ip, { transports: ['websocket'] });
     }
 
+    public compress<DataType>(data: DataType) {
+        return compressToBase64(JSON.stringify(data));
+    }
+
+    public decompress<ReturnType>(data: string): ReturnType {
+        return JSON.parse(decompressFromBase64(data) || "");
+    }
+
     public hasListeners(event: string) {
         return this.socket.hasListeners(event);
     }
@@ -23,7 +31,7 @@ export default class SocketConnectionController {
     }
 
     public emit(event: string, ...args: string[]) {
-        this.socket.emit(event, args);
+        this.socket.emit(event, ...args);
     }
 
     public on(event: string, handle: (...args: string[]) => void) {
@@ -35,13 +43,5 @@ export default class SocketConnectionController {
 
     public removeAllListeners() {
         this.socket.removeAllListeners();
-    }
-
-    public compress<DataType>(data: DataType) {
-        return compressToBase64(JSON.stringify(data));
-    }
-
-    public decompress<ReturnType>(data: string): ReturnType {
-        return JSON.parse(decompressFromBase64(data) || "");
     }
 }

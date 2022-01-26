@@ -191,7 +191,7 @@ export default class GridContent extends React.Component<MyProps, MyState> {
 
   render() {
     const children = this.props.children,
-      menu = this.composeItemsMenu(this.props.menu)
+      menu = this.composeItemsMenu(this.props.menu);
 
     return (
       <div className='p-2'>
@@ -201,11 +201,19 @@ export default class GridContent extends React.Component<MyProps, MyState> {
             } ${this.props.menuShow ? 'fullwidth' : ''}`}
         >
           <ul className={`list-style-none pe-2 border-end`}>{menu}</ul>
+          <div
+            className='d-flex flex-row justify-content-center align-items-center bg-light-gray border-top p-2 bg-light-gray'
+          >
+            <p className='text-muted my-auto'>
+              Grupo Mave 2020-2022 © Todos direitos reservados.
+            </p>
+          </div>
         </div>
         <div
           id="content"
           className={`p-2 border-start animation-delay ${this.props.fullwidth ? 'fullwidth' : ''
             }${this.props.menuShow ? 'fullwidth' : ''}`}
+          style={{ height: '100vh' }}
         >
           {children}
         </div>

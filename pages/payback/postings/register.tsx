@@ -1,17 +1,10 @@
 /**
  * @description Payback -> Lançamentos Financeiros -> Cadastro
  * @author GuilhermeSantos001
- * @update 24/01/2022
+ * @update 26/01/2022
  */
 
 import React, { useEffect, useState } from 'react'
-
-import { PaybackSocketEvents } from '@/constants/socketEvents'
-
-import {
-  TYPEOF_EMITTER_PAYBACK_DELETE_MIRROR,
-  TYPEOF_LISTENER_PAYBACK_DELETE_MIRROR,
-} from '@/constants/SocketTypes'
 
 import { useRouter } from 'next/router'
 
@@ -41,6 +34,13 @@ import { PageProps } from '@/pages/_app'
 import PageMenu from '@/bin/main_menu'
 
 import SocketIO from '@/components/socket-io'
+import {
+  PaybackSocketEvents
+} from '@/constants/socketEvents'
+import {
+  TYPEOF_EMITTER_PAYBACK_DELETE_MIRROR,
+  TYPEOF_LISTENER_PAYBACK_DELETE_MIRROR,
+} from '@/constants/SocketTypes'
 
 import Variables from '@/src/db/variables'
 import hasPrivilege from '@/src/functions/hasPrivilege'
@@ -949,27 +949,17 @@ export default function Register() {
       try {
         const
           posting = postings.find(item => item.id === id),
-          deleteFile = async (
-            filesId: string[]
-          ) => window.socket.emit(
-            'PAYBACK-DELETE-MIRROR',
-            window.socket.compress<TYPEOF_EMITTER_PAYBACK_DELETE_MIRROR>({
-              filesId,
-              types: ['COVERING', 'COVERAGE']
-            })),
           deleteMirrors = [];
 
         if (posting) {
-          if (posting.covering && posting.covering.mirror.fileId) {
+          if (posting.covering && posting.covering.mirror)
             deleteMirrors.push(posting.covering.mirror.fileId);
-          }
 
-          if (posting.coverage.modalityOfCoverage === 'ft') {
+          if (posting.coverage && posting.coverage.mirror)
             deleteMirrors.push(posting.coverage.mirror.fileId);
-          }
 
           if (deleteMirrors.length > 0)
-            deleteFile(deleteMirrors);
+            handleRemoveUploadedFile(deleteMirrors);
 
           dispatch(PaybackActions.DELETE_POSTING(id));
           setPostingsDefined(postingsDefined.filter(item => item.id !== id));
@@ -980,13 +970,14 @@ export default function Register() {
         Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
       }
     },
-    handleDeleteUpload = (fileId: string) => {
-      try {
-        dispatch(SystemActions.DELETE_UPLOAD(fileId));
-      } catch (error) {
-        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
-      }
-    };
+    handleRemoveUploadedFile = (filesId: string[]) =>
+      window.socket.emit(
+        PaybackSocketEvents.PAYBACK_DELETE_MIRROR,
+        window.socket.compress<TYPEOF_EMITTER_PAYBACK_DELETE_MIRROR>({
+          filesId
+        })
+      ),
+    handleDeleteUpload = (fileId: string) => dispatch(SystemActions.DELETE_UPLOAD(fileId));
 
   useEffect(() => {
     hasPrivilege('administrador', 'ope_gerente', 'ope_coordenador', 'ope_mesa')
@@ -1012,9 +1003,7 @@ export default function Register() {
   if (notAuth) return compose_noAuth(handleClickNoAuth)
 
   if (isReady) {
-    onSocketEvents(
-      handleDeleteUpload
-    )
+    onSocketEvents(handleDeleteUpload);
 
     return compose_ready(
       handleClickBackPage,
@@ -1082,7 +1071,6 @@ export default function Register() {
   }
 }
 
-
 /**
  * @description Adiciona os ouvintes dos eventos do socket.io
  */
@@ -1095,7 +1083,7 @@ function onSocketEvents(
     const
       events = [
         `${PaybackSocketEvents.PAYBACK_DELETE_MIRROR}-SUCCESS`,
-        `${PaybackSocketEvents.PAYBACK_DELETE_MIRROR}-FAILURE`
+        `${PaybackSocketEvents.PAYBACK_DELETE_MIRROR}-FAILURE`,
       ]
 
     events
@@ -1111,9 +1099,8 @@ function onSocketEvents(
           data: string
         ) => {
           const {
-            filesId,
+            filesId
           } = window.socket.decompress<TYPEOF_LISTENER_PAYBACK_DELETE_MIRROR>(data);
-
           filesId.forEach(fileId => handleDeleteUpload(fileId));
         }
       )

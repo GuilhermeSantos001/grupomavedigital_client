@@ -1,7 +1,7 @@
 /**
  * @description Componente -> Socket.io
  * @author GuilhermeSantos001
- * @update 24/01/2022
+ * @update 26/01/2022
  */
 
 import { useEffect } from 'react';
@@ -21,8 +21,8 @@ export default function SocketConnectionComponent() {
     window.socket = socket;
 
     return () => {
-      if (socket)
-        socket.removeAllListeners();
+      if (window.socket)
+        window.socket.removeAllListeners();
     }
   }, []);
 
