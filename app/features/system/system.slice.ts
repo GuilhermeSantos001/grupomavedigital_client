@@ -43,8 +43,6 @@ export type Person = {
   status: Status // ? Status da pessoa
 }
 
-export type PersonCreate = Omit<Person, 'status'>
-
 // ? Dados dos Locais de Trabalho
 export type Workplace = {
   id: string
@@ -196,53 +194,40 @@ export const slice = createSlice({
     CLEAR_COSTCENTERS: (state) => {
       state.costCenters = [];
     },
-    CREATE_PERSON: {
-      reducer: (state, action: PayloadAction<Person>) => {
-        if (!state.people)
-          state.people = [];
+    CREATE_PERSON: (state, action: PayloadAction<Person>) => {
+      if (!state.people)
+        state.people = [];
 
-        if (
-          action.payload.name.length > 0 &&
-          action.payload.matricule > 0 &&
-          action.payload.cpf.length > 0 &&
-          action.payload.rg.length > 0 &&
-          action.payload.motherName.length > 0 &&
-          action.payload.birthDate != null &&
-          action.payload.phone.length > 0 &&
-          action.payload.mail.length > 0 &&
-          action.payload.scale.length > 0 &&
-          action.payload.services.length > 0 &&
-          action.payload.address.street.length > 0 &&
-          action.payload.address.number > 0 &&
-          // ! Complemento não é obrigatório
-          // ! action.payload.address.complement.length > 0 &&
-          action.payload.address.neighborhood.length > 0 &&
-          action.payload.address.city.length > 0 &&
-          action.payload.address.district.length > 0 &&
-          action.payload.address.zipCode > 0
-        ) {
-          if (state.people.filter(item =>
-            item.matricule === action.payload.matricule ||
-            item.cpf === action.payload.cpf ||
-            item.rg === action.payload.rg
-          ).length <= 0)
-            state.people.push(action.payload);
-          else
-            throw new Error(`Já existe uma pessoa com essa matrícula, CPF ou RG.`);
-        } else {
-          throw new Error(`Não é possível criar a pessoa. Existem campos obrigatórios em branco.`);
-        }
-      },
-      prepare: (item: PersonCreate) => {
-        const
-          status: Status = 'available';
-
-        return {
-          payload: {
-            ...item,
-            status
-          }
-        }
+      if (
+        action.payload.name.length > 0 &&
+        action.payload.matricule > 0 &&
+        action.payload.cpf.length > 0 &&
+        action.payload.rg.length > 0 &&
+        action.payload.motherName.length > 0 &&
+        action.payload.birthDate != null &&
+        action.payload.phone.length > 0 &&
+        action.payload.mail.length > 0 &&
+        action.payload.scale.length > 0 &&
+        action.payload.services.length > 0 &&
+        action.payload.address.street.length > 0 &&
+        action.payload.address.number > 0 &&
+        // ! Complemento não é obrigatório
+        // ! action.payload.address.complement.length > 0 &&
+        action.payload.address.neighborhood.length > 0 &&
+        action.payload.address.city.length > 0 &&
+        action.payload.address.district.length > 0 &&
+        action.payload.address.zipCode > 0
+      ) {
+        if (state.people.filter(item =>
+          item.matricule === action.payload.matricule ||
+          item.cpf === action.payload.cpf ||
+          item.rg === action.payload.rg
+        ).length <= 0)
+          state.people.push(action.payload);
+        else
+          throw new Error(`Já existe uma pessoa com essa matrícula, CPF ou RG.`);
+      } else {
+        throw new Error(`Não é possível criar a pessoa. Existem campos obrigatórios em branco.`);
       }
     },
     UPDATE_PERSON: (state, action: PayloadAction<Person>) => {

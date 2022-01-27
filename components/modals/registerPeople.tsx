@@ -1,7 +1,7 @@
 /**
  * @description Modal -> Modal de Cadastro de pessoa
  * @author GuilhermeSantos001
- * @update 24/01/2022
+ * @update 27/01/2022
  */
 
 import React, { useState } from 'react';
@@ -35,7 +35,7 @@ import Alerting from '@/src/utils/alerting'
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 
 import {
-  PersonCreate,
+  Person,
   SystemActions
 } from '@/app/features/system/system.slice'
 
@@ -148,7 +148,7 @@ export default function RegisterPeople(props: Props) {
   }
 
   const handleRegisterPerson = () => {
-    const person: PersonCreate = {
+    const person: Person = {
       id: StringEx.id(),
       matricule,
       name,
@@ -170,6 +170,7 @@ export default function RegisterPeople(props: Props) {
         complement,
         zipCode,
       },
+      status: 'available'
     }
 
     try {

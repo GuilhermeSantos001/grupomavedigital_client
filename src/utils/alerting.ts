@@ -111,6 +111,7 @@ class Alert {
         };
 
         if (data.message.length > 0 && data.delay > 0) {
+          this.cache.splice(this.cache.length - 1, 1);
           this.create(data.type, data.message, data.delay);
         }
       }

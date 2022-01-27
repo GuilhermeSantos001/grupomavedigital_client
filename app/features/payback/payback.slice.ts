@@ -1,7 +1,7 @@
 /**
  * @description Slice -> Payback
  * @author GuilhermeSantos001
- * @update 17/01/2022
+ * @update 27/01/2022
  */
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
@@ -40,8 +40,8 @@ export type Posting = {
   periodEnd: string // ? Data de fim do período
   originDate: string // ? Data de origem do lançamento
   description: string // ? Descrição do lançamento
-  coverage: PersonPosting // ? Pessoa que está realizando a cobertura do lançamento
   covering?: PersonPosting // ? Pessoa que está sendo substituída no lançamento
+  coverage: PersonPosting // ? Pessoa que está realizando a cobertura do lançamento
   coverageWorkplace?: string // ? Local de trabalho da pessoa que está realizando a cobertura do lançamento
   coveringWorkplace: string // ? Local de trabalho da pessoa que está sendo substituída no lançamento
   paymentMethod: string // ? Forma de pagamento do beneficiário
@@ -50,12 +50,11 @@ export type Posting = {
   paymentStatus: PaymentStatus // ? Status de pagamento do lançamento
   paymentDatePaid?: string // ? Data de quando foi pago o lançamento
   paymentDateCancelled?: string // ? Data de quando foi cancelado o pagamento do lançamento
+  foremanApproval?: boolean // ? Aprovação do encarregado do departamento
+  managerApproval?: boolean // ? Aprovação do gerente do departamento
   status: Status // ? Status do lote
   createdAt: string // ? Data de criação do lançamento
 }
-
-export type LotItemCreate = Omit<LotItem, 'status' | 'createdAt'>
-export type PostingCreate = Omit<Posting, 'paymentStatus' | 'status' | 'createdAt'>
 
 export interface PaybackState {
   lotItems: LotItem[]
@@ -71,40 +70,27 @@ export const slice = createSlice({
   name: 'payback',
   initialState,
   reducers: {
-    CREATE_LOT: {
-      reducer: (state, action: PayloadAction<LotItem>) => {
-        if (!state.lotItems)
-          state.lotItems = [];
+    CREATE_LOT:(state, action: PayloadAction<LotItem>) => {
+      if (!state.lotItems)
+        state.lotItems = [];
 
+      if (
+        action.payload.costCenter.length > 0 &&
+        action.payload.serialNumber.length > 0 &&
+        action.payload.lastCardNumber.length > 0
+      ) {
         if (
-          action.payload.costCenter.length > 0 &&
-          action.payload.serialNumber.length > 0 &&
-          action.payload.lastCardNumber.length > 0
+          state.lotItems.filter(item =>
+            item.serialNumber === action.payload.serialNumber ||
+            item.lastCardNumber === action.payload.lastCardNumber
+          ).length <= 0
         ) {
-          if (
-            state.lotItems.filter(item =>
-              item.serialNumber === action.payload.serialNumber ||
-              item.lastCardNumber === action.payload.lastCardNumber
-            ).length <= 0
-          ) {
-            state.lotItems.push(action.payload)
-          } else {
-            throw new Error('Já existe um lote com esse número de série ou com os 4 últimos dígitos do número do cartão.');
-          }
+          state.lotItems.push(action.payload)
         } else {
-          throw new Error('Não é possível criar o lote. Existem campos obrigatórios em branco.');
+          throw new Error('Já existe um lote com esse número de série ou com os 4 últimos dígitos do número do cartão.');
         }
-      },
-      prepare: (item: LotItemCreate) => {
-        const status: Status = 'available';
-
-        return {
-          payload: {
-            ...item,
-            status,
-            createdAt: new Date().toISOString()
-          }
-        }
+      } else {
+        throw new Error('Não é possível criar o lote. Existem campos obrigatórios em branco.');
       }
     },
     UPDATE_LOT: (state, action: PayloadAction<LotItem>) => {
@@ -156,102 +142,86 @@ export const slice = createSlice({
     CLEAR_LOTS: (state) => {
       state.lotItems = [];
     },
-    CREATE_POSTING: {
-      reducer: (state, action: PayloadAction<Posting>) => {
-        if (!state.postings)
-          state.postings = [];
+    CREATE_POSTING: (state, action: PayloadAction<Posting>) => {
+      if (!state.postings)
+        state.postings = [];
 
-        let errorMessage = 'Não foi possível registrar o lançamento, verifique os dados e tente novamente.';
+      let errorMessage = 'Não foi possível registrar o lançamento, verifique os dados e tente novamente.';
 
-        if (
-          state.postings.filter(item => {
-            // * Verifica se o posto de cobertura já está sendo coberto na mesma data
-            if (
-              // ! Falta do Efetivo
-              action.payload.covering && item.covering &&
-              item.coveringWorkplace === action.payload.coveringWorkplace &&
-              item.covering.id === action.payload.covering.id &&
-              DateEx.isEqual(new Date(item.originDate), new Date(action.payload.originDate)) ||
-              // ! Falta de Efetivo
-              item.coveringWorkplace === action.payload.coveringWorkplace &&
-              DateEx.isEqual(new Date(item.originDate), new Date(action.payload.originDate))
-            ) {
-              errorMessage = 'Posto de cobertura já está sendo coberto.';
-              return true;
-            }
-            // * Verifica se o posto de cobertura já está sendo usado como origem na mesma data
-            if (
-              item.coverageWorkplace === action.payload.coveringWorkplace &&
-              DateEx.isEqual(new Date(item.originDate), new Date(action.payload.originDate))
-            ) {
-              errorMessage = 'Posto de cobertura já está sendo usado como posto de origem em outro lançamento.';
-              return true;
-            }
-            // * Verifica se o posto de origem já está sendo usado como cobertura na mesma data
-            if (
-              item.coveringWorkplace === action.payload.coverageWorkplace &&
-              DateEx.isEqual(new Date(item.originDate), new Date(action.payload.originDate))
-            ) {
-              errorMessage = 'Posto de origem já está sendo usado como posto de cobertura em outro lançamento.';
-              return true;
-            }
-            // * Verifica se o funcionário que foi substituído já teve a falta apontada no mesmo dia
-            if (
-              action.payload.covering && item.covering &&
-              item.covering.id === action.payload.covering.id &&
-              DateEx.isEqual(new Date(item.originDate), new Date(action.payload.originDate))
-            ) {
-              errorMessage = 'Funcionário que está sendo substituído já teve a falta apontada.';
-              return true;
-            }
-            // * Verifica se o funcionário que está sendo substituído realizou uma cobertura no mesmo dia
-            if (
-              action.payload.covering &&
-              item.coverage.id === action.payload.covering.id &&
-              DateEx.isEqual(new Date(item.originDate), new Date(action.payload.originDate))
-            ) {
-              errorMessage = 'Funcionário que está sendo substituído realizou uma cobertura no mesmo dia.';
-              return true;
-            }
-            // * Verifica se o funcionário que está realizando a cobertura está com falta apontada no mesmo dia
-            if (
-              item.covering &&
-              item.covering.id === action.payload.coverage.id &&
-              DateEx.isEqual(new Date(item.originDate), new Date(action.payload.originDate))
-            ) {
-              errorMessage = 'Funcionário que está realizando a cobertura tem uma falta apontada.';
-              return true;
-            }
-            //* Verifica se o funcionário que está realizando a cobertura já está cobrindo outro posto de cobertura no mesmo dia
-            if (
-              item.coverage.id === action.payload.coverage.id &&
-              DateEx.isEqual(new Date(item.originDate), new Date(action.payload.originDate))
-            ) {
-              errorMessage = 'Funcionário que está realizando a cobertura já está cobrindo outro posto.';
-              return true;
-            }
-
-            return false;
-          }).length <= 0
-        )
-          state.postings.push(action.payload);
-        else
-          throw new Error(errorMessage);
-      },
-      prepare: (item: PostingCreate) => {
-        const
-          paymentStatus: PaymentStatus = 'payable',
-          status: Status = 'available';
-
-        return {
-          payload: {
-            ...item,
-            paymentStatus,
-            status,
-            createdAt: new Date().toISOString()
+      if (
+        state.postings.filter(item => {
+          // * Verifica se o posto de cobertura já está sendo coberto na mesma data
+          if (
+            // ! Falta do Efetivo
+            action.payload.covering && item.covering &&
+            item.coveringWorkplace === action.payload.coveringWorkplace &&
+            item.covering.id === action.payload.covering.id &&
+            DateEx.isEqual(new Date(item.originDate), new Date(action.payload.originDate)) ||
+            // ! Falta de Efetivo
+            item.coveringWorkplace === action.payload.coveringWorkplace &&
+            DateEx.isEqual(new Date(item.originDate), new Date(action.payload.originDate))
+          ) {
+            errorMessage = 'Posto de cobertura já está sendo coberto.';
+            return true;
           }
-        }
-      }
+          // * Verifica se o posto de cobertura já está sendo usado como origem na mesma data
+          if (
+            item.coverageWorkplace === action.payload.coveringWorkplace &&
+            DateEx.isEqual(new Date(item.originDate), new Date(action.payload.originDate))
+          ) {
+            errorMessage = 'Posto de cobertura já está sendo usado como posto de origem em outro lançamento.';
+            return true;
+          }
+          // * Verifica se o posto de origem já está sendo usado como cobertura na mesma data
+          if (
+            item.coveringWorkplace === action.payload.coverageWorkplace &&
+            DateEx.isEqual(new Date(item.originDate), new Date(action.payload.originDate))
+          ) {
+            errorMessage = 'Posto de origem já está sendo usado como posto de cobertura em outro lançamento.';
+            return true;
+          }
+          // * Verifica se o funcionário que foi substituído já teve a falta apontada no mesmo dia
+          if (
+            action.payload.covering && item.covering &&
+            item.covering.id === action.payload.covering.id &&
+            DateEx.isEqual(new Date(item.originDate), new Date(action.payload.originDate))
+          ) {
+            errorMessage = 'Funcionário que está sendo substituído já teve a falta apontada.';
+            return true;
+          }
+          // * Verifica se o funcionário que está sendo substituído realizou uma cobertura no mesmo dia
+          if (
+            action.payload.covering &&
+            item.coverage.id === action.payload.covering.id &&
+            DateEx.isEqual(new Date(item.originDate), new Date(action.payload.originDate))
+          ) {
+            errorMessage = 'Funcionário que está sendo substituído realizou uma cobertura no mesmo dia.';
+            return true;
+          }
+          // * Verifica se o funcionário que está realizando a cobertura está com falta apontada no mesmo dia
+          if (
+            item.covering &&
+            item.covering.id === action.payload.coverage.id &&
+            DateEx.isEqual(new Date(item.originDate), new Date(action.payload.originDate))
+          ) {
+            errorMessage = 'Funcionário que está realizando a cobertura tem uma falta apontada.';
+            return true;
+          }
+          //* Verifica se o funcionário que está realizando a cobertura já está cobrindo outro posto de cobertura no mesmo dia
+          if (
+            item.coverage.id === action.payload.coverage.id &&
+            DateEx.isEqual(new Date(item.originDate), new Date(action.payload.originDate))
+          ) {
+            errorMessage = 'Funcionário que está realizando a cobertura já está cobrindo outro posto.';
+            return true;
+          }
+
+          return false;
+        }).length <= 0
+      )
+        state.postings.push(action.payload);
+      else
+        throw new Error(errorMessage);
     },
     UPDATE_POSTING: (state, action: PayloadAction<Posting>) => {
       if (!state.postings)

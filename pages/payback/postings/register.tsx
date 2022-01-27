@@ -1,7 +1,7 @@
 /**
  * @description Payback -> Lançamentos Financeiros -> Cadastro
  * @author GuilhermeSantos001
- * @update 26/01/2022
+ * @update 27/01/2022
  */
 
 import React, { useEffect, useState } from 'react'
@@ -72,13 +72,12 @@ import {
 import {
   LotItem,
   Posting,
-  PostingCreate,
   PaybackActions,
 } from '@/app/features/payback/payback.slice'
 
 const serverSideProps: PageProps = {
-  title: 'Pagamentos/Lançamentos/Cadastro',
-  description: 'Cadastro de lançamentos financeiros',
+  title: 'Lançamentos/Cadastro',
+  description: 'Cadastro de lançamentos operacionais',
   themeColor: '#004a6e',
   menu: PageMenu('mn-payback')
 }
@@ -380,9 +379,9 @@ function compose_ready(
   showModalAssistantCoverageDefine: boolean,
   handleOpenModalAssistantCoverageDefine: () => void,
   handleCloseModalAssistantCoverageDefine: () => void,
-  postingsDefined: PostingCreate[],
-  handleAppendPostingDefined: (postings: PostingCreate[]) => void,
-  handleDefinePostingDefined: (postings: PostingCreate[]) => void,
+  postingsDefined: Posting[],
+  handleAppendPostingDefined: (postings: Posting[]) => void,
+  handleDefinePostingDefined: (postings: Posting[]) => void,
   handleResetPostingDefined: () => void,
   handleRemovePostingDefined: (id: string) => void,
 ) {
@@ -681,10 +680,12 @@ function compose_ready(
                       }
                       <ListCoverageDefined
                         postings={postingsDefined}
+                        disabledPostingRemove={assistantFinish}
                         handlePostingRemove={handleRemovePostingDefined}
                       />
                       <Button
                         variant="outlined"
+                        disabled={assistantFinish}
                         onClick={() => searchPostingsDefined()}
                         className='col-12 m-2'
                       >
@@ -692,12 +693,12 @@ function compose_ready(
                           icon={Icon.render('fas', 'search')}
                           className="me-2 flex-shrink-1 my-auto"
                         />
-                        Procurar Coberturas disponíveis
+                        Procurar Coberturas registradas
                       </Button>
                       <Button
                         variant="outlined"
                         onClick={() => handleResetPostingDefined()}
-                        disabled={postingsDefined.length <= 0}
+                        disabled={assistantFinish || postingsDefined.length <= 0}
                         className='col-12 m-2'
                         color={'error'}
                       >
@@ -714,7 +715,7 @@ function compose_ready(
                         postingCostCenter={costCenter}
                         periodStart={periodStart}
                         periodEnd={periodEnd}
-                        handleFinish={(postings: PostingCreate[]) => {
+                        handleFinish={(postings: Posting[]) => {
                           if (postings.length > 0) {
                             Alerting.create('success', 'Cobertura(s) aplicada(s) com sucesso!');
                             handleAppendPostingDefined(postings);
@@ -740,7 +741,7 @@ function compose_ready(
                         <button
                           type="button"
                           className="btn btn-link"
-                          disabled={selectPeopleInWorkplaces.length <= 0 || selectPeopleInWorkplaces.length % 2 !== 0}
+                          disabled={assistantFinish || selectPeopleInWorkplaces.length <= 0 || selectPeopleInWorkplaces.length % 2 !== 0}
                           onClick={() => {
                             const filtered = selectPeopleInWorkplaces.filter(id => {
                               if (appliedPeopleInWorkplaces.find(applied => applied.id === id))
@@ -763,7 +764,7 @@ function compose_ready(
                         <button
                           type="button"
                           className="btn btn-link"
-                          disabled={selectPeopleInWorkplaces.length <= 0 || selectPeopleInWorkplaces.length > 1}
+                          disabled={assistantFinish || selectPeopleInWorkplaces.length <= 0 || selectPeopleInWorkplaces.length > 1}
                           onClick={handleShowModalEditPeopleInWorkplace}
                         >
                           <FontAwesomeIcon
@@ -775,6 +776,7 @@ function compose_ready(
                           type="button"
                           className="btn btn-link"
                           disabled={
+                            assistantFinish ||
                             selectPeopleInWorkplaces.length <= 0 ||
                             lotItems.filter(item =>
                               item.person &&
@@ -796,6 +798,7 @@ function compose_ready(
                         <button
                           type="button"
                           className="btn btn-link"
+                          disabled={assistantFinish}
                           onClick={handleShowModalRegisterPeopleInWorkplace}
                         >
                           <FontAwesomeIcon
@@ -863,7 +866,7 @@ export default function Register() {
 
   const [showModalAssistantCoverageDefine, setShowModalAssistantCoverageDefine] = useState<boolean>(false)
 
-  const [postingsDefined, setPostingsDefined] = useState<PostingCreate[]>([])
+  const [postingsDefined, setPostingsDefined] = useState<Posting[]>([])
 
   const router = useRouter()
 
@@ -890,7 +893,11 @@ export default function Register() {
     },
     handleClickBackPage = () => router.push('/payback/postings'),
     handleChangeAssistantStep = (step: number) => setAssistantStep(step),
-    handleFinishAssistant = () => setAssistantFinish(true),
+    handleFinishAssistant = () => {
+      Alerting.create('success', 'Muito Bem!, Você já pode tomar um café.');
+      Alerting.create('warning', 'Não esqueça de avisar o coordenador que os lançamentos foram registrados, e ele já pode apura-los.');
+      setAssistantFinish(true);
+    },
     hasCompletedAssistantStep = (step: number) => {
       switch (step) {
         case 0:
@@ -900,7 +907,7 @@ export default function Register() {
             periodStart !== null &&
             periodEnd !== null
         case 1:
-          return true;
+          return postingsDefined.length > 0;
         default:
           return false
       }
@@ -942,8 +949,8 @@ export default function Register() {
     },
     handleOpenModalAssistantCoverageDefine = () => setShowModalAssistantCoverageDefine(true),
     handleCloseModalAssistantCoverageDefine = () => setShowModalAssistantCoverageDefine(false),
-    handleAppendPostingDefined = (postings: PostingCreate[]) => setPostingsDefined([...postingsDefined, ...postings]),
-    handleDefinePostingDefined = (postings: PostingCreate[]) => setPostingsDefined(postings),
+    handleAppendPostingDefined = (postings: Posting[]) => setPostingsDefined([...postingsDefined, ...postings]),
+    handleDefinePostingDefined = (postings: Posting[]) => setPostingsDefined(postings),
     handleResetPostingDefined = () => setPostingsDefined([]),
     handleRemovePostingDefined = (id: string) => {
       try {

@@ -13,7 +13,7 @@ import SkeletonLoader from 'tiny-skeleton-loader-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
 
-import NoPrivilege from '@/components/noPrivilege'
+import NoPrivilege, { handleClickFunction } from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
 import SelectCostCenter from '@/components/selects/selectCostCenter'
 
@@ -33,7 +33,6 @@ import {
 
 import {
   LotItem,
-  LotItemCreate,
   PaybackActions
 } from '@/app/features/payback/payback.slice'
 
@@ -275,11 +274,11 @@ function compose_load() {
   )
 }
 
-function compose_noPrivilege(handleClick) {
+function compose_noPrivilege(handleClick: handleClickFunction) {
   return <NoPrivilege handleClick={handleClick} />
 }
 
-function compose_noAuth(handleClick) {
+function compose_noAuth(handleClick: handleClickFunction) {
   return <NoAuth handleClick={handleClick} />
 }
 
@@ -295,7 +294,7 @@ function compose_ready(
   numLastCardNumber: number,
   handleChangeNumLastCardNumber: (val: number) => void,
   lotItems: LotItem[],
-  handleRegister: (lotItem: LotItemCreate) => void
+  handleRegister: (lotItem: LotItem) => void
 ) {
   const
     enableCancel = () => {
@@ -456,7 +455,9 @@ function compose_ready(
                     id: String(numLot).padStart(9, '0'),
                     costCenter,
                     serialNumber: String(numSerialNumber).padStart(15, '0'),
-                    lastCardNumber: String(numLastCardNumber).padStart(4, '0')
+                    lastCardNumber: String(numLastCardNumber).padStart(4, '0'),
+                    status: 'available',
+                    createdAt: new Date().toISOString()
                   });
                 }}
                 disabled={enableRegister() ? false : true}
@@ -490,8 +491,11 @@ export default function CardsRegister() {
   const router = useRouter()
 
   const
-    handleClickNoAuth = async (e, path) => {
-      e.preventDefault()
+    handleClickNoAuth: handleClickFunction = async (
+      event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+      path: string
+    ) => {
+      event.preventDefault()
 
       if (path === '/auth/login') {
         const variables = new Variables(1, 'IndexedDB')
@@ -500,8 +504,11 @@ export default function CardsRegister() {
         })
       }
     },
-    handleClickNoPrivilege = async (e, path) => {
-      e.preventDefault()
+    handleClickNoPrivilege: handleClickFunction = async (
+      event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+      path: string
+    ) => {
+      event.preventDefault()
       router.push(path)
     },
     handleClickBackPage = () => router.push('/payback/cards'),
@@ -523,7 +530,7 @@ export default function CardsRegister() {
         dispatch(PaybackActions.CREATE_LOT(lotItem));
         Alerting.create('info', 'Lote registrado com sucesso!');
       } catch (error) {
-        Alerting.create('error', error.message);
+        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
       }
     };
 

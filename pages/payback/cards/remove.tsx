@@ -1,7 +1,7 @@
 /**
  * @description Payback -> Cartões Beneficio (Alelo) -> Cadastro
  * @author GuilhermeSantos001
- * @update 21/01/2022
+ * @update 27/01/2022
  */
 
 import { useEffect, useState } from 'react'
@@ -15,7 +15,7 @@ import SkeletonLoader from 'tiny-skeleton-loader-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
 
-import NoPrivilege from '@/components/noPrivilege'
+import NoPrivilege, { handleClickFunction } from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
 import ListWithFiveColumns from '@/components/lists/listwithFiveColumns'
 
@@ -281,11 +281,11 @@ function compose_load() {
   )
 }
 
-function compose_noPrivilege(handleClick) {
+function compose_noPrivilege(handleClick: handleClickFunction) {
   return <NoPrivilege handleClick={handleClick} />
 }
 
-function compose_noAuth(handleClick) {
+function compose_noAuth(handleClick: handleClickFunction) {
   return <NoAuth handleClick={handleClick} />
 }
 
@@ -383,19 +383,22 @@ function compose_ready(
                   },
                   enabled: true,
                   handleClick: (items) => {
+                    if (!items) return;
+
                     const filter = items.filter(item => {
                       const lot = lotItems.find(lot => `${lot.id} - ${lot.lastCardNumber}` === item);
 
-                      if (lot.status === 'available') {
+                      if (lot && lot.status === 'available') {
                         const itemId = `${lot.id} - ${lot.lastCardNumber}`;
 
                         if (canDeleteLotItems(people, postings, itemId)) {
                           const person = people.find(person => person.id == lot.person);
 
-                          updatePerson({
-                            ...person,
-                            cards: person.cards.filter(card => card != itemId)
-                          });
+                          if (person)
+                            updatePerson({
+                              ...person,
+                              cards: person.cards.filter(card => card != itemId)
+                            });
 
                           return true;
                         }
@@ -427,12 +430,12 @@ function compose_ready(
               // ? Classifica por Centro de Custo
               .sort((a, b) => {
                 const
-                  costCenterA = costCenters.find(c => c.id === a.costCenter).title,
-                  costCenterB = costCenters.find(c => c.id === b.costCenter).title;
+                  costCenterA = costCenters.find(c => c.id === a.costCenter)?.title || "???",
+                  costCenterB = costCenters.find(c => c.id === b.costCenter)?.title || "???";
 
                 return costCenterA.localeCompare(costCenterB);
               })
-              .map(item => {
+              .map((item: LotItem) => {
                 return {
                   id: `${item.id} - ${item.lastCardNumber}`,
                   values: [
@@ -445,7 +448,7 @@ function compose_ready(
                       size: '3'
                     },
                     {
-                      data: costCenters.find(costCenter => costCenter.id === item.costCenter).title,
+                      data: costCenters.find(costCenter => costCenter.id === item.costCenter)?.title || "???",
                       size: '2'
                     },
                     {
@@ -475,10 +478,10 @@ function compose_ready(
                         prefix: 'fas',
                         name: 'user-tag'
                       },
-                      enabled: item.person?.length > 0 ? true : false,
+                      enabled: item.person && item.person.length > 0 ? true : false,
                       handleClick: () => {
-                        handleChangeTextNameCanvasUserInfo(`${people.find(person => person.id === item.person).name}`);
-                        handleChangeTextMatriculeCanvasUserInfo(`Matrícula: ${people.find(person => person.id === item.person).matricule}`);
+                        handleChangeTextNameCanvasUserInfo(`${people.find(person => person.id === item.person)?.name || "???"}`);
+                        handleChangeTextMatriculeCanvasUserInfo(`Matrícula: ${people.find(person => person.id === item.person)?.matricule || "???"}`);
                         openCanvasUserInfo();
                       },
                       popover: {
@@ -502,10 +505,11 @@ function compose_ready(
                           if (item.person) {
                             const person = people.find(person => person.id == item.person);
 
-                            updatePerson({
-                              ...person,
-                              cards: person.cards.filter(card => card != itemId)
-                            });
+                            if (person)
+                              updatePerson({
+                                ...person,
+                                cards: person.cards.filter(card => card != itemId)
+                              });
                           }
 
                           removeLotItem(itemId);
@@ -620,8 +624,11 @@ export default function CardsRemove() {
   const router = useRouter()
 
   const
-    handleClickNoAuth = async (e, path) => {
-      e.preventDefault()
+    handleClickNoAuth: handleClickFunction = async (
+      event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+      path: string
+    ) => {
+      event.preventDefault()
 
       if (path === '/auth/login') {
         const variables = new Variables(1, 'IndexedDB')
@@ -630,8 +637,11 @@ export default function CardsRemove() {
         })
       }
     },
-    handleClickNoPrivilege = async (e, path) => {
-      e.preventDefault()
+    handleClickNoPrivilege: handleClickFunction = async (
+      event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+      path: string
+    ) => {
+      event.preventDefault()
       router.push(path)
     },
     handleClickBackPage = () => router.push('/payback/cards'),
@@ -639,21 +649,21 @@ export default function CardsRemove() {
       try {
         dispatch(SystemActions.UPDATE_PERSON(person));
       } catch (error) {
-        Alerting.create('error', error.message);
+        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
       }
     },
     removeMultipleLotItems = (ids: string[]) => ids.forEach(id => {
       try {
         dispatch(PaybackActions.DELETE_LOT(id));
       } catch (error) {
-        Alerting.create('error', error.message);
+        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
       }
     }),
     removeLotItem = (id: string) => {
       try {
         dispatch(PaybackActions.DELETE_LOT(id));
       } catch (error) {
-        Alerting.create('error', error.message);
+        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
       }
     },
     openCanvasDateInfo = () => setShowModalDateInfo(true),

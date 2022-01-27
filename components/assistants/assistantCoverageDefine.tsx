@@ -1,7 +1,7 @@
 /**
  * @description Assistente -> Definição de cobertura
  * @author GuilhermeSantos001
- * @update 26/01/2022
+ * @update 27/01/2022
  */
 
 import { useState } from 'react'
@@ -55,7 +55,7 @@ import {
 } from '@/app/features/system/system.slice';
 
 import {
-  PostingCreate,
+  Posting,
   PaybackActions,
 } from '@/app/features/payback/payback.slice';
 
@@ -67,7 +67,7 @@ export type Props = {
   periodStart: Date
   periodEnd: Date
   handleClose: () => void;
-  handleFinish: (postings: PostingCreate[]) => void;
+  handleFinish: (postings: Posting[]) => void;
 }
 
 export default function AssistantCoverageDefine(props: Props) {
@@ -92,7 +92,7 @@ export default function AssistantCoverageDefine(props: Props) {
   const [coverageMirrorFileName, setCoverageMirrorFileName] = useState<string>('');
   const [coverageMirrorFileType, setCoverageMirrorFileType] = useState<string>('');
 
-  const [postings, setPostings] = useState<PostingCreate[]>([]);
+  const [postings, setPostings] = useState<Posting[]>([]);
   const [postingType, setPostingType] = useState<string>('');
   const [postingDescription, setPostingDescription] = useState<string>('');
 
@@ -350,7 +350,7 @@ export default function AssistantCoverageDefine(props: Props) {
                 .forEach(fileId => uploadMakePermanent(fileId));
             }
 
-            const posting: PostingCreate = {
+            const posting: Posting = {
               id: StringEx.id(),
               author: await getUserAuth(),
               costCenter: props.postingCostCenter,
@@ -380,7 +380,10 @@ export default function AssistantCoverageDefine(props: Props) {
               coveringWorkplace: coveringWorkplace,
               paymentMethod: paymentMethod,
               paymentValue: paymentValue,
-              paymentDatePayable: paymentDatePayable.toISOString()
+              paymentDatePayable: paymentDatePayable.toISOString(),
+              paymentStatus: 'payable',
+              status: 'available',
+              createdAt: new Date().toISOString(),
             };
 
             try {
