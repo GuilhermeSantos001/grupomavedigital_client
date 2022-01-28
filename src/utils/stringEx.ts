@@ -1,12 +1,13 @@
 /**
  * @description Métodos essenciais para se trabalhar com textos
  * @author GuilhermeSantos001
- * @update 18/01/2022
+ * @update 28/01/2022
  */
 
 import { v4 as uuidv4 } from 'uuid';
 import { compressToBase64 } from 'lz-string';
-import StringMask from 'string-mask';
+
+const StringMask = require('string-mask');
 
 class StringEx {
   /**
@@ -97,7 +98,7 @@ class StringEx {
    * @param text2 Texto a ser analisado
    */
   normalize(text1: string, text2: string) {
-    const words = {};
+    const words: { [keyof: string]: number } = {};
 
     let word = '';
 
