@@ -1,7 +1,7 @@
 /**
  * @description Componente do input para login
  * @author GuilhermeSantos001
- * @update 24/01/2022
+ * @update 31/01/2022
  */
 
 import React from 'react'
@@ -281,7 +281,7 @@ export default class InputLogin extends React.Component<MyProps, MyState> {
             aria-label="Password"
             aria-describedby="password-addon"
             value={this.state.password}
-            onChange={(e) => this.handlePasswordChange}
+            onChange={(e) => this.handlePasswordChange(e)}
           />
           <span
             data-testid="span-password-eye"
