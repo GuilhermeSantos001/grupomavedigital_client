@@ -208,12 +208,18 @@ export default class GridContent extends React.Component<MyProps, MyState> {
               Grupo Mave 2020-2022 © Todos direitos reservados.
             </p>
           </div>
+          <div
+            className='d-flex flex-row justify-content-center align-items-center bg-light-gray border-top p-2 bg-light-gray'
+          >
+            <p className='text-muted my-auto'>
+              Versão: Jully
+            </p>
+          </div>
         </div>
         <div
           id="content"
-          className={`p-2 border-start animation-delay ${this.props.fullwidth ? 'fullwidth' : ''
+          className={`fade-effect active p-2 border-start animation-delay ${this.props.fullwidth ? 'fullwidth' : ''
             }${this.props.menuShow ? 'fullwidth' : ''}`}
-          style={{ height: '100vh' }}
         >
           {children}
         </div>

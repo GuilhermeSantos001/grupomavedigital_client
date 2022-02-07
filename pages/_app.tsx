@@ -15,7 +15,6 @@ import Head from 'next/head'
 import Script from 'next/script'
 
 import Layout from '@/components/Layout'
-import Loading from '@/components/Loading'
 
 import ProgressBar from "@badrap/bar-of-progress";
 import Router from "next/router";
@@ -257,11 +256,9 @@ function MyApp({ Component, pageProps }: AppProps) {
       <SSRProvider>
         <Provider store={store}>
           <PersistGate loading={reduxLoading} persistor={persistor}>
-            <Loading>
-              <Layout fullwidth={fullwidth !== undefined ? fullwidth : false} menu={menu}>
-                <Component {...pageProps} />
-              </Layout>
-            </Loading>
+            <Layout fullwidth={fullwidth !== undefined ? fullwidth : false} menu={menu}>
+              <Component {...pageProps} />
+            </Layout>
           </PersistGate>
         </Provider>
       </SSRProvider>
