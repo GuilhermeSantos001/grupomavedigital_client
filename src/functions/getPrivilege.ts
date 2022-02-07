@@ -59,7 +59,7 @@ export async function getPrivilegeAlias(group: GroupId): Promise<string> {
             .get(`${uri}/utils/privilege/alias/${compressToEncodedURIComponent(group.name)}`, {
                 headers: {
                     'Content-Type': 'application/json',
-                    'key': compressToBase64(process.env.NEXT_PUBLIC_EXPRESS_AUTHORIZATION),
+                    'key': compressToBase64(process.env.NEXT_PUBLIC_EXPRESS_AUTHORIZATION || ""),
                     'auth': compressToEncodedURIComponent(auth),
                     'token': compressToEncodedURIComponent(token),
                     'refreshToken': compressToEncodedURIComponent(JSON.stringify(refreshToken)),

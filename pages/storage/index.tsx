@@ -1,7 +1,7 @@
 /**
  * @description Gestor online de documentos -> Pagina Inicial
  * @author GuilhermeSantos001
- * @update 21/01/2022
+ * @update 02/02/2022
  */
 
 import React, { useEffect, useState } from 'react'
@@ -13,8 +13,7 @@ import SkeletonLoader from 'tiny-skeleton-loader-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
 
-import RenderPageError from '@/components/renderPageError'
-import NoPrivilege from '@/components/noPrivilege'
+import NoPrivilege, { handleClickFunction } from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
 
 import { PageProps } from '@/pages/_app'
@@ -111,21 +110,17 @@ function compose_load() {
   )
 }
 
-function compose_error(handleClick) {
-  return <RenderPageError handleClick={handleClick} />
-}
-
-function compose_noPrivilege(handleClick) {
+function compose_noPrivilege(handleClick: handleClickFunction) {
   return <NoPrivilege handleClick={handleClick} />
 }
 
-function compose_noAuth(handleClick) {
+function compose_noAuth(handleClick: handleClickFunction) {
   return <NoAuth handleClick={handleClick} />
 }
 
 function compose_ready(
   privileges: string[],
-  handleClickFolder
+  handleClickFolder: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, path: string) => Promise<void>
 ) {
   return (
     <>
@@ -160,10 +155,10 @@ function compose_ready(
 
 function render_folders(
   privileges: string[],
-  handleClickFolder
+  handleClickFolder: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, path: string) => Promise<void>
 ) {
   const
-    folders = {
+    folders: { [keyof: string]: { name: string, url: string, group: string[] } } = {
       ti: {
         name: 'Tecnologia da Informação',
         url: '/storage/ti',
@@ -188,9 +183,9 @@ function render_folders(
 function render_folderTree(
   privileges: string[],
   key: string,
-  handleClickFolder,
-  folders,
-  foldersRender
+  handleClickFolder: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, path: string) => Promise<void>,
+  folders: { [keyof: string]: { name: string, url: string, group: string[] } },
+  foldersRender: Record<string, boolean>
 ) {
   return (
     <div className="col-12" key={key}>
@@ -199,14 +194,25 @@ function render_folderTree(
   )
 }
 
-function hasFolderRender(foldersRender, folder: string, privileges: string[], groups: string[]) {
+function hasFolderRender(
+  foldersRender: Record<string, boolean>,
+  folder: string,
+  privileges: string[],
+  groups: string[]
+) {
   if (foldersRender[folder.toLowerCase()])
     return false;
 
   return privileges.filter(priv => groups.includes(priv)).length > 0;
 }
 
-function render_folder(active: boolean, title: string, url: string, handleClickFolder, foldersRender) {
+function render_folder(
+  active: boolean,
+  title: string,
+  url: string,
+  handleClickFolder: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, path: string) => Promise<void>,
+  foldersRender: Record<string, boolean>
+) {
   foldersRender[title.toLowerCase()] = true;
 
   return (
@@ -239,7 +245,7 @@ function render_folder(active: boolean, title: string, url: string, handleClickF
   )
 }
 
-const Storage = (): JSX.Element => {
+export default function Storage() {
   const [isReady, setReady] = useState<boolean>(false)
   const [isError, setError] = useState<boolean>(false)
   const [notPrivilege, setNotPrivilege] = useState<boolean>(false)
@@ -250,8 +256,11 @@ const Storage = (): JSX.Element => {
   const router = useRouter()
 
   const
-    handleClickNoAuth = async (e, path) => {
-      e.preventDefault()
+    handleClickNoAuth: handleClickFunction = async (
+      event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+      path: string
+    ) => {
+      event.preventDefault()
 
       if (path === '/auth/login') {
         const variables = new Variables(1, 'IndexedDB')
@@ -260,25 +269,23 @@ const Storage = (): JSX.Element => {
         })
       }
     },
-    handleClickNoPrivilege = async (e, path) => {
-      e.preventDefault()
+    handleClickNoPrivilege: handleClickFunction = async (
+      event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+      path: string
+    ) => {
+      event.preventDefault()
       router.push(path)
     },
-    handleClickFolder = async (e, path) => {
+    handleClickFolder = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, path: string) => {
       e.preventDefault()
       router.push(path)
     }
 
   useEffect(() => {
     hasPrivilege('common')
-      .then(async (isAllowViewPage) => {
+      .then((isAllowViewPage) => {
         if (isAllowViewPage) {
-          try {
-            setPrivileges(await getPrivileges());
-            setReady(true);
-          } catch {
-            setError(true);
-          }
+          setReady(true);
         } else {
           setNotPrivilege(true);
         }
@@ -292,8 +299,6 @@ const Storage = (): JSX.Element => {
   }, [])
 
   if (loading) return compose_load()
-
-  if (isError) return compose_error(handleClickNoAuth)
 
   if (notPrivilege) return compose_noPrivilege(handleClickNoPrivilege)
 
@@ -315,8 +320,6 @@ export async function getUserAuth(): Promise<string> {
 
 export const matches: Matches = {
   // eslint-disable-next-line no-useless-escape
-  specialCharacters: /[\!\@\#\$\%\¨\`\´\&\*\(\)\-\_\+\=\§\}\º\{\}\[\]\'\"\/\.\,\;\<\>\^\~\?\|\\]/g,
+  specialCharacters: /[\!\@\#\$\%\¨\U+0060\U+00b4\&\*\(\)\-\_\+\=\§\}\º\{\}\[\]\'\"\/\.\,\;\<\>\^\~\?\|\\]/g,
   mail: /^([\w-.]+@([\w-]+.)+[\w-]{2,4})?$/g
 };
-
-export default Storage

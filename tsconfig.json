@@ -19,6 +19,8 @@
     "paths": {
       "@/bin/*": ["bin/*"],
       "@/app/*": ["app/*"],
+      "@/services/*": ["services/*"],
+      "@/types/*": ["types/*"],
       "@/constants/*": ["constants/*"],
       "@/controllers/*": ["controllers/*"],
       "@/context/*": ["context/*"],

@@ -1,7 +1,7 @@
 /**
  * @description Pagina principal do sistema
  * @author GuilhermeSantos001
- * @update 21/01/2022
+ * @update 03/02/2022
  */
 
 import React, { useEffect, useState } from 'react'
@@ -14,6 +14,7 @@ import SkeletonLoader from 'tiny-skeleton-loader-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
 
+import { handleClickFunction } from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
 
 import Sugar from 'sugar'
@@ -180,7 +181,7 @@ function compose_load() {
   )
 }
 
-function compose_noAuth(handleClick) {
+function compose_noAuth(handleClick: handleClickFunction) {
   return <NoAuth handleClick={handleClick} />
 }
 
@@ -273,18 +274,26 @@ function compose_user_view_1() {
   )
 }
 
+
 function System() {
   const [isReady, setReady] = useState<boolean>(false)
   const [notAuth, setNotAuth] = useState<boolean>(false)
-  const [data, setData] = useState<PageData>()
+  const [data, setData] = useState<PageData>({
+    username: 'Carregando...',
+    photoProfile: 'avatar.png',
+    privilege: 'Desconhecido',
+  })
   const [loading, setLoading] = useState<boolean>(true)
 
   const router = useRouter()
   const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
 
   const
-    handleClick = async (e, path) => {
-      e.preventDefault()
+    handleClickNoAuth: handleClickFunction = async (
+      event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+      path: string
+    ) => {
+      event.preventDefault()
 
       if (path === '/auth/login') {
         const variables = new Variables(1, 'IndexedDB')
@@ -317,9 +326,9 @@ function System() {
 
   if (loading) return compose_load()
 
-  if (notAuth) return compose_noAuth(handleClick)
+  if (notAuth) return compose_noAuth(handleClickNoAuth)
 
-  if (isReady) return compose_ready(data)
+  if (isReady) return compose_ready(data);
 }
 
 export default System

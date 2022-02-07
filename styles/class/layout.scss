@@ -115,8 +115,13 @@ html {
 }
 
 .hover-color {
+  @extend .animation-delay;
+
   cursor: pointer;
 
+  &.hover-light {
+    color: white;
+  }
   &.active {
     color: map-get($theme-colors, 'secondary');
   }

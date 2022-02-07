@@ -9,6 +9,7 @@ import { Menu } from "@/pages/_app"
 type menuId =
   | 'mn-home'
   | 'mn-login'
+  | 'mn-integration'
   | 'mn-security'
   | 'mn-dashboard'
   | 'mn-helping'
@@ -139,6 +140,16 @@ export default function getMenu(firstId?: menuId): Menu[] {
           link: '/help/docs',
         },
       ],
+    },
+    {
+      id: 'mn-integration',
+      active: firstId === 'mn-integration' ? true : false,
+      icon: {
+        family: 'fas',
+        name: 'rocket',
+      },
+      name: 'Integração',
+      link: '/integration',
     },
     {
       id: 'mn-logout',

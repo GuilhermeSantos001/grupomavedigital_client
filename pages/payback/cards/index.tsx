@@ -15,7 +15,7 @@ import SkeletonLoader from 'tiny-skeleton-loader-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
 
-import NoPrivilege from '@/components/noPrivilege'
+import NoPrivilege, { handleClickFunction } from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
 
 import { PageProps } from '@/pages/_app'
@@ -103,11 +103,11 @@ function compose_load() {
   )
 }
 
-function compose_noPrivilege(handleClick) {
+function compose_noPrivilege(handleClick: handleClickFunction) {
   return <NoPrivilege handleClick={handleClick} />
 }
 
-function compose_noAuth(handleClick) {
+function compose_noAuth(handleClick: handleClickFunction) {
   return <NoAuth handleClick={handleClick} />
 }
 
@@ -275,8 +275,11 @@ export default function Cards() {
   const router = useRouter()
 
   const
-    handleClickNoAuth = async (e, path) => {
-      e.preventDefault()
+    handleClickNoAuth: handleClickFunction = async (
+      event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+      path: string
+    ) => {
+      event.preventDefault()
 
       if (path === '/auth/login') {
         const variables = new Variables(1, 'IndexedDB')
@@ -285,27 +288,30 @@ export default function Cards() {
         })
       }
     },
-    handleClickNoPrivilege = async (e, path) => {
-      e.preventDefault()
+    handleClickNoPrivilege: handleClickFunction = async (
+      event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+      path: string
+    ) => {
+      event.preventDefault()
       router.push(path)
-    }
+    };
 
-  useEffect(() => {
-    hasPrivilege('administrador', 'fin_gerente', 'fin_assistente')
-      .then((isAllowViewPage) => {
-        if (isAllowViewPage) {
-          setReady(true);
-        } else {
-          setNotPrivilege(true);
-        }
+    useEffect(() => {
+      hasPrivilege('administrador', 'fin_gerente', 'fin_assistente')
+        .then((isAllowViewPage) => {
+          if (isAllowViewPage) {
+            setReady(true);
+          } else {
+            setNotPrivilege(true);
+          }
 
-        return setLoading(false);
-      })
-      .catch(() => {
-        setNotAuth(true);
-        return setLoading(false)
-      });
-  }, [])
+          return setLoading(false);
+        })
+        .catch(() => {
+          setNotAuth(true);
+          return setLoading(false)
+        });
+    }, [])
 
   if (loading) return compose_load()
 

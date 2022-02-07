@@ -1,7 +1,7 @@
 /**
  * @description Gestor online de documentos -> TI
  * @author GuilhermeSantos001
- * @update 21/01/2022
+ * @update 02/02/2022
  */
 
 import React, { useEffect, useState } from 'react'
@@ -17,7 +17,7 @@ import SkeletonLoader from 'tiny-skeleton-loader-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
 
-import NoPrivilege from '@/components/noPrivilege'
+import NoPrivilege, { handleClickFunction } from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
 
 import { PageProps } from '@/pages/_app'
@@ -149,11 +149,11 @@ function compose_load() {
   )
 }
 
-function compose_noPrivilege(handleClick) {
+function compose_noPrivilege(handleClick: handleClickFunction) {
   return <NoPrivilege handleClick={handleClick} />
 }
 
-function compose_noAuth(handleClick) {
+function compose_noAuth(handleClick: handleClickFunction) {
   return <NoAuth handleClick={handleClick} />
 }
 
@@ -729,7 +729,7 @@ async function loadFoldersAndFiles(
   );
 }
 
-const Storage = ({ socketIO }: PageProps): JSX.Element => {
+export function Storage ({ socketIO }: PageProps) {
   const [isReady, setReady] = useState<boolean>(false)
   const [notPrivilege, setNotPrivilege] = useState<boolean>(false)
   const [notAuth, setNotAuth] = useState<boolean>(false)
@@ -760,8 +760,11 @@ const Storage = ({ socketIO }: PageProps): JSX.Element => {
     itemsFolderId = useAppSelector((state) => state.hercules.itemsFolderId),
     itemsHistoryNavigation = useAppSelector((state) => state.herculesTreeNavigation.itemsHistoryNavigation),
     reloadItemsOfPage = useAppSelector((state) => state.hercules.reloadItemsOfPage),
-    handleClickNoAuth = async (e, path) => {
-      e.preventDefault()
+    handleClickNoAuth: handleClickFunction = async (
+      event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+      path: string
+    ) => {
+      event.preventDefault()
 
       if (path === '/auth/login') {
         const variables = new Variables(1, 'IndexedDB')
@@ -770,8 +773,11 @@ const Storage = ({ socketIO }: PageProps): JSX.Element => {
         })
       }
     },
-    handleClickNoPrivilege = async (e, path) => {
-      e.preventDefault()
+    handleClickNoPrivilege: handleClickFunction = async (
+      event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+      path: string
+    ) => {
+      event.preventDefault()
       router.push(path)
     },
     openModalFolderCreate = () => setShowModalFolderCreate(true),
@@ -902,7 +908,7 @@ const Storage = ({ socketIO }: PageProps): JSX.Element => {
     hasPrivilege('common')
       .then(async (isAllowViewPage) => {
         if (isAllowViewPage) {
-          setSocket(io(process.env.NEXT_PUBLIC_WEBSOCKET_HOST, {
+          setSocket(io(process.env.NEXT_PUBLIC_WEBSOCKET_HOST || "", {
             reconnectionAttempts: 5,
             reconnectionDelay: 1000,
             reconnectionDelayMax: 5000,
@@ -1008,5 +1014,3 @@ const Storage = ({ socketIO }: PageProps): JSX.Element => {
     )
   }
 }
-
-export default Storage

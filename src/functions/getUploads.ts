@@ -2,7 +2,7 @@
 /**
  * @description Retorna o raw do arquivo hospedado
  * @author GuilhermeSantos001
- * @update 11/01/2022
+ * @update 03/03/2022
  */
 
 import { compressToBase64, compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string'
@@ -32,7 +32,7 @@ export async function uploadDownload(filename: string, filetype: string, fileId:
     axios
       .get(`${uri}/files/uploads/raw/${filename}${filetype}?fileId=${compressToEncodedURIComponent(fileId)}`, {
         headers: {
-          'key': compressToBase64(process.env.NEXT_PUBLIC_EXPRESS_AUTHORIZATION),
+          'key': compressToBase64(process.env.NEXT_PUBLIC_EXPRESS_AUTHORIZATION || ""),
           'auth': compressToEncodedURIComponent(auth),
           'token': compressToEncodedURIComponent(token),
           'refreshToken': compressToEncodedURIComponent(JSON.stringify(refreshToken)),
@@ -48,7 +48,7 @@ export async function uploadDownload(filename: string, filetype: string, fileId:
           const updatedToken = Cookies.get('updatedToken');
 
           if (updatedToken) {
-            const token = JSON.parse(decompressFromEncodedURIComponent(updatedToken));
+            const token = JSON.parse(decompressFromEncodedURIComponent(updatedToken) || "");
 
             await saveUpdatedToken(token.signature, token.token);
           }
@@ -90,7 +90,7 @@ export async function uploadRaw(filename: string, filetype: string, fileId: stri
     axios
       .get(`${uri}/files/uploads/raw/${filename}${filetype}?fileId=${compressToEncodedURIComponent(fileId)}`, {
         headers: {
-          'key': compressToBase64(process.env.NEXT_PUBLIC_EXPRESS_AUTHORIZATION),
+          'key': compressToBase64(process.env.NEXT_PUBLIC_EXPRESS_AUTHORIZATION || ""),
           'auth': compressToEncodedURIComponent(auth),
           'token': compressToEncodedURIComponent(token),
           'refreshToken': compressToEncodedURIComponent(JSON.stringify(refreshToken)),
@@ -106,7 +106,7 @@ export async function uploadRaw(filename: string, filetype: string, fileId: stri
           const updatedToken = Cookies.get('updatedToken');
 
           if (updatedToken) {
-            const token = JSON.parse(decompressFromEncodedURIComponent(updatedToken));
+            const token = JSON.parse(decompressFromEncodedURIComponent(updatedToken) || "");
 
             await saveUpdatedToken(token.signature, token.token);
           }
@@ -136,7 +136,7 @@ export async function uploadsAll(): Promise<Upload[]> {
     axios
       .get(`${uri}/files/uploads/all`, {
         headers: {
-          'key': compressToBase64(process.env.NEXT_PUBLIC_EXPRESS_AUTHORIZATION),
+          'key': compressToBase64(process.env.NEXT_PUBLIC_EXPRESS_AUTHORIZATION || ""),
           'auth': compressToEncodedURIComponent(auth),
           'token': compressToEncodedURIComponent(token),
           'refreshToken': compressToEncodedURIComponent(JSON.stringify(refreshToken)),
@@ -151,7 +151,7 @@ export async function uploadsAll(): Promise<Upload[]> {
           const updatedToken = Cookies.get('updatedToken');
 
           if (updatedToken) {
-            const token = JSON.parse(decompressFromEncodedURIComponent(updatedToken));
+            const token = JSON.parse(decompressFromEncodedURIComponent(updatedToken) ||"");
 
             await saveUpdatedToken(token.signature, token.token);
           }
