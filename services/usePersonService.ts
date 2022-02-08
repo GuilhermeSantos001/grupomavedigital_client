@@ -5,38 +5,50 @@ import { fetcherAxiosPost } from '@/src/utils/fetcherAxiosPost';
 import { fetcherAxiosGet } from '@/src/utils/fetcherAxiosGet';
 import { fetcherAxiosPut } from '@/src/utils/fetcherAxiosPut';
 import { fetcherAxiosDelete } from '@/src/utils/fetcherAxiosDelete';
-import { CostCenterType } from '@/types/CostCenterType'
+import { PersonType } from '@/types/PersonType';
 import { ApiResponseSuccessType } from '@/types/ApiResponseSuccessType';
 import { ApiResponseErrorType } from '@/types/ApiResponseErrorType';
 import { ApiResponseSuccessOrErrorType } from '@/types/ApiResponseSuccessOrErrorType';
 
 import Alerting from '@/src/utils/alerting';
 
-export type DataCostCenter = Pick<CostCenterType, 'value'>;
+export type DataPerson = Pick<PersonType,
+  | 'matricule'
+  | 'name'
+  | 'cpf'
+  | 'rg'
+  | 'birthDate'
+  | 'motherName'
+  | 'mail'
+  | 'phone'
+  | 'addressId'
+  | 'scaleId'
+  | 'status'
+>;
 
-declare function CreateCostCenter(data: DataCostCenter): Promise<ResponseCreateCostCenter>
-declare function SetCostCenter(data: ResponseCreateCostCenter): void
-declare function UpdateCostCenter(newData: DataCostCenter): Promise<boolean>
-declare function DeleteCostCenter(): Promise<boolean>
+declare function CreatePerson(data: DataPerson): Promise<ResponseCreatePerson>
+declare function SetPerson(data: ResponseCreatePerson): void
+declare function UpdatePerson(newData: DataPerson): Promise<boolean>
+declare function DeletePerson(): Promise<boolean>
 
-export type ResponseCreateCostCenter = {
-  data: CostCenterType
-  update: typeof UpdateCostCenter
-  delete: typeof DeleteCostCenter
+export type ResponseCreatePerson = {
+  data: PersonType
+  update: typeof UpdatePerson
+  delete: typeof DeletePerson
 } | undefined
 
-export type FunctionCreateCostCenterTypeof = typeof CreateCostCenter;
-export type FunctionSetCostCenterTypeof = typeof SetCostCenter;
-export type FunctionUpdateCostCenterTypeof = typeof UpdateCostCenter | undefined;
-export type FunctionDeleteCostCenterTypeof = typeof DeleteCostCenter | undefined;
+export type FunctionCreatePersonTypeof = typeof CreatePerson;
+export type FunctionSetPersonTypeof = typeof SetPerson;
+export type FunctionUpdatePersonTypeof = typeof UpdatePerson | undefined;
+export type FunctionDeletePersonTypeof = typeof DeletePerson | undefined;
 
-export function useCostCenterService(id?: string) {
+export function usePersonService(id?: string) {
   const { mutate } = useSWRConfig();
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const create = async (data: DataCostCenter) => {
-    const createUpdate = await fetcherAxiosPost<DataCostCenter, ApiResponseSuccessOrErrorType<CostCenterType, Object>>(`${process.env.NEXT_PUBLIC_API_HOST}/costcenter`, setIsLoading, data);
+  const create = async (data: DataPerson) => {
+    const createUpdate = await fetcherAxiosPost<DataPerson, ApiResponseSuccessOrErrorType<PersonType, Object>>(`${process.env.NEXT_PUBLIC_API_HOST}/person`, setIsLoading, data);
 
     if (!createUpdate.success) {
       Alerting.create('error', createUpdate.message);
@@ -44,12 +56,12 @@ export function useCostCenterService(id?: string) {
       return undefined;
     }
 
-    const uri = `${process.env.NEXT_PUBLIC_API_HOST}/costcenter/${createUpdate.data.id}`;
+    const uri = `${process.env.NEXT_PUBLIC_API_HOST}/person/${createUpdate.data.id}`;
 
     return {
       data: createUpdate.data,
-      update: async (newData: DataCostCenter): Promise<boolean> => {
-        const updateData = await fetcherAxiosPut<DataCostCenter, ApiResponseSuccessOrErrorType<CostCenterType, Object>>(uri, setIsLoading, newData);
+      update: async (newData: DataPerson): Promise<boolean> => {
+        const updateData = await fetcherAxiosPut<DataPerson, ApiResponseSuccessOrErrorType<PersonType, Object>>(uri, setIsLoading, newData);
 
         if (!updateData.success) {
           Alerting.create('error', updateData.message);
@@ -86,10 +98,10 @@ export function useCostCenterService(id?: string) {
   }
 
   if (id) {
-    const uri = `${process.env.NEXT_PUBLIC_API_HOST}/costcenter/${id}`;
+    const uri = `${process.env.NEXT_PUBLIC_API_HOST}/person/${id}`;
 
     const { data, error, mutate } = useSWR<
-      ApiResponseSuccessType<CostCenterType | undefined>,
+      ApiResponseSuccessType<PersonType | undefined>,
       ApiResponseErrorType<Object>
     >([uri, setIsLoading], fetcherAxiosGet)
 
@@ -104,8 +116,8 @@ export function useCostCenterService(id?: string) {
         isLoading,
         data: data?.data,
         create,
-        update: async (newData: DataCostCenter): Promise<boolean> => {
-          const updateData = await fetcherAxiosPut<DataCostCenter, ApiResponseSuccessOrErrorType<CostCenterType, Object>>(uri, setIsLoading, newData);
+        update: async (newData: DataPerson): Promise<boolean> => {
+          const updateData = await fetcherAxiosPut<DataPerson, ApiResponseSuccessOrErrorType<PersonType, Object>>(uri, setIsLoading, newData);
 
           if (!updateData.success) {
             Alerting.create('error', updateData.message);

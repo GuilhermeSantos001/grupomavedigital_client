@@ -1,7 +1,7 @@
 /**
  * @description Input -> Seleciona um centro de custo
  * @author GuilhermeSantos001
- * @update 24/01/2022
+ * @update 07/02/2022
  */
 
 import { useState } from 'react';
@@ -30,7 +30,7 @@ export type FilmOptionType = CostCenter & {
 
 const filter = createFilterOptions<FilmOptionType>();
 
-export default function SelectStreet(props: Props) {
+export default function SelectCostCenter(props: Props) {
   const [value, setValue] = useState<FilmOptionType | null>(props.costCenter || null);
   const [hasEdit, setHasEdit] = useState<boolean>(false);
   const [editValue, setEditValue] = useState<string>('');

@@ -1,7 +1,7 @@
 export type CostCenterType = {
     id: string
-    value: string
-    createdAt: string
-    updatedAt: string
     cursorId: number
+    value: string
+    createdAt: Date
+    updatedAt: Date
 }

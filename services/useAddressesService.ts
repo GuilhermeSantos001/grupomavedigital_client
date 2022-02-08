@@ -4,34 +4,42 @@ import useSWR from 'swr'
 import { fetcherAxiosGet } from '@/src/utils/fetcherAxiosGet';
 import { fetcherAxiosPut } from '@/src/utils/fetcherAxiosPut';
 import { fetcherAxiosDelete } from '@/src/utils/fetcherAxiosDelete';
-import { CostCenterType } from '@/types/CostCenterType'
+import { AddressType } from '@/types/AddressType'
 import { ApiResponseSuccessType } from '@/types/ApiResponseSuccessType';
 import { ApiResponseErrorType } from '@/types/ApiResponseErrorType';
 import { ApiResponseSuccessOrErrorType } from '@/types/ApiResponseSuccessOrErrorType';
 
 import Alerting from '@/src/utils/alerting';
 
-export type DataCostCenter = Pick<CostCenterType, 'value'>;
+export type DataAddress = Pick<AddressType,
+  | 'streetId'
+  | 'number'
+  | 'complement'
+  | 'neighborhoodId'
+  | 'cityId'
+  | 'districtId'
+  | 'zipCode'
+>;
 
-declare function UpdateCostCenters(id: string, newData: DataCostCenter): Promise<boolean>
-declare function DeleteCostCenters(id: string): Promise<boolean>
+declare function UpdateAddresses(id: string, newData: DataAddress): Promise<boolean>
+declare function DeleteAddresses(id: string): Promise<boolean>
 
-export type FunctionUpdateCostCentersTypeof = typeof UpdateCostCenters | undefined;
-export type FunctionDeleteCostCentersTypeof = typeof DeleteCostCenters | undefined;
+export type FunctionUpdateAddressesTypeof = typeof UpdateAddresses | undefined;
+export type FunctionDeleteAddressesTypeof = typeof DeleteAddresses | undefined;
 export type FunctionNextPageTypeof = (() => void) | undefined;
 export type FunctionPreviousPageTypeof = (() => void) | undefined;
 
-export function useCostCentersService(take: number = 10) {
+export function useAddressesService(take: number = 10) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const skip = 1;
 
-  const [uri, setURI] = useState<string>(`${process.env.NEXT_PUBLIC_API_HOST}/costcenters?take=${take}`);
+  const [uri, setURI] = useState<string>(`${process.env.NEXT_PUBLIC_API_HOST}/addresses?take=${take}`);
 
   const [lastCursorId, setLastCursorId] = useState<number>(0);
 
   const { data, error, mutate } = useSWR<
-    ApiResponseSuccessType<CostCenterType[]>,
+    ApiResponseSuccessType<AddressType[]>,
     ApiResponseErrorType<Object>
   >([uri, setIsLoading], fetcherAxiosGet)
 
@@ -51,7 +59,7 @@ export function useCostCentersService(take: number = 10) {
           const cursorId = lastCursorId + take;
 
           setLastCursorId(cursorId);
-          setURI(`${process.env.NEXT_PUBLIC_API_HOST}/costcenters?skip=${skip}&take=${take}&cursorId=${cursorId}`);
+          setURI(`${process.env.NEXT_PUBLIC_API_HOST}/addresses?skip=${skip}&take=${take}&cursorId=${cursorId}`);
         }
       },
       previousPage: () => {
@@ -65,12 +73,12 @@ export function useCostCentersService(take: number = 10) {
         else
           query = `?take=${take}`;
 
-        setURI(`${process.env.NEXT_PUBLIC_API_HOST}/costcenters${query}`);
+        setURI(`${process.env.NEXT_PUBLIC_API_HOST}/addresses${query}`);
       },
-      update: async (id: string, newData: DataCostCenter): Promise<boolean> => {
-        const uri = `${process.env.NEXT_PUBLIC_API_HOST}/costcenter/${id}`;
+      update: async (id: string, newData: DataAddress): Promise<boolean> => {
+        const uri = `${process.env.NEXT_PUBLIC_API_HOST}/address/${id}`;
 
-        const updateData = await fetcherAxiosPut<DataCostCenter, ApiResponseSuccessOrErrorType<CostCenterType, Object>>(uri, setIsLoading, newData);
+        const updateData = await fetcherAxiosPut<DataAddress, ApiResponseSuccessOrErrorType<AddressType, Object>>(uri, setIsLoading, newData);
 
         if (!updateData.success) {
           Alerting.create('error', updateData.message);
@@ -80,12 +88,12 @@ export function useCostCentersService(take: number = 10) {
         } else {
           mutate({
             success: true,
-            data: data.data.map(costCenter => {
-              if (costCenter.id === id) {
-                costCenter = updateData.data;
+            data: data.data.map(address => {
+              if (address.id === id) {
+                address = updateData.data;
               }
 
-              return costCenter;
+              return address;
             })
           });
         }
@@ -93,7 +101,7 @@ export function useCostCentersService(take: number = 10) {
         return true;
       },
       delete: async (id: string): Promise<boolean> => {
-        const uri = `${process.env.NEXT_PUBLIC_API_HOST}/costcenter/${id}`;
+        const uri = `${process.env.NEXT_PUBLIC_API_HOST}/address/${id}`;
 
         const deleteData = await fetcherAxiosDelete<ApiResponseErrorType<Object>>(uri, setIsLoading);
 
@@ -105,7 +113,7 @@ export function useCostCentersService(take: number = 10) {
         } else {
           mutate({
             success: true,
-            data: data.data.filter(costCenter => costCenter.id !== id)
+            data: data.data.filter(address => address.id !== id)
           });
         }
 

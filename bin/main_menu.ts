@@ -88,7 +88,7 @@ export default function getMenu(firstId?: menuId): Menu[] {
             family: 'fas',
             name: 'credit-card',
           },
-          name: 'Cartões',
+          name: 'Cartões Alelo',
           link: '/payback/cards'
         },
         {
@@ -101,7 +101,7 @@ export default function getMenu(firstId?: menuId): Menu[] {
             family: 'fas',
             name: 'money-check-alt',
           },
-          name: 'Lançamentos',
+          name: 'Operacional',
           link: '/payback/postings'
         }
       ]

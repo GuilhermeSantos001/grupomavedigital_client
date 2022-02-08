@@ -4,34 +4,38 @@ import useSWR from 'swr'
 import { fetcherAxiosGet } from '@/src/utils/fetcherAxiosGet';
 import { fetcherAxiosPut } from '@/src/utils/fetcherAxiosPut';
 import { fetcherAxiosDelete } from '@/src/utils/fetcherAxiosDelete';
-import { CostCenterType } from '@/types/CostCenterType'
+import { PersonCoverageType } from '@/types/PersonCoverageType';
 import { ApiResponseSuccessType } from '@/types/ApiResponseSuccessType';
 import { ApiResponseErrorType } from '@/types/ApiResponseErrorType';
 import { ApiResponseSuccessOrErrorType } from '@/types/ApiResponseSuccessOrErrorType';
 
 import Alerting from '@/src/utils/alerting';
 
-export type DataCostCenter = Pick<CostCenterType, 'value'>;
+export type DataPersonCoverage = Pick<PersonCoverageType,
+| 'mirrorId'
+| 'personId'
+| 'modalityOfCoverage'
+>;
 
-declare function UpdateCostCenters(id: string, newData: DataCostCenter): Promise<boolean>
-declare function DeleteCostCenters(id: string): Promise<boolean>
+declare function UpdatePersonCoverage(id: string, newData: DataPersonCoverage): Promise<boolean>
+declare function DeletePersonCoverage(id: string): Promise<boolean>
 
-export type FunctionUpdateCostCentersTypeof = typeof UpdateCostCenters | undefined;
-export type FunctionDeleteCostCentersTypeof = typeof DeleteCostCenters | undefined;
+export type FunctionUpdatePersonCoverageTypeof = typeof UpdatePersonCoverage | undefined;
+export type FunctionDeletePersonCoverageTypeof = typeof DeletePersonCoverage | undefined;
 export type FunctionNextPageTypeof = (() => void) | undefined;
 export type FunctionPreviousPageTypeof = (() => void) | undefined;
 
-export function useCostCentersService(take: number = 10) {
+export function usePeopleCoverageService(take: number = 10) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const skip = 1;
 
-  const [uri, setURI] = useState<string>(`${process.env.NEXT_PUBLIC_API_HOST}/costcenters?take=${take}`);
+  const [uri, setURI] = useState<string>(`${process.env.NEXT_PUBLIC_API_HOST}/people_coverage?take=${take}`);
 
   const [lastCursorId, setLastCursorId] = useState<number>(0);
 
   const { data, error, mutate } = useSWR<
-    ApiResponseSuccessType<CostCenterType[]>,
+    ApiResponseSuccessType<PersonCoverageType[]>,
     ApiResponseErrorType<Object>
   >([uri, setIsLoading], fetcherAxiosGet)
 
@@ -51,7 +55,7 @@ export function useCostCentersService(take: number = 10) {
           const cursorId = lastCursorId + take;
 
           setLastCursorId(cursorId);
-          setURI(`${process.env.NEXT_PUBLIC_API_HOST}/costcenters?skip=${skip}&take=${take}&cursorId=${cursorId}`);
+          setURI(`${process.env.NEXT_PUBLIC_API_HOST}/people_coverage?skip=${skip}&take=${take}&cursorId=${cursorId}`);
         }
       },
       previousPage: () => {
@@ -65,12 +69,12 @@ export function useCostCentersService(take: number = 10) {
         else
           query = `?take=${take}`;
 
-        setURI(`${process.env.NEXT_PUBLIC_API_HOST}/costcenters${query}`);
+        setURI(`${process.env.NEXT_PUBLIC_API_HOST}/people_coverage${query}`);
       },
-      update: async (id: string, newData: DataCostCenter): Promise<boolean> => {
-        const uri = `${process.env.NEXT_PUBLIC_API_HOST}/costcenter/${id}`;
+      update: async (id: string, newData: DataPersonCoverage): Promise<boolean> => {
+        const uri = `${process.env.NEXT_PUBLIC_API_HOST}/person_coverage/${id}`;
 
-        const updateData = await fetcherAxiosPut<DataCostCenter, ApiResponseSuccessOrErrorType<CostCenterType, Object>>(uri, setIsLoading, newData);
+        const updateData = await fetcherAxiosPut<DataPersonCoverage, ApiResponseSuccessOrErrorType<PersonCoverageType, Object>>(uri, setIsLoading, newData);
 
         if (!updateData.success) {
           Alerting.create('error', updateData.message);
@@ -80,12 +84,12 @@ export function useCostCentersService(take: number = 10) {
         } else {
           mutate({
             success: true,
-            data: data.data.map(costCenter => {
-              if (costCenter.id === id) {
-                costCenter = updateData.data;
+            data: data.data.map(personCoverage => {
+              if (personCoverage.id === id) {
+                personCoverage = updateData.data;
               }
 
-              return costCenter;
+              return personCoverage;
             })
           });
         }
@@ -93,7 +97,7 @@ export function useCostCentersService(take: number = 10) {
         return true;
       },
       delete: async (id: string): Promise<boolean> => {
-        const uri = `${process.env.NEXT_PUBLIC_API_HOST}/costcenter/${id}`;
+        const uri = `${process.env.NEXT_PUBLIC_API_HOST}/person_coverage/${id}`;
 
         const deleteData = await fetcherAxiosDelete<ApiResponseErrorType<Object>>(uri, setIsLoading);
 
@@ -105,7 +109,7 @@ export function useCostCentersService(take: number = 10) {
         } else {
           mutate({
             success: true,
-            data: data.data.filter(costCenter => costCenter.id !== id)
+            data: data.data.filter(personCoverage => personCoverage.id !== id)
           });
         }
 

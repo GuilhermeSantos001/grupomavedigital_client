@@ -5,38 +5,38 @@ import { fetcherAxiosPost } from '@/src/utils/fetcherAxiosPost';
 import { fetcherAxiosGet } from '@/src/utils/fetcherAxiosGet';
 import { fetcherAxiosPut } from '@/src/utils/fetcherAxiosPut';
 import { fetcherAxiosDelete } from '@/src/utils/fetcherAxiosDelete';
-import { CostCenterType } from '@/types/CostCenterType'
+import { StreetType } from '@/types/StreetType';
 import { ApiResponseSuccessType } from '@/types/ApiResponseSuccessType';
 import { ApiResponseErrorType } from '@/types/ApiResponseErrorType';
 import { ApiResponseSuccessOrErrorType } from '@/types/ApiResponseSuccessOrErrorType';
 
 import Alerting from '@/src/utils/alerting';
 
-export type DataCostCenter = Pick<CostCenterType, 'value'>;
+export type DataStreet = Pick<StreetType, 'value'>;
 
-declare function CreateCostCenter(data: DataCostCenter): Promise<ResponseCreateCostCenter>
-declare function SetCostCenter(data: ResponseCreateCostCenter): void
-declare function UpdateCostCenter(newData: DataCostCenter): Promise<boolean>
-declare function DeleteCostCenter(): Promise<boolean>
+declare function CreateStreet(data: DataStreet): Promise<ResponseCreateStreet>
+declare function SetCostCenter(data: ResponseCreateStreet): void
+declare function UpdateStreet(newData: DataStreet): Promise<boolean>
+declare function DeleteStreet(): Promise<boolean>
 
-export type ResponseCreateCostCenter = {
-  data: CostCenterType
-  update: typeof UpdateCostCenter
-  delete: typeof DeleteCostCenter
+export type ResponseCreateStreet = {
+  data: StreetType
+  update: typeof UpdateStreet
+  delete: typeof DeleteStreet
 } | undefined
 
-export type FunctionCreateCostCenterTypeof = typeof CreateCostCenter;
-export type FunctionSetCostCenterTypeof = typeof SetCostCenter;
-export type FunctionUpdateCostCenterTypeof = typeof UpdateCostCenter | undefined;
-export type FunctionDeleteCostCenterTypeof = typeof DeleteCostCenter | undefined;
+export type FunctionCreateStreetTypeof = typeof CreateStreet;
+export type FunctionSetStreetTypeof = typeof SetCostCenter;
+export type FunctionUpdateStreetTypeof = typeof UpdateStreet | undefined;
+export type FunctionDeleteStreetTypeof = typeof DeleteStreet | undefined;
 
-export function useCostCenterService(id?: string) {
+export function useStreetService(id?: string) {
   const { mutate } = useSWRConfig();
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const create = async (data: DataCostCenter) => {
-    const createUpdate = await fetcherAxiosPost<DataCostCenter, ApiResponseSuccessOrErrorType<CostCenterType, Object>>(`${process.env.NEXT_PUBLIC_API_HOST}/costcenter`, setIsLoading, data);
+  const create = async (data: DataStreet) => {
+    const createUpdate = await fetcherAxiosPost<DataStreet, ApiResponseSuccessOrErrorType<StreetType, Object>>(`${process.env.NEXT_PUBLIC_API_HOST}/street`, setIsLoading, data);
 
     if (!createUpdate.success) {
       Alerting.create('error', createUpdate.message);
@@ -44,12 +44,12 @@ export function useCostCenterService(id?: string) {
       return undefined;
     }
 
-    const uri = `${process.env.NEXT_PUBLIC_API_HOST}/costcenter/${createUpdate.data.id}`;
+    const uri = `${process.env.NEXT_PUBLIC_API_HOST}/street/${createUpdate.data.id}`;
 
     return {
       data: createUpdate.data,
-      update: async (newData: DataCostCenter): Promise<boolean> => {
-        const updateData = await fetcherAxiosPut<DataCostCenter, ApiResponseSuccessOrErrorType<CostCenterType, Object>>(uri, setIsLoading, newData);
+      update: async (newData: DataStreet): Promise<boolean> => {
+        const updateData = await fetcherAxiosPut<DataStreet, ApiResponseSuccessOrErrorType<StreetType, Object>>(uri, setIsLoading, newData);
 
         if (!updateData.success) {
           Alerting.create('error', updateData.message);
@@ -86,10 +86,10 @@ export function useCostCenterService(id?: string) {
   }
 
   if (id) {
-    const uri = `${process.env.NEXT_PUBLIC_API_HOST}/costcenter/${id}`;
+    const uri = `${process.env.NEXT_PUBLIC_API_HOST}/street/${id}`;
 
     const { data, error, mutate } = useSWR<
-      ApiResponseSuccessType<CostCenterType | undefined>,
+      ApiResponseSuccessType<StreetType | undefined>,
       ApiResponseErrorType<Object>
     >([uri, setIsLoading], fetcherAxiosGet)
 
@@ -104,8 +104,8 @@ export function useCostCenterService(id?: string) {
         isLoading,
         data: data?.data,
         create,
-        update: async (newData: DataCostCenter): Promise<boolean> => {
-          const updateData = await fetcherAxiosPut<DataCostCenter, ApiResponseSuccessOrErrorType<CostCenterType, Object>>(uri, setIsLoading, newData);
+        update: async (newData: DataStreet): Promise<boolean> => {
+          const updateData = await fetcherAxiosPut<DataStreet, ApiResponseSuccessOrErrorType<StreetType, Object>>(uri, setIsLoading, newData);
 
           if (!updateData.success) {
             Alerting.create('error', updateData.message);

@@ -49,5 +49,5 @@ export default interface IDatabaseProvider {
     /**
      * @description Limpa todos os valores da store
      */
-    storeClear(storeName, keyPath): Promise<void>
+    storeClear(storeName: string, keyPath: string): Promise<void>
 }

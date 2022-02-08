@@ -1,5 +1,5 @@
 /**
- * @description Payback -> Lançamentos Financeiros
+ * @description Payback -> Lançamentos Operacionais
  * @author GuilhermeSantos001
  * @update 24/01/2022
  */
@@ -25,8 +25,8 @@ import Variables from '@/src/db/variables'
 import hasPrivilege from '@/src/functions/hasPrivilege'
 
 const serverSideProps: PageProps = {
-  title: 'Pagamentos/Lançamentos Financeiros',
-  description: 'Lançamentos Financeiros',
+  title: 'Pagamentos/Lançamentos Operacionais',
+  description: 'Lançamentos Operacionais',
   themeColor: '#004a6e',
   menu: PageMenu('mn-payback')
 }
@@ -120,7 +120,7 @@ function compose_ready() {
             <FontAwesomeIcon
               icon={Icon.render('fas', 'money-check-alt')}
               className="me-2 fs-3 flex-shrink-1 text-secondary my-auto"
-            /> Lançamentos Financeiros
+            /> Lançamentos Operacionais
           </p>
         </div>
         <div className="p-3 bg-light-gray rounded overflow-auto">

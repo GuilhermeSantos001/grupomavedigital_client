@@ -26,7 +26,7 @@ export type TYPEOF_LISTENER_PAYBACK_UPLOAD_MIRROR = {
   version: number,
   temporary: boolean,
   expiredAt: string,
-  createdAt: string,
+  createdAt: Date,
 }
 
 export type TYPEOF_EMITTER_PAYBACK_CHANGE_TYPE_MIRROR = {

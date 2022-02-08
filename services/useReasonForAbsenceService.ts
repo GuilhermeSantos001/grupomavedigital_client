@@ -5,38 +5,38 @@ import { fetcherAxiosPost } from '@/src/utils/fetcherAxiosPost';
 import { fetcherAxiosGet } from '@/src/utils/fetcherAxiosGet';
 import { fetcherAxiosPut } from '@/src/utils/fetcherAxiosPut';
 import { fetcherAxiosDelete } from '@/src/utils/fetcherAxiosDelete';
-import { CostCenterType } from '@/types/CostCenterType'
+import { ReasonForAbsenceType } from '@/types/ReasonForAbsenceType'
 import { ApiResponseSuccessType } from '@/types/ApiResponseSuccessType';
 import { ApiResponseErrorType } from '@/types/ApiResponseErrorType';
 import { ApiResponseSuccessOrErrorType } from '@/types/ApiResponseSuccessOrErrorType';
 
 import Alerting from '@/src/utils/alerting';
 
-export type DataCostCenter = Pick<CostCenterType, 'value'>;
+export type DataReasonForAbsence = Pick<ReasonForAbsenceType, 'value'>;
 
-declare function CreateCostCenter(data: DataCostCenter): Promise<ResponseCreateCostCenter>
-declare function SetCostCenter(data: ResponseCreateCostCenter): void
-declare function UpdateCostCenter(newData: DataCostCenter): Promise<boolean>
-declare function DeleteCostCenter(): Promise<boolean>
+declare function CreateReasonForAbsence(data: DataReasonForAbsence): Promise<ResponseCreateReasonForAbsence>
+declare function SetReasonForAbsence(data: ResponseCreateReasonForAbsence): void
+declare function UpdateReasonForAbsence(newData: DataReasonForAbsence): Promise<boolean>
+declare function DeleteReasonForAbsence(): Promise<boolean>
 
-export type ResponseCreateCostCenter = {
-  data: CostCenterType
-  update: typeof UpdateCostCenter
-  delete: typeof DeleteCostCenter
+export type ResponseCreateReasonForAbsence = {
+  data: ReasonForAbsenceType
+  update: typeof UpdateReasonForAbsence
+  delete: typeof DeleteReasonForAbsence
 } | undefined
 
-export type FunctionCreateCostCenterTypeof = typeof CreateCostCenter;
-export type FunctionSetCostCenterTypeof = typeof SetCostCenter;
-export type FunctionUpdateCostCenterTypeof = typeof UpdateCostCenter | undefined;
-export type FunctionDeleteCostCenterTypeof = typeof DeleteCostCenter | undefined;
+export type FunctionCreateReasonForAbsenceTypeof = typeof CreateReasonForAbsence;
+export type FunctionSetReasonForAbsenceTypeof = typeof SetReasonForAbsence;
+export type FunctionUpdateReasonForAbsenceTypeof = typeof UpdateReasonForAbsence | undefined;
+export type FunctionDeleteReasonForAbsenceTypeof = typeof DeleteReasonForAbsence | undefined;
 
-export function useCostCenterService(id?: string) {
+export function useReasonForAbsenceService(id?: string) {
   const { mutate } = useSWRConfig();
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const create = async (data: DataCostCenter) => {
-    const createUpdate = await fetcherAxiosPost<DataCostCenter, ApiResponseSuccessOrErrorType<CostCenterType, Object>>(`${process.env.NEXT_PUBLIC_API_HOST}/costcenter`, setIsLoading, data);
+  const create = async (data: DataReasonForAbsence) => {
+    const createUpdate = await fetcherAxiosPost<DataReasonForAbsence, ApiResponseSuccessOrErrorType<ReasonForAbsenceType, Object>>(`${process.env.NEXT_PUBLIC_API_HOST}/reasonforabsence`, setIsLoading, data);
 
     if (!createUpdate.success) {
       Alerting.create('error', createUpdate.message);
@@ -44,12 +44,12 @@ export function useCostCenterService(id?: string) {
       return undefined;
     }
 
-    const uri = `${process.env.NEXT_PUBLIC_API_HOST}/costcenter/${createUpdate.data.id}`;
+    const uri = `${process.env.NEXT_PUBLIC_API_HOST}/reasonforabsence/${createUpdate.data.id}`;
 
     return {
       data: createUpdate.data,
-      update: async (newData: DataCostCenter): Promise<boolean> => {
-        const updateData = await fetcherAxiosPut<DataCostCenter, ApiResponseSuccessOrErrorType<CostCenterType, Object>>(uri, setIsLoading, newData);
+      update: async (newData: DataReasonForAbsence): Promise<boolean> => {
+        const updateData = await fetcherAxiosPut<DataReasonForAbsence, ApiResponseSuccessOrErrorType<ReasonForAbsenceType, Object>>(uri, setIsLoading, newData);
 
         if (!updateData.success) {
           Alerting.create('error', updateData.message);
@@ -86,10 +86,10 @@ export function useCostCenterService(id?: string) {
   }
 
   if (id) {
-    const uri = `${process.env.NEXT_PUBLIC_API_HOST}/costcenter/${id}`;
+    const uri = `${process.env.NEXT_PUBLIC_API_HOST}/reasonforabsence/${id}`;
 
     const { data, error, mutate } = useSWR<
-      ApiResponseSuccessType<CostCenterType | undefined>,
+      ApiResponseSuccessType<ReasonForAbsenceType | undefined>,
       ApiResponseErrorType<Object>
     >([uri, setIsLoading], fetcherAxiosGet)
 
@@ -104,8 +104,8 @@ export function useCostCenterService(id?: string) {
         isLoading,
         data: data?.data,
         create,
-        update: async (newData: DataCostCenter): Promise<boolean> => {
-          const updateData = await fetcherAxiosPut<DataCostCenter, ApiResponseSuccessOrErrorType<CostCenterType, Object>>(uri, setIsLoading, newData);
+        update: async (newData: DataReasonForAbsence): Promise<boolean> => {
+          const updateData = await fetcherAxiosPut<DataReasonForAbsence, ApiResponseSuccessOrErrorType<ReasonForAbsenceType, Object>>(uri, setIsLoading, newData);
 
           if (!updateData.success) {
             Alerting.create('error', updateData.message);
