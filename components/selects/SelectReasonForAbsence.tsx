@@ -1,73 +1,51 @@
 /**
  * @description Input -> Seleciona um Motivo de Falta
  * @author GuilhermeSantos001
- * @update 24/01/2022
+ * @update 09/02/2022
  */
 
 import { useState } from 'react';
 import { Autocomplete, TextField, createFilterOptions, Button } from '@mui/material'
 
-import { useAppSelector, useAppDispatch } from '@/app/hooks'
-
-import Alerting from '@/src/utils/alerting'
-import StringEx from '@/src/utils/stringEx'
+import { ReasonForAbsenceType } from '@/types/ReasonForAbsenceType'
 
 import {
-  ReasonForAbsence,
-  SystemActions
-} from '@/app/features/system/system.slice'
+  useReasonForAbsenceService,
+  DataReasonForAbsence,
+  FunctionCreateReasonForAbsenceTypeof
+} from '@/services/useReasonForAbsenceService'
+
+import {
+  useReasonForAbsencesService,
+  FunctionUpdateReasonForAbsencesTypeof,
+  FunctionDeleteReasonForAbsencesTypeof
+} from '@/services/useReasonForAbsencesService'
 
 export type Props = {
-  reasonForAbsence?: FilmOptionType
-  handleChangeReasonForAbsence: (id: string) => void
+  id?: string
+  disabled?: boolean
+  handleChangeId: (id: string) => void
 }
 
-export type FilmOptionType = ReasonForAbsence & {
+export type FilmOptionType = Pick<ReasonForAbsenceType, 'id' | 'value'> & {
   inputValue?: string;
   inputUpdate?: boolean;
 }
 
 const filter = createFilterOptions<FilmOptionType>();
 
-export default function selectReasonForAbsence(props: Props) {
-  const [value, setValue] = useState<FilmOptionType | null>(props.reasonForAbsence || null);
+export function SelectReasonForAbsence(props: Props) {
+  const { data: reasonForAbsence, create: CreateReasonForAbsence } = useReasonForAbsenceService(props.id);
+  const { data: reasonForAbsences, update: UpdateReasonForAbsences, delete: DeleteReasonForAbsences } = useReasonForAbsencesService();
+
+  const [value, setValue] = useState<FilmOptionType | null>(reasonForAbsence || null);
   const [hasEdit, setHasEdit] = useState<boolean>(false);
   const [editValue, setEditValue] = useState<string>('');
 
   const
-    reasonForAbsences = useAppSelector(state => state.system.reasonForAbsences || []),
-    postings = useAppSelector((state) => state.payback.postings || []);
-
-  const
-    dispatch = useAppDispatch(),
-    handleAppendReasonForAbsence = (reasonForAbsence: ReasonForAbsence) => {
-      try {
-        dispatch(SystemActions.CREATE_REASONFORABSENCE(reasonForAbsence));
-      } catch (error) {
-        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
-      }
-    },
-    handleUpdateReasonForAbsence = (reasonForAbsence: ReasonForAbsence) => {
-      try {
-        dispatch(SystemActions.UPDATE_REASONFORABSENCE(reasonForAbsence));
-      } catch (error) {
-        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
-      }
-    },
-    handleRemoveReasonForAbsence = (id: string) => {
-      try {
-        dispatch(SystemActions.DELETE_REASONFORABSENCE(id));
-      } catch (error) {
-        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
-      }
-    };
-
-  const canDeleteReasonForAbsence = (itemId: string) => {
-    const
-      posting = postings.find((item) => item.covering && item.covering.reasonForAbsence === itemId);
-
-    return posting === undefined;
-  }
+    handleAppendNeighborhood: FunctionCreateReasonForAbsenceTypeof = async (data: DataReasonForAbsence) => CreateReasonForAbsence ? await CreateReasonForAbsence(data) : undefined,
+    handleUpdateNeighborhood: FunctionUpdateReasonForAbsencesTypeof = async (id: string, data: DataReasonForAbsence) => UpdateReasonForAbsences ? await UpdateReasonForAbsences(id, data) : false,
+    handleRemoveNeighborhood: FunctionDeleteReasonForAbsencesTypeof = async (id: string) => DeleteReasonForAbsences ? await DeleteReasonForAbsences(id) : false;
 
   if (!value && hasEdit)
     setHasEdit(false);
@@ -77,10 +55,11 @@ export default function selectReasonForAbsence(props: Props) {
       <Autocomplete
         className='col-12 col-md-10 mb-2 mb-md-0 me-md-2'
         value={value}
+        disabled={props.disabled !== undefined ? props.disabled : false}
         onChange={(event: any, newValue) => {
           if (typeof newValue === 'string') {
-            const value: ReasonForAbsence = {
-              id: StringEx.id(),
+            const value: FilmOptionType = {
+              id: '',
               value: newValue,
             };
 
@@ -92,29 +71,30 @@ export default function selectReasonForAbsence(props: Props) {
                 String(event.code).toLowerCase() === 'numpadenter'
               ) {
                 if (hasEdit) {
-                  const reasonForAbsence = reasonForAbsences.find(reasonForAbsence => reasonForAbsence.id === editValue);
+                  const reasonForAbsence = reasonForAbsences.find(reasonForAbsence => reasonForAbsence.value === editValue);
 
                   if (reasonForAbsence) {
-                    const update: ReasonForAbsence = {
-                      ...reasonForAbsence,
-                      value: newValue
+                    const update: FilmOptionType = {
+                      id: reasonForAbsence.id,
+                      value: editValue,
                     };
 
                     setValue(update);
-
-                    handleUpdateReasonForAbsence(update);
-                    props.handleChangeReasonForAbsence(update.id);
+                    handleUpdateNeighborhood(reasonForAbsence.id, { value: editValue });
+                    props.handleChangeId(reasonForAbsence.id);
                   }
                 } else {
                   if (reasonForAbsences.filter(reasonForAbsence => reasonForAbsence.value === newValue).length <= 0) {
-                    handleAppendReasonForAbsence(value);
-                    props.handleChangeReasonForAbsence(value.id);
+                    handleAppendNeighborhood({ value: value.value });
                   } else {
                     const reasonForAbsence = reasonForAbsences.find(reasonForAbsence => reasonForAbsence.value === newValue);
 
                     if (reasonForAbsence) {
-                      setValue(reasonForAbsence);
-                      props.handleChangeReasonForAbsence(reasonForAbsence.id)
+                      setValue({
+                        id: reasonForAbsence.id,
+                        value: reasonForAbsence.value
+                      });
+                      props.handleChangeId(reasonForAbsence.id);
                     }
                   }
                 }
@@ -123,25 +103,23 @@ export default function selectReasonForAbsence(props: Props) {
           } else if (newValue && newValue.inputValue) {
             // Create a new value from the user input
             const
-              valueId = StringEx.id(),
-              reasonForAbsence: ReasonForAbsence = {
+              valueId = '',
+              reasonForAbsence: FilmOptionType = {
                 id: hasEdit ? value?.id || valueId : valueId,
                 value: newValue.inputValue,
               };
 
             setValue(reasonForAbsence);
+            props.handleChangeId(reasonForAbsence.id);
 
             if (!newValue.inputUpdate) {
-              handleAppendReasonForAbsence(reasonForAbsence);
+              handleAppendNeighborhood({ value: reasonForAbsence.value });
             } else {
-              handleUpdateReasonForAbsence(reasonForAbsence);
+              handleUpdateNeighborhood(reasonForAbsence.id, { value: reasonForAbsence.value });
             }
-
-            props.handleChangeReasonForAbsence(reasonForAbsence.id);
           } else {
             setValue(newValue);
-
-            props.handleChangeReasonForAbsence(newValue ? newValue.id : '');
+            props.handleChangeId(newValue?.id || '');
           }
         }}
         filterOptions={(options, params) => {
@@ -153,7 +131,7 @@ export default function selectReasonForAbsence(props: Props) {
           const isExisting = options.some((option) => inputValue === option.value);
 
           if (inputValue !== '' && !isExisting) {
-            const valueId = StringEx.id();
+            const valueId = '';
 
             filtered.push({
               id: hasEdit ? value?.id || valueId : valueId,
@@ -194,7 +172,7 @@ export default function selectReasonForAbsence(props: Props) {
         className='col mx-1'
         variant="contained"
         color={hasEdit ? 'primary' : 'warning'}
-        disabled={!value}
+        disabled={props.disabled ? true : !value}
         onClick={() => {
           if (!hasEdit) {
             setHasEdit(true);
@@ -211,12 +189,12 @@ export default function selectReasonForAbsence(props: Props) {
         className='col mx-1'
         variant="contained"
         color='error'
-        disabled={hasEdit || !value || !canDeleteReasonForAbsence(value.id)}
+        disabled={props.disabled ? true : hasEdit || !value}
         onClick={() => {
           if (value) {
             setValue(null);
-            handleRemoveReasonForAbsence(value.id);
-            props.handleChangeReasonForAbsence('');
+            handleRemoveNeighborhood(value.id);
+            props.handleChangeId('');
           }
         }}
       >

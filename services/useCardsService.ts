@@ -13,6 +13,7 @@ import Alerting from '@/src/utils/alerting';
 
 export type DataCard = Pick<CardType,
   | 'costCenterId'
+  | 'lotNum'
   | 'serialNumber'
   | 'lastCardNumber'
   | 'status'
@@ -28,7 +29,7 @@ export type FunctionDeleteCardsTypeof = typeof DeleteCards | undefined;
 export type FunctionNextPageTypeof = (() => void) | undefined;
 export type FunctionPreviousPageTypeof = (() => void) | undefined;
 
-export function useCardsService(take: number = 10) {
+export function useCardsService(take: number = 10, refreshInterval: number = 1000) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const skip = 1;
@@ -40,7 +41,7 @@ export function useCardsService(take: number = 10) {
   const { data, error, mutate } = useSWR<
     ApiResponseSuccessType<CardType[]>,
     ApiResponseErrorType<Object>
-  >([uri, setIsLoading], fetcherAxiosGet)
+  >([uri, setIsLoading], fetcherAxiosGet, { refreshInterval })
 
   if (error) {
     Alerting.create('error', error.message);
@@ -101,7 +102,7 @@ export function useCardsService(take: number = 10) {
       },
       assignPersonCard: async (id: string, dataPersonId: DataPersonId): Promise<boolean> => {
         const
-        uriAssignPersonCard = `${process.env.NEXT_PUBLIC_API_HOST}/card/assign/${id}`;
+          uriAssignPersonCard = `${process.env.NEXT_PUBLIC_API_HOST}/card/assign/${id}`;
 
         const updateData = await fetcherAxiosPut<DataPersonId, ApiResponseSuccessOrErrorType<CardType, Object>>(uriAssignPersonCard, setIsLoading, dataPersonId);
 
@@ -127,7 +128,7 @@ export function useCardsService(take: number = 10) {
       },
       unassignPersonCard: async (id: string): Promise<boolean> => {
         const
-        uriUnassignPersonCard = `${process.env.NEXT_PUBLIC_API_HOST}/card/unassign/${id}`;
+          uriUnassignPersonCard = `${process.env.NEXT_PUBLIC_API_HOST}/card/unassign/${id}`;
 
         const updateData = await fetcherAxiosPut<{}, ApiResponseSuccessOrErrorType<CardType, Object>>(uriUnassignPersonCard, setIsLoading, {});
 

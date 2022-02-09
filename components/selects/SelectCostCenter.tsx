@@ -1,76 +1,51 @@
 /**
  * @description Input -> Seleciona um centro de custo
  * @author GuilhermeSantos001
- * @update 07/02/2022
+ * @update 09/02/2022
  */
 
 import { useState } from 'react';
 import { Autocomplete, TextField, createFilterOptions, Button } from '@mui/material'
 
-import { useAppSelector, useAppDispatch } from '@/app/hooks'
-
-import Alerting from '@/src/utils/alerting'
-import StringEx from '@/src/utils/stringEx'
+import { CostCenterType } from '@/types/CostCenterType'
 
 import {
-  CostCenter,
-  SystemActions,
-} from '@/app/features/system/system.slice'
+  useCostCenterService,
+  DataCostCenter,
+  FunctionCreateCostCenterTypeof
+} from '@/services/useCostCenterService'
+
+import {
+  useCostCentersService,
+  FunctionUpdateCostCentersTypeof,
+  FunctionDeleteCostCentersTypeof
+} from '@/services/useCostCentersService'
 
 export type Props = {
-  costCenter?: FilmOptionType
+  id?: string
   disabled?: boolean
-  handleChangeCostCenter: (id: string) => void
+  handleChangeId: (id: string) => void
 }
 
-export type FilmOptionType = CostCenter & {
+export type FilmOptionType = Pick<CostCenterType, 'id' | 'value'> & {
   inputValue?: string;
   inputUpdate?: boolean;
 }
 
 const filter = createFilterOptions<FilmOptionType>();
 
-export default function SelectCostCenter(props: Props) {
-  const [value, setValue] = useState<FilmOptionType | null>(props.costCenter || null);
+export function SelectCostCenter(props: Props) {
+  const { data: costCenter, create: CreateCostCenter } = useCostCenterService(props.id);
+  const { data: costCenters, update: UpdateCostCenters, delete: DeleteCostCenters } = useCostCentersService();
+
+  const [value, setValue] = useState<FilmOptionType | null>(costCenter || null);
   const [hasEdit, setHasEdit] = useState<boolean>(false);
   const [editValue, setEditValue] = useState<string>('');
 
   const
-    costCenters = useAppSelector(state => state.system.costCenters),
-    lotItems = useAppSelector((state) => state.payback.lotItems || []),
-    postings = useAppSelector((state) => state.payback.postings || []);
-
-  const dispatch = useAppDispatch(),
-    handleAppendCostCenter = (costCenter: CostCenter) => {
-      try {
-        dispatch(SystemActions.CREATE_COSTCENTER(costCenter));
-      } catch (error) {
-        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
-      }
-    },
-    handleUpdateCostCenter = (costCenter: CostCenter) => {
-      try {
-        dispatch(SystemActions.UPDATE_COSTCENTER(costCenter));
-      } catch (error) {
-        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
-      }
-    },
-    handleRemoveCostCenter = (id: string) => {
-      try {
-        dispatch(SystemActions.DELETE_COSTCENTER(id));
-      } catch (error) {
-        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
-      }
-    },
-    canDeleteCostCenter = (id: string) => {
-      if (
-        lotItems.filter(lotItem => lotItem.costCenter === id).length > 0 ||
-        postings.filter(posting => posting.costCenter === id).length > 0
-      )
-        return false;
-
-      return true;
-    }
+    handleAppendCostCenter: FunctionCreateCostCenterTypeof = async (data: DataCostCenter) => CreateCostCenter ? await CreateCostCenter(data) : undefined,
+    handleUpdateCostCenter: FunctionUpdateCostCentersTypeof = async (id: string, data: DataCostCenter) => UpdateCostCenters ? await UpdateCostCenters(id, data) : false,
+    handleRemoveCostCenter: FunctionDeleteCostCentersTypeof = async (id: string) => DeleteCostCenters ? await DeleteCostCenters(id) : false;
 
   if (!value && hasEdit)
     setHasEdit(false);
@@ -83,9 +58,9 @@ export default function SelectCostCenter(props: Props) {
         disabled={props.disabled !== undefined ? props.disabled : false}
         onChange={(event: any, newValue) => {
           if (typeof newValue === 'string') {
-            const value: CostCenter = {
-              id: StringEx.id(),
-              title: newValue,
+            const value: FilmOptionType = {
+              id: '',
+              value: newValue,
             };
 
             setValue(value);
@@ -96,29 +71,30 @@ export default function SelectCostCenter(props: Props) {
                 String(event.code).toLowerCase() === 'numpadenter'
               ) {
                 if (hasEdit) {
-                  const costCenter = costCenters.find(costCenter => costCenter.id === editValue);
+                  const costCenter = costCenters.find(costCenter => costCenter.value === editValue);
 
                   if (costCenter) {
-                    const update: CostCenter = {
-                      ...costCenter,
-                      title: newValue
+                    const update: FilmOptionType = {
+                      id: costCenter.id,
+                      value: editValue,
                     };
 
                     setValue(update);
-                    handleUpdateCostCenter(update);
-
-                    props.handleChangeCostCenter(update.id);
+                    handleUpdateCostCenter(costCenter.id, { value: editValue });
+                    props.handleChangeId(costCenter.id);
                   }
                 } else {
-                  if (costCenters.filter(costCenter => costCenter.title === newValue).length <= 0) {
-                    handleAppendCostCenter(value);
-                    props.handleChangeCostCenter(value.id);
+                  if (costCenters.filter(costCenter => costCenter.value === newValue).length <= 0) {
+                    handleAppendCostCenter({ value: value.value });
                   } else {
-                    const costcenter = costCenters.find(costCenter => costCenter.title === newValue);
+                    const costcenter = costCenters.find(costCenter => costCenter.value === newValue);
 
                     if (costcenter) {
-                      setValue(costcenter);
-                      props.handleChangeCostCenter(costcenter.id)
+                      setValue({
+                        id: costcenter.id,
+                        value: costcenter.value
+                      });
+                      props.handleChangeId(costcenter.id);
                     }
                   }
                 }
@@ -127,25 +103,23 @@ export default function SelectCostCenter(props: Props) {
           } else if (newValue && newValue.inputValue) {
             // Create a new value from the user input
             const
-              valueId = StringEx.id(),
-              costCenter: CostCenter = {
+              valueId = '',
+              costCenter: FilmOptionType = {
                 id: hasEdit ? value?.id || valueId : valueId,
-                title: newValue.inputValue,
+                value: newValue.inputValue,
               };
 
             setValue(costCenter);
+            props.handleChangeId(costCenter.id);
 
             if (!newValue.inputUpdate) {
-              handleAppendCostCenter(costCenter);
+              handleAppendCostCenter({ value: costCenter.value });
             } else {
-              handleUpdateCostCenter(costCenter);
+              handleUpdateCostCenter(costCenter.id, { value: costCenter.value });
             }
-
-            props.handleChangeCostCenter(costCenter.id);
           } else {
             setValue(newValue);
-
-            props.handleChangeCostCenter(newValue ? newValue.id : '');
+            props.handleChangeId(newValue?.id || '');
           }
         }}
         filterOptions={(options, params) => {
@@ -154,14 +128,14 @@ export default function SelectCostCenter(props: Props) {
           const { inputValue } = params;
 
           // Suggest the creation of a new value
-          const isExisting = options.some((option) => inputValue === option.title);
+          const isExisting = options.some((option) => inputValue === option.value);
 
           if (inputValue !== '' && !isExisting) {
-            const valueId = StringEx.id();
+            const valueId = '';
 
             filtered.push({
               id: hasEdit ? value?.id || valueId : valueId,
-              title: hasEdit ? `Atualizar "${value?.title || "???"}" para "${inputValue}"` : `Adicionar "${inputValue}"`,
+              value: hasEdit ? `Atualizar "${value?.value || "???"}" para "${inputValue}"` : `Adicionar "${inputValue}"`,
               inputValue,
               inputUpdate: hasEdit ? true : false
             });
@@ -186,9 +160,9 @@ export default function SelectCostCenter(props: Props) {
             return option.inputValue;
           }
           // Regular option
-          return option.title;
+          return option.value;
         }}
-        renderOption={(props, option) => <li {...props}>{option.title}</li>}
+        renderOption={(props, option) => <li {...props}>{option.value}</li>}
         freeSolo
         renderInput={(params) => (
           <TextField {...params} label="Centro de Custo" />
@@ -215,12 +189,12 @@ export default function SelectCostCenter(props: Props) {
         className='col mx-1'
         variant="contained"
         color='error'
-        disabled={props.disabled ? true : hasEdit || !value || !canDeleteCostCenter(value.id)}
+        disabled={props.disabled ? true : hasEdit || !value}
         onClick={() => {
           if (value) {
             setValue(null);
             handleRemoveCostCenter(value.id);
-            props.handleChangeCostCenter('');
+            props.handleChangeId('');
           }
         }}
       >

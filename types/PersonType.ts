@@ -41,6 +41,7 @@ export type PersonType = {
         }
     }
     cards: {
+        lotNum: string
         serialNumber: string
         lastCardNumber: string
         costCenter: {

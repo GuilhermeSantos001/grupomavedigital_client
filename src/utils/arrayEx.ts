@@ -9,7 +9,7 @@ class ArrayEx {
   /**
    * @description Retorna todos os itens da lista A que não estão na lista B
    */
-  not(a: readonly string[], b: readonly string[]): string[] {
+  returnItemsOfANotContainInB(a: readonly string[], b: readonly string[]): string[] {
     return a.filter((value) => b.indexOf(value) === -1);
   }
 
@@ -24,7 +24,7 @@ class ArrayEx {
    * @description Faz a união da lista A com os itens da lista B
    */
   union(a: readonly string[], b: readonly string[]): string[] {
-    return [...a, ...this.not(b, a)];
+    return [...a, ...this.returnItemsOfANotContainInB(b, a)];
   }
 }
 

@@ -1,7 +1,7 @@
 /**
  * @description Payback -> Cartões Beneficio (Alelo) -> Cadastro
  * @author GuilhermeSantos001
- * @update 07/02/2022
+ * @update 09/02/2022
  */
 
 import { useEffect, useState } from 'react'
@@ -15,26 +15,21 @@ import Icon from '@/src/utils/fontAwesomeIcons'
 
 import NoPrivilege, { handleClickFunction } from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
-import SelectCostCenter from '@/components/selects/selectCostCenter'
+import { SelectCostCenter } from '@/components/selects/SelectCostCenter'
 
 import { PageProps } from '@/pages/_app'
 import PageMenu from '@/bin/main_menu'
 
 import Variables from '@/src/db/variables'
 import hasPrivilege from '@/src/functions/hasPrivilege'
-import Alerting from '@/src/utils/alerting'
 import StringEx from '@/src/utils/stringEx'
-
-import { useAppSelector, useAppDispatch } from '@/app/hooks'
-
-import {
-  CostCenter
-} from '@/app/features/system/system.slice'
+import Alerting from '@/src/utils/alerting'
 
 import {
-  LotItem,
-  PaybackActions
-} from '@/app/features/payback/payback.slice'
+  useCardService,
+  FunctionCreateCardTypeof
+} from '@/services/useCardService';
+import { ServiceType } from '@/types/ServiceType'
 
 const serverSideProps: PageProps = {
   title: 'Pagamentos/Cartões Benefício/Cadastro',
@@ -284,22 +279,20 @@ function compose_noAuth(handleClick: handleClickFunction) {
 
 function compose_ready(
   handleClickBackPage: () => void,
-  costCenters: CostCenter[],
+  handleCreateCard: FunctionCreateCardTypeof,
   costCenter: string,
   handleChangeCostCenter: (id: string) => void,
-  numLot: number,
+  lotNum: number,
   handleChangeNumLot: (val: number) => void,
   numSerialNumber: number,
   handleChangeNumSerialNumber: (val: number) => void,
   numLastCardNumber: number,
-  handleChangeNumLastCardNumber: (val: number) => void,
-  lotItems: LotItem[],
-  handleRegister: (lotItem: LotItem) => void
+  handleChangeNumLastCardNumber: (val: number) => void
 ) {
   const
     enableCancel = () => {
       if (
-        numLot > 0 ||
+        lotNum > 0 ||
         numSerialNumber > 0 ||
         numLastCardNumber > 0 ||
         costCenter !== ''
@@ -311,7 +304,7 @@ function compose_ready(
     },
     enableRegister = () => {
       if (
-        numLot === 0 ||
+        lotNum === 0 ||
         numSerialNumber === 0 ||
         numLastCardNumber === 0 ||
         costCenter === ''
@@ -382,7 +375,7 @@ function compose_ready(
                 aria-label="Código do lote"
                 aria-describedby="code-addon"
                 min={0}
-                value={String(numLot).padStart(9, '0')}
+                value={String(lotNum).padStart(9, '0')}
                 onChange={(e) => handleChangeNumLot(Number(e.target.value))}
               />
             </div>
@@ -390,10 +383,7 @@ function compose_ready(
           <p className="fw-bold border-bottom text-center my-2">
             Centro de Custo {'&'} Número de Série
           </p>
-          <SelectCostCenter
-            costCenter={costCenters.find(_costCenter => _costCenter.id === costCenter)}
-            handleChangeCostCenter={handleChangeCostCenter}
-          />
+          <SelectCostCenter handleChangeId={handleChangeCostCenter} />
           <div className='d-flex flex-column flex-md-row'>
             <div className="input-group my-2 m-md-2">
               <span className="input-group-text" id="serialNumber-addon">
@@ -450,15 +440,20 @@ function compose_ready(
               <button
                 type="button"
                 className="btn btn-primary"
-                onClick={() => {
-                  handleRegister({
-                    id: String(numLot).padStart(9, '0'),
-                    costCenter,
+                onClick={async () => {
+                  const card = await handleCreateCard({
+                    costCenterId: costCenter,
+                    lotNum: String(lotNum).padStart(9, '0'),
                     serialNumber: String(numSerialNumber).padStart(15, '0'),
                     lastCardNumber: String(numLastCardNumber).padStart(4, '0'),
-                    status: 'available',
-                    createdAt: new Date().toISOString()
-                  });
+                    status: 'available'
+                  })
+
+                  if (!card)
+                    return Alerting.create('error', 'Não foi possível criar o cartão. Tente novamente com outros dados.');
+
+                  handleCancel();
+                  Alerting.create('success', 'Cartão criado com sucesso.');
                 }}
                 disabled={enableRegister() ? false : true}
               >
@@ -479,14 +474,11 @@ export default function CardsRegister() {
   const [loading, setLoading] = useState<boolean>(true)
 
   const [costCenter, setCostCenter] = useState<string>('')
-  const [numLot, setNumLot] = useState<number>(0)
+  const [lotNum, setLotNum] = useState<number>(0)
   const [numSerialNumber, setNumSerialNumber] = useState<number>(0)
   const [numLastCardNumber, setNumLastCardNumber] = useState<number>(0)
 
-  const
-    dispatch = useAppDispatch(),
-    costCenters = useAppSelector(state => state.system.costCenters || []),
-    lotItems = useAppSelector((state) => state.payback.lotItems || [])
+  const { create: handleCreateCard } = useCardService();
 
   const router = useRouter()
 
@@ -515,7 +507,7 @@ export default function CardsRegister() {
     handleChangeCostCenter = (id: string) => setCostCenter(id),
     handleChangeNumLot = (val: number) => {
       if (String(val).length <= 9)
-        setNumLot(val);
+        setLotNum(val);
     },
     handleChangeSerialNumber = (val: number) => {
       if (String(val).length <= 15)
@@ -524,14 +516,6 @@ export default function CardsRegister() {
     handleChangeLastCardNumber = (val: number) => {
       if (String(val).length <= 4)
         setNumLastCardNumber(val);
-    },
-    handleRegister = (lotItem: LotItem) => {
-      try {
-        dispatch(PaybackActions.CREATE_LOT(lotItem));
-        Alerting.create('info', 'Lote registrado com sucesso!');
-      } catch (error) {
-        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
-      }
     };
 
   useEffect(() => {
@@ -559,16 +543,14 @@ export default function CardsRegister() {
 
   if (isReady) return compose_ready(
     handleClickBackPage,
-    costCenters,
+    handleCreateCard,
     costCenter,
     handleChangeCostCenter,
-    numLot,
+    lotNum,
     handleChangeNumLot,
     numSerialNumber,
     handleChangeSerialNumber,
     numLastCardNumber,
-    handleChangeLastCardNumber,
-    lotItems,
-    handleRegister
+    handleChangeLastCardNumber
   )
 }

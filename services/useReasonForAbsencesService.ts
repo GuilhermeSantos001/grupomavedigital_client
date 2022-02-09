@@ -16,12 +16,12 @@ export type DataReasonForAbsence = Pick<ReasonForAbsenceType, 'value'>;
 declare function UpdateReasonForAbsence(id: string, newData: DataReasonForAbsence): Promise<boolean>
 declare function DeleteReasonForAbsence(id: string): Promise<boolean>
 
-export type FunctionUpdateReasonForAbsenceTypeof = typeof UpdateReasonForAbsence | undefined;
-export type FunctionDeleteReasonForAbsenceTypeof = typeof DeleteReasonForAbsence | undefined;
+export type FunctionUpdateReasonForAbsencesTypeof = typeof UpdateReasonForAbsence | undefined;
+export type FunctionDeleteReasonForAbsencesTypeof = typeof DeleteReasonForAbsence | undefined;
 export type FunctionNextPageTypeof = (() => void) | undefined;
 export type FunctionPreviousPageTypeof = (() => void) | undefined;
 
-export function useReasonForAbsencesService(take: number = 10) {
+export function useReasonForAbsencesService(take: number = 10, refreshInterval: number = 1000) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const skip = 1;
@@ -33,7 +33,7 @@ export function useReasonForAbsencesService(take: number = 10) {
   const { data, error, mutate } = useSWR<
     ApiResponseSuccessType<ReasonForAbsenceType[]>,
     ApiResponseErrorType<Object>
-  >([uri, setIsLoading], fetcherAxiosGet)
+  >([uri, setIsLoading], fetcherAxiosGet, { refreshInterval })
 
   if (error) {
     Alerting.create('error', error.message);

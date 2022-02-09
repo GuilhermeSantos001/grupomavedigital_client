@@ -4,6 +4,7 @@ export type CardType = {
   id: string
   cursorId: number
   costCenterId: string
+  lotNum: string
   serialNumber: string
   lastCardNumber: string
   personId: string

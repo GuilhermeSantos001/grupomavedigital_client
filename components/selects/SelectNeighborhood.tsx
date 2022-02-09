@@ -1,68 +1,51 @@
 /**
  * @description Input -> Seleciona um bairro
  * @author GuilhermeSantos001
- * @update 24/01/2022
+ * @update 09/02/2022
  */
 
 import { useState } from 'react';
 import { Autocomplete, TextField, createFilterOptions, Button } from '@mui/material'
 
-import { useAppSelector, useAppDispatch } from '@/app/hooks'
-
-import canDeleteNeighborhood from '@/src/functions/canDeleteAddressAssociation'
-
-import Alerting from '@/src/utils/alerting'
-import StringEx from '@/src/utils/stringEx'
+import { NeighborhoodType } from '@/types/NeighborhoodType'
 
 import {
-  Neighborhood,
-  SystemActions
-} from '@/app/features/system/system.slice'
+  useNeighborhoodService,
+  DataNeighborhood,
+  FunctionCreateNeighborhoodTypeof
+} from '@/services/useNeighborhoodService'
+
+import {
+  useNeighborhoodsService,
+  FunctionUpdateNeighborhoodsTypeof,
+  FunctionDeleteNeighborhoodsTypeof
+} from '@/services/useNeighborhoodsService'
 
 export type Props = {
-  neighborhood?: FilmOptionType
-  handleChangeNeighborhood: (id: string) => void
+  id?: string
+  disabled?: boolean
+  handleChangeId: (id: string) => void
 }
 
-export type FilmOptionType = Neighborhood & {
+export type FilmOptionType = Pick<NeighborhoodType, 'id' | 'value'> & {
   inputValue?: string;
   inputUpdate?: boolean;
 }
 
 const filter = createFilterOptions<FilmOptionType>();
 
-export default function SelectStreet(props: Props) {
-  const [value, setValue] = useState<FilmOptionType | null>(props.neighborhood || null);
+export function SelectNeighborhood(props: Props) {
+  const { data: neighborhood, create: CreateNeighborhood } = useNeighborhoodService(props.id);
+  const { data: neighborhoods, update: UpdateNeighborhoods, delete: DeleteNeighborhoods } = useNeighborhoodsService();
+
+  const [value, setValue] = useState<FilmOptionType | null>(neighborhood || null);
   const [hasEdit, setHasEdit] = useState<boolean>(false);
   const [editValue, setEditValue] = useState<string>('');
 
   const
-    neighborhoods = useAppSelector((state) => state.system.neighborhoods || []),
-    workplaces = useAppSelector((state) => state.system.workplaces || []);
-
-  const
-    dispatch = useAppDispatch(),
-    handleAppendNeighborhood = (neighborhood: Neighborhood) => {
-      try {
-        dispatch(SystemActions.CREATE_NEIGHBORHOOD(neighborhood));
-      } catch (error) {
-        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
-      }
-    },
-    handleUpdateNeighborhood = (neighborhood: Neighborhood) => {
-      try {
-        dispatch(SystemActions.UPDATE_NEIGHBORHOOD(neighborhood));
-      } catch (error) {
-        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
-      }
-    },
-    handleRemoveNeighborhood = (id: string) => {
-      try {
-        dispatch(SystemActions.DELETE_NEIGHBORHOOD(id));
-      } catch (error) {
-        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
-      }
-    };
+    handleAppendNeighborhood: FunctionCreateNeighborhoodTypeof = async (data: DataNeighborhood) => CreateNeighborhood ? await CreateNeighborhood(data) : undefined,
+    handleUpdateNeighborhood: FunctionUpdateNeighborhoodsTypeof = async (id: string, data: DataNeighborhood) => UpdateNeighborhoods ? await UpdateNeighborhoods(id, data) : false,
+    handleRemoveNeighborhood: FunctionDeleteNeighborhoodsTypeof = async (id: string) => DeleteNeighborhoods ? await DeleteNeighborhoods(id) : false;
 
   if (!value && hasEdit)
     setHasEdit(false);
@@ -72,11 +55,12 @@ export default function SelectStreet(props: Props) {
       <Autocomplete
         className='col-12 col-md-10 mb-2 mb-md-0 me-md-2'
         value={value}
+        disabled={props.disabled !== undefined ? props.disabled : false}
         onChange={(event: any, newValue) => {
           if (typeof newValue === 'string') {
-            const value: Neighborhood = {
-              id: StringEx.id(),
-              name: newValue,
+            const value: FilmOptionType = {
+              id: '',
+              value: newValue,
             };
 
             setValue(value);
@@ -87,29 +71,30 @@ export default function SelectStreet(props: Props) {
                 String(event.code).toLowerCase() === 'numpadenter'
               ) {
                 if (hasEdit) {
-                  const neighborhood = neighborhoods.find(neighborhood => neighborhood.id === editValue);
+                  const neighborhood = neighborhoods.find(neighborhood => neighborhood.value === editValue);
 
                   if (neighborhood) {
-                    const update: Neighborhood = {
-                      ...neighborhood,
-                      name: newValue
+                    const update: FilmOptionType = {
+                      id: neighborhood.id,
+                      value: editValue,
                     };
 
                     setValue(update);
-
-                    handleUpdateNeighborhood(update);
-                    props.handleChangeNeighborhood(update.id);
+                    handleUpdateNeighborhood(neighborhood.id, { value: editValue });
+                    props.handleChangeId(neighborhood.id);
                   }
                 } else {
-                  if (neighborhoods.filter(neighborhood => neighborhood.name === newValue).length <= 0) {
-                    handleAppendNeighborhood(value);
-                    props.handleChangeNeighborhood(value.id);
+                  if (neighborhoods.filter(neighborhood => neighborhood.value === newValue).length <= 0) {
+                    handleAppendNeighborhood({ value: value.value });
                   } else {
-                    const neighborhood = neighborhoods.find(neighborhood => neighborhood.name === newValue);
+                    const neighborhood = neighborhoods.find(neighborhood => neighborhood.value === newValue);
 
                     if (neighborhood) {
-                      setValue(neighborhood);
-                      props.handleChangeNeighborhood(neighborhood.id)
+                      setValue({
+                        id: neighborhood.id,
+                        value: neighborhood.value
+                      });
+                      props.handleChangeId(neighborhood.id);
                     }
                   }
                 }
@@ -118,25 +103,23 @@ export default function SelectStreet(props: Props) {
           } else if (newValue && newValue.inputValue) {
             // Create a new value from the user input
             const
-              valueId = StringEx.id(),
-              neighborhood: Neighborhood = {
+              valueId = '',
+              neighborhood: FilmOptionType = {
                 id: hasEdit ? value?.id || valueId : valueId,
-                name: newValue.inputValue,
+                value: newValue.inputValue,
               };
 
             setValue(neighborhood);
+            props.handleChangeId(neighborhood.id);
 
             if (!newValue.inputUpdate) {
-              handleAppendNeighborhood(neighborhood);
+              handleAppendNeighborhood({ value: neighborhood.value });
             } else {
-              handleUpdateNeighborhood(neighborhood);
+              handleUpdateNeighborhood(neighborhood.id, { value: neighborhood.value });
             }
-
-            props.handleChangeNeighborhood(neighborhood.id);
           } else {
             setValue(newValue);
-
-            props.handleChangeNeighborhood(newValue ? newValue.id : '');
+            props.handleChangeId(newValue?.id || '');
           }
         }}
         filterOptions={(options, params) => {
@@ -145,14 +128,14 @@ export default function SelectStreet(props: Props) {
           const { inputValue } = params;
 
           // Suggest the creation of a new value
-          const isExisting = options.some((option) => inputValue === option.name);
+          const isExisting = options.some((option) => inputValue === option.value);
 
           if (inputValue !== '' && !isExisting) {
-            const valueId = StringEx.id();
+            const valueId = '';
 
             filtered.push({
               id: hasEdit ? value?.id || valueId : valueId,
-              name: hasEdit ? `Atualizar "${value?.name || "???"}" para "${inputValue}"` : `Adicionar "${inputValue}"`,
+              value: hasEdit ? `Atualizar "${value?.value || "???"}" para "${inputValue}"` : `Adicionar "${inputValue}"`,
               inputValue,
               inputUpdate: hasEdit ? true : false
             });
@@ -177,9 +160,9 @@ export default function SelectStreet(props: Props) {
             return option.inputValue;
           }
           // Regular option
-          return option.name;
+          return option.value;
         }}
-        renderOption={(props, option) => <li {...props}>{option.name}</li>}
+        renderOption={(props, option) => <li {...props}>{option.value}</li>}
         freeSolo
         renderInput={(params) => (
           <TextField {...params} label="Bairro" />
@@ -189,7 +172,7 @@ export default function SelectStreet(props: Props) {
         className='col mx-1'
         variant="contained"
         color={hasEdit ? 'primary' : 'warning'}
-        disabled={!value}
+        disabled={props.disabled ? true : !value}
         onClick={() => {
           if (!hasEdit) {
             setHasEdit(true);
@@ -206,12 +189,12 @@ export default function SelectStreet(props: Props) {
         className='col mx-1'
         variant="contained"
         color='error'
-        disabled={hasEdit || !value || !canDeleteNeighborhood(workplaces, 'neighborhood', value.id)}
+        disabled={props.disabled ? true : hasEdit || !value}
         onClick={() => {
           if (value) {
             setValue(null);
             handleRemoveNeighborhood(value.id);
-            props.handleChangeNeighborhood('');
+            props.handleChangeId('');
           }
         }}
       >

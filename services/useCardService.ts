@@ -14,6 +14,7 @@ import Alerting from '@/src/utils/alerting';
 
 export type DataCard = Pick<CardType,
   | 'costCenterId'
+  | 'lotNum'
   | 'serialNumber'
   | 'lastCardNumber'
   | 'status'
@@ -24,15 +25,15 @@ export type DataPersonId = Pick<CardType, 'personId'>;
 declare function CreateCard(data: DataCard): Promise<ResponseCreateCard>
 declare function SetCard(data: ResponseCreateCard): void
 declare function UpdateCard(newData: DataCard): Promise<boolean>
-declare function AssignPersonCard(personId: string): Promise<boolean>
+declare function AssignPersonCard(data: DataPersonId): Promise<boolean>
 declare function UnassignPersonCard(): Promise<boolean>
 declare function DeleteCard(): Promise<boolean>
 
 export type ResponseCreateCard = {
   data: CardType
   update: typeof UpdateCard
-  assignPerson: typeof AssignPersonCard
-  unassignPerson: typeof UnassignPersonCard
+  assignPersonCard: typeof AssignPersonCard
+  unassignPersonCard: typeof UnassignPersonCard
   delete: typeof DeleteCard
 } | undefined
 
@@ -81,7 +82,7 @@ export function useCardService(id?: string) {
 
         return true;
       },
-      assignPerson: async (data: DataPersonId): Promise<boolean> => {
+      assignPersonCard: async (data: DataPersonId): Promise<boolean> => {
         const assignPersonCard = await fetcherAxiosPut<DataPersonId, ApiResponseSuccessOrErrorType<CardType, Object>>(uriAssignPersonCard, setIsLoading, data);
 
         if (!assignPersonCard.success) {

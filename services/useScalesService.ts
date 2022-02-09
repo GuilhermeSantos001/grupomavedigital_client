@@ -21,7 +21,7 @@ export type FunctionDeleteScalesTypeof = typeof DeleteScales | undefined;
 export type FunctionNextPageTypeof = (() => void) | undefined;
 export type FunctionPreviousPageTypeof = (() => void) | undefined;
 
-export function useScalesService(take: number = 10) {
+export function useScalesService(take: number = 10, refreshInterval: number = 1000) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const skip = 1;
@@ -33,7 +33,7 @@ export function useScalesService(take: number = 10) {
   const { data, error, mutate } = useSWR<
     ApiResponseSuccessType<ScaleType[]>,
     ApiResponseErrorType<Object>
-  >([uri, setIsLoading], fetcherAxiosGet)
+  >([uri, setIsLoading], fetcherAxiosGet, { refreshInterval })
 
   if (error) {
     Alerting.create('error', error.message);

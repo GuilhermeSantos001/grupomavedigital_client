@@ -1,75 +1,51 @@
 /**
  * @description Input -> Seleciona uma escala de trabalho
  * @author GuilhermeSantos001
- * @update 24/01/2022
+ * @update 09/02/2022
  */
 
 import { useState } from 'react';
 import { Autocomplete, TextField, createFilterOptions, Button } from '@mui/material'
 
-import { useAppSelector, useAppDispatch } from '@/app/hooks'
-
-import Alerting from '@/src/utils/alerting'
-import StringEx from '@/src/utils/stringEx'
+import { ScaleType } from '@/types/ScaleType'
 
 import {
-  Scale,
-  SystemActions,
-} from '@/app/features/system/system.slice'
+  useScaleService,
+  DataScale,
+  FunctionCreateScaleTypeof
+} from '@/services/useScaleService'
+
+import {
+  useScalesService,
+  FunctionUpdateScalesTypeof,
+  FunctionDeleteScalesTypeof
+} from '@/services/useScalesService'
 
 export type Props = {
-  scale?: FilmOptionType
-  handleChangeScale: (id: string) => void
+  id?: string
+  disabled?: boolean
+  handleChangeId: (id: string) => void
 }
 
-export type FilmOptionType = Scale & {
+export type FilmOptionType = Pick<ScaleType, 'id' | 'value'> & {
   inputValue?: string;
   inputUpdate?: boolean;
 }
 
 const filter = createFilterOptions<FilmOptionType>();
 
-export default function SelectScale(props: Props) {
-  const [value, setValue] = useState<FilmOptionType | null>(props.scale || null);
+export function SelectScale(props: Props) {
+  const { data: scale, create: CreateScale } = useScaleService(props.id);
+  const { data: scales, update: UpdateScales, delete: DeleteScales } = useScalesService();
+
+  const [value, setValue] = useState<FilmOptionType | null>(scale || null);
   const [hasEdit, setHasEdit] = useState<boolean>(false);
   const [editValue, setEditValue] = useState<string>('');
 
   const
-    scales = useAppSelector((state) => state.system.scales || []),
-    people = useAppSelector((state) => state.system.people || []),
-    workplaces = useAppSelector((state) => state.system.workplaces || []);
-
-  const
-    dispatch = useAppDispatch(),
-    handleAppendScale = (scale: Scale) => {
-      try {
-        dispatch(SystemActions.CREATE_SCALE(scale));
-      } catch (error) {
-        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
-      }
-    },
-    handleUpdateScale = (scale: Scale) => {
-      try {
-        dispatch(SystemActions.UPDATE_SCALE(scale));
-      } catch (error) {
-        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
-      }
-    },
-    handleRemoveScale = (id: string) => {
-      try {
-        dispatch(SystemActions.DELETE_SCALE(id));
-      } catch (error) {
-        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
-      }
-    };
-
-  const canDeleteScale = (itemId: string) => {
-    const
-      person = people.find((item) => item.scale === itemId),
-      workplace = workplaces.find((item) => item.scale === itemId);
-
-    return person === undefined && workplace === undefined;
-  }
+    handleAppendScale: FunctionCreateScaleTypeof = async (data: DataScale) => CreateScale ? await CreateScale(data) : undefined,
+    handleUpdateScale: FunctionUpdateScalesTypeof = async (id: string, data: DataScale) => UpdateScales ? await UpdateScales(id, data) : false,
+    handleRemoveScale: FunctionDeleteScalesTypeof = async (id: string) => DeleteScales ? await DeleteScales(id) : false;
 
   if (!value && hasEdit)
     setHasEdit(false);
@@ -79,10 +55,11 @@ export default function SelectScale(props: Props) {
       <Autocomplete
         className='col-12 col-md-10 mb-2 mb-md-0 me-md-2'
         value={value}
+        disabled={props.disabled !== undefined ? props.disabled : false}
         onChange={(event: any, newValue) => {
           if (typeof newValue === 'string') {
-            const value: Scale = {
-              id: StringEx.id(),
+            const value: FilmOptionType = {
+              id: '',
               value: newValue,
             };
 
@@ -94,29 +71,30 @@ export default function SelectScale(props: Props) {
                 String(event.code).toLowerCase() === 'numpadenter'
               ) {
                 if (hasEdit) {
-                  const scale = scales.find(scale => scale.id === editValue);
+                  const scale = scales.find(scale => scale.value === editValue);
 
                   if (scale) {
-                    const update: Scale = {
-                      ...scale,
-                      value: newValue
+                    const update: FilmOptionType = {
+                      id: scale.id,
+                      value: editValue,
                     };
 
                     setValue(update);
-
-                    handleUpdateScale(update);
-                    props.handleChangeScale(update.id);
+                    handleUpdateScale(scale.id, { value: editValue });
+                    props.handleChangeId(scale.id);
                   }
                 } else {
                   if (scales.filter(scale => scale.value === newValue).length <= 0) {
-                    handleAppendScale(value);
-                    props.handleChangeScale(value.id);
+                    handleAppendScale({ value: value.value });
                   } else {
                     const scale = scales.find(scale => scale.value === newValue);
 
                     if (scale) {
-                      setValue(scale);
-                      props.handleChangeScale(scale.id)
+                      setValue({
+                        id: scale.id,
+                        value: scale.value
+                      });
+                      props.handleChangeId(scale.id);
                     }
                   }
                 }
@@ -125,25 +103,23 @@ export default function SelectScale(props: Props) {
           } else if (newValue && newValue.inputValue) {
             // Create a new value from the user input
             const
-              valueId = StringEx.id(),
-              scale: Scale = {
+              valueId = '',
+              scale: FilmOptionType = {
                 id: hasEdit ? value?.id || valueId : valueId,
                 value: newValue.inputValue,
               };
 
             setValue(scale);
+            props.handleChangeId(scale.id);
 
             if (!newValue.inputUpdate) {
-              handleAppendScale(scale);
+              handleAppendScale({ value: scale.value });
             } else {
-              handleUpdateScale(scale);
+              handleUpdateScale(scale.id, { value: scale.value });
             }
-
-            props.handleChangeScale(scale.id);
           } else {
             setValue(newValue);
-
-            props.handleChangeScale(newValue ? newValue.id : '');
+            props.handleChangeId(newValue?.id || '');
           }
         }}
         filterOptions={(options, params) => {
@@ -155,7 +131,7 @@ export default function SelectScale(props: Props) {
           const isExisting = options.some((option) => inputValue === option.value);
 
           if (inputValue !== '' && !isExisting) {
-            const valueId = StringEx.id();
+            const valueId = '';
 
             filtered.push({
               id: hasEdit ? value?.id || valueId : valueId,
@@ -196,7 +172,7 @@ export default function SelectScale(props: Props) {
         className='col mx-1'
         variant="contained"
         color={hasEdit ? 'primary' : 'warning'}
-        disabled={!value}
+        disabled={props.disabled ? true : !value}
         onClick={() => {
           if (!hasEdit) {
             setHasEdit(true);
@@ -213,12 +189,12 @@ export default function SelectScale(props: Props) {
         className='col mx-1'
         variant="contained"
         color='error'
-        disabled={hasEdit || !value || !canDeleteScale(value.id)}
+        disabled={props.disabled ? true : hasEdit || !value}
         onClick={() => {
           if (value) {
             setValue(null);
             handleRemoveScale(value.id);
-            props.handleChangeScale('');
+            props.handleChangeId('');
           }
         }}
       >

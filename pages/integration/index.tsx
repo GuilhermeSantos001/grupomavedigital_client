@@ -161,7 +161,6 @@ function compose_ready(
                   <FontAwesomeIcon
                     icon={Icon.render('fas', 'book-open')}
                     className="col flex-shrink-1 my-auto"
-                    style={{ fontSize: '5rem' }}
                   />
                   <p className='fs-3'>SELECIONE UMA OPÇÃO</p>
                 </div>
