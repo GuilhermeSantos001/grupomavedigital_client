@@ -5,8 +5,8 @@ export type WorkplaceType = {
     cursorId: number
     name: string
     scaleId: string
-    entryTime: Date
-    exitTime: Date
+    entryTime: string
+    exitTime: string
     addressId: string
     status: DatabaseStatusType
     address: {
@@ -35,6 +35,6 @@ export type WorkplaceType = {
             value: string
         }
     }[]
-    createdAt: Date
-    updatedAt: Date
+    createdAt: string
+    updatedAt: string
 }

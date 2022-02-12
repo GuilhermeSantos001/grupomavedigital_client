@@ -48,6 +48,6 @@ export type PersonType = {
             value: string
         }
     }[]
-    createdAt: Date
-    updatedAt: Date
+    createdAt: string
+    updatedAt: string
 }

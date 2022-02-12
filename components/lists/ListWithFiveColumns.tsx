@@ -1,7 +1,7 @@
 /**
  * @description Lista -> Lista com 5 colunas
  * @author GuilhermeSantos001
- * @update 24/01/2022
+ * @update 10/02/2022
  */
 
 import { useState } from 'react'
@@ -60,7 +60,7 @@ export type Props = {
   }
 }
 
-const ListwithFiveColumns = (props: Props): JSX.Element => {
+export function ListWithFiveColumns(props: Props) {
   const [selected, setSelected] = useState<string[]>([])
   const [allSelected, setAllSelected] = useState<boolean>(false)
   const [currentPage, setCurrentPage] = useState<number>(props.pagination.page)
@@ -401,5 +401,3 @@ const ListwithFiveColumns = (props: Props): JSX.Element => {
     </>
   )
 }
-
-export default ListwithFiveColumns

@@ -33,7 +33,7 @@ export type FunctionDeleteDistrictTypeof = typeof DeleteDistrict | undefined;
 export function useDistrictService(id?: string) {
   const { mutate } = useSWRConfig();
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(id ? true : false);
 
   const create = async (data: DataDistrict) => {
     const createUpdate = await fetcherAxiosPost<DataDistrict, ApiResponseSuccessOrErrorType<DistrictType, Object>>(`${process.env.NEXT_PUBLIC_API_HOST}/district`, setIsLoading, data);

@@ -1,7 +1,7 @@
 /**
  * @description Input -> Seleciona um local de trabalho
  * @author GuilhermeSantos001
- * @update 24/01/2022
+ * @update 10/02/2022
  */
 
 import { useState } from 'react';
@@ -10,18 +10,20 @@ import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 
-import { useAppSelector } from '@/app/hooks';
+import {
+  useWorkplacesService
+} from '@/services/useWorkplacesService'
 
 export type Props = {
-  handleChangeWorkplace: (id: string) => void
+  id?: string
+  disabled?: boolean
+  handleChangeId: (id: string) => void
 }
 
-export default function SelectWorkplace(props: Props) {
-  const [workplace, setWorkplace] = useState<string>('');
+export function SelectWorkplace(props: Props) {
+  const [workplace, setWorkplace] = useState<string>(props.id || '');
 
-  const
-    workplaces = useAppSelector(state => state.system.workplaces),
-    scales = useAppSelector(state => state.system.scales);
+  const { data: workplaces } = useWorkplacesService();
 
   return (
     <FormControl variant="outlined" className='col-12'>
@@ -32,9 +34,10 @@ export default function SelectWorkplace(props: Props) {
         labelId="select-workplace-label"
         id="select-workplace"
         value={workplace}
+        disabled={props.disabled !== undefined ? props.disabled : false}
         onChange={(e) => {
           setWorkplace(e.target.value as string);
-          props.handleChangeWorkplace(e.target.value as string);
+          props.handleChangeId(e.target.value as string);
         }}
         label="Local de Trabalho"
       >
@@ -44,7 +47,7 @@ export default function SelectWorkplace(props: Props) {
               key={place.id}
               value={place.id}
             >
-              <em>{place.name}({scales.find(scale => scale.id === place.scale)?.value || "???"})</em>
+              <em>{place.name} ({place.scale.value})</em>
             </MenuItem>
           )
         })}

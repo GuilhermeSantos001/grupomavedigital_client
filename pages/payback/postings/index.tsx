@@ -1,7 +1,7 @@
 /**
  * @description Payback -> Lançamentos Operacionais
  * @author GuilhermeSantos001
- * @update 24/01/2022
+ * @update 10/02/2022
  */
 
 import React, { useEffect, useState } from 'react'
@@ -127,7 +127,7 @@ function compose_ready() {
           <div className="my-1 text-primary">
             <div className='d-flex align-items-center justify-content-center col-12 bg-primary bg-gradient rounded p-2'>
               <p className='fs-5 my-auto text-secondary fw-bold text-center'>
-                Operacional
+                FT/Freelancer
               </p>
             </div>
             <div className='d-flex flex-column flex-md-row align-items-center border-bottom my-3'>
@@ -136,7 +136,7 @@ function compose_ready() {
                   icon={Icon.render('fas', 'plus-square')}
                   className="me-1 flex-shrink-1 my-auto"
                 />
-                <Link href="/payback/postings/register">Registrar Lançamento</Link>
+                <Link href="/payback/postings/ft/register">Registrar Lançamento</Link>
               </p>
               <hr />
               <p className="text-center text-md-start px-2 fs-6 fw-bold">
@@ -144,7 +144,7 @@ function compose_ready() {
                   icon={Icon.render('fas', 'user-shield')}
                   className="me-1 flex-shrink-1 my-auto"
                 />
-                <Link href="/payback/postings/check">Apurar Lançamentos</Link>
+                <Link href="/payback/postings/ft/check">Apurar Lançamentos</Link>
               </p>
               <hr />
               <p className="text-center text-md-start px-2 fs-6 fw-bold">
@@ -152,7 +152,7 @@ function compose_ready() {
                   icon={Icon.render('fas', 'history')}
                   className="me-1 flex-shrink-1 my-auto"
                 />
-                <Link href="/payback/postings/history">
+                <Link href="/payback/postings/ft/history">
                   Histórico de Lançamentos
                 </Link>
               </p>
@@ -160,7 +160,7 @@ function compose_ready() {
             </div>
             <div className='d-flex align-items-center justify-content-center col-12 bg-primary bg-gradient rounded p-2'>
               <p className='fs-5 my-auto text-secondary fw-bold text-center'>
-                Associação
+                Cartões Alelo
               </p>
             </div>
             <div className='d-flex flex-column flex-md-row align-items-center border-bottom my-3'>
@@ -170,7 +170,7 @@ function compose_ready() {
                   className="me-1 flex-shrink-1 my-auto"
                 />
                 <Link href="/payback/cards/link">
-                  Associar Cartões
+                  Associar
                 </Link>
               </p>
               <hr />
@@ -180,7 +180,7 @@ function compose_ready() {
                   className="me-1 flex-shrink-1 my-auto"
                 />
                 <Link href="/payback/cards/unlink">
-                  Desassociar Cartões
+                  Desassociar
                 </Link>
               </p>
               <hr />
@@ -197,43 +197,6 @@ function compose_ready() {
             </div>
             <div className='d-flex align-items-center justify-content-center col-12 bg-primary bg-gradient rounded p-2'>
               <p className='fs-5 my-auto text-secondary fw-bold text-center'>
-                Cartões
-              </p>
-            </div>
-            <div className='d-flex flex-column flex-md-row align-items-center border-bottom my-3'>
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'dollar-sign')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/cards/credit">
-                  Creditar Cartões
-                </Link>
-              </p>
-              <hr />
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'user-lock')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/cards/lock">
-                  Bloquear Cartões
-                </Link>
-              </p>
-              <hr />
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'unlock-alt')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/cards/unlock">
-                  Desbloquear Cartões
-                </Link>
-              </p>
-              <hr />
-            </div>
-            <div className='d-flex align-items-center justify-content-center col-12 bg-primary bg-gradient rounded p-2'>
-              <p className='fs-5 my-auto text-secondary fw-bold text-center'>
                 Relatórios
               </p>
             </div>
@@ -243,38 +206,8 @@ function compose_ready() {
                   icon={Icon.render('fas', 'flag')}
                   className="me-1 flex-shrink-1 my-auto"
                 />
-                <Link href="/payback/cards/report/credit">
-                  Relatório dos Créditos
-                </Link>
-              </p>
-              <hr />
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'flag')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/cards/report/cards">
-                  Relatório dos Cartões
-                </Link>
-              </p>
-              <hr />
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'flag')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/cards/report/link">
-                  Relatório das Associações
-                </Link>
-              </p>
-              <hr />
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'flag')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/cards/report/lots">
-                  Relatório dos Lotes
+                <Link href="/payback/cards/report/postings">
+                  Relatório dos Lançamentos
                 </Link>
               </p>
               <hr />

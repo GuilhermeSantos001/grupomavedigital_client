@@ -47,7 +47,6 @@ $colors-custom: (
 $theme-colors: map-merge($theme-colors, $colors-custom);
 
 @import '../plugins/please-wait/margin.scss';
-@import '../plugins/spinkit/all.scss';
 
 // Themes
 @import 'dark.scss';

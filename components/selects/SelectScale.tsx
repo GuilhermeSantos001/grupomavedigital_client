@@ -1,11 +1,14 @@
 /**
  * @description Input -> Seleciona uma escala de trabalho
  * @author GuilhermeSantos001
- * @update 09/02/2022
+ * @update 11/02/2022
  */
 
 import { useState } from 'react';
 import { Autocomplete, TextField, createFilterOptions, Button } from '@mui/material'
+
+import { AutocompleteLoading } from '@/components/utils/AutocompleteLoading';
+import { AutocompleteError } from '@/components/utils/AutocompleteError';
 
 import { ScaleType } from '@/types/ScaleType'
 
@@ -21,6 +24,8 @@ import {
   FunctionDeleteScalesTypeof
 } from '@/services/useScalesService'
 
+import Alerting from '@/src/utils/alerting';
+
 export type Props = {
   id?: string
   disabled?: boolean
@@ -35,12 +40,14 @@ export type FilmOptionType = Pick<ScaleType, 'id' | 'value'> & {
 const filter = createFilterOptions<FilmOptionType>();
 
 export function SelectScale(props: Props) {
-  const { data: scale, create: CreateScale } = useScaleService(props.id);
-  const { data: scales, update: UpdateScales, delete: DeleteScales } = useScalesService();
+  const [syncData, setSyncData] = useState<boolean>(false);
 
-  const [value, setValue] = useState<FilmOptionType | null>(scale || null);
+  const [value, setValue] = useState<FilmOptionType | null>(null);
   const [hasEdit, setHasEdit] = useState<boolean>(false);
   const [editValue, setEditValue] = useState<string>('');
+
+  const { data: scale, isLoading: isLoadingScale, create: CreateScale } = useScaleService(props.id);
+  const { data: scales, isLoading: isLoadingScales, update: UpdateScales, delete: DeleteScales } = useScalesService();
 
   const
     handleAppendScale: FunctionCreateScaleTypeof = async (data: DataScale) => CreateScale ? await CreateScale(data) : undefined,
@@ -50,13 +57,29 @@ export function SelectScale(props: Props) {
   if (!value && hasEdit)
     setHasEdit(false);
 
+  if (isLoadingScale && !syncData || isLoadingScales && !props.id && !syncData)
+    return <AutocompleteLoading label='Escala de Trabalho' message='Carregando...' />
+
+  if (!syncData && scale || !syncData && !props.id && scales) {
+    if (scale) {
+      setValue({
+        id: scale.id,
+        value: scale.value,
+      });
+    }
+
+    setSyncData(true);
+  } else if (!syncData && !scale || !syncData && !props.id && !scales) {
+    return <AutocompleteError label='Escala de Trabalho' message='Ocorreu um erro' />
+  }
+
   return (
     <div className='d-flex flex-column flex-md-row'>
       <Autocomplete
         className='col-12 col-md-10 mb-2 mb-md-0 me-md-2'
         value={value}
         disabled={props.disabled !== undefined ? props.disabled : false}
-        onChange={(event: any, newValue) => {
+        onChange={async (event: any, newValue) => {
           if (typeof newValue === 'string') {
             const value: FilmOptionType = {
               id: '',
@@ -103,21 +126,32 @@ export function SelectScale(props: Props) {
           } else if (newValue && newValue.inputValue) {
             // Create a new value from the user input
             const
-              valueId = '',
               scale: FilmOptionType = {
-                id: hasEdit ? value?.id || valueId : valueId,
+                id: hasEdit ? value?.id || '' : '',
                 value: newValue.inputValue,
               };
 
-            setValue(scale);
-            props.handleChangeId(scale.id);
-
             if (!newValue.inputUpdate) {
-              handleAppendScale({ value: scale.value });
+              const append = await handleAppendScale({ value: scale.value });
+
+              if (append) {
+                const { data } = append;
+                scale.id = data.id;
+              }
             } else {
               handleUpdateScale(scale.id, { value: scale.value });
             }
+
+            setValue(scale);
+            props.handleChangeId(scale.id);
           } else {
+            if (!newValue && props.id) {
+              newValue = {
+                id: props.id,
+                value: scale?.value || '???'
+              }
+            }
+
             setValue(newValue);
             props.handleChangeId(newValue?.id || '');
           }
@@ -191,10 +225,20 @@ export function SelectScale(props: Props) {
         color='error'
         disabled={props.disabled ? true : hasEdit || !value}
         onClick={() => {
-          if (value) {
-            setValue(null);
+          if (value && value.id !== props.id) {
+            if (props.id) {
+              setValue({
+                id: props.id,
+                value: scale?.value || '???'
+              })
+            } else {
+              setValue(null);
+            }
+
             handleRemoveScale(value.id);
             props.handleChangeId('');
+          } else {
+            Alerting.create('info', 'Não é possível remover a escala de trabalho sendo usada pelo registro.');
           }
         }}
       >

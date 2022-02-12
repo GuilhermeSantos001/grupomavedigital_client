@@ -53,7 +53,7 @@ export type FunctionDeletePostingTypeof = typeof DeletePosting | undefined;
 export function usePostingService(id?: string) {
   const { mutate } = useSWRConfig();
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(id ? true : false);
 
   const create = async (data: DataPosting) => {
     const createUpdate = await fetcherAxiosPost<DataPosting, ApiResponseSuccessOrErrorType<PostingType, Object>>(`${process.env.NEXT_PUBLIC_API_HOST}/posting`, setIsLoading, data);

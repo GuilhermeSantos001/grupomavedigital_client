@@ -29,7 +29,7 @@ export type FunctionDeleteAPIKeyTypeof = typeof DeleteAPIKey | undefined;
 export function useAPIKeyService(passphrase?: string) {
   const { mutate } = useSWRConfig();
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(passphrase ? true : false);
 
   const create = async (data: DataAPIKey) => {
     const createUpdate = await fetcherAxiosPost<DataAPIKey, ApiResponseSuccessOrErrorType<APIKeyType, Object>>(`${process.env.NEXT_PUBLIC_API_HOST}/security/key`, setIsLoading, data);

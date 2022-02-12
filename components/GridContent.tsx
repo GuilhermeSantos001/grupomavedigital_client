@@ -6,6 +6,9 @@
 
 import React from 'react'
 
+import { ThemeProvider } from '@mui/material/styles';
+import { Theme } from '@/styles/theme-material-ui';
+
 import { Dropdown } from 'react-bootstrap'
 
 import Link from 'next/link'
@@ -221,7 +224,9 @@ export default class GridContent extends React.Component<MyProps, MyState> {
           className={`fade-effect active p-2 border-start animation-delay ${this.props.fullwidth ? 'fullwidth' : ''
             }${this.props.menuShow ? 'fullwidth' : ''}`}
         >
-          {children}
+          <ThemeProvider theme={Theme}>
+            {children}
+          </ThemeProvider>
         </div>
       </div>
     )

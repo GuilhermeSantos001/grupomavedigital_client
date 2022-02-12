@@ -45,7 +45,7 @@ export type FunctionDeletePersonTypeof = typeof DeletePerson | undefined;
 export function usePersonService(id?: string) {
   const { mutate } = useSWRConfig();
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(id ? true : false);
 
   const create = async (data: DataPerson) => {
     const createUpdate = await fetcherAxiosPost<DataPerson, ApiResponseSuccessOrErrorType<PersonType, Object>>(`${process.env.NEXT_PUBLIC_API_HOST}/person`, setIsLoading, data);

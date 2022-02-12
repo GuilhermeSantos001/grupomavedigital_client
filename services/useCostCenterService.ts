@@ -33,7 +33,7 @@ export type FunctionDeleteCostCenterTypeof = typeof DeleteCostCenter | undefined
 export function useCostCenterService(id?: string) {
   const { mutate } = useSWRConfig();
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(id ? true : false);
 
   const create = async (data: DataCostCenter) => {
     const createUpdate = await fetcherAxiosPost<DataCostCenter, ApiResponseSuccessOrErrorType<CostCenterType, Object>>(`${process.env.NEXT_PUBLIC_API_HOST}/costcenter`, setIsLoading, data);

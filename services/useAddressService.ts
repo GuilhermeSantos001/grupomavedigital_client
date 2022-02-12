@@ -41,7 +41,7 @@ export type FunctionDeleteAddressTypeof = typeof DeleteAddress | undefined;
 export function useAddressService(id?: string) {
   const { mutate } = useSWRConfig();
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(id ? true : false);
 
   const create = async (data: DataAddress) => {
     const createUpdate = await fetcherAxiosPost<DataAddress, ApiResponseSuccessOrErrorType<AddressType, Object>>(`${process.env.NEXT_PUBLIC_API_HOST}/address`, setIsLoading, data);

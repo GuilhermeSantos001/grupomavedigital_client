@@ -1,7 +1,7 @@
 /**
  * @description Payback -> Lançamentos Financeiros -> Cadastro
  * @author GuilhermeSantos001
- * @update 27/01/2022
+ * @update 10/02/2022
  */
 
 import React, { useEffect, useState } from 'react'

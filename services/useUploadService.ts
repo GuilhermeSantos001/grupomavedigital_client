@@ -44,7 +44,7 @@ export type FunctionDeleteUploadTypeof = typeof DeleteUpload  | undefined;
 export function useUploadService(id?: string) {
   const { mutate } = useSWRConfig();
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(id ? true : false);
 
   const create = async (data: DataUpload) => {
     const createUpdate = await fetcherAxiosPost<DataUpload, ApiResponseSuccessOrErrorType<UploadType, Object>>(`${process.env.NEXT_PUBLIC_API_HOST}/upload`, setIsLoading, data);

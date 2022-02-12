@@ -33,7 +33,7 @@ export type FunctionDeleteNeighborhoodTypeof = typeof DeleteNeighborhood | undef
 export function useNeighborhoodService(id?: string) {
   const { mutate } = useSWRConfig();
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(id ? true : false);
 
   const create = async (data: DataNeighborhood) => {
     const createUpdate = await fetcherAxiosPost<DataNeighborhood, ApiResponseSuccessOrErrorType<NeighborhoodType, Object>>(`${process.env.NEXT_PUBLIC_API_HOST}/neighborhood`, setIsLoading, data);

@@ -47,7 +47,7 @@ export type FunctionDeleteServiceTypeof = typeof DeleteService | undefined;
 export function useServiceService(id?: string) {
   const { mutate } = useSWRConfig();
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(id ? true : false);
 
   const create = async (data: DataService) => {
     const createUpdate = await fetcherAxiosPost<DataService, ApiResponseSuccessOrErrorType<ServiceType, Object>>(`${process.env.NEXT_PUBLIC_API_HOST}/service`, setIsLoading, data);

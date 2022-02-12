@@ -1,5 +1,5 @@
 /**
- * @description Modal -> Modal de Cadastro de local de trabalho
+ * @description Modal -> Modal de Edição de local de trabalho
  * @author GuilhermeSantos001
  * @update 24/01/2022
  */
@@ -15,30 +15,44 @@ import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
-import CloseIcon from '@mui/icons-material/Close';
+import UpdateIcon from '@mui/icons-material/Update';
 import Slide from '@mui/material/Slide';
 import { TransitionProps } from '@mui/material/transitions';
 
-import MobileTimePicker from '@/components/selects/mobileTimePicker'
-import SelectScale from '@/components/selects/selectScale'
-import SelectService from '@/components/selects/selectService'
-import SelectStreet from '@/components/selects/selectStreet'
-import SelectNeighborhood from '@/components/selects/selectNeighborhood'
-import SelectCity from '@/components/selects/selectCity'
-import SelectDistrict from '@/components/selects/selectDistrict'
+import { TimePicker } from '@/components/selects/TimePicker';
+import { SelectScale } from '@/components/selects/SelectScale';
+import { SelectService } from '@/components/selects/SelectService';
+import { SelectStreet } from '@/components/selects/SelectStreet';
+import { SelectNeighborhood } from '@/components/selects/SelectNeighborhood';
+import { SelectCity } from '@/components/selects/SelectCity';
+import { SelectDistrict } from '@/components/selects/SelectDistrict';
 
-import StringEx from '@/src/utils/stringEx'
 import Alerting from '@/src/utils/alerting'
+import ArrayEx from '@/src/utils/arrayEx'
+import StringEx from '@/src/utils/stringEx'
 
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 
 import {
   Workplace,
-  SystemActions
+  SystemActions,
 } from '@/app/features/system/system.slice'
 
 export interface Props {
   show: boolean
+  id: string,
+  name: string,
+  entryTime: string,
+  exitTime: string,
+  services: string[],
+  scale: string
+  neighborhood: string
+  city: string
+  district: string
+  street: string
+  numberHome: number
+  complement: string
+  zipCode: number
   handleClose: () => void
 }
 
@@ -52,18 +66,18 @@ const Transition = React.forwardRef(function Transition(
 });
 
 export default function RegisterWorkplace(props: Props) {
-  const [name, setName] = useState<string>('');
-  const [scale, setScale] = useState<string>('')
-  const [entryTime, setEntryTime] = useState<Date>(new Date());
-  const [exitTime, setExitTime] = useState<Date>(new Date());
-  const [appliedServices, setAppliedServices] = useState<string[]>([]);
-  const [street, setStreet] = useState<string>('')
-  const [numberHome, setNumberHome] = useState<number>(0);
-  const [complement, setComplement] = useState<string>('');
-  const [neighborhood, setNeighborhood] = useState<string>('')
-  const [city, setCity] = useState<string>('')
-  const [district, setDistrict] = useState<string>('')
-  const [zipCode, setZipCode] = useState<number>(0);
+  const [name, setName] = useState<string>(props.name);
+  const [entryTime, setEntryTime] = useState<Date>(new Date(props.entryTime));
+  const [exitTime, setExitTime] = useState<Date>(new Date(props.exitTime));
+  const [appliedServices, setAppliedServices] = useState<string[]>(props.services);
+  const [numberHome, setNumberHome] = useState<number>(props.numberHome);
+  const [complement, setComplement] = useState<string>(props.complement);
+  const [zipCode, setZipCode] = useState<number>(props.zipCode);
+  const [scale, setScale] = useState<string>(props.scale);
+  const [street, setStreet] = useState<string>(props.street);
+  const [neighborhood, setNeighborhood] = useState<string>(props.neighborhood);
+  const [city, setCity] = useState<string>(props.city);
+  const [district, setDistrict] = useState<string>(props.district);
 
   const
     dispatch = useAppDispatch(),
@@ -75,50 +89,43 @@ export default function RegisterWorkplace(props: Props) {
     districts = useAppSelector((state) => state.system.districts || []);
 
   const
-    handleResetInputs = () => {
-      setName('');
-      setScale('');
-      setEntryTime(new Date());
-      setExitTime(new Date());
-      setAppliedServices([]);
-      setStreet('');
-      setNumberHome(0);
-      setComplement('');
-      setNeighborhood('');
-      setCity('');
-      setDistrict('');
-      setZipCode(0);
-    },
-    handleChangeScale = (value: string) => setScale(value),
     handleChangeName = (value: string) => setName(value),
+    handleChangeScale = (value: string) => setScale(value),
     handleChangeEntryTime = (value: Date) => setEntryTime(value),
     handleChangeExitTime = (value: Date) => setExitTime(value),
-    handleChangeStreet = (value: string) => setStreet(value),
     handleChangeNumberHome = (value: number) => setNumberHome(value),
     handleChangeComplement = (value: string) => setComplement(value),
+    handleChangeZipCode = (value: number) => setZipCode(value),
+    handleChangeStreet = (value: string) => setStreet(value),
     handleChangeNeighborhood = (value: string) => setNeighborhood(value),
     handleChangeCity = (value: string) => setCity(value),
-    handleChangeDistrict = (value: string) => setDistrict(value),
-    handleChangeZipCode = (value: number) => setZipCode(value);
+    handleChangeDistrict = (value: string) => setDistrict(value);
 
-  const canRegisterWorkPlace = () => {
-    return name.length > 0 &&
-      scale.length > 0 &&
-      entryTime !== null &&
-      exitTime !== null &&
-      appliedServices.length > 0 &&
-      street.length > 0 &&
-      numberHome > 0 &&
-      // complement.length > 0 && // ? Complemento não é obrigatório
-      neighborhood.length > 0 &&
-      city.length > 0 &&
-      district.length > 0 &&
-      zipCode > 0
-  }
+  const
+    canEditWorkPlace = () => {
+      return name.length > 0 &&
+        entryTime !== null &&
+        exitTime !== null &&
+        appliedServices.length > 0 &&
+        numberHome > 0 &&
+        // complement.length > 0 && // ? Complemento não é obrigatório
+        zipCode > 0 &&
+        scale !== '' &&
+        street !== '' &&
+        neighborhood !== '' &&
+        city !== ''
+    },
+    servicesAvailables = () => {
+      const available = ArrayEx.returnItemsOfANotContainInB(services.map((service) => service.id), props.services.map((service) => service));
 
-  const handleRegisterWorkplace = () => {
+      return services
+        .filter(service => available.includes(service.id))
+        .map(service => service.value)
+    };
+
+  const handleEditWorkplace = () => {
     const workplace: Workplace = {
-      id: StringEx.id(),
+      id: props.id,
       name,
       entryTime: entryTime.toISOString(),
       exitTime: exitTime.toISOString(),
@@ -136,9 +143,7 @@ export default function RegisterWorkplace(props: Props) {
     }
 
     try {
-      dispatch(SystemActions.CREATE_WORKPLACE(workplace));
-
-      handleResetInputs();
+      dispatch(SystemActions.UPDATE_WORKPLACE(workplace));
       props.handleClose();
     } catch (error) {
       Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
@@ -150,34 +155,26 @@ export default function RegisterWorkplace(props: Props) {
       <Dialog
         fullScreen
         open={props.show}
-        onClose={() => {
-          handleResetInputs();
-          props.handleClose();
-        }}
         TransitionComponent={Transition}
       >
-        <AppBar sx={{ position: 'relative' }}>
+        <AppBar sx={{ position: 'relative' }} color='primary'>
           <Toolbar>
             <IconButton
               edge="start"
               color="inherit"
-              onClick={() => {
-                handleResetInputs();
-                props.handleClose();
-              }}
               aria-label="close"
             >
-              <CloseIcon />
+              <UpdateIcon />
             </IconButton>
             <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
-              Registrar Local de Trabalho
+              Editar Local de Trabalho
             </Typography>
             <Button
               color="inherit"
-              disabled={!canRegisterWorkPlace()}
-              onClick={handleRegisterWorkplace}
+              disabled={!canEditWorkPlace()}
+              onClick={handleEditWorkplace}
             >
-              Registrar
+              Atualizar
             </Button>
           </Toolbar>
         </AppBar>
@@ -197,12 +194,13 @@ export default function RegisterWorkplace(props: Props) {
           <ListItem>
             <div className='col'>
               <SelectScale
+                scale={scales.find(scale => scale.id === props.scale)}
                 handleChangeScale={handleChangeScale}
               />
             </div>
           </ListItem>
           <ListItem>
-            <MobileTimePicker
+            <TimePicker
               className='col-12'
               label="Horário de Entrada"
               value={entryTime}
@@ -210,7 +208,7 @@ export default function RegisterWorkplace(props: Props) {
             />
           </ListItem>
           <ListItem>
-            <MobileTimePicker
+            <TimePicker
               className='col-12'
               label="Horário de Saída"
               value={exitTime}
@@ -222,8 +220,8 @@ export default function RegisterWorkplace(props: Props) {
           </ListItem>
         </List>
         <SelectService
-          left={services.map((service) => service.value)}
-          right={[]}
+          left={servicesAvailables()}
+          right={services.filter((service) => props.services.includes(service.id)).map((service) => service.value)}
           onChangeAppliedServices={(values) => setAppliedServices(services.filter(service => values.includes(service.value)).map(service => service.id))}
         />
         <List>
@@ -233,6 +231,7 @@ export default function RegisterWorkplace(props: Props) {
           <ListItem>
             <div className='col'>
               <SelectStreet
+                street={streets.find(_street => _street.id === street)}
                 handleChangeStreet={handleChangeStreet}
               />
             </div>
@@ -240,6 +239,7 @@ export default function RegisterWorkplace(props: Props) {
           <ListItem>
             <div className='col'>
               <SelectNeighborhood
+                neighborhood={neighborhoods.find(_neighborhood => _neighborhood.id === neighborhood)}
                 handleChangeNeighborhood={handleChangeNeighborhood}
               />
             </div>
@@ -247,6 +247,7 @@ export default function RegisterWorkplace(props: Props) {
           <ListItem>
             <div className='col'>
               <SelectCity
+                city={cities.find(_city => _city.id === city)}
                 handleChangeCity={handleChangeCity}
               />
             </div>
@@ -254,6 +255,7 @@ export default function RegisterWorkplace(props: Props) {
           <ListItem>
             <div className='col'>
               <SelectDistrict
+                district={districts.find(_district => _district.id === district)}
                 handleChangeDistrict={handleChangeDistrict}
               />
             </div>
@@ -290,22 +292,11 @@ export default function RegisterWorkplace(props: Props) {
         <Button
           className='col-10 mx-auto my-2'
           variant="contained"
-          color="primary"
-          disabled={!canRegisterWorkPlace()}
-          onClick={handleRegisterWorkplace}
+          color="warning"
+          disabled={!canEditWorkPlace()}
+          onClick={handleEditWorkplace}
         >
-          Registrar
-        </Button>
-        <Button
-          className='col-10 mx-auto my-2'
-          variant="contained"
-          color="error"
-          onClick={() => {
-            handleResetInputs();
-            props.handleClose();
-          }}
-        >
-          Cancelar
+          Atualizar
         </Button>
       </Dialog>
     </div>

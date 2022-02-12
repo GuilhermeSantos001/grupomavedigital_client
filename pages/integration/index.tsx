@@ -22,7 +22,7 @@ import Icon from '@/src/utils/fontAwesomeIcons'
 
 import NoPrivilege, { handleClickFunction } from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
-import RegisterAPIKey from '@/components/modals/registerAPIKey'
+import { RegisterAPIKey } from '@/components/modals/RegisterAPIKey'
 import { Button } from 'react-bootstrap'
 
 import { PageProps } from '@/pages/_app'

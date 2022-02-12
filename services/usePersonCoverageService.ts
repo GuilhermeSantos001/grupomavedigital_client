@@ -37,7 +37,7 @@ export type FunctionDeletePersonCoverageTypeof = typeof DeletePersonCoverage | u
 export function usePersonCoverageService(id?: string) {
   const { mutate } = useSWRConfig();
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const create = async (data: DataPersonCoverage) => {
     const createUpdate = await fetcherAxiosPost<DataPersonCoverage, ApiResponseSuccessOrErrorType<PersonCoverageType, Object>>(`${process.env.NEXT_PUBLIC_API_HOST}/person_coverage`, setIsLoading, data);

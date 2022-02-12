@@ -6,6 +6,6 @@ export type APIKeyType = {
   passphrase: string
   username: string
   userMail: string
-  createdAt: Date
-  updatedAt: Date
+  createdAt: string
+  updatedAt: string
 }

@@ -40,7 +40,7 @@ export type FunctionDeleteWorkplaceTypeof = typeof DeleteWorkplace | undefined;
 export function useWorkplaceService(id?: string) {
   const { mutate } = useSWRConfig();
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(id ? true : false);
 
   const create = async (data: DataWorkplace) => {
     const createUpdate = await fetcherAxiosPost<DataWorkplace, ApiResponseSuccessOrErrorType<WorkplaceType, Object>>(`${process.env.NEXT_PUBLIC_API_HOST}/workplace`, setIsLoading, data);

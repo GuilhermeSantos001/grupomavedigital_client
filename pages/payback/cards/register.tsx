@@ -29,7 +29,6 @@ import {
   useCardService,
   FunctionCreateCardTypeof
 } from '@/services/useCardService';
-import { ServiceType } from '@/types/ServiceType'
 
 const serverSideProps: PageProps = {
   title: 'Pagamentos/Cartões Benefício/Cadastro',

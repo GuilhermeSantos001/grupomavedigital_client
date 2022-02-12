@@ -22,15 +22,19 @@ export type DataCard = Pick<CardType,
 export type DataPersonId = Pick<CardType, 'personId'>;
 
 declare function UpdateCards(id: string, newData: DataCard): Promise<boolean>
+declare function AssignPersonCard(id: string, dataPersonId: DataPersonId): Promise<boolean>
+declare function UnassignPersonCard(id: string): Promise<boolean>
 declare function DeleteCards(id: string): Promise<boolean>
 
 export type FunctionUpdateCardsTypeof = typeof UpdateCards | undefined;
+export type FunctionAssignPersonCardTypeOf = typeof AssignPersonCard | undefined;
+export type FunctionUnassignPersonCardTypeOf = typeof UnassignPersonCard | undefined;
 export type FunctionDeleteCardsTypeof = typeof DeleteCards | undefined;
 export type FunctionNextPageTypeof = (() => void) | undefined;
 export type FunctionPreviousPageTypeof = (() => void) | undefined;
 
 export function useCardsService(take: number = 10, refreshInterval: number = 1000) {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const skip = 1;
 

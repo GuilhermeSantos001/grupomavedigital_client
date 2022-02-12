@@ -1,11 +1,14 @@
 /**
  * @description Input -> Seleciona um centro de custo
  * @author GuilhermeSantos001
- * @update 09/02/2022
+ * @update 11/02/2022
  */
 
 import { useState } from 'react';
 import { Autocomplete, TextField, createFilterOptions, Button } from '@mui/material'
+
+import { AutocompleteLoading } from '@/components/utils/AutocompleteLoading';
+import { AutocompleteError } from '@/components/utils/AutocompleteError';
 
 import { CostCenterType } from '@/types/CostCenterType'
 
@@ -21,6 +24,8 @@ import {
   FunctionDeleteCostCentersTypeof
 } from '@/services/useCostCentersService'
 
+import Alerting from '@/src/utils/alerting';
+
 export type Props = {
   id?: string
   disabled?: boolean
@@ -35,12 +40,14 @@ export type FilmOptionType = Pick<CostCenterType, 'id' | 'value'> & {
 const filter = createFilterOptions<FilmOptionType>();
 
 export function SelectCostCenter(props: Props) {
-  const { data: costCenter, create: CreateCostCenter } = useCostCenterService(props.id);
-  const { data: costCenters, update: UpdateCostCenters, delete: DeleteCostCenters } = useCostCentersService();
+  const [syncData, setSyncData] = useState<boolean>(false);
 
-  const [value, setValue] = useState<FilmOptionType | null>(costCenter || null);
+  const [value, setValue] = useState<FilmOptionType | null>(null);
   const [hasEdit, setHasEdit] = useState<boolean>(false);
   const [editValue, setEditValue] = useState<string>('');
+
+  const { data: costCenter, isLoading: isLoadingCostCenter, create: CreateCostCenter } = useCostCenterService(props.id);
+  const { data: costCenters, isLoading: isLoadingCostCenters, update: UpdateCostCenters, delete: DeleteCostCenters } = useCostCentersService();
 
   const
     handleAppendCostCenter: FunctionCreateCostCenterTypeof = async (data: DataCostCenter) => CreateCostCenter ? await CreateCostCenter(data) : undefined,
@@ -50,13 +57,29 @@ export function SelectCostCenter(props: Props) {
   if (!value && hasEdit)
     setHasEdit(false);
 
+  if (isLoadingCostCenter && !syncData || isLoadingCostCenters && !props.id && !syncData)
+    return <AutocompleteLoading label='Centro de Custo' message='Carregando...' />
+
+  if (!syncData && costCenter || !syncData && !props.id && costCenters) {
+    if (costCenter) {
+      setValue({
+        id: costCenter.id,
+        value: costCenter.value,
+      });
+    }
+
+    setSyncData(true);
+  } else if (!syncData && !costCenter || !syncData && !props.id && !costCenters) {
+    return <AutocompleteError label='Centro de Custo' message='Ocorreu um erro' />
+  }
+
   return (
     <div className='d-flex flex-column flex-md-row'>
       <Autocomplete
         className='col-12 col-md-10 mb-2 mb-md-0 me-md-2'
         value={value}
         disabled={props.disabled !== undefined ? props.disabled : false}
-        onChange={(event: any, newValue) => {
+        onChange={async (event: any, newValue) => {
           if (typeof newValue === 'string') {
             const value: FilmOptionType = {
               id: '',
@@ -103,21 +126,32 @@ export function SelectCostCenter(props: Props) {
           } else if (newValue && newValue.inputValue) {
             // Create a new value from the user input
             const
-              valueId = '',
               costCenter: FilmOptionType = {
-                id: hasEdit ? value?.id || valueId : valueId,
+                id: hasEdit ? value?.id || '' : '',
                 value: newValue.inputValue,
               };
 
-            setValue(costCenter);
-            props.handleChangeId(costCenter.id);
-
             if (!newValue.inputUpdate) {
-              handleAppendCostCenter({ value: costCenter.value });
+              const append = await handleAppendCostCenter({ value: costCenter.value });
+
+              if (append) {
+                const { data } = append;
+                costCenter.id = data.id;
+              }
             } else {
               handleUpdateCostCenter(costCenter.id, { value: costCenter.value });
             }
+
+            setValue(costCenter);
+            props.handleChangeId(costCenter.id);
           } else {
+            if (!newValue && props.id) {
+              newValue = {
+                id: props.id,
+                value: costCenter?.value || '???'
+              }
+            }
+
             setValue(newValue);
             props.handleChangeId(newValue?.id || '');
           }
@@ -191,10 +225,20 @@ export function SelectCostCenter(props: Props) {
         color='error'
         disabled={props.disabled ? true : hasEdit || !value}
         onClick={() => {
-          if (value) {
-            setValue(null);
+          if (value && value.id !== props.id) {
+            if (props.id) {
+              setValue({
+                id: props.id,
+                value: costCenter?.value || '???'
+              })
+            } else {
+              setValue(null);
+            }
+
             handleRemoveCostCenter(value.id);
             props.handleChangeId('');
+          } else {
+            Alerting.create('info', 'Não é possível remover o centro de custo sendo usado pelo registro.');
           }
         }}
       >

@@ -365,7 +365,7 @@ export default function RegisterPeople(props: Props) {
               className='col'
               label="CEP"
               variant="standard"
-              value={StringEx.maskZipcode(String(zipCode).padStart(8, '0'))}
+              value={StringEx.maskZipcode(zipCode)}
               onChange={(e) => handleChangeZipCode(parseInt(StringEx.removeMaskNum(e.target.value)))}
             />
           </ListItem>

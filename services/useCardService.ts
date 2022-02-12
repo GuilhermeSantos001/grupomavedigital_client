@@ -47,7 +47,7 @@ export type FunctionDeleteCardTypeof = typeof DeleteCard | undefined;
 export function useCardService(id?: string) {
   const { mutate } = useSWRConfig();
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(id ? true : false);
 
   const create = async (data: DataCard) => {
     const createUpdate = await fetcherAxiosPost<DataCard, ApiResponseSuccessOrErrorType<CardType, Object>>(`${process.env.NEXT_PUBLIC_API_HOST}/card`, setIsLoading, data);

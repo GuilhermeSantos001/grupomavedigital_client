@@ -1,46 +1,43 @@
 /**
  * @description Payback -> Cartões Beneficio (Alelo) -> Cadastro
  * @author GuilhermeSantos001
- * @update 27/01/2022
+ * @update 10/02/2022
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react';
 
-import { Offcanvas } from 'react-bootstrap'
+import { Offcanvas } from 'react-bootstrap';
 
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/router';
 
-import SkeletonLoader from 'tiny-skeleton-loader-react'
+import SkeletonLoader from 'tiny-skeleton-loader-react';
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import Icon from '@/src/utils/fontAwesomeIcons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import Icon from '@/src/utils/fontAwesomeIcons';
 
-import NoPrivilege, { handleClickFunction } from '@/components/noPrivilege'
-import NoAuth from '@/components/noAuth'
-import ListWithFiveColumns from '@/components/lists/listwithFiveColumns'
+import NoPrivilege, { handleClickFunction } from '@/components/noPrivilege';
+import NoAuth from '@/components/noAuth';
+import { ListWithFiveColumns } from '@/components/lists/ListWithFiveColumns';
 
-import { PageProps } from '@/pages/_app'
-import PageMenu from '@/bin/main_menu'
+import { BoxError } from '@/components/utils/BoxError';
 
-import Variables from '@/src/db/variables'
-import hasPrivilege from '@/src/functions/hasPrivilege'
-import Alerting from '@/src/utils/alerting'
-import StringEx from '@/src/utils/stringEx'
-import canDeleteLotItems from '@/src/functions/canDeleteLotItems'
+import { PageProps } from '@/pages/_app';
+import PageMenu from '@/bin/main_menu';
 
-import { useAppSelector, useAppDispatch } from '@/app/hooks'
+import Variables from '@/src/db/variables';
+import hasPrivilege from '@/src/functions/hasPrivilege';
+import Alerting from '@/src/utils/alerting';
+import StringEx from '@/src/utils/stringEx';
+
+import { CardType } from '@/types/CardType';
+
+import { useCardsService } from '@/services/useCardsService';
+
+import { CostCenterType } from '@/types/CostCenterType';
 
 import {
-  LotItem,
-  Posting,
-  PaybackActions
-} from '@/app/features/payback/payback.slice'
-
-import {
-  CostCenter,
-  Person,
-  SystemActions,
-} from '@/app/features/system/system.slice'
+  useCostCentersService
+} from '@/services/useCostCentersService';
 
 const serverSideProps: PageProps = {
   title: 'Pagamentos/Cartões Benefício/Remoção',
@@ -57,7 +54,6 @@ export const getServerSideProps = async () => {
   }
 }
 
-// TODO: Implementar o esqueleto de loading da página
 function compose_load() {
   return (
     <div>
@@ -73,73 +69,33 @@ function compose_load() {
                 circle={false}
               />
             </div>
-            <div className="d-flex flex-row justify-content-center col-12 mt-4 mb-2">
+            <div className="col-2 my-2">
               <SkeletonLoader
-                width={'80%'}
+                width={'100%'}
                 height={'1.5rem'}
-                radius={0}
+                radius={10}
                 circle={false}
               />
             </div>
-            <div className="col-12 my-2">
+            <div className="col-6 align-self-center my-2">
               <SkeletonLoader
                 width={'100%'}
-                height={'3rem'}
-                radius={5}
-                circle={false}
-              />
-            </div>
-            <div className="col-12 my-2">
-              <SkeletonLoader
-                width={'100%'}
-                height={'3rem'}
-                radius={5}
-                circle={false}
-              />
-            </div>
-            <div className="d-flex flex-row justify-content-center col-12 mt-2 mb-2">
-              <SkeletonLoader
-                width={'80%'}
                 height={'1.5rem'}
-                radius={0}
+                radius={10}
                 circle={false}
               />
             </div>
-            <div className="col-12 my-2">
+            <div className="col-12 align-self-center my-2">
               <SkeletonLoader
                 width={'100%'}
-                height={'3rem'}
-                radius={5}
+                height={'0.1rem'}
+                radius={10}
                 circle={false}
               />
             </div>
-            <div className="col-12 my-2">
+            <div className="col-12 align-self-center my-2">
               <SkeletonLoader
                 width={'100%'}
-                height={'3rem'}
-                radius={5}
-                circle={false}
-              />
-            </div>
-            <div className="d-flex flex-row justify-content-center col-12 mt-2 mb-2">
-              <SkeletonLoader
-                width={'80%'}
-                height={'1.5rem'}
-                radius={0}
-                circle={false}
-              />
-            </div>
-            <div className="col-12 my-2">
-              <SkeletonLoader
-                width={'100%'}
-                height={'3rem'}
-                radius={5}
-                circle={false}
-              />
-            </div>
-            <div className="d-flex flex-row justify-content-center col-12 my-2">
-              <SkeletonLoader
-                width={'80%'}
                 height={'3rem'}
                 radius={10}
                 circle={false}
@@ -162,118 +118,66 @@ function compose_load() {
                 />
               </div>
             </div>
-          </div>
-          <div className="d-flex flex-row justify-content-center mt-2 p-2">
-            <SkeletonLoader
-              width={'50%'}
-              height={'1.5rem'}
-              radius={0}
-              circle={false}
-            />
-          </div>
-          <div className="col-12 p-2">
-            <SkeletonLoader
-              width={'100%'}
-              height={'0.1rem'}
-              radius={0}
-              circle={false}
-            />
-          </div>
-          <div className="row g-2">
-            <div className="col-6">
-              <div className="p-1">
-                <SkeletonLoader
-                  width={'100%'}
-                  height={'3rem'}
-                  radius={10}
-                  circle={false}
-                />
+            <div className='d-flex flex-column'>
+              <div className="col-2">
+                <div className="p-1">
+                  <SkeletonLoader
+                    width={'100%'}
+                    height={'1.5rem'}
+                    radius={10}
+                    circle={false}
+                  />
+                </div>
+              </div>
+              <div className="col-6 align-self-center">
+                <div className="p-1">
+                  <SkeletonLoader
+                    width={'100%'}
+                    height={'1.5rem'}
+                    radius={10}
+                    circle={false}
+                  />
+                </div>
+              </div>
+              <div className="col-12 align-self-center">
+                <div className="p-1">
+                  <SkeletonLoader
+                    width={'100%'}
+                    height={'0.1rem'}
+                    radius={10}
+                    circle={false}
+                  />
+                </div>
+              </div>
+              <div className="col-12 align-self-center">
+                <div className="p-1">
+                  <SkeletonLoader
+                    width={'100%'}
+                    height={'6rem'}
+                    radius={10}
+                    circle={false}
+                  />
+                </div>
+                <div className="p-1">
+                  <SkeletonLoader
+                    width={'100%'}
+                    height={'0.1rem'}
+                    radius={10}
+                    circle={false}
+                  />
+                </div>
+              </div>
+              <div className="col-6 align-self-center">
+                <div className="p-1">
+                  <SkeletonLoader
+                    width={'100%'}
+                    height={'1.5rem'}
+                    radius={10}
+                    circle={false}
+                  />
+                </div>
               </div>
             </div>
-            <div className="col-6">
-              <div className="p-1">
-                <SkeletonLoader
-                  width={'100%'}
-                  height={'3rem'}
-                  radius={10}
-                  circle={false}
-                />
-              </div>
-            </div>
-          </div>
-          <div className="d-flex flex-row justify-content-center mt-2 p-2">
-            <SkeletonLoader
-              width={'50%'}
-              height={'1.5rem'}
-              radius={0}
-              circle={false}
-            />
-          </div>
-          <div className="col-12 p-2">
-            <SkeletonLoader
-              width={'100%'}
-              height={'0.1rem'}
-              radius={0}
-              circle={false}
-            />
-          </div>
-          <div className="row g-2">
-            <div className="col-6">
-              <div className="p-1">
-                <SkeletonLoader
-                  width={'100%'}
-                  height={'3rem'}
-                  radius={10}
-                  circle={false}
-                />
-              </div>
-            </div>
-            <div className="col-6">
-              <div className="p-1">
-                <SkeletonLoader
-                  width={'100%'}
-                  height={'3rem'}
-                  radius={10}
-                  circle={false}
-                />
-              </div>
-            </div>
-          </div>
-          <div className="d-flex flex-row justify-content-center mt-2 p-2">
-            <SkeletonLoader
-              width={'50%'}
-              height={'1.5rem'}
-              radius={0}
-              circle={false}
-            />
-          </div>
-          <div className="col-12 p-2">
-            <SkeletonLoader
-              width={'100%'}
-              height={'0.1rem'}
-              radius={0}
-              circle={false}
-            />
-          </div>
-          <div className="row g-2">
-            <div className="col-12">
-              <div className="p-1">
-                <SkeletonLoader
-                  width={'100%'}
-                  height={'3rem'}
-                  radius={10}
-                  circle={false}
-                />
-              </div>
-            </div>
-          </div>
-          <div className="d-flex flex-row justify-content-end mt-2 p-2">
-            <SkeletonLoader
-              width={'20%'}
-              height={'2rem'}
-              radius={2}
-              circle={false}
-            />
           </div>
         </div>
       </div>
@@ -291,11 +195,8 @@ function compose_noAuth(handleClick: handleClickFunction) {
 
 function compose_ready(
   handleClickBackPage: () => void,
-  lotItems: LotItem[],
-  postings: Posting[],
-  costCenters: CostCenter[],
-  people: Person[],
-  updatePerson: (person: Person) => void,
+  cards: CardType[],
+  costCenters: CostCenterType[],
   removeMultipleLotItems: (items: string[]) => void,
   removeLotItem: (id: string) => void,
   showCanvasDateInfo: boolean,
@@ -323,7 +224,7 @@ function compose_ready(
                 icon={Icon.render('fas', 'registered')}
                 className="me-2 fs-3 flex-shrink-1 text-secondary my-auto"
               />
-              Remover Lote
+              Remover Cartão
             </p>
           </div>
           <button
@@ -334,7 +235,7 @@ function compose_ready(
             Voltar
           </button>
           <p className="fw-bold border-bottom text-center my-2">
-            Lotes Disponíveis
+            Cartões Disponíveis
           </p>
           {canvas_dateInfo(
             showCanvasDateInfo,
@@ -349,7 +250,7 @@ function compose_ready(
             textMatriculeCanvasUserInfo
           )}
           <ListWithFiveColumns
-            noItemsMessage='Nenhum lote disponível.'
+            noItemsMessage='Nenhum cartão disponível.'
             pagination={{
               page: 1,
               limit: 10,
@@ -386,23 +287,10 @@ function compose_ready(
                     if (!items) return;
 
                     const filter = items.filter(item => {
-                      const lot = lotItems.find(lot => `${lot.id} - ${lot.lastCardNumber}` === item);
+                      const card = cards.find(card => `${card.serialNumber} - ${card.lastCardNumber}` === item);
 
-                      if (lot && lot.status === 'available') {
-                        const itemId = `${lot.id} - ${lot.lastCardNumber}`;
-
-                        if (canDeleteLotItems(people, postings, itemId)) {
-                          const person = people.find(person => person.id == lot.person);
-
-                          if (person)
-                            updatePerson({
-                              ...person,
-                              cards: person.cards.filter(card => card != itemId)
-                            });
-
-                          return true;
-                        }
-                      }
+                      if (card && !card.person && card.status === 'available')
+                        return true;
 
                       return false;
                     });
@@ -410,12 +298,12 @@ function compose_ready(
                     if (filter.length > 0)
                       removeMultipleLotItems(filter)
                     else
-                      Alerting.create('warning', 'Nenhum lote pode ser removido.')
+                      Alerting.create('warning', 'Nenhum cartão pode ser removido.')
                   }
                 },
               ]
             }}
-            lines={[...lotItems]
+            lines={[...cards]
               // ? Classifica os itens disponíveis
               .filter(item => item.status === 'available')
               // ? Classifica por data de criação
@@ -430,17 +318,17 @@ function compose_ready(
               // ? Classifica por Centro de Custo
               .sort((a, b) => {
                 const
-                  costCenterA = costCenters.find(c => c.id === a.costCenter)?.title || "???",
-                  costCenterB = costCenters.find(c => c.id === b.costCenter)?.title || "???";
+                  costCenterA = costCenters.find(c => c.id === a.costCenterId)?.value || "???",
+                  costCenterB = costCenters.find(c => c.id === b.costCenterId)?.value || "???";
 
                 return costCenterA.localeCompare(costCenterB);
               })
-              .map((item: LotItem) => {
+              .map((item: CardType) => {
                 return {
-                  id: `${item.id} - ${item.lastCardNumber}`,
+                  id: `${item.serialNumber} - ${item.lastCardNumber}`,
                   values: [
                     {
-                      data: item.id,
+                      data: item.lotNum,
                       size: '2'
                     },
                     {
@@ -448,7 +336,7 @@ function compose_ready(
                       size: '3'
                     },
                     {
-                      data: costCenters.find(costCenter => costCenter.id === item.costCenter)?.title || "???",
+                      data: item.costCenter.value,
                       size: '2'
                     },
                     {
@@ -470,7 +358,7 @@ function compose_ready(
                       },
                       popover: {
                         title: 'Data de Criação',
-                        description: 'Informações sobre a data de criação do lote.'
+                        description: 'Informações sobre a data de criação do cartão.'
                       }
                     },
                     {
@@ -478,15 +366,15 @@ function compose_ready(
                         prefix: 'fas',
                         name: 'user-tag'
                       },
-                      enabled: item.person && item.person.length > 0 ? true : false,
+                      enabled: item.person ? true : false,
                       handleClick: () => {
-                        handleChangeTextNameCanvasUserInfo(`${people.find(person => person.id === item.person)?.name || "???"}`);
-                        handleChangeTextMatriculeCanvasUserInfo(`Matrícula: ${people.find(person => person.id === item.person)?.matricule || "???"}`);
+                        handleChangeTextNameCanvasUserInfo(`${item.person.name}`);
+                        handleChangeTextMatriculeCanvasUserInfo(`Matrícula: ${item.person.matricule}`);
                         openCanvasUserInfo();
                       },
                       popover: {
                         title: 'Usuário Atribuído',
-                        description: 'Informações sobre o usuário atribuído ao lote.'
+                        description: 'Informações sobre o usuário atribuído ao cartão.'
                       }
                     },
                     {
@@ -496,30 +384,14 @@ function compose_ready(
                       },
                       enabled: item.status === 'available',
                       handleClick: () => {
-                        if (item.status !== 'available')
-                          return Alerting.create('error', 'O lote não pode ser removido.');
+                        if (!item.person || item.status !== 'available')
+                          return Alerting.create('error', 'O cartão não pode ser removido.');
 
-                        const itemId = `${item.id} - ${item.lastCardNumber}`;
-
-                        if (canDeleteLotItems(people, postings, itemId)) {
-                          if (item.person) {
-                            const person = people.find(person => person.id == item.person);
-
-                            if (person)
-                              updatePerson({
-                                ...person,
-                                cards: person.cards.filter(card => card != itemId)
-                              });
-                          }
-
-                          removeLotItem(itemId);
-                        } else {
-                          Alerting.create('warning', 'Não é possível excluir o cartão. Existem pessoas usando esse cartão.')
-                        }
+                        removeLotItem(item.id);
                       },
                       popover: {
-                        title: 'Remova o lote',
-                        description: 'Você pode remover lotes que ainda estão disponíveis.'
+                        title: 'Remova o cartão',
+                        description: 'Você pode remover cartões que ainda estão disponíveis e sem associações.'
                       }
                     }
                   ]
@@ -601,6 +473,8 @@ function canvas_userInfo(
 }
 
 export default function CardsRemove() {
+  const [syncData, setSyncData] = useState<boolean>(false);
+
   const [isReady, setReady] = useState<boolean>(false)
   const [notPrivilege, setNotPrivilege] = useState<boolean>(false)
   const [notAuth, setNotAuth] = useState<boolean>(false)
@@ -614,12 +488,13 @@ export default function CardsRemove() {
   const [textNameCanvasUserInfo, setTextNameCanvasUserInfo] = useState<string>('')
   const [textMatriculeCanvasUserInfo, setTextMatriculeCanvasUserInfo] = useState<string>('')
 
-  const
-    dispatch = useAppDispatch(),
-    costCenters = useAppSelector((state) => state.system.costCenters || []),
-    lotItems = useAppSelector((state) => state.payback.lotItems || []),
-    postings = useAppSelector((state) => state.payback.postings || []),
-    people = useAppSelector((state) => state.system.people || []);
+  const {
+    data: cards,
+    delete: handleDeleteCard,
+    isLoading: isLoadingCards
+  } = useCardsService();
+
+  const { data: costCenters, isLoading: isLoadingCostCenters } = useCostCentersService();
 
   const router = useRouter()
 
@@ -645,25 +520,20 @@ export default function CardsRemove() {
       router.push(path)
     },
     handleClickBackPage = () => router.push('/payback/cards'),
-    updatePerson = (person: Person) => {
-      try {
-        dispatch(SystemActions.UPDATE_PERSON(person));
-      } catch (error) {
-        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
-      }
-    },
-    removeMultipleLotItems = (ids: string[]) => ids.forEach(id => {
-      try {
-        dispatch(PaybackActions.DELETE_LOT(id));
-      } catch (error) {
-        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
+    removeMultipleLotItems = async (cardIds: string[]) => cardIds.forEach(async (id) => {
+      if (handleDeleteCard) {
+        const remove = await handleDeleteCard(id);
+
+        if (remove)
+          return Alerting.create('success', 'Cartão deletado com sucesso!');
       }
     }),
-    removeLotItem = (id: string) => {
-      try {
-        dispatch(PaybackActions.DELETE_LOT(id));
-      } catch (error) {
-        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
+    removeLotItem = async (id: string) => {
+      if (handleDeleteCard) {
+        const remove = await handleDeleteCard(id);
+
+        if (remove)
+          return Alerting.create('success', 'Cartão deletado com sucesso!');
       }
     },
     openCanvasDateInfo = () => setShowModalDateInfo(true),
@@ -692,6 +562,18 @@ export default function CardsRemove() {
       });
   }, [])
 
+  if (
+    isLoadingCards && !syncData ||
+    isLoadingCostCenters && !syncData
+  )
+    return compose_load();
+
+  if (!syncData && cards && costCenters) {
+    setSyncData(true);
+  } else if (!syncData && !cards || !syncData && !costCenters) {
+    return <BoxError />;
+  }
+
   if (loading) return compose_load()
 
   if (notPrivilege) return compose_noPrivilege(handleClickNoPrivilege)
@@ -700,11 +582,8 @@ export default function CardsRemove() {
 
   if (isReady) return compose_ready(
     handleClickBackPage,
-    lotItems,
-    postings,
+    cards,
     costCenters,
-    people,
-    updatePerson,
     removeMultipleLotItems,
     removeLotItem,
     showCanvasDateInfo,

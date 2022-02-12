@@ -34,6 +34,6 @@ export type PostingType = {
     coverage: PersonCoverageType
     coveringWorkplace: WorkplaceType
     coverageWorkplace?: WorkplaceType
-    createdAt: Date
-    updatedAt: Date
+    createdAt: string
+    updatedAt: string
 }

@@ -9,8 +9,8 @@ export type CardType = {
   lastCardNumber: string
   personId: string
   status: DatabaseStatusType
-  createdAt: Date
-  updatedAt: Date
+  createdAt: string
+  updatedAt: string
   costCenter: {
     value: string
   }

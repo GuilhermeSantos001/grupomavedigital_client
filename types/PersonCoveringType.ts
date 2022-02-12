@@ -17,6 +17,6 @@ export type PersonCoveringType = {
   reasonForAbsence: {
     value: string
   }
-  createdAt: Date
-  updatedAt: Date
+  createdAt: string
+  updatedAt: string
 }

@@ -11,6 +11,6 @@ export type UploadType = {
   version: number
   temporary: boolean
   expiredAt: Date
-  createdAt: Date
-  updatedAt: Date
+  createdAt: string
+  updatedAt: string
 }

@@ -33,7 +33,7 @@ export type FunctionDeleteCityTypeof = typeof DeleteCity | undefined;
 export function useCityService(id?: string) {
   const { mutate } = useSWRConfig();
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(id ? true : false);
 
   const create = async (data: DataCity) => {
     const createUpdate = await fetcherAxiosPost<DataCity, ApiResponseSuccessOrErrorType<CityType, Object>>(`${process.env.NEXT_PUBLIC_API_HOST}/city`, setIsLoading, data);

@@ -1,7 +1,7 @@
 /**
  * @description Modal -> Modal de Cadastro da Chave de API
  * @author GuilhermeSantos001
- * @update 07/02/2022
+ * @update 11/02/2022
  */
 
 import * as React from 'react';
@@ -52,7 +52,7 @@ export interface Props {
   fetch: Fetch
 }
 
-export default function RegisterAPIKey(props: Props) {
+export function RegisterAPIKey(props: Props) {
   const [username, setUsername] = React.useState('');
   const [userMail, setUserMail] = React.useState('');
   const [apiKeyValue, setApiKeyValue] = React.useState(generateAPIKey());

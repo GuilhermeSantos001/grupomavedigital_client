@@ -12,9 +12,9 @@ import { ApiResponseSuccessOrErrorType } from '@/types/ApiResponseSuccessOrError
 import Alerting from '@/src/utils/alerting';
 
 export type DataPersonCoverage = Pick<PersonCoverageType,
-| 'mirrorId'
-| 'personId'
-| 'modalityOfCoverage'
+  | 'mirrorId'
+  | 'personId'
+  | 'modalityOfCoverage'
 >;
 
 declare function UpdatePersonCoverage(id: string, newData: DataPersonCoverage): Promise<boolean>
@@ -25,8 +25,8 @@ export type FunctionDeletePersonCoverageTypeof = typeof DeletePersonCoverage | u
 export type FunctionNextPageTypeof = (() => void) | undefined;
 export type FunctionPreviousPageTypeof = (() => void) | undefined;
 
-export function usePeopleCoverageService(take: number = 10) {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+export function usePeopleCoverageService(take: number = 10, refreshInterval: number = 1000) {
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const skip = 1;
 
@@ -37,7 +37,7 @@ export function usePeopleCoverageService(take: number = 10) {
   const { data, error, mutate } = useSWR<
     ApiResponseSuccessType<PersonCoverageType[]>,
     ApiResponseErrorType<Object>
-  >([uri, setIsLoading], fetcherAxiosGet)
+  >([uri, setIsLoading], fetcherAxiosGet, { refreshInterval })
 
   if (error) {
     Alerting.create('error', error.message);

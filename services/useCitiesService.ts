@@ -22,7 +22,7 @@ export type FunctionNextPageTypeof = (() => void) | undefined;
 export type FunctionPreviousPageTypeof = (() => void) | undefined;
 
 export function useCitiesService(take: number = 10, refreshInterval: number = 1000) {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const skip = 1;
 

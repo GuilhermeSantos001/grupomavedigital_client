@@ -33,7 +33,7 @@ export type FunctionDeleteReasonForAbsenceTypeof = typeof DeleteReasonForAbsence
 export function useReasonForAbsenceService(id?: string) {
   const { mutate } = useSWRConfig();
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(id ? true : false);
 
   const create = async (data: DataReasonForAbsence) => {
     const createUpdate = await fetcherAxiosPost<DataReasonForAbsence, ApiResponseSuccessOrErrorType<ReasonForAbsenceType, Object>>(`${process.env.NEXT_PUBLIC_API_HOST}/reasonforabsence`, setIsLoading, data);

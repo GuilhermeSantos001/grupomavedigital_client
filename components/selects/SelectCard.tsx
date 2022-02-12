@@ -4,7 +4,7 @@
  * @update 09/02/2022
  */
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import TextField from '@mui/material/TextField';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputLabel from '@mui/material/InputLabel';
@@ -13,6 +13,9 @@ import FormControl from '@mui/material/FormControl';
 import ListItemText from '@mui/material/ListItemText';
 import Select from '@mui/material/Select';
 import Checkbox from '@mui/material/Checkbox';
+
+import { OutlinedInputLoading } from '@/components/utils/OutlinedInputLoading';
+import { BoxError } from '@/components/utils/BoxError';
 
 import { useCardsService } from '@/services/useCardsService';
 
@@ -32,8 +35,19 @@ const MenuProps = {
 }
 
 export function SelectCard(props: Props) {
-  const { data: cards } = useCardsService();
+  const [syncData, setSyncData] = useState<boolean>(false);
+
+  const { data: cards, isLoading: isLoadingCards } = useCardsService();
   const [selectCards, setSelectCards] = useState<string[]>([]);
+
+  if (isLoadingCards && !syncData)
+    return <OutlinedInputLoading label='Cartões Benefício (Alelo)' message='Carregando...' />
+
+  if (!syncData && cards) {
+    setSyncData(true);
+  } else if (!syncData && !cards) {
+    return <BoxError />
+  }
 
   const
     handleChangeCard = (value: string | string[]) => {

@@ -33,7 +33,7 @@ export type FunctionDeleteStreetTypeof = typeof DeleteStreet | undefined;
 export function useStreetService(id?: string) {
   const { mutate } = useSWRConfig();
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(id ? true : false);
 
   const create = async (data: DataStreet) => {
     const createUpdate = await fetcherAxiosPost<DataStreet, ApiResponseSuccessOrErrorType<StreetType, Object>>(`${process.env.NEXT_PUBLIC_API_HOST}/street`, setIsLoading, data);

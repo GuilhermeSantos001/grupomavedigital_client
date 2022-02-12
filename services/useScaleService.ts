@@ -33,7 +33,7 @@ export type FunctionDeleteScaleTypeof = typeof DeleteScale | undefined;
 export function useScaleService(id?: string) {
   const { mutate } = useSWRConfig();
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(id ? true : false);
 
   const create = async (data: DataScale) => {
     const createUpdate = await fetcherAxiosPost<DataScale, ApiResponseSuccessOrErrorType<ScaleType, Object>>(`${process.env.NEXT_PUBLIC_API_HOST}/scale`, setIsLoading, data);

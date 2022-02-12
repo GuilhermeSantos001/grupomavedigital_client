@@ -22,7 +22,7 @@ export type FunctionNextPageTypeof = (() => void) | undefined;
 export type FunctionPreviousPageTypeof = (() => void) | undefined;
 
 export function useScalesService(take: number = 10, refreshInterval: number = 1000) {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const skip = 1;
 
@@ -68,7 +68,7 @@ export function useScalesService(take: number = 10, refreshInterval: number = 10
         setURI(`${process.env.NEXT_PUBLIC_API_HOST}/scales${query}`);
       },
       update: async (id: string, newData: DataScale): Promise<boolean> => {
-        const uri = `${process.env.NEXT_PUBLIC_API_HOST}/scales/${id}`;
+        const uri = `${process.env.NEXT_PUBLIC_API_HOST}/scale/${id}`;
 
         const updateData = await fetcherAxiosPut<DataScale, ApiResponseSuccessOrErrorType<ScaleType, Object>>(uri, setIsLoading, newData);
 
@@ -93,7 +93,7 @@ export function useScalesService(take: number = 10, refreshInterval: number = 10
         return true;
       },
       delete: async (id: string): Promise<boolean> => {
-        const uri = `${process.env.NEXT_PUBLIC_API_HOST}/scales/${id}`;
+        const uri = `${process.env.NEXT_PUBLIC_API_HOST}/scale/${id}`;
 
         const deleteData = await fetcherAxiosDelete<ApiResponseErrorType<Object>>(uri, setIsLoading);
 
