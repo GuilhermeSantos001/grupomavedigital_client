@@ -1,9 +1,8 @@
 /**
- * @description Input -> Seleciona um Motivo de Falta
+ * @description Input -> Seleciona o motivo de falta
  * @author GuilhermeSantos001
- * @update 11/02/2022
+ * @update 13/02/2022
  */
-
 import { useState } from 'react';
 import { Autocomplete, TextField, createFilterOptions, Button } from '@mui/material'
 
@@ -50,15 +49,15 @@ export function SelectReasonForAbsence(props: Props) {
   const { data: reasonForAbsences, isLoading: isLoadingReasonForAbsences, update: UpdateReasonForAbsences, delete: DeleteReasonForAbsences } = useReasonForAbsencesService();
 
   const
-    handleAppendReasonForAbsence: FunctionCreateReasonForAbsenceTypeof = async (data: DataReasonForAbsence) => CreateReasonForAbsence ? await CreateReasonForAbsence(data) : undefined,
-    handleUpdateReasonForAbsence: FunctionUpdateReasonForAbsencesTypeof = async (id: string, data: DataReasonForAbsence) => UpdateReasonForAbsences ? await UpdateReasonForAbsences(id, data) : false,
-    handleRemoveReasonForAbsence: FunctionDeleteReasonForAbsencesTypeof = async (id: string) => DeleteReasonForAbsences ? await DeleteReasonForAbsences(id) : false;
+    handleAppendCity: FunctionCreateReasonForAbsenceTypeof = async (data: DataReasonForAbsence) => CreateReasonForAbsence ? await CreateReasonForAbsence(data) : undefined,
+    handleUpdateCity: FunctionUpdateReasonForAbsencesTypeof = async (id: string, data: DataReasonForAbsence) => UpdateReasonForAbsences ? await UpdateReasonForAbsences(id, data) : false,
+    handleRemoveCity: FunctionDeleteReasonForAbsencesTypeof = async (id: string) => DeleteReasonForAbsences ? await DeleteReasonForAbsences(id) : false;
 
   if (!value && hasEdit)
     setHasEdit(false);
 
   if (isLoadingReasonForAbsence && !syncData || isLoadingReasonForAbsences && !props.id && !syncData)
-    return <AutocompleteLoading label='Motivo da Falta' message='Carregando...' />
+    return <AutocompleteLoading label='Motivo de Falta' message='Carregando...' />
 
   if (!syncData && reasonForAbsence || !syncData && !props.id && reasonForAbsences) {
     if (reasonForAbsence) {
@@ -70,7 +69,7 @@ export function SelectReasonForAbsence(props: Props) {
 
     setSyncData(true);
   } else if (!syncData && !reasonForAbsence || !syncData && !props.id && !reasonForAbsences) {
-    return <AutocompleteError label='Motivo da Falta' message='Ocorreu um erro' />
+    return <AutocompleteError label='Motivo de Falta' message='Ocorreu um erro' />
   }
 
   return (
@@ -103,12 +102,12 @@ export function SelectReasonForAbsence(props: Props) {
                     };
 
                     setValue(update);
-                    handleUpdateReasonForAbsence(reasonForAbsence.id, { value: editValue });
+                    handleUpdateCity(reasonForAbsence.id, { value: editValue });
                     props.handleChangeId(reasonForAbsence.id);
                   }
                 } else {
                   if (reasonForAbsences.filter(reasonForAbsence => reasonForAbsence.value === newValue).length <= 0) {
-                    handleAppendReasonForAbsence({ value: value.value });
+                    handleAppendCity({ value: value.value });
                   } else {
                     const reasonForAbsence = reasonForAbsences.find(reasonForAbsence => reasonForAbsence.value === newValue);
 
@@ -132,14 +131,14 @@ export function SelectReasonForAbsence(props: Props) {
               };
 
             if (!newValue.inputUpdate) {
-              const append = await handleAppendReasonForAbsence({ value: reasonForAbsence.value });
+              const append = await handleAppendCity({ value: reasonForAbsence.value });
 
               if (append) {
                 const { data } = append;
                 reasonForAbsence.id = data.id;
               }
             } else {
-              handleUpdateReasonForAbsence(reasonForAbsence.id, { value: reasonForAbsence.value });
+              handleUpdateCity(reasonForAbsence.id, { value: reasonForAbsence.value });
             }
 
             setValue(reasonForAbsence);
@@ -199,7 +198,7 @@ export function SelectReasonForAbsence(props: Props) {
         renderOption={(props, option) => <li {...props}>{option.value}</li>}
         freeSolo
         renderInput={(params) => (
-          <TextField {...params} label="Motivo da Falta" />
+          <TextField {...params} label="Motivo de Falta" />
         )}
       />
       <Button
@@ -235,10 +234,10 @@ export function SelectReasonForAbsence(props: Props) {
               setValue(null);
             }
 
-            handleRemoveReasonForAbsence(value.id);
+            handleRemoveCity(value.id);
             props.handleChangeId('');
           } else {
-            Alerting.create('info', 'Não é possível remover o motivo de falta sendo usado pelo registro.');
+            Alerting.create('info', 'Não é possível remover o motive de falta sendo usado pelo registro.');
           }
         }}
       >

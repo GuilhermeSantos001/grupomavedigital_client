@@ -78,14 +78,14 @@ export function useServiceService(id?: string) {
         } else {
           mutate([uri, setIsLoading], {
             success: true,
-            data: updateData.data
+            data: { ...createUpdate.data, ...updateData.data }
           });
         }
 
         return true;
       },
       assignPerson: async (data: DataAssignPerson): Promise<boolean> => {
-        const updateData = await fetcherAxiosPut<DataAssignPerson, ApiResponseSuccessOrErrorType<{}, Object>>(uriAssignPerson, setIsLoading, { ...data, serviceId: createUpdate.data.id });
+        const updateData = await fetcherAxiosPost<DataAssignPerson, ApiResponseSuccessOrErrorType<{}, Object>>(uriAssignPerson, setIsLoading, { ...data, serviceId: createUpdate.data.id });
 
         if (!updateData.success) {
           Alerting.create('error', updateData.message);
@@ -97,7 +97,7 @@ export function useServiceService(id?: string) {
         return true;
       },
       unassignPerson: async (): Promise<boolean> => {
-        const updateData = await fetcherAxiosPut<{}, ApiResponseSuccessOrErrorType<{}, Object>>(uriUnassignPerson, setIsLoading, {});
+        const updateData = await fetcherAxiosDelete<ApiResponseSuccessOrErrorType<{}, Object>>(uriUnassignPerson, setIsLoading);
 
         if (!updateData.success) {
           Alerting.create('error', updateData.message);
@@ -109,7 +109,7 @@ export function useServiceService(id?: string) {
         return true;
       },
       assignWorkplace: async (data: DataAssignWorkplace): Promise<boolean> => {
-        const updateData = await fetcherAxiosPut<DataAssignWorkplace, ApiResponseSuccessOrErrorType<{}, Object>>(uriAssignWorkplace, setIsLoading, { ...data, serviceId: createUpdate.data.id });
+        const updateData = await fetcherAxiosPost<DataAssignWorkplace, ApiResponseSuccessOrErrorType<{}, Object>>(uriAssignWorkplace, setIsLoading, { ...data, serviceId: createUpdate.data.id });
 
         if (!updateData.success) {
           Alerting.create('error', updateData.message);
@@ -121,7 +121,7 @@ export function useServiceService(id?: string) {
         return true;
       },
       unassignWorkplace: async (): Promise<boolean> => {
-        const updateData = await fetcherAxiosPut<{}, ApiResponseSuccessOrErrorType<{}, Object>>(uriUnassignWorkplace, setIsLoading, {});
+        const updateData = await fetcherAxiosDelete<ApiResponseSuccessOrErrorType<{}, Object>>(uriUnassignWorkplace, setIsLoading);
 
         if (!updateData.success) {
           Alerting.create('error', updateData.message);
@@ -187,14 +187,14 @@ export function useServiceService(id?: string) {
           } else {
             mutate({
               success: true,
-              data: updateData.data
+              data: {...data?.data, ...updateData.data}
             });
           }
 
           return true;
         },
         assignPerson: async (data: DataAssignPerson): Promise<boolean> => {
-          const updateData = await fetcherAxiosPut<DataAssignPerson, ApiResponseSuccessOrErrorType<{}, Object>>(uriAssignPerson, setIsLoading, { ...data, serviceId: id });
+          const updateData = await fetcherAxiosPost<DataAssignPerson, ApiResponseSuccessOrErrorType<{}, Object>>(uriAssignPerson, setIsLoading, { ...data, serviceId: id });
 
           if (!updateData.success) {
             Alerting.create('error', updateData.message);
@@ -206,7 +206,7 @@ export function useServiceService(id?: string) {
           return true;
         },
         unassignPerson: async (): Promise<boolean> => {
-          const updateData = await fetcherAxiosPut<{}, ApiResponseSuccessOrErrorType<{}, Object>>(uriUnassignPerson, setIsLoading, {});
+          const updateData = await fetcherAxiosDelete<ApiResponseSuccessOrErrorType<{}, Object>>(uriUnassignPerson, setIsLoading);
 
           if (!updateData.success) {
             Alerting.create('error', updateData.message);
@@ -218,7 +218,7 @@ export function useServiceService(id?: string) {
           return true;
         },
         assignWorkplace: async (data: DataAssignWorkplace): Promise<boolean> => {
-          const updateData = await fetcherAxiosPut<DataAssignWorkplace, ApiResponseSuccessOrErrorType<{}, Object>>(uriAssignWorkplace, setIsLoading, { ...data, serviceId: id });
+          const updateData = await fetcherAxiosPost<DataAssignWorkplace, ApiResponseSuccessOrErrorType<{}, Object>>(uriAssignWorkplace, setIsLoading, { ...data, serviceId: id });
 
           if (!updateData.success) {
             Alerting.create('error', updateData.message);
@@ -230,7 +230,7 @@ export function useServiceService(id?: string) {
           return true;
         },
         unassignWorkplace: async (): Promise<boolean> => {
-          const updateData = await fetcherAxiosPut<{}, ApiResponseSuccessOrErrorType<ServiceType, Object>>(uriUnassignWorkplace, setIsLoading, {});
+          const updateData = await fetcherAxiosDelete<ApiResponseSuccessOrErrorType<ServiceType, Object>>(uriUnassignWorkplace, setIsLoading);
 
           if (!updateData.success) {
             Alerting.create('error', updateData.message);

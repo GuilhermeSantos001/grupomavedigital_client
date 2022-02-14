@@ -1,7 +1,7 @@
 /**
  * @description Modal -> Modal de Cadastro de local de trabalho
  * @author GuilhermeSantos001
- * @update 10/02/2022
+ * @update 13/02/2022
  */
 
 import React, { useState } from 'react';
@@ -19,10 +19,13 @@ import CloseIcon from '@mui/icons-material/Close';
 import Slide from '@mui/material/Slide';
 import { TransitionProps } from '@mui/material/transitions';
 
+import { DialogLoading } from '@/components/utils/DialogLoading';
+import { DialogError } from '@/components/utils/DialogError';
+
+import { TimePicker } from '@/components/selects/TimePicker'
 import { SelectService } from '@/components/selects/SelectService'
 import { SelectAddress } from '@/components/selects/SelectAddress'
 import { SelectScale } from '@/components/selects/SelectScale'
-import MobileTimePicker from '@/components/selects/mobileTimePicker'
 
 import Alerting from '@/src/utils/alerting'
 
@@ -44,6 +47,8 @@ const Transition = React.forwardRef(function Transition(
 });
 
 export function RegisterWorkplace(props: Props) {
+  const [syncData, setSyncData] = useState<boolean>(false)
+
   const [name, setName] = useState<string>('');
   const [entryTime, setEntryTime] = useState<Date>(new Date());
   const [exitTime, setExitTime] = useState<Date>(new Date());
@@ -52,37 +57,81 @@ export function RegisterWorkplace(props: Props) {
   const [scaleId, setScaleId] = useState<string>('')
 
   const { create: CreateWorkplace } = useWorkplaceService();
-  const { data: services } = useServicesService();
+  const { data: services, isLoading: isLoadingServices, assignWorkplace: AssignWorkplaceService } = useServicesService();
+
+
+  if (isLoadingServices && !syncData)
+    return <DialogLoading
+      header='Registrar Local de Trabalho'
+      message='Carregando...'
+      show={props.show}
+      handleClose={props.handleClose}
+    />
+
+  if (!syncData && services) {
+    setSyncData(true);
+  } else if (
+    !syncData && !services
+    || !syncData && !AssignWorkplaceService
+  ) {
+    return <DialogError
+      header='Registrar Local de Trabalho'
+      message='Ocorreu um erro'
+      show={props.show}
+      handleClose={props.handleClose}
+    />
+  }
 
   const
     handleChangeName = (value: string) => setName(value),
     handleChangeEntryTime = (value: Date) => setEntryTime(value),
     handleChangeExitTime = (value: Date) => setExitTime(value),
-    handleChangeAddress = (id: string) => setAddressId(id),
-    handleChangeScale = (id: string) => setScaleId(id);
+    handleChangeAddressId = (id: string) => setAddressId(id),
+    handleChangeScaleId = (id: string) => setScaleId(id);
 
-  const canRegisterWorkPlace = () => {
-    return name.length > 0 &&
-      entryTime !== null &&
-      exitTime !== null &&
-      appliedServices.length > 0 &&
-      addressId.length > 0 &&
-      scaleId.length > 0
-  }
+  const
+    canRegisterWorkPlace = () => {
+      return name.length > 0 &&
+        entryTime !== null &&
+        exitTime !== null &&
+        appliedServices.length > 0 &&
+        addressId.length > 0 &&
+        scaleId.length > 0
+    },
+    handleAssignWorkplaceService = async (workplaceId: string, servicesId: string[]) => {
+      if (!AssignWorkplaceService)
+        throw new Error('AssignWorkplaceService is undefined');
 
-  const handleRegisterWorkplace = async () => {
-    const workplace = await CreateWorkplace({
-      name,
-      entryTime: entryTime.toISOString(),
-      exitTime: exitTime.toISOString(),
-      addressId,
-      scaleId,
-      status: 'available'
-    });
+      for (const serviceId of servicesId) {
+        const assign = await AssignWorkplaceService(serviceId, { workplaceId });
 
-    if (workplace)
-      return Alerting.create('success', 'Local de trabalho cadastrado com sucesso!');
-  }
+        if (!assign)
+          throw new Error('AssignWorkplaceService failed');
+      }
+    },
+    handleRegisterWorkplace = async () => {
+      const workplace = await CreateWorkplace({
+        name,
+        entryTime: entryTime.toISOString(),
+        exitTime: exitTime.toISOString(),
+        addressId,
+        scaleId,
+        status: 'available'
+      });
+
+      if (!workplace)
+        return Alerting.create('error', 'Não foi possível registrar o local de trabalho. Tente novamente com outros dados.');
+
+      try {
+        await handleAssignWorkplaceService(workplace.data.id, services.filter(service => appliedServices.includes(service.id)).map(service => service.id));
+
+        Alerting.create('success', 'Local de Trabalho registrado com sucesso.');
+        props.handleClose();
+      } catch {
+        Alerting.create('error', 'Local de Trabalho registrado, mas ocorreram erros na confirmação de alguns dados. Verifique se todos os dados estão corretos na tela de registro dos locais de trabalho.');
+        props.handleClose();
+      }
+    }
 
   return (
     <div>
@@ -130,12 +179,12 @@ export function RegisterWorkplace(props: Props) {
           <ListItem>
             <div className='col'>
               <SelectScale
-                handleChangeId={handleChangeScale}
+                handleChangeId={handleChangeScaleId}
               />
             </div>
           </ListItem>
           <ListItem>
-            <MobileTimePicker
+            <TimePicker
               className='col-12'
               label="Horário de Entrada"
               value={entryTime}
@@ -143,7 +192,7 @@ export function RegisterWorkplace(props: Props) {
             />
           </ListItem>
           <ListItem>
-            <MobileTimePicker
+            <TimePicker
               className='col-12'
               label="Horário de Saída"
               value={exitTime}
@@ -168,7 +217,7 @@ export function RegisterWorkplace(props: Props) {
           </ListItem>
           <ListItem>
             <SelectAddress
-              handleChangeId={handleChangeAddress}
+              handleChangeId={handleChangeAddressId}
             />
           </ListItem>
         </List>

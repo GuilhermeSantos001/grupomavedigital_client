@@ -82,7 +82,7 @@ export function useDistrictsService(take: number = 10, refreshInterval: number =
             success: true,
             data: data.data.map(district => {
               if (district.id === id) {
-                district = updateData.data;
+                district = {...district, ...updateData.data};
               }
 
               return district;

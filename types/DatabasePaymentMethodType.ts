@@ -1,1 +1,1 @@
-export type DatabasePaymentMethodType = 'money' | 'card';
+export type DatabasePaymentMethodType = '' | 'money' | 'card';

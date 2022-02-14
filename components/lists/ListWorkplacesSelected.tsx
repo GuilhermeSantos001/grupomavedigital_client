@@ -34,7 +34,7 @@ export function renderListItem(key: string, title: string, subtitle: string) {
   )
 }
 
-export default function ListWorkplacesSelected(props: Props) {
+export function ListWorkplacesSelected(props: Props) {
   const
     scales = useAppSelector(state => state.system.scales || []),
     services = useAppSelector(state => state.system.services || []);

@@ -79,7 +79,7 @@ export function usePostingService(id?: string) {
         } else {
           mutate([uri, setIsLoading], {
             success: true,
-            data: updateData.data
+            data: {...createUpdate.data, ...updateData.data}
           });
         }
 
@@ -135,7 +135,7 @@ export function usePostingService(id?: string) {
           } else {
             mutate({
               success: true,
-              data: updateData.data
+              data: {...data?.data, ...updateData.data}
             });
           }
 

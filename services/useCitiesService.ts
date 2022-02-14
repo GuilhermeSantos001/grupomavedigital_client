@@ -82,7 +82,7 @@ export function useCitiesService(take: number = 10, refreshInterval: number = 10
             success: true,
             data: data.data.map(city => {
               if (city.id === id) {
-                city = updateData.data;
+                city = { ...city, ...updateData.data };
               }
 
               return city;

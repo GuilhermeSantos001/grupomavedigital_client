@@ -1,7 +1,7 @@
 /**
  * @description Input -> Seleciona um endereço
  * @author GuilhermeSantos001
- * @update 10/02/2022
+ * @update 12/02/2022
  */
 
 import { useState } from 'react';
@@ -9,6 +9,10 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
+
+import { OutlinedInputLoading } from '@/components/utils/OutlinedInputLoading';
+import { OutlinedInputEmpty } from '@/components/utils/OutlinedInputEmpty';
+import { BoxError } from '@/components/utils/BoxError';
 
 import {
   useAddressesService
@@ -21,14 +25,28 @@ export type Props = {
 }
 
 export function SelectAddress(props: Props) {
+  const [syncData, setSyncData] = useState<boolean>(false);
+
   const [address, setAddress] = useState<string>(props.id || '');
 
-  const { data: addresses } = useAddressesService();
+  const { data: addresses, isLoading: isLoadingAddresses } = useAddressesService();
+
+  if (isLoadingAddresses && !syncData)
+    return <OutlinedInputLoading label='Endereço' message='Carregando...' />
+
+  if (!syncData && addresses) {
+    setSyncData(true);
+  } else if (!syncData && !addresses) {
+    return <BoxError />
+  }
+
+  if (addresses.length <= 0)
+    return <OutlinedInputEmpty label='Endereço' message='Nenhum endereço cadastrado' />
 
   return (
     <FormControl variant="outlined" className='col-12'>
       <InputLabel id="select-address-label">
-        Local de Trabalho
+        Endereço
       </InputLabel>
       <Select
         labelId="select-address-label"
@@ -39,7 +57,7 @@ export function SelectAddress(props: Props) {
           setAddress(e.target.value as string);
           props.handleChangeId(e.target.value as string);
         }}
-        label="Local de Trabalho"
+        label="Endereço"
       >
         {addresses.map((address) => {
           return (

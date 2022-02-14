@@ -1,7 +1,7 @@
 /**
  * @description Assistente -> Definição de cobertura
  * @author GuilhermeSantos001
- * @update 27/01/2022
+ * @update 13/02/2022
  */
 
 import { useState } from 'react'
@@ -29,9 +29,12 @@ import FormControl from '@mui/material/FormControl'
 import Select, { SelectChangeEvent } from '@mui/material/Select'
 import TextField from '@mui/material/TextField'
 import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import { CardActionArea } from '@mui/material';
-import Divider from '@mui/material/Divider';
+import CardContent from '@mui/material/CardContent'
+import { CardActionArea } from '@mui/material'
+import Divider from '@mui/material/Divider'
+
+import { ModalLoading } from '@/components/utils/ModalLoading'
+import { ModalError } from '@/components/utils/ModalError'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
@@ -39,100 +42,160 @@ import Icon from '@/src/utils/fontAwesomeIcons'
 import Fetch from '@/src/utils/fetch'
 import { uploadDownload } from '@/src/functions/getUploads'
 import { getUserAuth } from '@/pages/storage/index'
+
 import Alerting from '@/src/utils/alerting'
 import StringEx from '@/src/utils/stringEx'
 import DateEx from '@/src/utils/dateEx'
 
-import MobileDatePicker from '@/components/selects/mobileDatePicker'
+import { DatePicker } from '@/components/selects/DatePicker'
 
-import SelectReasonForAbsence from '@/components/selects/selectReasonForAbsence';
 import DropZone from '@/components/dropZone';
 
-import { useAppSelector, useAppDispatch } from '@/app/hooks';
+import { usePostingService, DataPosting } from '@/services/usePostingService'
+import { useUploadService, DataUpload } from '@/services/useUploadService'
+import { useUploadsService } from '@/services/useUploadsService'
+import { useCostCentersService } from '@/services/useCostCentersService'
+import { usePeopleService } from '@/services/usePeopleService'
+import { usePersonCoveringService } from '@/services/usePersonCoveringService'
+import { usePersonCoverageService } from '@/services/usePersonCoverageService'
+import { useWorkplacesService } from '@/services/useWorkplacesService'
+import { useReasonForAbsencesService } from '@/services/useReasonForAbsencesService'
 
-import {
-  Upload,
-  SystemActions,
-} from '@/app/features/system/system.slice';
-
-import {
-  Posting,
-  PaybackActions,
-} from '@/app/features/payback/payback.slice';
+import { PostingModality } from '@/types/PostingType';
+import { DatabaseModalityOfCoveringType } from '@/types/DatabaseModalityOfCoveringType'
+import { DatabasePaymentMethodType } from '@/types/DatabasePaymentMethodType'
 
 export type Props = {
   show: boolean;
   availableWorkplaces: string[]
   availablePeopleInWorkplace: string[]
-  postingCostCenter: string;
+  postingCostCenterId: string;
   periodStart: Date
   periodEnd: Date
   handleClose: () => void;
-  handleFinish: (postings: Posting[]) => void;
+  handleFinish: (postings: DataPosting[]) => void;
 }
 
-export default function AssistantCoverageDefine(props: Props) {
+export function AssistantCoverageDefine(props: Props) {
+  const [syncData, setSyncData] = useState<boolean>(false)
+
   const [activeStep, setActiveStep] = useState(0);
 
   const [originDate, setOriginDate] = useState(props.periodStart);
-  const [paymentMethod, setPaymentMethod] = useState<string>('');
+  const [paymentMethod, setPaymentMethod] = useState<DatabasePaymentMethodType>('');
   const [paymentValue, setPaymentValue] = useState<number>(0);
   const [paymentDatePayable, setPaymentDatePayable] = useState<Date>(props.periodEnd);
 
   const [coveringWorkplace, setCoveringWorkplace] = useState<string>('');
   const [coveringPersonId, setCoveringPersonId] = useState<string>('');
-  const [coveringReasonForAbsence, setCoveringReasonForAbsence] = useState<string>('');
+  const [coveringReasonForAbsenceId, setCoveringReasonForAbsenceId] = useState<string>('');
+  const [coveringMirrorId, setCoveringMirrorId] = useState<string>('');
   const [coveringMirrorFileId, setCoveringMirrorFileId] = useState<string>('');
   const [coveringMirrorFileName, setCoveringMirrorFileName] = useState<string>('');
   const [coveringMirrorFileType, setCoveringMirrorFileType] = useState<string>('');
-  const [coveringModality, setCoveringModality] = useState<string>('');
+  const [coveringModality, setCoveringModality] = useState<DatabaseModalityOfCoveringType>('ft');
 
   const [coverageWorkplace, setCoverageWorkplace] = useState<string>('');
   const [coveragePersonId, setCoveragePersonId] = useState<string>('');
+  const [coverageMirrorId, setCoverageMirrorId] = useState<string>('');
   const [coverageMirrorFileId, setCoverageMirrorFileId] = useState<string>('');
   const [coverageMirrorFileName, setCoverageMirrorFileName] = useState<string>('');
   const [coverageMirrorFileType, setCoverageMirrorFileType] = useState<string>('');
 
-  const [postings, setPostings] = useState<Posting[]>([]);
-  const [postingType, setPostingType] = useState<string>('');
+  const [postings, setPostings] = useState<DataPosting[]>([]);
+  const [postingModality, setPostingModality] = useState<PostingModality>('');
   const [postingDescription, setPostingDescription] = useState<string>('');
 
-  const
-    workplaces = useAppSelector(state => state.system.workplaces || []),
-    people = useAppSelector(state => state.system.people || []),
-    reasonForAbsences = useAppSelector(state => state.system.reasonForAbsences || []),
-    scales = useAppSelector(state => state.system.scales || []),
-    services = useAppSelector(state => state.system.services || []),
-    lotItems = useAppSelector(state => state.payback.lotItems || []),
-    costCenters = useAppSelector(state => state.system.costCenters || []),
-    uploads = useAppSelector(state => state.system.uploads || []);
+  const { create: CreatePosting } = usePostingService();
+  const { create: CreateUpload } = useUploadService();
+  const { create: CreatePersonCovering } = usePersonCoveringService();
+  const { create: CreatePersonCoverage } = usePersonCoverageService();
+  const { data: uploads, isLoading: isLoadingUploads, update: UpdateUpload } = useUploadsService();
+  const { data: costCenters, isLoading: isLoadingCostCenters } = useCostCentersService();
+  const { data: people, isLoading: isLoadingPeople } = usePeopleService();
+  const { data: workplaces, isLoading: isLoadingWorkplaces } = useWorkplacesService();
+  const { data: reasonForAbsences, isLoading: isLoadingReasonForAbsences } = useReasonForAbsencesService();
+
+  if (
+    isLoadingUploads && !syncData
+    || isLoadingCostCenters && !syncData
+    || isLoadingPeople && !syncData
+    || isLoadingWorkplaces && !syncData
+    || isLoadingReasonForAbsences && !syncData
+  )
+    return <ModalLoading
+      header='Registrar Movimentação Operacional'
+      message='Carregando...'
+      show={props.show}
+      handleClose={props.handleClose}
+    />
+
+  if (
+    !syncData
+    && uploads
+    && costCenters
+    && people
+    && workplaces
+    && reasonForAbsences
+  ) {
+    setSyncData(true);
+  } else if (
+    !syncData && !uploads
+    || !syncData && !costCenters
+    || !syncData && !people
+    || !syncData && !workplaces
+    || !syncData && !reasonForAbsences
+    || !syncData && !CreatePosting
+    || !syncData && !CreateUpload
+    || !syncData && !CreatePersonCovering
+    || !syncData && !CreatePersonCoverage
+  ) {
+    return <ModalError
+      header='Registrar Movimentação Operacional'
+      show={props.show}
+      handleClose={props.handleClose}
+    />
+  }
 
   const
-    dispatch = useAppDispatch(),
-    uploadMakeTemporary = (fileId: string) => {
+    uploadMakeTemporary = async (fileId: string) => {
       try {
+        if (!UpdateUpload)
+          throw new Error('UpdateUpload is not defined');
+
         const upload = uploads.find(upload => upload.fileId === fileId);
 
-        if (upload)
-          dispatch(SystemActions.UPDATE_UPLOAD({
+        if (upload) {
+          const updated = await UpdateUpload(upload.id, {
             ...upload,
             temporary: true
-          }))
+          });
+
+          if (!updated)
+            throw new Error('Não foi possível atualizar o upload para ser um arquivo temporário.');
+        }
         else
           throw new Error('Upload não encontrado');
       } catch (error) {
         Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
       }
     },
-    uploadMakePermanent = (fileId: string) => {
+    uploadMakePermanent = async (fileId: string) => {
       try {
+        if (!UpdateUpload)
+          throw new Error('UpdateUpload is not defined');
+
         const upload = uploads.find(upload => upload.fileId === fileId);
 
-        if (upload)
-          dispatch(SystemActions.UPDATE_UPLOAD({
+        if (upload) {
+          const updated = await UpdateUpload(upload.id, {
             ...upload,
             temporary: false
-          }))
+          });
+
+          if (!updated)
+            throw new Error('Não foi possível atualizar o upload para ser um arquivo permanente.');
+        }
         else
           throw new Error('Upload não encontrado');
       } catch (error) {
@@ -149,7 +212,8 @@ export default function AssistantCoverageDefine(props: Props) {
 
       setCoveringWorkplace('');
       setCoveringPersonId('');
-      setCoveringReasonForAbsence('');
+      setCoveringReasonForAbsenceId('');
+      setCoveringMirrorId('');
       setCoveringMirrorFileId('');
       setCoveringMirrorFileName('');
       setCoveringMirrorFileType('');
@@ -157,12 +221,13 @@ export default function AssistantCoverageDefine(props: Props) {
 
       setCoverageWorkplace('');
       setCoveragePersonId('');
+      setCoverageMirrorId('');
       setCoverageMirrorFileId('');
       setCoverageMirrorFileName('');
       setCoverageMirrorFileType('');
 
       setPostings([]);
-      setPostingType('');
+      setPostingModality('');
       setPostingDescription('');
     },
     hasChangeStep = (step: number) => {
@@ -175,7 +240,7 @@ export default function AssistantCoverageDefine(props: Props) {
       }
       // ? Passo 2° -> Tipo de Movimentação
       else if (step === 1) {
-        if (postingType === '') {
+        if (postingModality === '') {
           Alerting.create('warning', 'Tipo de Movimentação não definida.');
           return false;
         }
@@ -190,7 +255,7 @@ export default function AssistantCoverageDefine(props: Props) {
       // ? Passo 4° -> Funcionário(a)
       else if (step === 3) {
         // ! Falta do Efetivo
-        if (postingType === 'absence_person')
+        if (postingModality === 'absence_person')
           if (coveringPersonId === '') {
             Alerting.create('warning', 'Funcionário(a) não definido.');
             return false;
@@ -199,8 +264,8 @@ export default function AssistantCoverageDefine(props: Props) {
       // ? Passo 5° -> Motivo da Ausência
       else if (step === 4) {
         // ! Falta do Efetivo
-        if (postingType === 'absence_person')
-          if (coveringReasonForAbsence === '') {
+        if (postingModality === 'absence_person')
+          if (coveringReasonForAbsenceId === '') {
             Alerting.create('warning', 'Motivo da ausência não definido.');
             return false;
           }
@@ -208,7 +273,7 @@ export default function AssistantCoverageDefine(props: Props) {
       // ? Passo 6° -> Espelho de Ponto
       else if (step === 5) {
         // ! Falta do Efetivo
-        if (postingType === 'absence_person')
+        if (postingModality === 'absence_person')
           if (coveringMirrorFileId === '') {
             Alerting.create('warning', 'Espelho de ponto não definido.');
             return false;
@@ -244,7 +309,7 @@ export default function AssistantCoverageDefine(props: Props) {
       // ? Passo 8° -> Modalidade -> Freelancer
       else if (
         step === 7 &&
-        coveringModality === 'free'
+        coveringModality === 'freelancer'
       ) {
         if (coveragePersonId === '') {
           Alerting.create('warning', 'Funcionário(a) não definido.');
@@ -279,13 +344,13 @@ export default function AssistantCoverageDefine(props: Props) {
       if (hasChangeStep(activeStep)) {
         if (
           // ! Falta do Efetivo
-          postingType === 'absence_person' ||
-          postingType === ''
+          postingModality === 'absence_person' ||
+          postingModality === ''
         ) {
           setActiveStep((prevActiveStep) => prevActiveStep + 1);
         } else if (
           // ! Falta de Efetivo
-          postingType === 'lack_people'
+          postingModality === 'lack_people'
         ) {
           setActiveStep((prevActiveStep) => prevActiveStep === 2 ? 6 : prevActiveStep + 1);
         }
@@ -294,13 +359,13 @@ export default function AssistantCoverageDefine(props: Props) {
     handleBack = () => {
       if (
         // ! Falta do Efetivo
-        postingType === 'absence_person' ||
-        postingType === ''
+        postingModality === 'absence_person' ||
+        postingModality === ''
       ) {
         setActiveStep((prevActiveStep) => prevActiveStep - 1);
       } else if (
         // ! Falta de Efetivo
-        postingType === 'lack_people'
+        postingModality === 'lack_people'
       ) {
         setActiveStep((prevActiveStep) => prevActiveStep === 6 ? 2 : prevActiveStep - 1);
       }
@@ -336,83 +401,96 @@ export default function AssistantCoverageDefine(props: Props) {
         on(
           `${PaybackSocketEvents.PAYBACK_CHANGE_TYPE_MIRROR}-SUCCESS`,
           async (data: string) => {
-            const {
-              filesId,
-              type,
-            } = window.socket.decompress<TYPEOF_LISTENER_PAYBACK_CHANGE_TYPE_MIRROR>(data);
-
-            if (type === 'TEMPORARY') {
-              filesId
-                .filter(fileId => fileId.length > 0)
-                .forEach(fileId => uploadMakeTemporary(fileId));
-            } else if (type === 'PERMANENT') {
-              filesId
-                .filter(fileId => fileId.length > 0)
-                .forEach(fileId => uploadMakePermanent(fileId));
-            }
-
-            const posting: Posting = {
-              id: StringEx.id(),
-              author: await getUserAuth(),
-              costCenter: props.postingCostCenter,
-              periodStart: props.periodStart.toISOString(),
-              periodEnd: props.periodEnd.toISOString(),
-              originDate: originDate.toISOString(),
-              description: postingDescription,
-              coverage: {
-                id: coveragePersonId,
-                mirror: {
-                  fileId: coverageMirrorFileId,
-                  filename: coverageMirrorFileName,
-                  filetype: coverageMirrorFileType
-                },
-                modalityOfCoverage: coveringModality
-              },
-              covering: coveringPersonId.length > 0 ? {
-                id: coveringPersonId,
-                mirror: {
-                  fileId: coveringMirrorFileId,
-                  filename: coveringMirrorFileName,
-                  filetype: coveringMirrorFileType
-                },
-                reasonForAbsence: coveringReasonForAbsence,
-              } : undefined,
-              coverageWorkplace: coverageWorkplace.length > 0 ? coverageWorkplace : undefined,
-              coveringWorkplace: coveringWorkplace,
-              paymentMethod: paymentMethod,
-              paymentValue: paymentValue,
-              paymentDatePayable: paymentDatePayable.toISOString(),
-              paymentStatus: 'payable',
-              status: 'available',
-              createdAt: new Date().toISOString(),
-            };
-
             try {
-              dispatch(PaybackActions.CREATE_POSTING(posting));
+              if (!CreatePosting || !CreatePersonCovering || !CreatePersonCoverage)
+                return Alerting.create('error', 'Não é possível registrar a movimentação operacional. Tente novamente, mais tarde!');
+
+              const {
+                filesId,
+                type,
+              } = window.socket.decompress<TYPEOF_LISTENER_PAYBACK_CHANGE_TYPE_MIRROR>(data);
+
+              if (type === 'TEMPORARY') {
+                filesId
+                  .filter(fileId => fileId.length > 0)
+                  .forEach(fileId => uploadMakeTemporary(fileId));
+              } else if (type === 'PERMANENT') {
+                filesId
+                  .filter(fileId => fileId.length > 0)
+                  .forEach(fileId => uploadMakePermanent(fileId));
+              }
+
+              const personCoverage = await CreatePersonCoverage({
+                mirrorId:
+                  coveringModality === 'ft'
+                    || coveringModality === 'pacote_de_horas' ? coverageMirrorId : '',
+                modalityOfCoverage: coveringModality,
+                personId: coveragePersonId,
+              })
+
+              if (!personCoverage)
+                return Alerting.create('error', 'Não é possível salvar o funcionário(a) de cobertura. Tente novamente com outro espelho de ponto');
+
+              let personCovering = undefined;
+
+              if (postingModality === 'absence_person') {
+                personCovering = await CreatePersonCovering({
+                  mirrorId: coveringMirrorId,
+                  personId: coveringPersonId,
+                  reasonForAbsenceId: coveringReasonForAbsenceId,
+                })
+
+                if (!personCovering)
+                  throw new Error(`Não é possível salvar o funcionário(a) que está sendo coberto. Tente novamente com outro espelho de ponto.`);
+              }
+
+              const posting = await CreatePosting({
+                author: await getUserAuth(),
+                costCenterId: props.postingCostCenterId,
+                periodStart: props.periodStart.toISOString(),
+                periodEnd: props.periodEnd.toISOString(),
+                originDate: originDate.toISOString(),
+                description: postingDescription,
+                coveringId: personCovering ? personCovering.data.id : '',
+                coverageId: personCoverage.data.id,
+                coveringWorkplaceId: coveringWorkplace,
+                coverageWorkplaceId: coveringModality === 'ft' || coveringModality === 'pacote_de_horas' ? coverageWorkplace : '',
+                paymentMethod,
+                paymentValue,
+                paymentDatePayable: paymentDatePayable.toISOString(),
+                paymentStatus: 'pending',
+                status: 'available'
+              });
+
+              if (!posting)
+                throw new Error(`Não é possível salvar a movimentação operacional. Tente novamente, mais tarde!`);
+
               clearInputs();
-              setPostings([...postings, posting]);
+              setPostings([...postings, posting.data]);
 
               window.loading = 'hide';
-              Alerting.create('success', 'Lançamento registrado com sucesso.');
+              Alerting.create('success', 'Movimentação registrada com sucesso.');
             } catch (error) {
               window.loading = 'hide';
               Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
 
               // ! Limpa os anexos dos espelhos de ponto
+              setCoveringMirrorId('');
               setCoveringMirrorFileId('');
               setCoveringMirrorFileName('');
               setCoveringMirrorFileType('');
+              setCoverageMirrorId('');
               setCoverageMirrorFileId('');
               setCoverageMirrorFileName('');
               setCoverageMirrorFileType('');
 
               // ! Falta do efetivo
               if (
-                postingType === 'absence_person'
+                postingModality === 'absence_person'
               )
                 setActiveStep(3);
               // ! Falta de Efetivo
-              else if (postingType === 'lack_people')
+              else if (postingModality === 'lack_people')
                 setActiveStep(7);
             }
           })
@@ -427,20 +505,27 @@ export default function AssistantCoverageDefine(props: Props) {
     },
     handleChangeCoveringWorkplace = (event: SelectChangeEvent) => setCoveringWorkplace(event.target.value),
     handleChangeCoveringPersonId = (event: SelectChangeEvent) => setCoveringPersonId(event.target.value),
-    handleChangeCoveringReasonForAbsence = (id: string) => setCoveringReasonForAbsence(id),
-    handleAppendUploads = (file: Upload) => {
+    handleChangeCoveringReasonForAbsenceId = (id: string) => setCoveringReasonForAbsenceId(id),
+    handleAppendUploads = async (data: DataUpload) => {
       try {
-        dispatch(SystemActions.CREATE_UPLOAD(file));
+        const upload = await CreateUpload(data);
+
+        if (!upload)
+          throw new Error('Não foi possível criar o anexo.');
+
+        return upload.data.id;
       } catch (error) {
         Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
       }
     },
+    handleChangeCoveringMirrorId = (id: string) => setCoveringMirrorId(id),
     handleChangeCoveringMirrorFileId = (fileId: string) => setCoveringMirrorFileId(fileId),
     handleChangeCoveringMirrorFileName = (fileName: string) => setCoveringMirrorFileName(fileName),
     handleChangeCoveringMirrorFileType = (fileType: string) => setCoveringMirrorFileType(fileType),
-    handleChangeCoveringModality = (modality: string) => setCoveringModality(modality),
+    handleChangeCoveringModality = (modality: DatabaseModalityOfCoveringType) => setCoveringModality(modality),
     handleChangeCoverageWorkplace = (event: SelectChangeEvent) => setCoverageWorkplace(event.target.value),
     handleChangeCoveragePersonId = (event: SelectChangeEvent) => setCoveragePersonId(event.target.value),
+    handleChangeCoverageMirrorId = (id: string) => setCoverageMirrorId(id),
     handleChangeCoverageMirrorFileId = (fileId: string) => setCoverageMirrorFileId(fileId),
     handleChangeCoverageMirrorFileName = (fileName: string) => setCoverageMirrorFileName(fileName),
     handleChangeCoverageMirrorFileType = (fileType: string) => setCoverageMirrorFileType(fileType),
@@ -450,39 +535,23 @@ export default function AssistantCoverageDefine(props: Props) {
 
         if (
           cards &&
-          cards
-            .filter(card => {
-              const
-                lotItem = lotItems.find(lotItem => {
-                  return `${lotItem.id} - ${lotItem.lastCardNumber}` === card;
-                })
-
-              if (!lotItem)
-                return false
-
-              const costCenter = costCenters.find(costCenter => costCenter.id === lotItem.costCenter);
-
-              if (!costCenter)
-                return false
-
-              return costCenter.id === props.postingCostCenter;
-            }).length > 0
+          cards.filter(card => card.costCenter.id === props.postingCostCenterId).length > 0
         )
           return setPaymentMethod(event.target.value);
         else {
-          Alerting.create('warning', `${people.find(person => person.id === coveragePersonId)?.name} não possui um cartão benefício (Alelo) da ${costCenters.find(costCenter => costCenter.id === props.postingCostCenter)?.title}`, 3600);
-          Alerting.create('info', `Adicione um cartão benefício (Alelo) da ${costCenters.find(costCenter => costCenter.id === props.postingCostCenter)?.title} para ${people.find(person => person.id === coveragePersonId)?.name}`, 3600);
+          Alerting.create('warning', `${people.find(person => person.id === coveragePersonId)?.name} não possui um cartão benefício (Alelo) da ${costCenters.find(costCenter => costCenter.id === props.postingCostCenterId)?.value}`, 3600);
+          Alerting.create('info', `Adicione um cartão benefício (Alelo) da ${costCenters.find(costCenter => costCenter.id === props.postingCostCenterId)?.value} para ${people.find(person => person.id === coveragePersonId)?.name}`, 3600);
           setPaymentMethod("");
         }
-      } else {
+      } else if (event.target.value === 'money') {
         return setPaymentMethod(event.target.value);
       }
     },
     handleChangePaymentValue = (value: number) => setPaymentValue(value),
-    handleChangePostingType = (type: string) => {
+    handleChangePostingType = (type: PostingModality) => {
       const _backup_originDate = originDate;
       clearInputs();
-      setPostingType(type);
+      setPostingModality(type);
       setOriginDate(_backup_originDate);
       setActiveStep(1);
     },
@@ -495,7 +564,7 @@ export default function AssistantCoverageDefine(props: Props) {
       label: 'Data de Origem',
       description: 'Informe a data na qual a movimentação foi realizada.',
       content: (
-        <MobileDatePicker
+        <DatePicker
           className="col px-2"
           label="Data da Movimentação"
           value={originDate}
@@ -533,8 +602,14 @@ export default function AssistantCoverageDefine(props: Props) {
           <Select
             labelId="select-posting-type-label"
             id="select-posting-type"
-            value={postingType}
-            onChange={(e) => handleChangePostingType(e.target.value)}
+            value={postingModality}
+            onChange={(e) => {
+              if (
+                e.target.value === 'absence_person'
+                || e.target.value === 'lack_people'
+              )
+                handleChangePostingType(e.target.value)
+            }}
             label="Tipos Disponíveis"
           >
             <MenuItem value="">
@@ -572,7 +647,7 @@ export default function AssistantCoverageDefine(props: Props) {
                   <MenuItem
                     key={place.id}
                     value={place.id}>
-                    {place.name} ({scales.find(scale => scale.id === place.scale)?.value || "???"} - {services.filter(service => place.services.includes(service.id)).map(service => service.value).join(', ')})
+                    {place.name} ({place.scale.value} - {place.workplaceService.map(_ => _.service.value).join(', ')})
                   </MenuItem>
                 ))
             }
@@ -606,7 +681,7 @@ export default function AssistantCoverageDefine(props: Props) {
                   <MenuItem
                     key={person.id}
                     value={person.id}>
-                    [{person.matricule}]: {person.name} ({scales.find(scale => scale.id === person.scale)?.value || "???"} - {services.filter(service => person.services.includes(service.id)).map(service => service.value).join(', ')})
+                    [{person.matricule}]: {person.name} ({person.scale.value} - {person.personService.map(_ => _.service.value).join(', ')})
                   </MenuItem>
                 ))
             }
@@ -618,12 +693,32 @@ export default function AssistantCoverageDefine(props: Props) {
       label: 'Motivo da Ausência',
       description: `Informe o motivo da ausência da pessoa que está sendo substituída.`,
       content: (
-        <div className='col-12 col-md-11'>
-          <SelectReasonForAbsence
-            reasonForAbsence={reasonForAbsences.find(reason => reason.id === coveringReasonForAbsence)}
-            handleChangeReasonForAbsence={handleChangeCoveringReasonForAbsence}
-          />
-        </div>
+        <FormControl variant="standard" className='col-12'>
+          <InputLabel id="select-covering-workplace-label">
+            Locais de Trabalho
+          </InputLabel>
+          <Select
+            labelId="select-covering-workplace-label"
+            id="select-covering-workplace"
+            value={coveringReasonForAbsenceId}
+            onChange={(e) => handleChangeCoveringReasonForAbsenceId(e.target.value)}
+            label="Local de Trabalho"
+          >
+            <MenuItem value="">
+              <em>Selecionar</em>
+            </MenuItem>
+            {
+              reasonForAbsences
+                .map(reason => (
+                  <MenuItem
+                    key={reason.id}
+                    value={reason.id}>
+                    {reason.value}
+                  </MenuItem>
+                ))
+            }
+          </Select>
+        </FormControl>
       )
     },
     {
@@ -712,14 +807,20 @@ export default function AssistantCoverageDefine(props: Props) {
             labelId="select-modality-of-covering-label"
             id="select-modality-of-covering"
             value={coveringModality}
-            onChange={(e) => handleChangeCoveringModality(e.target.value)}
+            onChange={(e) => {
+              if (
+                e.target.value === 'ft'
+                || e.target.value === 'freelancer'
+              )
+                handleChangeCoveringModality(e.target.value)
+            }}
             label="Modalidades Disponíveis"
           >
             <MenuItem value="">
               <em>Selecionar</em>
             </MenuItem>
             <MenuItem value={'ft'}>Folga Trabalhada</MenuItem>
-            <MenuItem value={'free'}>Freelancer</MenuItem>
+            <MenuItem value={'freelancer'}>Freelancer</MenuItem>
           </Select>
         </FormControl>
       )
@@ -754,7 +855,7 @@ export default function AssistantCoverageDefine(props: Props) {
                           <MenuItem
                             key={place.id}
                             value={place.id}>
-                            {place.name} ({scales.find(scale => scale.id === place.scale)?.value || "???"} - {services.filter(service => place.services.includes(service.id)).map(service => service.value).join(', ')})
+                            {place.name} ({place.scale.value} - {place.workplaceService.map(_ => _.service.value).join(', ')})
                           </MenuItem>
                         ))
                     }
@@ -782,7 +883,7 @@ export default function AssistantCoverageDefine(props: Props) {
                           <MenuItem
                             key={person.id}
                             value={person.id}>
-                            [{person.matricule}]: {person.name} ({scales.find(scale => scale.id === person.scale)?.value || ""} - {services.filter(service => person.services.includes(service.id)).map(service => service.value).join(', ')})
+                            [{person.matricule}]: {person.name} ({person.scale.value} - {person.personService.map(_ => _.service.value).join(', ')})
                           </MenuItem>
                         ))
                     }
@@ -877,7 +978,7 @@ export default function AssistantCoverageDefine(props: Props) {
                           <MenuItem
                             key={person.id}
                             value={person.id}>
-                            [{person.matricule}]: {person.name} ({scales.find(scale => scale.id === person.scale)?.value || "???"} - {services.filter(service => person.services.includes(service.id)).map(service => service.value).join(', ')})
+                            [{person.matricule}]: {person.name} ({person.scale.value} - {person.personService.map(_ => _.service.value).join(', ')})
                           </MenuItem>
                         ))
                     }
@@ -921,8 +1022,8 @@ export default function AssistantCoverageDefine(props: Props) {
             id="input-paymentMethod"
             label="Valor"
             variant="standard"
-            value={StringEx.maskMoney(String(paymentValue))}
-            onChange={(e) => handleChangePaymentValue(parseInt(StringEx.removeMaskNum(e.target.value)))}
+            value={StringEx.maskMoney(paymentValue)}
+            onChange={(e) => handleChangePaymentValue(StringEx.removeMaskNum(e.target.value))}
           />
         </FormControl>
       )
@@ -931,7 +1032,7 @@ export default function AssistantCoverageDefine(props: Props) {
       label: 'Data há Pagar',
       description: 'Defina a data que o beneficiário irá receber.',
       content: (
-        <MobileDatePicker
+        <DatePicker
           className="col px-2"
           label="Data da Movimentação"
           value={paymentDatePayable}
@@ -957,9 +1058,11 @@ export default function AssistantCoverageDefine(props: Props) {
 
   onSocketEvents(
     handleAppendUploads,
+    handleChangeCoveringMirrorId,
     handleChangeCoveringMirrorFileId,
     handleChangeCoveringMirrorFileName,
     handleChangeCoveringMirrorFileType,
+    handleChangeCoverageMirrorId,
     handleChangeCoverageMirrorFileId,
     handleChangeCoverageMirrorFileName,
     handleChangeCoverageMirrorFileType,
@@ -1043,15 +1146,15 @@ export default function AssistantCoverageDefine(props: Props) {
                     <Divider className='mb-2' />
                     {
                       // ! Falta do Efetivo
-                      postingType === 'absence_person' &&
+                      postingModality === 'absence_person' &&
                       <Typography variant="caption" color="text.secondary">
                         A cobertura está sendo realizada no {workplaces.find(place => place.id === coveringWorkplace)?.name},
-                        devido à {reasonForAbsences.find(reason => reason.id === coveringReasonForAbsence)?.value} do(a) {people.find(person => person.id === coveringPersonId)?.name}.
+                        devido à {reasonForAbsences.find(reason => reason.id === coveringReasonForAbsenceId)?.value} do(a) {people.find(person => person.id === coveringPersonId)?.name}.
                       </Typography>
                     }
                     {
                       // ! Falta de Efetivo
-                      postingType === 'lack_people' &&
+                      postingModality === 'lack_people' &&
                       <Typography variant="caption" color="text.secondary">
                         O posto {workplaces.find(place => place.id === coveringWorkplace)?.name}, está sendo coberto
                         devido a falta de efetivo.
@@ -1066,7 +1169,7 @@ export default function AssistantCoverageDefine(props: Props) {
                       </Typography>
                     }
                     {
-                      coveringModality === 'free' &&
+                      coveringModality === 'freelancer' &&
                       <Typography variant="caption" color="text.secondary">
                         {people.find(person => person.id === coveragePersonId)?.name} está realizando a cobertura,
                         ele(a) é Freelancer.
@@ -1080,7 +1183,7 @@ export default function AssistantCoverageDefine(props: Props) {
                     }
                     <br />
                     <Typography variant="caption" color="text.secondary">
-                      Será Pago: {StringEx.maskMoney(String(paymentValue))} {
+                      Será Pago: {StringEx.maskMoney(paymentValue)} {
                         paymentMethod === 'card' && 'no Cartão Benefício (Alelo)' ||
                         paymentMethod === 'money' && 'em Dinheiro' ||
                         paymentMethod === '' && '...'
@@ -1113,10 +1216,12 @@ export default function AssistantCoverageDefine(props: Props) {
  * @description Adiciona os ouvintes dos eventos do socket.io
  */
 function onSocketEvents(
-  handleAppendUploads: (file: Upload) => void,
+  handleAppendUploads: (data: DataUpload) => Promise<string | undefined>,
+  handleChangeCoveringMirrorId: (id: string) => void,
   handleChangeCoveringMirrorFileId: (fileId: string) => void,
   handleChangeCoveringMirrorFileName: (fileName: string) => void,
   handleChangeCoveringMirrorFileType: (fileType: string) => void,
+  handleChangeCoverageMirrorId: (id: string) => void,
   handleChangeCoverageMirrorFileId: (fileId: string) => void,
   handleChangeCoverageMirrorFileName: (fileName: string) => void,
   handleChangeCoverageMirrorFileType: (fileType: string) => void
@@ -1141,7 +1246,7 @@ function onSocketEvents(
     socket
       .on(
         events[0], // * PAYBACK-UPLOAD-COVERING-MIRROR-SUCCESS
-        (
+        async (
           data: string
         ) => {
           const {
@@ -1154,11 +1259,10 @@ function onSocketEvents(
             compressedSize,
             temporary,
             version,
-            createdAt,
             expiredAt,
           } = window.socket.decompress<TYPEOF_LISTENER_PAYBACK_UPLOAD_MIRROR>(data);
 
-          handleAppendUploads({
+          const id = await handleAppendUploads({
             authorId,
             fileId,
             filename,
@@ -1168,10 +1272,13 @@ function onSocketEvents(
             compressedSize,
             temporary,
             version,
-            createdAt,
             expiredAt,
           });
 
+          if (!id)
+            return Alerting.create('error', 'Erro ao salvar o arquivo.');
+
+          handleChangeCoveringMirrorId(id);
           handleChangeCoveringMirrorFileId(fileId);
           handleChangeCoveringMirrorFileName(filename);
           handleChangeCoveringMirrorFileType(filetype);
@@ -1187,7 +1294,7 @@ function onSocketEvents(
     socket
       .on(
         events[2], // * PAYBACK-UPLOAD-COVERAGE-MIRROR-SUCCESS
-        (
+        async (
           data: string
         ) => {
           const {
@@ -1200,11 +1307,10 @@ function onSocketEvents(
             compressedSize,
             temporary,
             version,
-            createdAt,
             expiredAt,
           } = window.socket.decompress<TYPEOF_LISTENER_PAYBACK_UPLOAD_MIRROR>(data);
 
-          handleAppendUploads({
+          const id = await handleAppendUploads({
             authorId,
             fileId,
             filename,
@@ -1214,10 +1320,13 @@ function onSocketEvents(
             compressedSize,
             temporary,
             version,
-            createdAt,
-            expiredAt,
+            expiredAt
           });
 
+          if (!id)
+            return Alerting.create('error', 'Erro ao salvar o arquivo.');
+
+          handleChangeCoverageMirrorId(id);
           handleChangeCoverageMirrorFileId(fileId);
           handleChangeCoverageMirrorFileName(filename);
           handleChangeCoverageMirrorFileType(filetype);

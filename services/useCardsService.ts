@@ -94,7 +94,7 @@ export function useCardsService(take: number = 10, refreshInterval: number = 100
             success: true,
             data: data.data.map(card => {
               if (card.id === id) {
-                card = updateData.data;
+                card = {...card, ...updateData.data};
               }
 
               return card;
@@ -104,7 +104,7 @@ export function useCardsService(take: number = 10, refreshInterval: number = 100
 
         return true;
       },
-      assignPersonCard: async (id: string, dataPersonId: DataPersonId): Promise<boolean> => {
+      assignPerson: async (id: string, dataPersonId: DataPersonId): Promise<boolean> => {
         const
           uriAssignPersonCard = `${process.env.NEXT_PUBLIC_API_HOST}/card/assign/${id}`;
 
@@ -120,7 +120,7 @@ export function useCardsService(take: number = 10, refreshInterval: number = 100
             success: true,
             data: data.data.map(card => {
               if (card.id === id) {
-                card = updateData.data;
+                card = {...card, ...updateData.data};
               }
 
               return card;
@@ -130,7 +130,7 @@ export function useCardsService(take: number = 10, refreshInterval: number = 100
 
         return true;
       },
-      unassignPersonCard: async (id: string): Promise<boolean> => {
+      unassignPerson: async (id: string): Promise<boolean> => {
         const
           uriUnassignPersonCard = `${process.env.NEXT_PUBLIC_API_HOST}/card/unassign/${id}`;
 
@@ -146,7 +146,7 @@ export function useCardsService(take: number = 10, refreshInterval: number = 100
             success: true,
             data: data.data.map(card => {
               if (card.id === id) {
-                card = updateData.data;
+                card = {...card, ...updateData.data};
               }
 
               return card;

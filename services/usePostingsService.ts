@@ -102,7 +102,7 @@ export function usePostingsService(take: number = 10, refreshInterval: number = 
             success: true,
             data: data.data.map(posting => {
               if (posting.id === id) {
-                posting = updateData.data;
+                posting = {...posting, ...updateData.data};
               }
 
               return posting;

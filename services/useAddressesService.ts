@@ -90,7 +90,7 @@ export function useAddressesService(take: number = 10) {
             success: true,
             data: data.data.map(address => {
               if (address.id === id) {
-                address = updateData.data;
+                address = { ...address, ...updateData.data };
               }
 
               return address;

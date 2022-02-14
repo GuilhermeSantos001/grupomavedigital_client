@@ -1,7 +1,7 @@
 /**
- * @description Modal -> Modal de Edição de local de trabalho
+ * @description Modal -> Modal de Edição do local de trabalho
  * @author GuilhermeSantos001
- * @update 24/01/2022
+ * @update 13/02/2022
  */
 
 import React, { useState } from 'react';
@@ -15,44 +15,27 @@ import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
-import UpdateIcon from '@mui/icons-material/Update';
+import CloseIcon from '@mui/icons-material/Close';
 import Slide from '@mui/material/Slide';
 import { TransitionProps } from '@mui/material/transitions';
 
-import { TimePicker } from '@/components/selects/TimePicker';
-import { SelectScale } from '@/components/selects/SelectScale';
-import { SelectService } from '@/components/selects/SelectService';
-import { SelectStreet } from '@/components/selects/SelectStreet';
-import { SelectNeighborhood } from '@/components/selects/SelectNeighborhood';
-import { SelectCity } from '@/components/selects/SelectCity';
-import { SelectDistrict } from '@/components/selects/SelectDistrict';
+import { DialogLoading } from '@/components/utils/DialogLoading';
+import { DialogError } from '@/components/utils/DialogError';
 
-import Alerting from '@/src/utils/alerting'
+import { TimePicker } from '@/components/selects/TimePicker'
+import { SelectService } from '@/components/selects/SelectService'
+import { SelectAddress } from '@/components/selects/SelectAddress'
+import { SelectScale } from '@/components/selects/SelectScale'
+
 import ArrayEx from '@/src/utils/arrayEx'
-import StringEx from '@/src/utils/stringEx'
+import Alerting from '@/src/utils/alerting'
 
-import { useAppDispatch, useAppSelector } from '@/app/hooks';
-
-import {
-  Workplace,
-  SystemActions,
-} from '@/app/features/system/system.slice'
+import { useWorkplaceService } from '@/services/useWorkplaceService';
+import { useServicesService } from '@/services/useServicesService';
 
 export interface Props {
+  id: string
   show: boolean
-  id: string,
-  name: string,
-  entryTime: string,
-  exitTime: string,
-  services: string[],
-  scale: string
-  neighborhood: string
-  city: string
-  district: string
-  street: string
-  numberHome: number
-  complement: string
-  zipCode: number
   handleClose: () => void
 }
 
@@ -65,89 +48,121 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export default function RegisterWorkplace(props: Props) {
-  const [name, setName] = useState<string>(props.name);
-  const [entryTime, setEntryTime] = useState<Date>(new Date(props.entryTime));
-  const [exitTime, setExitTime] = useState<Date>(new Date(props.exitTime));
-  const [appliedServices, setAppliedServices] = useState<string[]>(props.services);
-  const [numberHome, setNumberHome] = useState<number>(props.numberHome);
-  const [complement, setComplement] = useState<string>(props.complement);
-  const [zipCode, setZipCode] = useState<number>(props.zipCode);
-  const [scale, setScale] = useState<string>(props.scale);
-  const [street, setStreet] = useState<string>(props.street);
-  const [neighborhood, setNeighborhood] = useState<string>(props.neighborhood);
-  const [city, setCity] = useState<string>(props.city);
-  const [district, setDistrict] = useState<string>(props.district);
+export function EditWorkplace(props: Props) {
+  const [syncData, setSyncData] = useState<boolean>(false)
 
-  const
-    dispatch = useAppDispatch(),
-    services = useAppSelector((state) => state.system.services || []),
-    scales = useAppSelector((state) => state.system.scales || []),
-    streets = useAppSelector((state) => state.system.streets || []),
-    neighborhoods = useAppSelector((state) => state.system.neighborhoods || []),
-    cities = useAppSelector((state) => state.system.cities || []),
-    districts = useAppSelector((state) => state.system.districts || []);
+  const [name, setName] = useState<string>('');
+  const [entryTime, setEntryTime] = useState<Date>(new Date());
+  const [exitTime, setExitTime] = useState<Date>(new Date());
+  const [appliedServices, setAppliedServices] = useState<string[]>([]);
+  const [addressId, setAddressId] = useState<string>('');
+  const [scaleId, setScaleId] = useState<string>('')
+
+  const { data: workplace, isLoading: isLoadingWorkplace, update: UpdateWorkplace } = useWorkplaceService(props.id);
+  const { data: services, isLoading: isLoadingServices, assignWorkplace: AssignWorkplaceService, unassignWorkplace: UnassignWorkplaceService } = useServicesService();
 
   const
     handleChangeName = (value: string) => setName(value),
-    handleChangeScale = (value: string) => setScale(value),
     handleChangeEntryTime = (value: Date) => setEntryTime(value),
     handleChangeExitTime = (value: Date) => setExitTime(value),
-    handleChangeNumberHome = (value: number) => setNumberHome(value),
-    handleChangeComplement = (value: string) => setComplement(value),
-    handleChangeZipCode = (value: number) => setZipCode(value),
-    handleChangeStreet = (value: string) => setStreet(value),
-    handleChangeNeighborhood = (value: string) => setNeighborhood(value),
-    handleChangeCity = (value: string) => setCity(value),
-    handleChangeDistrict = (value: string) => setDistrict(value);
+    handleChangeAddressId = (id: string) => setAddressId(id),
+    handleChangeScaleId = (id: string) => setScaleId(id);
 
   const
-    canEditWorkPlace = () => {
+    canUpdateWorkplace = () => {
       return name.length > 0 &&
         entryTime !== null &&
         exitTime !== null &&
         appliedServices.length > 0 &&
-        numberHome > 0 &&
-        // complement.length > 0 && // ? Complemento não é obrigatório
-        zipCode > 0 &&
-        scale !== '' &&
-        street !== '' &&
-        neighborhood !== '' &&
-        city !== ''
+        addressId.length > 0 &&
+        scaleId.length > 0
     },
-    servicesAvailables = () => {
-      const available = ArrayEx.returnItemsOfANotContainInB(services.map((service) => service.id), props.services.map((service) => service));
+    handleAssignWorkplaceService = async (workplaceId: string, servicesId: string[]) => {
+      if (!AssignWorkplaceService)
+        throw new Error('AssignWorkplaceService is undefined');
 
-      return services
-        .filter(service => available.includes(service.id))
-        .map(service => service.value)
-    };
+      for (const serviceId of servicesId) {
+        const assign = await AssignWorkplaceService(serviceId, { workplaceId });
 
-  const handleEditWorkplace = () => {
-    const workplace: Workplace = {
-      id: props.id,
-      name,
-      entryTime: entryTime.toISOString(),
-      exitTime: exitTime.toISOString(),
-      services: appliedServices,
-      scale: scales.find(_scale => _scale.id === scale)?.id || "",
-      address: {
-        street: streets.find(_street => _street.id === street)?.id || "",
-        neighborhood: neighborhoods.find(_neighborhood => _neighborhood.id === neighborhood)?.id || "",
-        city: cities.find(_city => _city.id === city)?.id || "",
-        district: districts.find(_district => _district.id === district)?.id || "",
-        number: numberHome,
-        complement,
-        zipCode,
-      },
+        if (!assign)
+          throw new Error('AssignWorkplaceService failed');
+      }
+    },
+    handleUnassignWorkplaceService = async (workplaceServicesId: string[]) => {
+      if (!UnassignWorkplaceService)
+        throw new Error('UnassignWorkplaceService is undefined');
+
+      for (const workplaceServiceId of workplaceServicesId) {
+        const unassign = await UnassignWorkplaceService(workplaceServiceId);
+
+        if (!unassign)
+          throw new Error('UnassignWorkplaceService failed');
+      }
+    },
+    handleUpdateWorkplace = async () => {
+      if (!workplace || !UpdateWorkplace)
+      return Alerting.create('error', 'Não foi possível atualizar os dados do(a) funcionário(a). Tente novamente, mais tarde!.');
+
+      const updated = await UpdateWorkplace({
+        name,
+        entryTime: entryTime.toISOString(),
+        exitTime: exitTime.toISOString(),
+        addressId,
+        scaleId,
+        status: 'available'
+      });
+
+      if (!updated)
+        return Alerting.create('error', 'Não foi possível atualizar os dados do local de trabalho. Tente novamente com outros dados.');
+
+      try {
+        const
+          newServices = ArrayEx.returnItemsOfANotContainInB(appliedServices, workplace.workplaceService.map(_ => _.service.value)),
+          removeServices = workplace.workplaceService.filter(_ => !appliedServices.includes(_.service.value));
+
+        await handleUnassignWorkplaceService(removeServices.map(_ => _.id));
+        await handleAssignWorkplaceService(workplace.id, newServices);
+
+        Alerting.create('success', 'Local de Trabalho teve os dados atualizados com sucesso.');
+        props.handleClose();
+      } catch {
+        Alerting.create('error', 'Local de Trabalho teve os dados atualizados, mas ocorreram erros na confirmação de alguns dados. Verifique se todos os dados estão corretos na tela de registro dos locais de trabalho.');
+        props.handleClose();
+      }
     }
 
-    try {
-      dispatch(SystemActions.UPDATE_WORKPLACE(workplace));
-      props.handleClose();
-    } catch (error) {
-      Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
-    }
+  if (
+    isLoadingWorkplace && !syncData
+    || isLoadingServices && !syncData
+  )
+    return <DialogLoading
+      header='Atualizar Local de Trabalho'
+      message='Carregando...'
+      show={props.show}
+      handleClose={props.handleClose}
+    />
+
+  if (!syncData && workplace && services) {
+    handleChangeName(workplace.name);
+    handleChangeEntryTime(new Date(workplace.entryTime));
+    handleChangeExitTime(new Date(workplace.exitTime));
+    handleChangeAddressId(workplace.addressId);
+    handleChangeScaleId(workplace.scaleId);
+    setAppliedServices(workplace.workplaceService.map(_ => _.service.value));
+    setSyncData(true);
+  } else if (
+    !syncData && !workplace
+    || !syncData && !services
+    || !syncData && !UpdateWorkplace
+    || !syncData && !AssignWorkplaceService
+    || !syncData && !UnassignWorkplaceService
+  ) {
+    return <DialogError
+      header='Atualizar Local de Trabalho'
+      message='Ocorreu um erro'
+      show={props.show}
+      handleClose={props.handleClose}
+    />
   }
 
   return (
@@ -155,24 +170,26 @@ export default function RegisterWorkplace(props: Props) {
       <Dialog
         fullScreen
         open={props.show}
+        onClose={props.handleClose}
         TransitionComponent={Transition}
       >
-        <AppBar sx={{ position: 'relative' }} color='primary'>
+        <AppBar sx={{ position: 'relative' }}>
           <Toolbar>
             <IconButton
               edge="start"
               color="inherit"
+              onClick={props.handleClose}
               aria-label="close"
             >
-              <UpdateIcon />
+              <CloseIcon />
             </IconButton>
             <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
-              Editar Local de Trabalho
+              Atualizar Local de Trabalho
             </Typography>
             <Button
               color="inherit"
-              disabled={!canEditWorkPlace()}
-              onClick={handleEditWorkplace}
+              disabled={!canUpdateWorkplace()}
+              onClick={handleUpdateWorkplace}
             >
               Atualizar
             </Button>
@@ -194,8 +211,8 @@ export default function RegisterWorkplace(props: Props) {
           <ListItem>
             <div className='col'>
               <SelectScale
-                scale={scales.find(scale => scale.id === props.scale)}
-                handleChangeScale={handleChangeScale}
+              id={workplace?.scaleId}
+                handleChangeId={handleChangeScaleId}
               />
             </div>
           </ListItem>
@@ -219,84 +236,41 @@ export default function RegisterWorkplace(props: Props) {
             <ListItemText primary="Serviços no Posto" />
           </ListItem>
         </List>
-        <SelectService
-          left={servicesAvailables()}
-          right={services.filter((service) => props.services.includes(service.id)).map((service) => service.value)}
-          onChangeAppliedServices={(values) => setAppliedServices(services.filter(service => values.includes(service.value)).map(service => service.id))}
-        />
+        {
+          services.length > 0 &&
+          <SelectService
+          itemsLeft={workplace ? ArrayEx.returnItemsOfANotContainInB(services.map(service => service.value), workplace.workplaceService.map(_ => _.service.value)) : []}
+          itemsRight={workplace?.workplaceService.map((_) => _.service.value) || []}
+            onChangeAppliedServices={(values) => setAppliedServices(services.filter(service => values.includes(service.value)).map(service => service.id))}
+          />
+        }
         <List>
           <ListItem>
             <ListItemText primary="Endereço do Posto" />
           </ListItem>
           <ListItem>
-            <div className='col'>
-              <SelectStreet
-                street={streets.find(_street => _street.id === street)}
-                handleChangeStreet={handleChangeStreet}
-              />
-            </div>
-          </ListItem>
-          <ListItem>
-            <div className='col'>
-              <SelectNeighborhood
-                neighborhood={neighborhoods.find(_neighborhood => _neighborhood.id === neighborhood)}
-                handleChangeNeighborhood={handleChangeNeighborhood}
-              />
-            </div>
-          </ListItem>
-          <ListItem>
-            <div className='col'>
-              <SelectCity
-                city={cities.find(_city => _city.id === city)}
-                handleChangeCity={handleChangeCity}
-              />
-            </div>
-          </ListItem>
-          <ListItem>
-            <div className='col'>
-              <SelectDistrict
-                district={districts.find(_district => _district.id === district)}
-                handleChangeDistrict={handleChangeDistrict}
-              />
-            </div>
-          </ListItem>
-          <ListItem>
-            <TextField
-              className='col'
-              label="Número"
-              variant="standard"
-              value={StringEx.maskHouseNumber(String(numberHome).padStart(4, '0'))}
-              onChange={(e) => handleChangeNumberHome(parseInt(StringEx.removeMaskNum(e.target.value)))}
-            />
-          </ListItem>
-          <ListItem>
-            <TextField
-              type={'text'}
-              className='col'
-              label="Complemento"
-              variant="standard"
-              value={complement}
-              onChange={(e) => handleChangeComplement(e.target.value)}
-            />
-          </ListItem>
-          <ListItem>
-            <TextField
-              className='col'
-              label="CEP"
-              variant="standard"
-              value={StringEx.maskZipcode(String(zipCode).padStart(8, '0'))}
-              onChange={(e) => handleChangeZipCode(parseInt(StringEx.removeMaskNum(e.target.value)))}
+            <SelectAddress
+              id={workplace?.addressId}
+              handleChangeId={handleChangeAddressId}
             />
           </ListItem>
         </List>
         <Button
           className='col-10 mx-auto my-2'
           variant="contained"
-          color="warning"
-          disabled={!canEditWorkPlace()}
-          onClick={handleEditWorkplace}
+          color="primary"
+          disabled={!canUpdateWorkplace()}
+          onClick={handleUpdateWorkplace}
         >
           Atualizar
+        </Button>
+        <Button
+          className='col-10 mx-auto my-2'
+          variant="contained"
+          color="error"
+          onClick={props.handleClose}
+        >
+          Cancelar
         </Button>
       </Dialog>
     </div>

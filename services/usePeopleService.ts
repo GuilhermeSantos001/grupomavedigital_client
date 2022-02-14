@@ -94,7 +94,7 @@ export function usePeopleService(take: number = 10, refreshInterval: number = 10
             success: true,
             data: data.data.map(person => {
               if (person.id === id) {
-                person = updateData.data;
+                person = { ...person, ...updateData.data };
               }
 
               return person;

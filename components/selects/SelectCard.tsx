@@ -1,7 +1,7 @@
 /**
  * @description Input -> Seleciona um cartão (Alelo)
  * @author GuilhermeSantos001
- * @update 09/02/2022
+ * @update 12/02/2022
  */
 
 import React, { useState } from 'react';
@@ -15,11 +15,13 @@ import Select from '@mui/material/Select';
 import Checkbox from '@mui/material/Checkbox';
 
 import { OutlinedInputLoading } from '@/components/utils/OutlinedInputLoading';
+import { OutlinedInputEmpty } from '@/components/utils/OutlinedInputEmpty';
 import { BoxError } from '@/components/utils/BoxError';
 
 import { useCardsService } from '@/services/useCardsService';
 
 export type Props = {
+  selectCards?: string[]
   handleChangeCard: (cards: string[]) => void
 }
 
@@ -38,7 +40,7 @@ export function SelectCard(props: Props) {
   const [syncData, setSyncData] = useState<boolean>(false);
 
   const { data: cards, isLoading: isLoadingCards } = useCardsService();
-  const [selectCards, setSelectCards] = useState<string[]>([]);
+  const [selectCards, setSelectCards] = useState<string[]>(props.selectCards || []);
 
   if (isLoadingCards && !syncData)
     return <OutlinedInputLoading label='Cartões Benefício (Alelo)' message='Carregando...' />
@@ -48,6 +50,9 @@ export function SelectCard(props: Props) {
   } else if (!syncData && !cards) {
     return <BoxError />
   }
+
+  if (cards.length <= 0)
+    return <OutlinedInputEmpty label='Cartões Benefício (Alelo)' message='Nenhum cartão cadastrado' />
 
   const
     handleChangeCard = (value: string | string[]) => {
@@ -71,7 +76,10 @@ export function SelectCard(props: Props) {
 
   const availableCards: string[] = [];
 
-  if (cards.length > 0 && cards.filter(card => !card.person).length > 0)
+  if (
+    cards.length > 0 &&  cards.filter(card => props.selectCards && props.selectCards.map(name => cardParseNameGetId(name)).includes(`${card.serialNumber} - ${card.lastCardNumber}`)).length > 0
+    || cards.length > 0 && cards.filter(card => !card.person).length > 0
+  )
     return <FormControl className='col-12'>
       <InputLabel id="select-multiple-checkbox-label">
         Cartões Benefício (Alelo)
@@ -88,7 +96,10 @@ export function SelectCard(props: Props) {
       >
         {cards
           .filter(card => {
-            if (!card.person) {
+            if (
+              props.selectCards && props.selectCards.map(name => cardParseNameGetId(name)).includes(`${card.serialNumber} - ${card.lastCardNumber}`)
+              || !card.person
+            ) {
               const filtered = card.costCenter.value;
 
               if (!availableCards.includes(filtered)) {

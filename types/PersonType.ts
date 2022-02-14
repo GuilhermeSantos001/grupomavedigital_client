@@ -8,13 +8,14 @@ export type PersonType = {
     cpf: string
     rg: string
     motherName: string
-    birthDate: Date
+    birthDate: string
     phone: string
     mail: string
     addressId: string
     scaleId: string
     status: DatabaseStatusType
     address: {
+        id: string
         street: {
             value: string
         }
@@ -32,6 +33,7 @@ export type PersonType = {
         zipCode: string
     }
     scale: {
+        id: string
         value: string
     }
     personService: {
@@ -39,12 +41,14 @@ export type PersonType = {
         service: {
             value: string
         }
-    }
+    }[]
     cards: {
+        id: string
         lotNum: string
         serialNumber: string
         lastCardNumber: string
         costCenter: {
+            id: string
             value: string
         }
     }[]

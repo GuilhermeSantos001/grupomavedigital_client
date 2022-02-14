@@ -76,7 +76,7 @@ export function useCardService(id?: string) {
         } else {
           mutate([uri, setIsLoading], {
             success: true,
-            data: updateData.data
+            data: {...createUpdate.data, ...updateData.data}
           });
         }
 
@@ -93,7 +93,7 @@ export function useCardService(id?: string) {
         } else {
           mutate([uri, setIsLoading], {
             success: true,
-            data: assignPersonCard.data
+            data: {...createUpdate.data, ...assignPersonCard.data}
           });
         }
 
@@ -110,7 +110,7 @@ export function useCardService(id?: string) {
         } else {
           mutate([uri, setIsLoading], {
             success: true,
-            data: unassignPersonCard.data
+            data: {...createUpdate.data, ...unassignPersonCard.data}
           });
         }
 
@@ -168,14 +168,14 @@ export function useCardService(id?: string) {
           } else {
             mutate({
               success: true,
-              data: updateData.data
+              data: {...data?.data, ...updateData.data}
             });
           }
 
           return true;
         },
-        assignPersonCard: async (data: DataPersonId): Promise<boolean> => {
-          const assignPersonCard = await fetcherAxiosPut<DataPersonId, ApiResponseSuccessOrErrorType<CardType, Object>>(uriAssignPersonCard, setIsLoading, data);
+        assignPersonCard: async (dataPersonId: DataPersonId): Promise<boolean> => {
+          const assignPersonCard = await fetcherAxiosPut<DataPersonId, ApiResponseSuccessOrErrorType<CardType, Object>>(uriAssignPersonCard, setIsLoading, dataPersonId);
 
           if (!assignPersonCard.success) {
             Alerting.create('error', assignPersonCard.message);
@@ -185,7 +185,7 @@ export function useCardService(id?: string) {
           } else {
             mutate({
               success: true,
-              data: assignPersonCard.data
+              data: {...data?.data, ...assignPersonCard.data}
             });
           }
 
@@ -202,7 +202,7 @@ export function useCardService(id?: string) {
           } else {
             mutate({
               success: true,
-              data: unassignPersonCard.data
+              data: {...data?.data, ...unassignPersonCard.data}
             });
           }
 

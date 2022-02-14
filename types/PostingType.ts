@@ -1,18 +1,20 @@
 import { DatabaseStatusType } from './DatabaseStatusType'
 import { DatabasePaymentMethodType } from './DatabasePaymentMethodType'
-import {DatabasePaymentStatusType } from './DatabasePaymentStatusType'
+import { DatabasePaymentStatusType } from './DatabasePaymentStatusType'
 import { PersonCoveringType } from './PersonCoveringType'
 import { PersonCoverageType } from './PersonCoverageType'
-import {WorkplaceType} from './WorkplaceType'
+import { WorkplaceType } from './WorkplaceType'
+
+export type PostingModality = '' | 'absence_person' | 'lack_people';
 
 export type PostingType = {
     id: string
     cursorId: number
     author: string
     costCenterId: string
-    periodStart: Date
-    periodEnd: Date
-    originDate: Date
+    periodStart: string
+    periodEnd: string
+    originDate: string
     description?: string
     coveringId?: string
     coverageId: string
@@ -20,7 +22,7 @@ export type PostingType = {
     coverageWorkplaceId?: string
     paymentMethod: DatabasePaymentMethodType
     paymentValue: number
-    paymentDatePayable: Date
+    paymentDatePayable: string
     paymentStatus: DatabasePaymentStatusType
     paymentDatePaid?: Date
     paymentDateCancelled?: Date

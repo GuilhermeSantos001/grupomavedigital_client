@@ -82,7 +82,7 @@ export function useNeighborhoodsService(take: number = 10, refreshInterval: numb
             success: true,
             data: data.data.map(neighborhood => {
               if (neighborhood.id === id) {
-                neighborhood = updateData.data;
+                neighborhood = {...neighborhood,...updateData.data};
               }
 
               return neighborhood;

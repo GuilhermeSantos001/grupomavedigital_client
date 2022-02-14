@@ -82,7 +82,7 @@ export function useScalesService(take: number = 10, refreshInterval: number = 10
             success: true,
             data: data.data.map(scale => {
               if (scale.id === id) {
-                scale = updateData.data;
+                scale = { ...scale, ...updateData.data };
               }
 
               return scale;

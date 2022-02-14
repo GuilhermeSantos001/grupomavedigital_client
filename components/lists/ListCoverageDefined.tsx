@@ -28,7 +28,7 @@ import CameraFrontIcon from '@mui/icons-material/CameraFront';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 
-import MobileDatePicker from '@/components/selects/mobileDatePicker'
+import { DatePicker } from '@/components/selects/DatePicker';
 
 import hasPrivilege from '@/src/functions/hasPrivilege'
 import { uploadDownload } from '@/src/functions/getUploads'
@@ -63,7 +63,7 @@ export type Props = {
   handlePostingRemove: (id: string) => void
 }
 
-export default function ListCoverageDefined(props: Props) {
+export function ListCoverageDefined(props: Props) {
   const
     workplaces = useAppSelector(state => state.system.workplaces || []),
     people = useAppSelector(state => state.system.people || []),
@@ -146,7 +146,7 @@ export default function ListCoverageDefined(props: Props) {
                     <ListItemText primary={coverageWorkplace ? `Posto de Origem: ${coverageWorkplace.name}` : `Freelancer`} secondary={`[${coveragePerson?.matricule || "???"}] - ${coveragePerson?.name || "???"}`} />
                   </ListItem>
                   <Chip label={`Motivo: ${coveringReasonForAbsence ? coveringReasonForAbsence : 'Falta de Efetivo'}`} className='bg-danger text-white shadow me-2' style={{ minWidth: 200 }} />
-                  <Chip label={`Valor: ${StringEx.maskMoney(String(posting.paymentValue))}`} className='bg-success text-white shadow' style={{ minWidth: 150 }} />
+                  <Chip label={`Valor: ${StringEx.maskMoney(parseInt(posting.paymentValue))}`} className='bg-success text-white shadow' style={{ minWidth: 150 }} />
                   <div className='d-flex flex-row justify-content-center align-items-center'>
                     <Button
                       variant="outlined"
@@ -263,7 +263,7 @@ function ModalPostingInformation(
           Detalhes da Cobertura
         </h3>
         <div className='d-flex flex-column flex-md-row justify-content-center align-items-center p-2'>
-          <MobileDatePicker
+          <DatePicker
             className="col px-2 my-2"
             label="Data da Movimentação"
             value={new Date(posting.originDate)}
@@ -366,7 +366,7 @@ function ModalPostingInformation(
             variant="outlined"
             className='col px-2 my-2'
             disabled={true}
-            defaultValue={StringEx.maskMoney(String(posting.paymentValue))}
+            defaultValue={StringEx.maskMoney(parseInt(posting.paymentValue))}
           />
           <TextField
             label="Forma de Pagamento"
@@ -377,7 +377,7 @@ function ModalPostingInformation(
           />
         </div>
         <div className='d-flex flex-column flex-md-row justify-content-center align-items-center p-2'>
-          <MobileDatePicker
+          <DatePicker
             className="col px-2 my-2"
             label="Previsão de Pagamento"
             value={new Date(posting.paymentDatePayable)}

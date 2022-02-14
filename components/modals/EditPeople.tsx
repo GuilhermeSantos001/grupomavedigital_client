@@ -1,7 +1,7 @@
 /**
- * @description Modal -> Modal de Edição das pessoas
+ * @description Modal -> Modal de Edição do(a) Funcionário(a)
  * @author GuilhermeSantos001
- * @update 24/01/2022
+ * @update 13/02/2022
  */
 
 import React, { useState } from 'react';
@@ -15,51 +15,31 @@ import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
-import UpdateIcon from '@mui/icons-material/Update';
+import CloseIcon from '@mui/icons-material/Close';
 import Slide from '@mui/material/Slide';
 import { TransitionProps } from '@mui/material/transitions';
 
-import MobileDatePicker from '@/components/selects/mobileDatePicker'
-import SelectScale from '@/components/selects/selectScale'
-import SelectService from '@/components/selects/selectService'
-import SelectStreet from '@/components/selects/selectStreet'
-import SelectNeighborhood from '@/components/selects/selectNeighborhood'
-import SelectCity from '@/components/selects/selectCity'
-import SelectDistrict from '@/components/selects/selectDistrict'
+import { DialogLoading } from '@/components/utils/DialogLoading';
+import { DialogError } from '@/components/utils/DialogError';
+
+import { DatePicker } from '@/components/selects/DatePicker'
+import { SelectScale } from '@/components/selects/SelectScale'
+import { SelectService } from '@/components/selects/SelectService'
+import { SelectCard } from '@/components/selects/SelectCard'
+import { SelectAddress } from '@/components/selects/SelectAddress';
 
 import DateEx from '@/src/utils/dateEx'
-import StringEx from '@/src/utils/stringEx'
 import ArrayEx from '@/src/utils/arrayEx'
+import StringEx from '@/src/utils/stringEx'
 import Alerting from '@/src/utils/alerting'
 
-import { useAppDispatch, useAppSelector } from '@/app/hooks';
-
-import {
-  Person,
-  SystemActions
-} from '@/app/features/system/system.slice'
+import { usePersonService } from '@/services/usePersonService';
+import { useServicesService } from '@/services/useServicesService';
+import { useCardsService } from '@/services/useCardsService';
 
 export interface Props {
+  id: string;
   show: boolean
-  id: string
-  matricule: number
-  name: string
-  cpf: string
-  rg: string
-  motherName: string
-  birthDate: string
-  phone: string
-  mail: string
-  scale: string
-  cards: string[]
-  services: string[]
-  street: string
-  numberHome: number
-  complement: string
-  neighborhood: string
-  city: string
-  district: string
-  zipCode: number
   handleClose: () => void
 }
 
@@ -72,113 +52,190 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export default function RegisterPeople(props: Props) {
-  const [matricule, setMatricule] = useState<number>(props.matricule)
-  const [name, setName] = useState<string>(props.name)
-  const [cpf, setCPF] = useState<string>(props.cpf)
-  const [rg, setRG] = useState<string>(props.rg)
-  const [motherName, setMotherName] = useState<string>(props.motherName)
-  const [birthDate, setBirthDate] = useState<Date>(new Date(props.birthDate))
-  const [phone, setPhone] = useState<string>(props.phone)
-  const [mail, setMail] = useState<string>(props.mail)
-  const [scale, setScale] = useState<string>(props.scale)
-  const [appliedServices, setAppliedServices] = useState<string[]>(props.services)
-  const [street, setStreet] = useState<string>(props.street)
-  const [numberHome, setNumberHome] = useState<number>(props.numberHome)
-  const [complement, setComplement] = useState<string>(props.complement)
-  const [neighborhood, setNeighborhood] = useState<string>(props.neighborhood)
-  const [city, setCity] = useState<string>(props.city)
-  const [district, setDistrict] = useState<string>(props.district)
-  const [zipCode, setZipCode] = useState<number>(props.zipCode)
+export function EditPeople(props: Props) {
+  const [syncData, setSyncData] = useState<boolean>(false)
+
+  const [matricule, setMatricule] = useState<number>(0)
+  const [name, setName] = useState<string>('')
+  const [cpf, setCPF] = useState<number>(0)
+  const [rg, setRG] = useState<number>(0)
+  const [motherName, setMotherName] = useState<string>('')
+  const [birthDate, setBirthDate] = useState<Date>(DateEx.subYears(new Date(), 75))
+  const [phone, setPhone] = useState<number>(0)
+  const [mail, setMail] = useState<string>('')
+  const [scaleId, setScaleId] = useState<string>('')
+  const [addressId, setAddressId] = useState<string>('')
+  const [appliedCards, setAppliedCards] = useState<string[]>([])
+  const [appliedServices, setAppliedServices] = useState<string[]>([])
+
+  const { data: person, isLoading: isLoadingPerson, update: UpdatePerson } = usePersonService(props.id);
+  const { data: services, isLoading: isLoadingServices, assignPerson: AssignPersonService, unassignPerson: UnassignPersonService } = useServicesService();
+  const { data: cards, isLoading: isLoadingCards, assignPerson: AssignPersonCard, unassignPerson: UnassignPersonCard } = useCardsService();
 
   const
-    dispatch = useAppDispatch(),
-    lotItems = useAppSelector(state => state.payback.lotItems || []),
-    services = useAppSelector((state) => state.system.services || []),
-    scales = useAppSelector((state) => state.system.scales || []),
-    streets = useAppSelector((state) => state.system.streets || []),
-    neighborhoods = useAppSelector((state) => state.system.neighborhoods || []),
-    cities = useAppSelector((state) => state.system.cities || []),
-    districts = useAppSelector((state) => state.system.districts || []);
-
-  const
-    handleChangeScale = (value: string) => setScale(value),
+    handleChangeScaleId = (value: string) => setScaleId(value),
+    handleChangeAddressId = (value: string) => setAddressId(value),
     handleChangeMatricule = (value: number) => setMatricule(value),
     handleChangeName = (value: string) => setName(value),
-    handleChangeCPF = (value: string) => setCPF(value),
-    handleChangeRG = (value: string) => setRG(value),
+    handleChangeCPF = (value: number) => setCPF(value),
+    handleChangeRG = (value: number) => setRG(value),
     handleChangeMotherName = (value: string) => setMotherName(value),
     handleChangeBirthDate = (value: Date) => setBirthDate(value),
-    handleChangePhone = (value: string) => setPhone(value),
-    handleChangeMail = (value: string) => setMail(value),
-    handleChangeStreet = (value: string) => setStreet(value),
-    handleChangeNumberHome = (value: number) => setNumberHome(value),
-    handleChangeComplement = (value: string) => setComplement(value),
-    handleChangeNeighborhood = (value: string) => setNeighborhood(value),
-    handleChangeCity = (value: string) => setCity(value),
-    handleChangeDistrict = (value: string) => setDistrict(value),
-    handleChangeZipCode = (value: number) => setZipCode(value);
+    handleChangePhone = (value: number) => setPhone(value),
+    handleChangeMail = (value: string) => setMail(value);
 
   const
-    canEditPerson = () => {
+    handleAssignPersonService = async (personId: string, servicesId: string[]) => {
+      if (!AssignPersonService)
+        throw new Error('AssignPersonService is undefined');
+
+      for (const serviceId of servicesId) {
+        const assign = await AssignPersonService(serviceId, { personId });
+
+        if (!assign)
+          throw new Error('AssignPersonService failed');
+      }
+    },
+    handleUnassignPersonService = async (personServiceIds: string[]) => {
+      if (!UnassignPersonService)
+        throw new Error('UnassignPersonService is undefined');
+
+      for (const serviceId of personServiceIds) {
+        const unassign = await UnassignPersonService(serviceId);
+
+        if (!unassign)
+          throw new Error('UnassignPersonService failed');
+      }
+    },
+    handleAssignPersonCard = async (personId: string, cardsId: string[]) => {
+      if (!AssignPersonCard)
+        throw new Error('AssignPersonCard is undefined');
+
+      for (const cardId of cardsId) {
+        const id = cards.find(card => cardId === `${card.serialNumber} - ${card.lastCardNumber}`)?.id || undefined;
+
+        if (!id)
+          throw new Error('Card not found');
+
+        const assign = await AssignPersonCard(id, { personId });
+
+        if (!assign)
+          throw new Error('AssignPersonCard failed');
+      }
+    },
+    handleUnassignPersonCard = async (cardsId: string[]) => {
+      if (!UnassignPersonCard)
+        throw new Error('UnassignPersonCard is undefined');
+
+      for (const cardId of cardsId) {
+        const id = cards.find(card => cardId === `${card.serialNumber} - ${card.lastCardNumber}`)?.id || undefined;
+
+        if (!id)
+          throw new Error('Card not found');
+
+        const assign = await UnassignPersonCard(id);
+
+        if (!assign)
+          throw new Error('UnassignPersonCard failed');
+      }
+    },
+    canUpdatePerson = () => {
       return name.length > 0 &&
-        matricule > 0 &&
-        cpf.length > 0 &&
-        rg.length > 0 &&
+        StringEx.removeMaskNum(matricule.toString()).toString().length > 0 &&
+        StringEx.removeMaskNum(cpf.toString()).toString().length >= 11 &&
+        StringEx.removeMaskNum(rg.toString()).toString().length >= 9 &&
         motherName.length > 0 &&
         birthDate != null &&
-        phone.length > 0 &&
+        StringEx.removeMaskNum(phone.toString()).toString().length >= 11 &&
         mail.length > 0 &&
-        scale.length > 0 &&
-        appliedServices.length > 0 &&
-        street.length > 0 &&
-        numberHome > 0 &&
-        // complement.length > 0 && // ? Complemento não é obrigatório
-        neighborhood.length > 0 &&
-        city.length > 0 &&
-        district.length > 0 &&
-        zipCode > 0
+        scaleId.length > 0 &&
+        addressId.length > 0 &&
+        appliedCards.length > 0 &&
+        appliedServices.length > 0
     },
-    servicesAvailables = () => {
-      const available = ArrayEx.not(services.map((service) => service.id), props.services.map((service) => service));
+    handleUpdatePerson = async () => {
+      if (!person || !UpdatePerson)
+        return Alerting.create('error', 'Não foi possível atualizar os dados do(a) funcionário(a). Tente novamente, mais tarde!.');
 
-      return services
-        .filter(service => available.includes(service.id))
-        .map(service => service.value)
+      const updated = await UpdatePerson({
+        matricule: StringEx.removeMaskNum(matricule.toString()).toString(),
+        name,
+        cpf: StringEx.removeMaskNum(cpf.toString()).toString(),
+        rg: StringEx.removeMaskNum(rg.toString()).toString(),
+        birthDate: birthDate.toISOString(),
+        motherName,
+        mail,
+        phone: StringEx.removeMaskNum(phone.toString()).toString(),
+        addressId,
+        scaleId,
+        status: 'available'
+      })
+
+      if (!updated)
+        return Alerting.create('error', 'Não foi possível atualizar os dados do(a) funcionário(a). Tente novamente com outros dados.');
+
+      try {
+        const
+          newCards = ArrayEx.returnItemsOfANotContainInB(appliedCards, person.cards.map(card => `${card.serialNumber} - ${card.lastCardNumber}`)),
+          removeCards = person.cards.filter(card => !appliedCards.includes(`${card.serialNumber} - ${card.lastCardNumber}`)),
+          newServices = ArrayEx.returnItemsOfANotContainInB(appliedServices, person.personService.map(_ => _.service.value)),
+          removeServices = person.personService.filter(_ => !appliedServices.includes(_.service.value));
+
+        await handleUnassignPersonCard(removeCards.map(card => `${card.serialNumber} - ${card.lastCardNumber}`));
+        await handleUnassignPersonService(removeServices.map(_ => _.id));
+        await handleAssignPersonCard(person.id, newCards);
+        await handleAssignPersonService(person.id, newServices);
+
+        Alerting.create('success', 'Funcionário(a) teve os dados atualizados com sucesso.');
+        props.handleClose();
+      } catch {
+        Alerting.create('error', 'Funcionário(a) teve os dados atualizados, mas ocorreram erros na confirmação de alguns dados do(a) funcionário(a). Verifique se todos os dados estão corretos na tela de registro dos funcionários.');
+        props.handleClose();
+      }
     };
 
-  const handleEditPerson = () => {
-    const person: Person = {
-      id: props.id,
-      matricule,
-      name,
-      cpf,
-      rg,
-      motherName,
-      birthDate: birthDate.toISOString(),
-      phone,
-      mail,
-      services: appliedServices,
-      scale: scales.find(_scale => _scale.id === scale)?.id || "",
-      cards: lotItems.filter(_lotItem => props.cards.includes(`${_lotItem.id} - ${_lotItem.lastCardNumber}`)).map(_lotItem => `${_lotItem.id} - ${_lotItem.lastCardNumber}`),
-      status: 'available',
-      address: {
-        street: streets.find(_street => _street.id === street)?.id || "",
-        neighborhood: neighborhoods.find(_neighborhood => _neighborhood.id === neighborhood)?.id || "",
-        city: cities.find(_city => _city.id === city)?.id || "",
-        district: districts.find(_district => _district.id === district)?.id || "",
-        number: numberHome,
-        complement,
-        zipCode,
-      },
-    }
+  if (
+    isLoadingPerson && !syncData
+    || isLoadingServices && !syncData
+    || isLoadingCards && !syncData
+  )
+    return <DialogLoading
+      header='Editar Funcionário(a)'
+      message='Carregando...'
+      show={props.show}
+      handleClose={props.handleClose}
+    />
 
-    try {
-      dispatch(SystemActions.UPDATE_PERSON(person));
-      props.handleClose();
-    } catch (error) {
-      Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
-    }
+  if (!syncData && person && services && cards) {
+    handleChangeMatricule(parseInt(person.matricule));
+    handleChangeName(person.name);
+    handleChangeCPF(parseInt(person.cpf));
+    handleChangeRG(parseInt(person.rg));
+    handleChangeMotherName(person.motherName);
+    handleChangeBirthDate(new Date(person.birthDate));
+    handleChangePhone(parseInt(person.phone));
+    handleChangeMail(person.mail);
+    handleChangeScaleId(person.scaleId);
+    handleChangeAddressId(person.addressId);
+    setAppliedCards(person.cards.map(card => `${card.serialNumber} - ${card.lastCardNumber}`));
+    setAppliedServices(person.personService.map(_ => _.service.value));
+    setSyncData(true);
+  } else if (
+    !syncData && !person
+    || !syncData && !services
+    || !syncData && !cards
+    || !syncData && !UpdatePerson
+    || !syncData && !AssignPersonService
+    || !syncData && !UnassignPersonService
+    || !syncData && !AssignPersonCard
+    || !syncData && !UnassignPersonCard
+  ) {
+    return <DialogError
+      header='Editar Funcionário(a)'
+      message='Ocorreu um erro'
+      show={props.show}
+      handleClose={props.handleClose}
+    />
   }
 
   return (
@@ -186,24 +243,26 @@ export default function RegisterPeople(props: Props) {
       <Dialog
         fullScreen
         open={props.show}
+        onClose={props.handleClose}
         TransitionComponent={Transition}
       >
-        <AppBar sx={{ position: 'relative' }} color='primary'>
+        <AppBar sx={{ position: 'relative' }}>
           <Toolbar>
             <IconButton
               edge="start"
               color="inherit"
+              onClick={props.handleClose}
               aria-label="close"
             >
-              <UpdateIcon />
+              <CloseIcon />
             </IconButton>
             <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
-              Editar Funcionário
+              Editar Funcionário(a)
             </Typography>
             <Button
               color="inherit"
-              disabled={!canEditPerson()}
-              onClick={handleEditPerson}
+              disabled={!canUpdatePerson()}
+              onClick={handleUpdatePerson}
             >
               Atualizar
             </Button>
@@ -218,8 +277,8 @@ export default function RegisterPeople(props: Props) {
               className='col'
               label="Matrícula"
               variant="standard"
-              value={StringEx.maskMatricule(String(matricule).padStart(5, '0'))}
-              onChange={(e) => handleChangeMatricule(parseInt(e.target.value))}
+              value={StringEx.maskMatricule(matricule, true)}
+              onChange={(e) => handleChangeMatricule(StringEx.removeMaskNum(e.target.value))}
             />
           </ListItem>
           <ListItem>
@@ -236,7 +295,7 @@ export default function RegisterPeople(props: Props) {
               className='col'
               label="CPF"
               variant="standard"
-              value={StringEx.maskCPF(cpf)}
+              value={StringEx.maskCPF(cpf, true)}
               onChange={(e) => handleChangeCPF(StringEx.removeMaskNum(e.target.value))}
             />
           </ListItem>
@@ -245,7 +304,7 @@ export default function RegisterPeople(props: Props) {
               className='col'
               label="RG"
               variant="standard"
-              value={StringEx.maskRG(rg)}
+              value={StringEx.maskRG(rg, true)}
               onChange={(e) => handleChangeRG(StringEx.removeMaskNum(e.target.value))}
             />
           </ListItem>
@@ -263,7 +322,7 @@ export default function RegisterPeople(props: Props) {
               className='col'
               label="Celular"
               variant="standard"
-              value={StringEx.maskPhone(phone)}
+              value={StringEx.maskPhone(phone, true)}
               onChange={(e) => handleChangePhone(StringEx.removeMaskNum(e.target.value))}
             />
           </ListItem>
@@ -279,7 +338,7 @@ export default function RegisterPeople(props: Props) {
         </List>
         <List>
           <ListItem>
-            <MobileDatePicker
+            <DatePicker
               className='col-12'
               label="Data de Nascimento"
               value={birthDate}
@@ -291,8 +350,16 @@ export default function RegisterPeople(props: Props) {
           <ListItem>
             <div className='col'>
               <SelectScale
-                scale={scales.find(scale => scale.id === props.scale)}
-                handleChangeScale={handleChangeScale}
+                id={person?.scaleId}
+                handleChangeId={(id) => handleChangeScaleId(id)}
+              />
+            </div>
+          </ListItem>
+          <ListItem>
+            <div className='col'>
+              <SelectCard
+                selectCards={person?.cards.map(card => `${card.costCenter.value || "???"} - ${card.serialNumber} (4 Últimos Dígitos: ${card.lastCardNumber})`)}
+                handleChangeCard={(cards) => setAppliedCards(cards)}
               />
             </div>
           </ListItem>
@@ -301,8 +368,8 @@ export default function RegisterPeople(props: Props) {
           </ListItem>
         </List>
         <SelectService
-          left={servicesAvailables()}
-          right={services.filter((service) => props.services.includes(service.id)).map((service) => service.value)}
+          itemsLeft={person ? ArrayEx.returnItemsOfANotContainInB(services.map(service => service.value), person.personService.map(_ => _.service.value)) : []}
+          itemsRight={person?.personService.map((_) => _.service.value) || []}
           onChangeAppliedServices={(values) => setAppliedServices(services.filter(service => values.includes(service.value)).map(service => service.id))}
         />
         <List>
@@ -310,63 +377,9 @@ export default function RegisterPeople(props: Props) {
             <ListItemText primary="Endereço" />
           </ListItem>
           <ListItem>
-            <div className='col'>
-              <SelectStreet
-                street={streets.find(street => street.id === props.street)}
-                handleChangeStreet={handleChangeStreet}
-              />
-            </div>
-          </ListItem>
-          <ListItem>
-            <div className='col'>
-              <SelectNeighborhood
-                neighborhood={neighborhoods.find(neighborhood => neighborhood.id === props.neighborhood)}
-                handleChangeNeighborhood={handleChangeNeighborhood}
-              />
-            </div>
-          </ListItem>
-          <ListItem>
-            <div className='col'>
-              <SelectCity
-                city={cities.find(city => city.id === props.city)}
-                handleChangeCity={handleChangeCity}
-              />
-            </div>
-          </ListItem>
-          <ListItem>
-            <div className='col'>
-              <SelectDistrict
-                district={districts.find(district => district.id === props.district)}
-                handleChangeDistrict={handleChangeDistrict}
-              />
-            </div>
-          </ListItem>
-          <ListItem>
-            <TextField
-              className='col'
-              label="Número"
-              variant="standard"
-              value={StringEx.maskHouseNumber(String(numberHome).padStart(4, '0'))}
-              onChange={(e) => handleChangeNumberHome(parseInt(e.target.value))}
-            />
-          </ListItem>
-          <ListItem>
-            <TextField
-              type={'text'}
-              className='col'
-              label="Complemento"
-              variant="standard"
-              value={complement}
-              onChange={(e) => handleChangeComplement(e.target.value)}
-            />
-          </ListItem>
-          <ListItem>
-            <TextField
-              className='col'
-              label="CEP"
-              variant="standard"
-              value={StringEx.maskZipcode(zipCode)}
-              onChange={(e) => handleChangeZipCode(parseInt(StringEx.removeMaskNum(e.target.value)))}
+            <SelectAddress
+              id={person?.addressId}
+              handleChangeId={(id) => handleChangeAddressId(id)}
             />
           </ListItem>
         </List>
@@ -374,10 +387,18 @@ export default function RegisterPeople(props: Props) {
           className='col-10 mx-auto my-2'
           variant="contained"
           color="primary"
-          disabled={!canEditPerson()}
-          onClick={handleEditPerson}
+          disabled={!canUpdatePerson()}
+          onClick={handleUpdatePerson}
         >
           Atualizar
+        </Button>
+        <Button
+          className='col-10 mx-auto my-2'
+          variant="contained"
+          color="error"
+          onClick={props.handleClose}
+        >
+          Cancelar
         </Button>
       </Dialog>
     </div>

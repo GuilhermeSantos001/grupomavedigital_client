@@ -82,7 +82,7 @@ export function useCostCentersService(take: number = 10) {
             success: true,
             data: data.data.map(costCenter => {
               if (costCenter.id === id) {
-                costCenter = updateData.data;
+                costCenter = {...costCenter, ...updateData.data};
               }
 
               return costCenter;

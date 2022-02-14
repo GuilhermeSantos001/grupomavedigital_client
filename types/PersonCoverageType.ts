@@ -1,4 +1,4 @@
-import { DatabaseModalityOfCoverageType } from '@/types/DatabaseModalityOfCoverageType'
+import { DatabaseModalityOfCoveringType } from '@/types/DatabaseModalityOfCoveringType'
 import { UploadType } from '@/types/UploadType'
 import { CardType } from '@/types/CardType'
 
@@ -7,7 +7,7 @@ export type PersonCoverageType = {
   cursorId: number
   mirrorId: string
   personId: string
-  modalityOfCoverage: DatabaseModalityOfCoverageType
+  modalityOfCoverage: DatabaseModalityOfCoveringType
   mirror: UploadType
   person: {
     matricule: string

@@ -93,7 +93,7 @@ export function useUploadsService(take: number = 10, refreshInterval: number = 1
             success: true,
             data: data.data.map(upload => {
               if (upload.id === id) {
-                upload = updateData.data;
+                upload = { ...upload, ...updateData.data };
               }
 
               return upload;

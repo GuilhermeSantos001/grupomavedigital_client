@@ -86,7 +86,7 @@ export function usePeopleCoverageService(take: number = 10, refreshInterval: num
             success: true,
             data: data.data.map(personCoverage => {
               if (personCoverage.id === id) {
-                personCoverage = updateData.data;
+                personCoverage = {...personCoverage, ...updateData.data};
               }
 
               return personCoverage;

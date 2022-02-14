@@ -82,7 +82,7 @@ export function useStreetsService(take: number = 10, refreshInterval: number = 1
             success: true,
             data: data.data.map(street => {
               if (street.id === id) {
-                street = updateData.data;
+                street = {...street, ...updateData.data};
               }
 
               return street;

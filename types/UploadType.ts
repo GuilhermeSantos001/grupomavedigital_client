@@ -10,7 +10,7 @@ export type UploadType = {
   compressedSize: number
   version: number
   temporary: boolean
-  expiredAt: Date
+  expiredAt: string
   createdAt: string
   updatedAt: string
 }

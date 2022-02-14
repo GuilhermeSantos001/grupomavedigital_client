@@ -89,7 +89,7 @@ export function useWorkplacesService(take: number = 10, refreshInterval: number 
             success: true,
             data: data.data.map(workplace => {
               if (workplace.id === id) {
-                workplace = updateData.data;
+                workplace = {...workplace, ...updateData.data};
               }
 
               return workplace;

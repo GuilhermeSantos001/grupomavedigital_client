@@ -82,7 +82,10 @@ export function useReasonForAbsencesService(take: number = 10, refreshInterval: 
             success: true,
             data: data.data.map(reasonforabsence => {
               if (reasonforabsence.id === id) {
-                reasonforabsence = updateData.data;
+                reasonforabsence = {
+                  ...reasonforabsence,
+                  ...updateData.data
+                };
               }
 
               return reasonforabsence;

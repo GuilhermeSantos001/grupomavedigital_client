@@ -16,7 +16,7 @@ export interface Props {
   onPageSizeChange: (pageSize: number) => void
 }
 
-export default function listWithCheckboxMUI(props: Props): JSX.Element {
+export function ListWithCheckboxMUI(props: Props): JSX.Element {
   return (
     <div className='m-2' style={{ height: 350, width: '100%' }}>
       <DataGrid

@@ -1,5 +1,5 @@
 /**
- * @description Exporta todos os icones do fontawesome
+ * @description Exporta todos os ícones do fontawesome
  * @author GuilhermeSantos001
  * @update 30/09/2021
  */

@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import useSWR from 'swr'
 
-import { fetcherAxiosGet } from '@/src/utils/fetcherAxiosGet';
+import { fetcherAxiosPost } from '@/src/utils/fetcherAxiosPost';
 import { fetcherAxiosPut } from '@/src/utils/fetcherAxiosPut';
+import { fetcherAxiosGet } from '@/src/utils/fetcherAxiosGet';
 import { fetcherAxiosDelete } from '@/src/utils/fetcherAxiosDelete';
 import { ServiceType } from '@/types/ServiceType';
 import { ApiResponseSuccessType } from '@/types/ApiResponseSuccessType';
@@ -92,7 +93,7 @@ export function useServicesService(take: number = 10, refreshInterval: number = 
             success: true,
             data: data.data.map(service => {
               if (service.id === id) {
-                service = updateData.data;
+                service = {...service, ...updateData.data};
               }
 
               return service;
@@ -106,7 +107,7 @@ export function useServicesService(take: number = 10, refreshInterval: number = 
         const
           uriAssignPerson = `${process.env.NEXT_PUBLIC_API_HOST}/service/assign/person`;
 
-        const updateData = await fetcherAxiosPut<DataAssignPerson, ApiResponseSuccessOrErrorType<ServiceType, Object>>(uriAssignPerson, setIsLoading, { ...dataAssignPerson, serviceId: id });
+        const updateData = await fetcherAxiosPost<DataAssignPerson, ApiResponseSuccessOrErrorType<ServiceType, Object>>(uriAssignPerson, setIsLoading, { ...dataAssignPerson, serviceId: id });
 
         if (!updateData.success) {
           Alerting.create('error', updateData.message);
@@ -118,7 +119,7 @@ export function useServicesService(take: number = 10, refreshInterval: number = 
             success: true,
             data: data.data.map(service => {
               if (service.id === id) {
-                service = updateData.data;
+                service = {...service, ...updateData.data};
               }
 
               return service;
@@ -132,7 +133,7 @@ export function useServicesService(take: number = 10, refreshInterval: number = 
         const
           uriUnassignPerson = `${process.env.NEXT_PUBLIC_API_HOST}/service/unassign/person/${id}`;
 
-        const updateData = await fetcherAxiosPut<{}, ApiResponseSuccessOrErrorType<ServiceType, Object>>(uriUnassignPerson, setIsLoading, {});
+        const updateData = await fetcherAxiosDelete< ApiResponseSuccessOrErrorType<ServiceType, Object>>(uriUnassignPerson, setIsLoading);
 
         if (!updateData.success) {
           Alerting.create('error', updateData.message);
@@ -144,7 +145,7 @@ export function useServicesService(take: number = 10, refreshInterval: number = 
             success: true,
             data: data.data.map(service => {
               if (service.id === id) {
-                service = updateData.data;
+                service = {...service, ...updateData.data};
               }
 
               return service;
@@ -158,7 +159,7 @@ export function useServicesService(take: number = 10, refreshInterval: number = 
         const
           uriAssignWorkplace = `${process.env.NEXT_PUBLIC_API_HOST}/service/assign/workplace`;
 
-        const updateData = await fetcherAxiosPut<DataAssignWorkplace, ApiResponseSuccessOrErrorType<ServiceType, Object>>(uriAssignWorkplace, setIsLoading, { ...dataAssignWorkplace, serviceId: id });
+        const updateData = await fetcherAxiosPost<DataAssignWorkplace, ApiResponseSuccessOrErrorType<ServiceType, Object>>(uriAssignWorkplace, setIsLoading, { ...dataAssignWorkplace, serviceId: id });
 
         if (!updateData.success) {
           Alerting.create('error', updateData.message);
@@ -170,7 +171,7 @@ export function useServicesService(take: number = 10, refreshInterval: number = 
             success: true,
             data: data.data.map(service => {
               if (service.id === id) {
-                service = updateData.data;
+                service = {...service, ...updateData.data};
               }
 
               return service;
@@ -182,9 +183,9 @@ export function useServicesService(take: number = 10, refreshInterval: number = 
       },
       unassignWorkplace: async (id: string): Promise<boolean> => {
         const
-          uriUnassignWorkplace = `${process.env.NEXT_PUBLIC_API_HOST}/service/assign/workplace/${id}`;
+          uriUnassignWorkplace = `${process.env.NEXT_PUBLIC_API_HOST}/service/unassign/workplace/${id}`;
 
-        const updateData = await fetcherAxiosPut<{}, ApiResponseSuccessOrErrorType<ServiceType, Object>>(uriUnassignWorkplace, setIsLoading, {});
+        const updateData = await fetcherAxiosDelete<ApiResponseSuccessOrErrorType<ServiceType, Object>>(uriUnassignWorkplace, setIsLoading);
 
         if (!updateData.success) {
           Alerting.create('error', updateData.message);
@@ -196,7 +197,7 @@ export function useServicesService(take: number = 10, refreshInterval: number = 
             success: true,
             data: data.data.map(service => {
               if (service.id === id) {
-                service = updateData.data;
+                service = {...service, ...updateData.data};
               }
 
               return service;
