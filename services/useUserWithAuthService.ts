@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { useSWRConfig } from 'swr'
+import useSWR from 'swr'
 
-import { fetcherAxiosPost } from '@/src/utils/fetcherAxiosPost';
+import { fetcherAxiosGet } from '@/src/utils/fetcherAxiosGet';
 import { fetcherAxiosPut } from '@/src/utils/fetcherAxiosPut';
 import { fetcherAxiosDelete } from '@/src/utils/fetcherAxiosDelete';
+import { ApiResponseSuccessType } from '@/types/ApiResponseSuccessType';
 import { ApiResponseErrorType } from '@/types/ApiResponseErrorType';
 import { ApiResponseSuccessOrErrorType } from '@/types/ApiResponseSuccessOrErrorType';
 
@@ -12,30 +13,31 @@ import {
 } from '@/types/UserType';
 
 import {
-  DataUser,
-  DataUserWithPassword
+  DataUser
 } from '@/types/UserServiceType';
 
 import Alerting from '@/src/utils/alerting';
 
-export function useUserService() {
-  const { mutate } = useSWRConfig();
+export function useUserWithAuthService(auth: string) {
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const uri = `${process.env.NEXT_PUBLIC_API_HOST}/user/${auth}`;
 
-  const create = async (data: DataUserWithPassword) => {
-    const createUpdate = await fetcherAxiosPost<DataUserWithPassword, ApiResponseSuccessOrErrorType<UserType, Object>>(`${process.env.NEXT_PUBLIC_API_HOST}/user`, setIsLoading, data);
+  const { data, error, mutate } = useSWR<
+    ApiResponseSuccessType<UserType | undefined>,
+    ApiResponseErrorType<Object>
+  >([uri, setIsLoading], fetcherAxiosGet)
 
-    if (!createUpdate.success) {
-      Alerting.create('error', createUpdate.message);
-      console.error(createUpdate);
-      return undefined;
-    }
+  if (error) {
+    Alerting.create('error', error.message);
+    console.error(error);
+    return { isLoading };
+  }
 
-    const uri = `${process.env.NEXT_PUBLIC_API_HOST}/user/${createUpdate.data.authorization}`;
-
+  if (data?.success)
     return {
-      data: createUpdate.data,
+      isLoading,
+      data: data?.data,
       update: async (newData: DataUser): Promise<boolean> => {
         const updateData = await fetcherAxiosPut<DataUser, ApiResponseSuccessOrErrorType<UserType, Object>>(uri, setIsLoading, newData);
 
@@ -45,9 +47,9 @@ export function useUserService() {
 
           return false;
         } else {
-          mutate([uri, setIsLoading], {
+          mutate({
             success: true,
-            data: { ...createUpdate.data, ...updateData.data }
+            data: { ...data?.data, ...updateData.data }
           });
         }
 
@@ -62,19 +64,17 @@ export function useUserService() {
 
           return false;
         } else {
-          mutate([uri, setIsLoading], {
-            success: true,
+          mutate({
+            success: false,
             data: undefined
           });
         }
 
         return true;
       }
-    }
-  }
+    };
 
   return {
-    isLoading,
-    create
+    isLoading
   };
 }

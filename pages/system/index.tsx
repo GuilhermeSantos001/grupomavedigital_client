@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+
 import { GetServerSidePropsContext } from 'next/types'
 
 import { useGetUserInfoService } from '@/services/graphql/useGetUserInfoService'
@@ -19,14 +20,11 @@ import { handleClickFunction } from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
 
 import Sugar from 'sugar'
+import DateEx from '@/src/utils/dateEx'
 
 import { PageProps } from '@/pages/_app'
 import { GetMenuMain } from '@/bin/GetMenuMain'
-
-import { Variables } from '@/src/db/variables'
-import { saveUpdatedToken } from '@/src/functions/tokenValidate'
-
-import { useAPIKeysService } from '@/services/useAPIKeysService'
+import { GetUpdates } from '@/bin/GetUpdates'
 
 interface PageData {
   photoProfile: string
@@ -238,16 +236,27 @@ function compose_user_view_1() {
           </p>
         </div>
         <div className="p-3 bg-light-gray rounded overflow-auto h-50">
-          <div className="my-1 text-primary">
-            <p className="text-center text-md-start px-2 fs-6 fw-bold">
-              <FontAwesomeIcon
-                icon={Icon.render('fas', 'paint-brush')}
-                className="me-1 flex-shrink-1 my-auto"
-              />
-              Estamos com um novo visual, o que você achou?
-            </p>
-            <hr />
-          </div>
+          {
+            GetUpdates().map(update => (
+              <div key={update.id} className="my-1 text-primary">
+                {
+                  update.title && update.title.length > 0 &&
+                  <h5 className='p-2 text-center fw-bold border-bottom'>{update.title}</h5>
+                }
+                <p className="px-2 fs-6 fw-bold" style={{ textAlign: 'justify' }}>
+                  <FontAwesomeIcon
+                    icon={Icon.render(update.iconFamily, update.iconName)}
+                    className="me-1 flex-shrink-1 my-auto"
+                  />
+                  {update.message}
+                </p>
+                <p className="px-2 fs-6 text-muted">
+                  {Sugar.String.capitalize(DateEx.formatDistance(new Date(), new Date(update.createdAt.year, update.createdAt.month, update.createdAt.day)))}
+                </p>
+                <hr />
+              </div>
+            ))
+          }
         </div>
       </div>
       <div className="col-12 col-md-6">
@@ -286,7 +295,11 @@ export default function System(
     getUserInfoAuthorization: string
   }
 ) {
-  const { isValidating, success, data, error } = useGetUserInfoService(
+  const [isReady, setReady] = useState<boolean>(false)
+  const [notAuth, setNotAuth] = useState<boolean>(false)
+  const [loading, setLoading] = useState<boolean>(true)
+
+  const { success, data, error } = useGetUserInfoService(
     {
       auth: compressToEncodedURIComponent(auth),
     },
@@ -296,63 +309,35 @@ export default function System(
     }
   );
 
-  console.log(isValidating,  success, data, error);
+  const router = useRouter()
 
-  return <p>Testando</p>
+  const
+    handleClickNoAuth: handleClickFunction = async (
+      event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+      path: string
+    ) => {
+      event.preventDefault();
+      if (path === '/auth/login')
+        router.push(path);
+    }
 
-  // const [isReady, setReady] = useState<boolean>(false)
-  // const [notAuth, setNotAuth] = useState<boolean>(false)
-  // const [userInfo, setUserInfo] = useState<PageData>({
-  //   username: 'Carregando...',
-  //   photoProfile: 'avatar.png',
-  //   privilege: 'Desconhecido',
-  // })
-  // const [loading, setLoading] = useState<boolean>(true)
+  if (error && !notAuth) {
+    setNotAuth(true);
+    setLoading(false);
+  }
 
-  // const router = useRouter()
+  if (success && data && !isReady) {
+    setReady(true);
+    setLoading(false);
+  }
 
-  // const
-  //   handleClickNoAuth: handleClickFunction = async (
-  //     event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
-  //     path: string
-  //   ) => {
-  //     event.preventDefault()
+  if (loading) return compose_load()
 
-  //     if (path === '/auth/login') {
-  //       const variables = new Variables(1, 'IndexedDB')
-  //       await Promise.all([await variables.clear()]).then(() => {
-  //         router.push(path)
-  //       })
-  //     }
-  //   }
+  if (notAuth) return compose_noAuth(handleClickNoAuth)
 
-  // if (error) {
-  //   setNotAuth(true);
-  //   setLoading(false);
-  // }
-
-  // if (data) {
-  //   setUserInfo({
-  //     photoProfile: data.getUserInfo.photoProfile,
-  //     username: data.getUserInfo.username,
-  //     privilege: data.getUserInfo.privilege
-  //   })
-
-  //   if (data.getUserInfo.updatedToken) {
-  //     saveUpdatedToken(data.getUserInfo.updatedToken.signature, data.getUserInfo.updatedToken.token)
-  //       .then(() => {
-  //         setReady(true);
-  //         setLoading(false);
-  //       })
-  //   } else {
-  //     setReady(true);
-  //     setLoading(false);
-  //   }
-  // }
-
-  // if (loading) return compose_load()
-
-  // if (notAuth) return compose_noAuth(handleClickNoAuth)
-
-  // if (isReady) return compose_ready(userInfo);
+  if (isReady) return compose_ready({
+    photoProfile: data?.photoProfile || '',
+    username: data?.username || '???',
+    privilege: data?.privilege || '???',
+  });
 }

@@ -4,31 +4,26 @@ import useSWR from 'swr'
 import { fetcherAxiosGet } from '@/src/utils/fetcherAxiosGet';
 import { fetcherAxiosPut } from '@/src/utils/fetcherAxiosPut';
 import { fetcherAxiosDelete } from '@/src/utils/fetcherAxiosDelete';
-import { CostCenterType } from '@/types/CostCenterType'
 import { ApiResponseSuccessType } from '@/types/ApiResponseSuccessType';
 import { ApiResponseErrorType } from '@/types/ApiResponseErrorType';
 import { ApiResponseSuccessOrErrorType } from '@/types/ApiResponseSuccessOrErrorType';
 
+import type {
+  CostCenterType
+} from '@/types/CostCenterType'
+
+import type {
+  DataCostCenter
+} from '@/types/CostCenterServiceType'
+
 import Alerting from '@/src/utils/alerting';
-
-export type DataCostCenter = Pick<CostCenterType, 'value'>;
-
-declare function UpdateCostCenters(id: string, newData: DataCostCenter): Promise<boolean>
-declare function DeleteCostCenters(id: string): Promise<boolean>
-
-export type FunctionUpdateCostCentersTypeof = typeof UpdateCostCenters | undefined;
-export type FunctionDeleteCostCentersTypeof = typeof DeleteCostCenters | undefined;
-export type FunctionNextPageTypeof = (() => void) | undefined;
-export type FunctionPreviousPageTypeof = (() => void) | undefined;
 
 export function useCostCentersService(take: number = 10) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [uri, setURI] = useState<string>(`${process.env.NEXT_PUBLIC_API_HOST}/costcenters?take=${take}`);
+  const [lastCursorId, setLastCursorId] = useState<number>(0);
 
   const skip = 1;
-
-  const [uri, setURI] = useState<string>(`${process.env.NEXT_PUBLIC_API_HOST}/costcenters?take=${take}`);
-
-  const [lastCursorId, setLastCursorId] = useState<number>(0);
 
   const { data, error, mutate } = useSWR<
     ApiResponseSuccessType<CostCenterType[]>,
@@ -82,7 +77,7 @@ export function useCostCentersService(take: number = 10) {
             success: true,
             data: data.data.map(costCenter => {
               if (costCenter.id === id) {
-                costCenter = {...costCenter, ...updateData.data};
+                costCenter = { ...costCenter, ...updateData.data };
               }
 
               return costCenter;

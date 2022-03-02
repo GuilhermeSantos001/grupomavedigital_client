@@ -1,10 +1,12 @@
-/**
- * @description Admin -> Tela Inicial
- * @author GuilhermeSantos001
- * @update 15/02/2022
- */
+import React, { useState } from 'react'
 
-import React, { useEffect, useState } from 'react'
+import { GetServerSidePropsContext } from 'next/types'
+
+import { useGetUserInfoService } from '@/services/graphql/useGetUserInfoService'
+
+import { verifyCookie } from '@/lib/verifyCookie'
+
+import { compressToEncodedURIComponent } from 'lz-string'
 
 import Link from 'next/link'
 
@@ -20,9 +22,7 @@ import NoAuth from '@/components/noAuth'
 
 import { PageProps } from '@/pages/_app'
 import { GetMenuMain } from '@/bin/GetMenuMain'
-
-import { Variables } from '@/src/db/variables'
-import hasPrivilege from '@/src/functions/hasPrivilege'
+import { PrivilegesSystem } from '@/types/UserType'
 
 const serverSideProps: PageProps = {
   title: 'Admin/Tela Inicial',
@@ -31,10 +31,17 @@ const serverSideProps: PageProps = {
   menu: GetMenuMain('mn-admin')
 }
 
-export const getServerSideProps = async () => {
+export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => {
+  const privileges: PrivilegesSystem[] = [
+    'administrador'
+  ]
+
   return {
     props: {
       ...serverSideProps,
+      privileges,
+      auth: await verifyCookie(req.cookies.auth),
+      getUserInfoAuthorization: process.env.GRAPHQL_AUTHORIZATION_GETUSERINFO!,
     },
   }
 }
@@ -158,11 +165,31 @@ function compose_ready() {
   )
 }
 
-export default function Admin() {
+export default function Admin(
+  {
+    privileges,
+    auth,
+    getUserInfoAuthorization,
+  }: {
+    privileges: PrivilegesSystem[],
+    auth: string,
+    getUserInfoAuthorization: string
+  }
+) {
   const [isReady, setReady] = useState<boolean>(false)
   const [notPrivilege, setNotPrivilege] = useState<boolean>(false)
   const [notAuth, setNotAuth] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(true)
+
+  const { success, data, error } = useGetUserInfoService(
+    {
+      auth: compressToEncodedURIComponent(auth),
+    },
+    {
+      authorization: getUserInfoAuthorization,
+      encodeuri: 'true'
+    }
+  );
 
   const router = useRouter()
 
@@ -171,14 +198,9 @@ export default function Admin() {
       event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
       path: string
     ) => {
-      event.preventDefault()
-
-      if (path === '/auth/login') {
-        const variables = new Variables(1, 'IndexedDB')
-        await Promise.all([await variables.clear()]).then(() => {
-          router.push(path)
-        })
-      }
+      event.preventDefault();
+      if (path === '/auth/login')
+        router.push(path);
     },
     handleClickNoPrivilege: handleClickFunction = async (
       event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
@@ -188,22 +210,22 @@ export default function Admin() {
       router.push(path)
     }
 
-  useEffect(() => {
-    hasPrivilege('administrador')
-      .then((isAllowViewPage) => {
-        if (isAllowViewPage) {
-          setReady(true);
-        } else {
-          setNotPrivilege(true);
-        }
+  if (error && !notAuth) {
+    setNotAuth(true);
+    setLoading(false);
+  }
 
-        return setLoading(false);
-      })
-      .catch(() => {
-        setNotAuth(true);
-        return setLoading(false)
-      });
-  }, [])
+  if (success && data && !isReady) {
+    if (
+      privileges
+        .filter(privilege => data.privileges.indexOf(privilege) !== -1)
+        .length <= 0
+    )
+      setNotPrivilege(true);
+
+    setReady(true);
+    setLoading(false);
+  }
 
   if (loading) return compose_load()
 

@@ -36,46 +36,6 @@ import { ImpulseSpinner } from "react-spinners-kit"
 
 import { iconsFamily, iconsName } from '@/src/utils/fontAwesomeIcons'
 
-export type PrivilegesSystem =
-  // Sistema
-  | 'common'
-  | 'administrador'
-  | 'moderador'
-  | 'supervisor'
-  | 'diretoria'
-  // Financeiro
-  | 'fin_faturamento'
-  | 'fin_assistente'
-  | 'fin_gerente'
-  // RH/DP
-  | 'rh_beneficios'
-  | 'rh_encarregado'
-  | 'rh_juridico'
-  | 'rh_recrutamento'
-  | 'rh_sesmet'
-  // Suprimentos
-  | 'sup_compras'
-  | 'sup_estoque'
-  | 'sup_assistente'
-  | 'sup_gerente'
-  // Comercial
-  | 'com_vendas'
-  | 'com_adm'
-  | 'com_gerente'
-  | 'com_qualidade'
-  // Operacional
-  | 'ope_mesa'
-  | 'ope_coordenador'
-  | 'ope_supervisor'
-  | 'ope_gerente'
-  // Marketing
-  | 'mkt_geral'
-  // Juridico
-  | 'jur_advogado'
-  // Contabilidade
-  | 'cont_contabil'
-  ;
-
 export type MenuResponse = {
   disable: MenuDisable
   options: Menu[]
@@ -148,7 +108,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     fullwidth = props.fullwidth,
     persistor = persistStore(store);
 
-    const reduxLoading = (
+  const reduxLoading = (
     <div
       className='d-flex flex-row justify-content-center align-items-center bg-primary bg-gradient'
       style={{ width: '100vw', height: '100vh' }}

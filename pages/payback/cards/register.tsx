@@ -1,10 +1,12 @@
-/**
- * @description Payback -> Cartões Beneficio (Alelo) -> Cadastro
- * @author GuilhermeSantos001
- * @update 09/02/2022
- */
+import {  useState } from 'react'
 
-import { useEffect, useState } from 'react'
+import { GetServerSidePropsContext } from 'next/types'
+
+import { useGetUserInfoService } from '@/services/graphql/useGetUserInfoService'
+
+import { verifyCookie } from '@/lib/verifyCookie'
+
+import { compressToEncodedURIComponent } from 'lz-string'
 
 import { useRouter } from 'next/router'
 
@@ -18,17 +20,17 @@ import NoAuth from '@/components/noAuth'
 import { SelectCostCenter } from '@/components/selects/SelectCostCenter'
 
 import { PageProps } from '@/pages/_app'
-import {GetMenuMain} from '@/bin/GetMenuMain'
+import { GetMenuMain } from '@/bin/GetMenuMain'
+import { PrivilegesSystem } from '@/types/UserType'
 
-import { Variables } from '@/src/db/variables'
-import hasPrivilege from '@/src/functions/hasPrivilege'
 import StringEx from '@/src/utils/stringEx'
 import Alerting from '@/src/utils/alerting'
 
-import {
-  useCardService,
+import type {
   FunctionCreateCardTypeof
-} from '@/services/useCardService';
+} from '@/types/CardServiceType'
+
+import { useCardService } from '@/services/useCardService'
 
 const serverSideProps: PageProps = {
   title: 'Pagamentos/Cartões Benefício/Cadastro',
@@ -37,10 +39,20 @@ const serverSideProps: PageProps = {
   menu: GetMenuMain('mn-payback')
 }
 
-export const getServerSideProps = async () => {
+export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => {
+  const privileges: PrivilegesSystem[] = [
+    'administrador',
+    'fin_gerente',
+    'fin_faturamento',
+    'fin_assistente'
+  ]
+
   return {
     props: {
       ...serverSideProps,
+      privileges,
+      auth: await verifyCookie(req.cookies.auth),
+      getUserInfoAuthorization: process.env.GRAPHQL_AUTHORIZATION_GETUSERINFO!,
     },
   }
 }
@@ -466,7 +478,17 @@ function compose_ready(
   )
 }
 
-export default function CardsRegister() {
+export default function CardsRegister(
+  {
+    privileges,
+    auth,
+    getUserInfoAuthorization,
+  }: {
+    privileges: PrivilegesSystem[],
+    auth: string,
+    getUserInfoAuthorization: string
+  }
+) {
   const [isReady, setReady] = useState<boolean>(false)
   const [notPrivilege, setNotPrivilege] = useState<boolean>(false)
   const [notAuth, setNotAuth] = useState<boolean>(false)
@@ -477,6 +499,16 @@ export default function CardsRegister() {
   const [numSerialNumber, setNumSerialNumber] = useState<number>(0)
   const [numLastCardNumber, setNumLastCardNumber] = useState<number>(0)
 
+  const { success, data, error } = useGetUserInfoService(
+    {
+      auth: compressToEncodedURIComponent(auth),
+    },
+    {
+      authorization: getUserInfoAuthorization,
+      encodeuri: 'true'
+    }
+  );
+
   const { create: handleCreateCard } = useCardService();
 
   const router = useRouter()
@@ -486,14 +518,9 @@ export default function CardsRegister() {
       event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
       path: string
     ) => {
-      event.preventDefault()
-
-      if (path === '/auth/login') {
-        const variables = new Variables(1, 'IndexedDB')
-        await Promise.all([await variables.clear()]).then(() => {
-          router.push(path)
-        })
-      }
+      event.preventDefault();
+      if (path === '/auth/login')
+        router.push(path);
     },
     handleClickNoPrivilege: handleClickFunction = async (
       event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
@@ -517,22 +544,22 @@ export default function CardsRegister() {
         setNumLastCardNumber(val);
     };
 
-  useEffect(() => {
-    hasPrivilege('administrador', 'fin_gerente', 'fin_assistente')
-      .then((isAllowViewPage) => {
-        if (isAllowViewPage) {
-          setReady(true);
-        } else {
-          setNotPrivilege(true);
-        }
+    if (error && !notAuth) {
+      setNotAuth(true);
+      setLoading(false);
+    }
 
-        return setLoading(false);
-      })
-      .catch(() => {
-        setNotAuth(true);
-        return setLoading(false)
-      });
-  }, [])
+    if (success && data && !isReady) {
+      if (
+        privileges
+          .filter(privilege => data.privileges.indexOf(privilege) !== -1)
+          .length <= 0
+      )
+        setNotPrivilege(true);
+
+      setReady(true);
+      setLoading(false);
+    }
 
   if (loading) return compose_load()
 

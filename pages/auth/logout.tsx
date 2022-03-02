@@ -1,9 +1,3 @@
-/**
- * @description Pagina usada quando o usuário deseja encerrar a sessão
- * @author GuilhermeSantos001
- * @update 15/02/2022
- */
-
 import React, { useEffect, useState } from 'react'
 
 import { GetServerSidePropsContext } from 'next/types'

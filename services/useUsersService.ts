@@ -4,41 +4,26 @@ import useSWR from 'swr'
 import { fetcherAxiosGet } from '@/src/utils/fetcherAxiosGet';
 import { fetcherAxiosPut } from '@/src/utils/fetcherAxiosPut';
 import { fetcherAxiosDelete } from '@/src/utils/fetcherAxiosDelete';
-import { UserType } from '@/types/UserType';
 import { ApiResponseSuccessType } from '@/types/ApiResponseSuccessType';
 import { ApiResponseErrorType } from '@/types/ApiResponseErrorType';
 import { ApiResponseSuccessOrErrorType } from '@/types/ApiResponseSuccessOrErrorType';
 
+import {
+  UserType
+} from '@/types/UserType';
+
+import {
+  DataUser
+} from '@/types/UserServiceType';
+
 import Alerting from '@/src/utils/alerting';
-
-export type DataUser = Pick<UserType,
-  | 'authorization'
-  | 'name'
-  | 'surname'
-  | 'username'
-  | 'email'
-  | 'cnpj'
-  | 'location'
-  | 'photoProfile'
-  | 'privileges'
->;
-
-declare function UpdateUsers(auth: string, newData: DataUser): Promise<boolean>
-declare function DeleteUsers(auth: string): Promise<boolean>
-
-export type FunctionUpdateUsersTypeof = typeof UpdateUsers | undefined;
-export type FunctionDeleteUsersTypeof = typeof DeleteUsers | undefined;
-export type FunctionNextPageTypeof = (() => void) | undefined;
-export type FunctionPreviousPageTypeof = (() => void) | undefined;
 
 export function useUsersService(take: number = 10, refreshInterval: number = 1000) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [uri, setURI] = useState<string>(`${process.env.NEXT_PUBLIC_API_HOST}/users?take=${take}`);
+  const [lastCursorId, setLastCursorId] = useState<number>(0);
 
   const skip = 1;
-
-  const [uri, setURI] = useState<string>(`${process.env.NEXT_PUBLIC_API_HOST}/users?take=${take}`);
-
-  const [lastCursorId, setLastCursorId] = useState<number>(0);
 
   const { data, error, mutate } = useSWR<
     ApiResponseSuccessType<UserType[]>,

@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { useSWRConfig } from 'swr'
+import useSWR from 'swr'
 
-import { fetcherAxiosPost } from '@/src/utils/fetcherAxiosPost';
+import { fetcherAxiosGet } from '@/src/utils/fetcherAxiosGet';
 import { fetcherAxiosPut } from '@/src/utils/fetcherAxiosPut';
 import { fetcherAxiosDelete } from '@/src/utils/fetcherAxiosDelete';
+import { ApiResponseSuccessType } from '@/types/ApiResponseSuccessType';
 import { ApiResponseErrorType } from '@/types/ApiResponseErrorType';
 import { ApiResponseSuccessOrErrorType } from '@/types/ApiResponseSuccessOrErrorType';
 
@@ -17,24 +18,26 @@ import type {
 
 import Alerting from '@/src/utils/alerting';
 
-export function useCostCenterService() {
-  const { mutate } = useSWRConfig();
+export function useCostCenterWithIdService(id: string) {
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const uri = `${process.env.NEXT_PUBLIC_API_HOST}/costcenter/${id}`;
 
-  const create = async (data: DataCostCenter) => {
-    const createUpdate = await fetcherAxiosPost<DataCostCenter, ApiResponseSuccessOrErrorType<CostCenterType, Object>>(`${process.env.NEXT_PUBLIC_API_HOST}/costcenter`, setIsLoading, data);
+  const { data, error, mutate } = useSWR<
+    ApiResponseSuccessType<CostCenterType | undefined>,
+    ApiResponseErrorType<Object>
+  >([uri, setIsLoading], fetcherAxiosGet)
 
-    if (!createUpdate.success) {
-      Alerting.create('error', createUpdate.message);
-      console.error(createUpdate);
-      return undefined;
-    }
+  if (error) {
+    Alerting.create('error', error.message);
+    console.error(error);
+    return { isLoading };
+  }
 
-    const uri = `${process.env.NEXT_PUBLIC_API_HOST}/costcenter/${createUpdate.data.id}`;
-
+  if (data?.success)
     return {
-      data: createUpdate.data,
+      isLoading,
+      data: data?.data,
       update: async (newData: DataCostCenter): Promise<boolean> => {
         const updateData = await fetcherAxiosPut<DataCostCenter, ApiResponseSuccessOrErrorType<CostCenterType, Object>>(uri, setIsLoading, newData);
 
@@ -44,9 +47,9 @@ export function useCostCenterService() {
 
           return false;
         } else {
-          mutate([uri, setIsLoading], {
+          mutate({
             success: true,
-            data: { ...createUpdate.data, ...updateData.data }
+            data: { ...data?.data, ...updateData.data }
           });
         }
 
@@ -61,19 +64,17 @@ export function useCostCenterService() {
 
           return false;
         } else {
-          mutate([uri, setIsLoading], {
-            success: true,
+          mutate({
+            success: false,
             data: undefined
           });
         }
 
         return true;
       }
-    }
-  }
+    };
 
   return {
-    isLoading,
-    create
+    isLoading
   };
 }

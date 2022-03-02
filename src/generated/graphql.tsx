@@ -32,18 +32,9 @@ export type AuthInfo = {
   username: Scalars['String'];
 };
 
-export type AuthSignTwoFactor = CommonResponse & {
+export type AuthSignTwoFactor = {
   __typename?: 'AuthSignTwoFactor';
   qrcode: Scalars['String'];
-  success?: Maybe<Scalars['Boolean']>;
-  updatedToken?: Maybe<UpdatedToken>;
-};
-
-export type AuthValidate = {
-  __typename?: 'AuthValidate';
-  signature?: Maybe<Scalars['String']>;
-  success: Scalars['Boolean'];
-  token?: Maybe<Scalars['String']>;
 };
 
 export type Banking = {
@@ -117,11 +108,6 @@ export type Clients = {
   store: Scalars['String'];
 };
 
-export type CommonResponse = {
-  success?: Maybe<Scalars['Boolean']>;
-  updatedToken?: Maybe<UpdatedToken>;
-};
-
 export type Filial = {
   __typename?: 'Filial';
   cnpj: Scalars['String'];
@@ -151,12 +137,12 @@ export type Mutation = {
    * Desativa a verificação de duas etapas da conta do usuário
    * Docs: https://grupomavedigital-wiki.vercel.app/#/graphql/users-mutations?id=authdisabletwofactor
    */
-  authDisableTwofactor: CommonResponse;
+  authDisableTwofactor: Scalars['Boolean'];
   /**
    * Ativa a verificação de duas etapas da conta do usuário
    * Docs: https://grupomavedigital-wiki.vercel.app/#/graphql/users-mutations?id=authenabledtwofactor
    */
-  authEnabledTwofactor: CommonResponse;
+  authEnabledTwofactor: Scalars['Boolean'];
   /**
    * Recuperação da conta, caso perca o gerador de códigos para a verificação de duas etapas da conta do usuário
    * Docs: https://grupomavedigital-wiki.vercel.app/#/graphql/users-mutations?id=authretrievetwofactor
@@ -171,7 +157,7 @@ export type Mutation = {
    * Verifica o código da verificação de duas etapas da conta do usuário
    * Docs: https://grupomavedigital-wiki.vercel.app/#/graphql/users-mutations?id=authverifytwofactor
    */
-  authVerifyTwofactor: CommonResponse;
+  authVerifyTwofactor: Scalars['Boolean'];
   /**
    * Cria um novo cartão digital
    * Docs: https://grupomavedigital-wiki.vercel.app/#/graphql/cards-mutations?id=cardcreate
@@ -191,12 +177,12 @@ export type Mutation = {
    * Altera a senha do usuário
    * Docs: https://grupomavedigital-wiki.vercel.app/#/graphql/users-mutations?id=changepassword
    */
-  changePassword: CommonResponse;
+  changePassword: Scalars['Boolean'];
   /**
    * Verifica se a autenticação de duas etapas está configurada
    * Docs: https://grupomavedigital-wiki.vercel.app/#/graphql/users-mutations?id=hasconfiguredtwofactor
    */
-  hasConfiguredTwoFactor: CommonResponse;
+  hasConfiguredTwoFactor: Scalars['Boolean'];
   multipleUpload: Array<UploadFIle>;
   /**
    * Registra um novo usuário
@@ -208,12 +194,12 @@ export type Mutation = {
    * Atualiza os dados do usuário
    * Docs: https://grupomavedigital-wiki.vercel.app/#/graphql/users-mutations?id=updatedata
    */
-  updateData: CommonResponse;
+  updateData: Scalars['Boolean'];
   /**
    * Atualiza a foto de perfil do usuário
    * Docs: https://grupomavedigital-wiki.vercel.app/#/graphql/users-mutations?id=updatephotoprofile
    */
-  updatePhotoProfile: CommonResponse;
+  updatePhotoProfile: Scalars['Boolean'];
   /**
    * Cria um novo vcard
    * Docs: https://grupomavedigital-wiki.vercel.app/#/graphql/cards-mutations?id=vcardcreate
@@ -331,11 +317,6 @@ export type MutationVcardCreateArgs = {
 export type Query = {
   __typename?: 'Query';
   /**
-   * Verifica se o token de segurança do usuário está expirado
-   * Docs: https://grupomavedigital-wiki.vercel.app/#/graphql/users-query?id=authexpired
-   */
-  authExpired: Scalars['Boolean'];
-  /**
    * Envia o e-mail para recuperar a conta do usuário caso ele esqueca a senha
    * Docs: https://grupomavedigital-wiki.vercel.app/#/graphql/users-query?id=authforgotpassword
    */
@@ -350,11 +331,6 @@ export type Query = {
    * Docs: https://grupomavedigital-wiki.vercel.app/#/graphql/users-query?id=authlogout
    */
   authLogout: Scalars['Boolean'];
-  /**
-   * Verifica se o token de segurança do usuário está valido
-   * Docs: https://grupomavedigital-wiki.vercel.app/#/graphql/users-query?id=authvalidate
-   */
-  authValidate: AuthValidate;
   /**
    * Efetua o login do usuário
    * Docs: https://grupomavedigital-wiki.vercel.app/#/graphql/cards-query?id=cardget
@@ -406,7 +382,7 @@ export type Query = {
    */
   getUserInfo: UserInfo;
   /**
-   * Processa o pedido de confirmação da conta do usuario
+   * Processa o pedido de confirmação da conta do usuário
    * Docs: https://grupomavedigital-wiki.vercel.app/#/graphql/users-query?id=mailconfirm
    */
   mailConfirm: Scalars['Boolean'];
@@ -415,12 +391,6 @@ export type Query = {
    * Docs: https://grupomavedigital-wiki.vercel.app/#/graphql/users-query?id=processorderforgotpassword
    */
   processOrderForgotPassword: Scalars['Boolean'];
-};
-
-
-export type QueryAuthExpiredArgs = {
-  auth: Scalars['String'];
-  token: Scalars['String'];
 };
 
 
@@ -438,14 +408,6 @@ export type QueryAuthLoginArgs = {
 
 export type QueryAuthLogoutArgs = {
   auth: Scalars['String'];
-  signature: Scalars['String'];
-  token: Scalars['String'];
-};
-
-
-export type QueryAuthValidateArgs = {
-  auth: Scalars['String'];
-  refreshToken?: InputMaybe<InputRefreshToken>;
   signature: Scalars['String'];
   token: Scalars['String'];
 };
@@ -540,12 +502,6 @@ export type Revenues = {
   value: Scalars['BigInt'];
 };
 
-export type UpdatedToken = {
-  __typename?: 'UpdatedToken';
-  signature: Scalars['String'];
-  token: Scalars['String'];
-};
-
 export type UploadFIle = {
   __typename?: 'UploadFIle';
   authorId: Scalars['String'];
@@ -557,7 +513,7 @@ export type UploadFIle = {
   version: Scalars['Int'];
 };
 
-export type UserInfo = CommonResponse & {
+export type UserInfo = {
   __typename?: 'UserInfo';
   cnpj: Scalars['String'];
   email: Scalars['String'];
@@ -566,9 +522,7 @@ export type UserInfo = CommonResponse & {
   photoProfile: Scalars['String'];
   privilege: Scalars['String'];
   privileges: Array<Scalars['String']>;
-  success?: Maybe<Scalars['Boolean']>;
   surname: Scalars['String'];
-  updatedToken?: Maybe<UpdatedToken>;
   username: Scalars['String'];
 };
 
@@ -642,36 +596,14 @@ export type Whatsapp = {
   text: Scalars['String'];
 };
 
-export type ConnectUserToSystemQueryVariables = Exact<{
-  auth: Scalars['String'];
-  pwd: Scalars['String'];
-  twofactortoken?: InputMaybe<Scalars['String']>;
-}>;
-
-
-export type ConnectUserToSystemQuery = { __typename?: 'Query', user: { __typename?: 'AuthInfo', authorization: string, token: string, signature: string, refreshToken: { __typename?: 'RefreshToken', signature: string, value: string } } };
-
 export type GetUserInfoQueryVariables = Exact<{
   auth: Scalars['String'];
 }>;
 
 
-export type GetUserInfoQuery = { __typename?: 'Query', getUserInfo: { __typename?: 'UserInfo', privileges: Array<string>, privilege: string, photoProfile: string, username: string, email: string, name: string, surname: string, cnpj: string, location: { __typename?: 'Location', street: string, number: number, complement: string, district: string, state: string, city: string, zipcode: string }, updatedToken?: { __typename?: 'UpdatedToken', signature: string, token: string } | null } };
+export type GetUserInfoQuery = { __typename?: 'Query', getUserInfo: { __typename?: 'UserInfo', privileges: Array<string>, privilege: string, photoProfile: string, username: string, email: string, name: string, surname: string, cnpj: string, location: { __typename?: 'Location', street: string, number: number, complement: string, district: string, state: string, city: string, zipcode: string } } };
 
 
-export const ConnectUserToSystemDocument = gql`
-    query ConnectUserToSystem($auth: String!, $pwd: String!, $twofactortoken: String) {
-  user: authLogin(auth: $auth, pwd: $pwd, twofactortoken: $twofactortoken) {
-    authorization
-    token
-    signature
-    refreshToken {
-      signature
-      value
-    }
-  }
-}
-    `;
 export const GetUserInfoDocument = gql`
     query GetUserInfo($auth: String!) {
   getUserInfo(auth: $auth) {
@@ -691,10 +623,6 @@ export const GetUserInfoDocument = gql`
       state
       city
       zipcode
-    }
-    updatedToken {
-      signature
-      token
     }
   }
 }

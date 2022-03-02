@@ -4,43 +4,24 @@ import useSWR from 'swr'
 import { fetcherAxiosGet } from '@/src/utils/fetcherAxiosGet';
 import { fetcherAxiosPut } from '@/src/utils/fetcherAxiosPut';
 import { fetcherAxiosDelete } from '@/src/utils/fetcherAxiosDelete';
-import { CardType } from '@/types/CardType'
 import { ApiResponseSuccessType } from '@/types/ApiResponseSuccessType';
 import { ApiResponseErrorType } from '@/types/ApiResponseErrorType';
 import { ApiResponseSuccessOrErrorType } from '@/types/ApiResponseSuccessOrErrorType';
 
+import type { CardType } from '@/types/CardType';
+import type {
+  DataCard,
+  DataPersonId
+} from '@/types/CardServiceType';
+
 import Alerting from '@/src/utils/alerting';
-
-export type DataCard = Pick<CardType,
-  | 'costCenterId'
-  | 'lotNum'
-  | 'serialNumber'
-  | 'lastCardNumber'
-  | 'status'
->;
-
-export type DataPersonId = Pick<CardType, 'personId'>;
-
-declare function UpdateCards(id: string, newData: DataCard): Promise<boolean>
-declare function AssignPersonCard(id: string, dataPersonId: DataPersonId): Promise<boolean>
-declare function UnassignPersonCard(id: string): Promise<boolean>
-declare function DeleteCards(id: string): Promise<boolean>
-
-export type FunctionUpdateCardsTypeof = typeof UpdateCards | undefined;
-export type FunctionAssignPersonCardTypeOf = typeof AssignPersonCard | undefined;
-export type FunctionUnassignPersonCardTypeOf = typeof UnassignPersonCard | undefined;
-export type FunctionDeleteCardsTypeof = typeof DeleteCards | undefined;
-export type FunctionNextPageTypeof = (() => void) | undefined;
-export type FunctionPreviousPageTypeof = (() => void) | undefined;
 
 export function useCardsService(take: number = 10, refreshInterval: number = 1000) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [uri, setURI] = useState<string>(`${process.env.NEXT_PUBLIC_API_HOST}/cards?take=${take}`);
+  const [lastCursorId, setLastCursorId] = useState<number>(0);
 
   const skip = 1;
-
-  const [uri, setURI] = useState<string>(`${process.env.NEXT_PUBLIC_API_HOST}/cards?take=${take}`);
-
-  const [lastCursorId, setLastCursorId] = useState<number>(0);
 
   const { data, error, mutate } = useSWR<
     ApiResponseSuccessType<CardType[]>,
@@ -94,7 +75,7 @@ export function useCardsService(take: number = 10, refreshInterval: number = 100
             success: true,
             data: data.data.map(card => {
               if (card.id === id) {
-                card = {...card, ...updateData.data};
+                card = { ...card, ...updateData.data };
               }
 
               return card;
@@ -120,7 +101,7 @@ export function useCardsService(take: number = 10, refreshInterval: number = 100
             success: true,
             data: data.data.map(card => {
               if (card.id === id) {
-                card = {...card, ...updateData.data};
+                card = { ...card, ...updateData.data };
               }
 
               return card;
@@ -146,7 +127,7 @@ export function useCardsService(take: number = 10, refreshInterval: number = 100
             success: true,
             data: data.data.map(card => {
               if (card.id === id) {
-                card = {...card, ...updateData.data};
+                card = { ...card, ...updateData.data };
               }
 
               return card;

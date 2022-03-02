@@ -1,9 +1,3 @@
-/**
- * @description Input -> Seleciona um endereço
- * @author GuilhermeSantos001
- * @update 12/02/2022
- */
-
 import { useState } from 'react';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
@@ -14,6 +8,8 @@ import { OutlinedInputLoading } from '@/components/utils/OutlinedInputLoading';
 import { OutlinedInputEmpty } from '@/components/utils/OutlinedInputEmpty';
 import { BoxError } from '@/components/utils/BoxError';
 
+import { AddressType } from '@/types/AddressType';
+
 import {
   useAddressesService
 } from '@/services/useAddressesService'
@@ -21,11 +17,13 @@ import {
 export type Props = {
   id?: string
   disabled?: boolean
+  handleChangeData: (data: AddressType) => void
   handleChangeId: (id: string) => void
 }
 
 export function SelectAddress(props: Props) {
   const [syncData, setSyncData] = useState<boolean>(false);
+  const [returnData, setReturnData] = useState<boolean>(false);
 
   const [address, setAddress] = useState<string>(props.id || '');
 
@@ -43,6 +41,15 @@ export function SelectAddress(props: Props) {
   if (addresses.length <= 0)
     return <OutlinedInputEmpty label='Endereço' message='Nenhum endereço cadastrado' />
 
+  if (props.id && props.handleChangeData && returnData) {
+    const address = addresses.find(address => address.id === props.id);
+
+    if (address)
+      props.handleChangeData(address);
+
+    setReturnData(false);
+  }
+
   return (
     <FormControl variant="outlined" className='col-12'>
       <InputLabel id="select-address-label">
@@ -55,6 +62,7 @@ export function SelectAddress(props: Props) {
         disabled={props.disabled !== undefined ? props.disabled : false}
         onChange={(e) => {
           setAddress(e.target.value as string);
+          setReturnData(true);
           props.handleChangeId(e.target.value as string);
         }}
         label="Endereço"

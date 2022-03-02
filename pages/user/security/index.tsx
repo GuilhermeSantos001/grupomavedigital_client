@@ -1,11 +1,13 @@
-/**
- * @description Pagina usada para alterar as informações de segurança do usuário
- * @author GuilhermeSantos001
- * @update 21/01/2022
- */
-
 import React, { useEffect, useState } from 'react'
 import { Modal } from 'react-bootstrap'
+
+import { GetServerSidePropsContext } from 'next/types'
+
+import { useGetUserInfoService } from '@/services/graphql/useGetUserInfoService'
+
+import { verifyCookie } from '@/lib/verifyCookie'
+
+import { compressToEncodedURIComponent } from 'lz-string'
 
 import Image from 'next/image'
 import { useRouter } from 'next/router'
@@ -17,6 +19,7 @@ import Icon from '@/src/utils/fontAwesomeIcons'
 
 import Sugar from 'sugar'
 
+import { handleClickFunction } from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
 import Alerting from '@/src/utils/alerting'
 
@@ -24,9 +27,6 @@ import { PageProps } from '@/pages/_app'
 import { GetMenuMain } from '@/bin/GetMenuMain'
 
 import Fetch from '@/src/utils/fetch'
-import { Variables } from '@/src/db/variables'
-import getUserInfo from '@/src/functions/getUserInfo'
-import { saveUpdatedToken } from '@/src/functions/tokenValidate'
 import hasConfiguredTwoFactor from '@/src/functions/hasConfiguredTwoFactor'
 import authSignTwofactor from '@/src/functions/authSignTwofactor'
 import authVerifyTwofactor from '@/src/functions/authVerifyTwofactor'
@@ -48,10 +48,18 @@ const serverSideProps: PageProps = {
   menu: GetMenuMain('mn-security')
 }
 
-export const getServerSideProps = async () => {
+export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => {
   return {
     props: {
       ...serverSideProps,
+      auth: await verifyCookie(req.cookies.auth),
+      getUserInfoAuthorization: process.env.GRAPHQL_AUTHORIZATION_GETUSERINFO!,
+      authSignTwofactorAuthorization: process.env.GRAPHQL_AUTHORIZATION_AUTHSIGNTWOFACTOR!,
+      authVerifyTwofactorAuthorization: process.env.GRAPHQL_AUTHORIZATION_AUTHVERIFYTWOFACTOR!,
+      authEnabledTwofactorAuthorization: process.env.GRAPHQL_AUTHORIZATION_AUTHENABLEDTWOFACTOR!,
+      authDisableTwofactorAuthorization: process.env.GRAPHQL_AUTHORIZATION_AUTHDISABLEDTWOFACTOR!,
+      changePasswordAuthorization: process.env.GRAPHQL_AUTHORIZATION_CHANGEPASSWORD!,
+      hasConfiguredTwoFactorAuthorization: process.env.GRAPHQL_AUTHORIZATION_HASCONFIGUREDTWOFACTOR!,
     },
   }
 }
@@ -205,7 +213,7 @@ function compose_load() {
   )
 }
 
-function compose_noAuth(handleClick) {
+function compose_noAuth(handleClick: handleClickFunction) {
   return <NoAuth handleClick={handleClick} />
 }
 
@@ -215,19 +223,19 @@ function compose_ready(
   passwordView: boolean,
   newPassword: string,
   newPasswordView: boolean,
-  handleChangePassword,
-  handleClickPasswordView,
-  handleChangeNewPassword,
-  handleClickNewPasswordView,
-  handleClickChangePassword,
+  handleChangePassword: (value: string) => Promise<void>,
+  handleClickPasswordView: () => Promise<void>,
+  handleChangeNewPassword: (value: string) => Promise<void>,
+  handleClickNewPasswordView: () => Promise<void>,
+  handleClickChangePassword: () => Promise<void>,
   twofactor: boolean,
-  twoFactorModalShow,
-  twoFactorQRCode,
-  handleTriggerTwoFactorModal,
+  twoFactorModalShow: boolean,
+  twoFactorQRCode: string,
+  handleTriggerTwoFactorModal: (show: boolean) => Promise<void>,
   twoFactorCode: string,
-  handleChangeTwoFactorCode,
-  handleClickTwoFactorVerify,
-  handleClickTwoFactorDisable
+  handleChangeTwoFactorCode: (value: string) => Promise<void>,
+  handleClickTwoFactorVerify: () => Promise<void>,
+  handleClickTwoFactorDisable: () => Promise<void>,
 ) {
   return (
     <div className="d-flex flex-column p-2">
@@ -286,19 +294,19 @@ function compose_user_view_1(
   passwordView: boolean,
   newPassword: string,
   newPasswordView: boolean,
-  handleChangePassword,
-  handleClickPasswordView,
-  handleChangeNewPassword,
-  handleClickNewPasswordView,
-  handleClickChangePassword,
+  handleChangePassword: (value: string) => Promise<void>,
+  handleClickPasswordView: () => Promise<void>,
+  handleChangeNewPassword: (value: string) => Promise<void>,
+  handleClickNewPasswordView: () => Promise<void>,
+  handleClickChangePassword: () => Promise<void>,
   twoFactorModalShow: boolean,
   twofactor: boolean,
   twoFactorQRCode: string,
   twoFactorCode: string,
-  handleTriggerTwoFactorModal,
-  handleChangeTwoFactorCode,
-  handleClickTwoFactorVerify,
-  handleClickTwoFactorDisable
+  handleTriggerTwoFactorModal: (show: boolean) => Promise<void>,
+  handleChangeTwoFactorCode: (value: string) => Promise<void>,
+  handleClickTwoFactorVerify: () => Promise<void>,
+  handleClickTwoFactorDisable: () => Promise<void>,
 ) {
   return (
     <div className="row gx-2">
@@ -372,10 +380,10 @@ function compose_password_1(
   passwordView: boolean,
   newPassword: string,
   newPasswordView: boolean,
-  handleChangePassword,
-  handleClickPasswordView,
-  handleChangeNewPassword,
-  handleClickNewPasswordView
+  handleChangePassword: (value: string) => Promise<void>,
+  handleClickPasswordView: () => Promise<void>,
+  handleChangeNewPassword: (value: string) => Promise<void>,
+  handleClickNewPasswordView: () => Promise<void>,
 ) {
   const newPasswordDisabled = () => {
     if (password.length <= 0) return true
@@ -400,7 +408,7 @@ function compose_password_1(
                 aria-label="Password"
                 aria-describedby="password-addon"
                 value={password}
-                onChange={handleChangePassword}
+                onChange={(e) => handleChangePassword(e.target.value)}
               />
               <span className="input-group-text" id="passwordView-addon">
                 <FontAwesomeIcon
@@ -446,7 +454,7 @@ function compose_password_1(
                 aria-label="New Password"
                 aria-describedby="newPassword-addon"
                 value={newPassword}
-                onChange={handleChangeNewPassword}
+                onChange={(e) => handleChangeNewPassword(e.target.value)}
                 disabled={newPasswordDisabled()}
               />
               <span className="input-group-text" id="newPasswordView-addon">
@@ -474,7 +482,10 @@ function compose_password_1(
   )
 }
 
-function compose_password_2(newPassword: string, handleClickChangePassword) {
+function compose_password_2(
+  newPassword: string,
+  handleClickChangePassword: () => Promise<void>
+) {
   return (
     <div className="col-12 text-primary px-2">
       <div className="row gx-5">
@@ -539,10 +550,10 @@ function compose_twoFactor(
   twofactor: boolean,
   twoFactorQRCode: string,
   twoFactorCode: string,
-  handleTriggerTwoFactorModal,
-  handleChangeTwoFactorCode,
-  handleClickTwoFactorVerify,
-  handleClickTwoFactorDisable
+  handleTriggerTwoFactorModal: (show: boolean) => Promise<void>,
+  handleChangeTwoFactorCode: (value: string) => Promise<void>,
+  handleClickTwoFactorVerify: () => Promise<void>,
+  handleClickTwoFactorDisable: () => Promise<void>
 ) {
   return (
     <div className="my-1 text-primary">
@@ -559,13 +570,13 @@ function compose_twoFactor(
           <button
             type="button"
             className="btn btn-outline-primary col-12"
-            onClick={handleTriggerTwoFactorModal.bind(this, true)}
+            onClick={() => handleTriggerTwoFactorModal(true)}
           >
             Ativar
           </button>
           <Modal
             show={twoFactorModalShow}
-            onHide={handleTriggerTwoFactorModal.bind(this, false)}
+            onHide={() => handleTriggerTwoFactorModal(false)}
           >
             <Modal.Header
               className="bg-primary bg-gradient"
@@ -608,7 +619,7 @@ function compose_twoFactor(
                   aria-label="Code Secret"
                   aria-describedby="codeSecret-addon"
                   value={twoFactorCode}
-                  onChange={handleChangeTwoFactorCode}
+                  onChange={(e) => handleChangeTwoFactorCode(e.target.value)}
                 />
               </div>
               <p className="fw-bold">
@@ -651,10 +662,29 @@ function compose_twoFactor(
   )
 }
 
-const Security = (): JSX.Element => {
+export default function Security(
+  {
+    auth,
+    getUserInfoAuthorization,
+    authSignTwofactorAuthorization,
+    authVerifyTwofactorAuthorization,
+    authEnabledTwofactorAuthorization,
+    authDisableTwofactorAuthorization,
+    changePasswordAuthorization,
+    hasConfiguredTwoFactorAuthorization,
+  }: {
+    auth: string,
+    getUserInfoAuthorization: string,
+    authSignTwofactorAuthorization: string,
+    authVerifyTwofactorAuthorization: string,
+    authEnabledTwofactorAuthorization: string,
+    authDisableTwofactorAuthorization: string,
+    changePasswordAuthorization: string,
+    hasConfiguredTwoFactorAuthorization: string,
+  }
+) {
   const [isReady, setReady] = useState<boolean>(false)
   const [notAuth, setNotAuth] = useState<boolean>(false)
-  const [data, setData] = useState<PageData>()
   const [password, setPassword] = useState<string>('')
   const [passwordView, setPasswordView] = useState<boolean>(false)
   const [newPassword, setNewPassword] = useState<string>('')
@@ -665,32 +695,32 @@ const Security = (): JSX.Element => {
   const [twoFactorCode, setTwoFactorCode] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(true)
 
+  const { success, data, error } = useGetUserInfoService(
+    {
+      auth: compressToEncodedURIComponent(auth),
+    },
+    {
+      authorization: getUserInfoAuthorization,
+      encodeuri: 'true'
+    }
+  );
+
   const router = useRouter()
-  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
+  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST!)
 
   const
-    handleClick = async (e, path) => {
-      e.preventDefault()
-
-      if (path === '/auth/login') {
-        const variables = new Variables(1, 'IndexedDB')
-        await Promise.all([await variables.clear()]).then(() => {
-          router.push(path)
-        })
-      }
+    handleClickNoAuth: handleClickFunction = async (
+      event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+      path: string
+    ) => {
+      event.preventDefault();
+      if (path === '/auth/login')
+        router.push(path);
     },
-    handleChangePassword = async (e) => {
-      setPassword(e.target.value)
-    },
-    handleChangeNewPassword = async (e) => {
-      setNewPassword(e.target.value)
-    },
-    handleClickPasswordView = async () => {
-      setPasswordView(passwordView ? false : true)
-    },
-    handleClickNewPasswordView = async () => {
-      setNewPasswordView(newPasswordView ? false : true)
-    },
+    handleChangePassword = async (value: string) => setPassword(value),
+    handleChangeNewPassword = async (value: string) => setNewPassword(value),
+    handleClickPasswordView = async () => setPasswordView(passwordView ? false : true),
+    handleClickNewPasswordView = async () => setNewPasswordView(newPasswordView ? false : true),
     handleClickChangePassword = async () => {
       const test = checkPassword(newPassword)
 
@@ -698,121 +728,114 @@ const Security = (): JSX.Element => {
         return Alerting.create('warning', test)
 
       if (test) {
-        const { success, updatedToken } = await changePassword(_fetch, password, newPassword);
-
-        if (updatedToken)
-          await saveUpdatedToken(updatedToken.signature, updatedToken.token);
+        const success = await changePassword(
+          _fetch,
+          auth,
+          password,
+          newPassword,
+          changePasswordAuthorization
+        );
 
         if (success) {
-          Alerting.create('info', 'Senha alterada com sucesso!')
-          setPassword('')
-          setNewPassword('')
+          Alerting.create('info', 'Senha alterada com sucesso!');
+          setPassword('');
+          setNewPassword('');
         } else {
           Alerting.create(
             'error',
             'Não foi possível alterar sua senha. Tente novamente!'
-          )
+          );
         }
       }
     },
     handleClickTwoFactorSign = async () => {
       try {
-        const { qrcode, updatedToken } = await authSignTwofactor(_fetch);
+        const { qrcode } = await authSignTwofactor(_fetch, auth, authSignTwofactorAuthorization);
 
-        if (updatedToken)
-          await saveUpdatedToken(updatedToken.signature, updatedToken.token);
+        setTwoFactorQRCode(qrcode);
 
-        setTwoFactorQRCode(qrcode)
+        return true;
       } catch (error) {
-        throw new Error(error)
+        return false;
       }
     },
-    handleChangeTwoFactorCode = async (e) => {
-      setTwoFactorCode(e.target.value)
-    },
+    handleChangeTwoFactorCode = async (value: string) => setTwoFactorCode(value),
     handleClickTwoFactorVerify = async () => {
-      const { success: success1, updatedToken: updatedToken1 } = await authVerifyTwofactor(_fetch, twoFactorCode);
+      const verifyTwofactor = await authVerifyTwofactor(
+        _fetch,
+        auth,
+        twoFactorCode,
+        authVerifyTwofactorAuthorization
+      );
 
-      if (updatedToken1)
-        await saveUpdatedToken(updatedToken1.signature, updatedToken1.token);
+      if (verifyTwofactor) {
+        const enabledTwofactor = await authEnabledTwofactor(_fetch, auth, authEnabledTwofactorAuthorization);
 
-      if (success1) {
-        const { success: success2, updatedToken: updatedToken2 } = await authEnabledTwofactor(_fetch);
-
-        if (updatedToken2)
-          await saveUpdatedToken(updatedToken2.signature, updatedToken2.token);
-
-        if (success2) {
-          Alerting.create('info', 'Sua autenticação de duas etapas está habilitada.')
-          handleTriggerTwoFactorModal(false)
-          setTwofactor(true)
+        if (enabledTwofactor) {
+          Alerting.create('info', 'Sua autenticação de duas etapas está habilitada.');
+          handleTriggerTwoFactorModal(false);
+          setTwofactor(true);
         } else {
           Alerting.create(
             'error',
             'Não foi possível habilitar sua autenticação de duas etapas. Tente novamente!'
-          )
+          );
         }
       } else {
         Alerting.create('error', 'Código invalido. Tente novamente!')
       }
     },
     handleClickTwoFactorDisable = async () => {
-      const { success, updatedToken } = await authDisableTwofactor(_fetch);
+      const disableTwofactor = await authDisableTwofactor(_fetch, auth, authDisableTwofactorAuthorization);
 
-      if (updatedToken)
-        await saveUpdatedToken(updatedToken.signature, updatedToken.token);
-
-      if (success) {
-        Alerting.create('info', 'Sua autenticação de duas etapas foi desabilitada.')
-        setTwofactor(false)
+      if (disableTwofactor) {
+        Alerting.create('info', 'Sua autenticação de duas etapas foi desabilitada.');
+        setTwofactor(false);
       } else {
         Alerting.create(
           'error',
           'Não foi possível desativar sua autenticação de duas etapas. Tente novamente!'
-        )
+        );
       }
     },
     handleTriggerTwoFactorModal = async (show: boolean) => {
-      if (show) await handleClickTwoFactorSign()
+      if (show) await handleClickTwoFactorSign();
 
-      setTwoFactorModalShow(show)
-    }
+      setTwoFactorModalShow(show);
+    };
 
   useEffect(() => {
-    getUserInfo(_fetch)
-      .then(async ({ photoProfile, username, privilege, updatedToken: updatedToken1 }) => {
-        if (updatedToken1)
-          await saveUpdatedToken(updatedToken1.signature, updatedToken1.token);
+    const timeout = setTimeout(async () => {
+      const configuredTwofactor = await hasConfiguredTwoFactor(
+        _fetch,
+        auth,
+        hasConfiguredTwoFactorAuthorization
+      );
 
-        const { success, updatedToken: updatedToken2 } = await hasConfiguredTwoFactor(_fetch);
+      if (configuredTwofactor)
+        setTwofactor(success);
+    });
 
-        if (updatedToken2)
-          await saveUpdatedToken(updatedToken2.signature, updatedToken2.token);
+    return () => clearTimeout(timeout);
+  });
 
-        setTwofactor(success)
+  if (error && !notAuth) {
+    setNotAuth(true);
+    setLoading(false);
+  }
 
-        setData({
-          photoProfile,
-          username,
-          privilege,
-        })
-
-        setReady(true)
-        return setLoading(false)
-      })
-      .catch(() => {
-        setNotAuth(true);
-        return setLoading(false)
-      });
-  }, [])
+  if (success && data && !isReady) {
+    setReady(true);
+    setLoading(false);
+  }
 
   if (loading) return compose_load()
 
-  if (notAuth) return compose_noAuth(handleClick)
+  if (notAuth) return compose_noAuth(handleClickNoAuth)
 
-  if (isReady)
+  if (isReady && data)
     return compose_ready(
-      data,
+      { photoProfile: data.photoProfile, privilege: data.privilege, username: data.username },
       password,
       passwordView,
       newPassword,
@@ -832,5 +855,3 @@ const Security = (): JSX.Element => {
       handleClickTwoFactorDisable
     )
 }
-
-export default Security

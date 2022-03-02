@@ -1,9 +1,3 @@
-/**
- * @description Componente do input para login
- * @author GuilhermeSantos001
- * @update 28/02/2022
- */
-
 import { useState } from 'react';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'

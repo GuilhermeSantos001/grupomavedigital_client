@@ -1,10 +1,6 @@
-/**
- * @description Pagina para confirmação do e-mail usuário
- * @author GuilhermeSantos001
- * @update 15/02/2022
- */
-
 import React, { useEffect, useState } from 'react'
+
+import { GetServerSidePropsContext } from 'next/types'
 
 import SkeletonLoader from 'tiny-skeleton-loader-react'
 
@@ -27,15 +23,14 @@ const serverSideProps: PageProps = {
   menu: GetMenuHome('mn-login')
 }
 
-type CTX = { query: { token: string } };
-
-export async function getServerSideProps(ctx: CTX) {
-  const { token } = ctx.query
+export async function getServerSideProps({ query }: GetServerSidePropsContext) {
+  const { token } = query;
 
   return {
     props: {
       ...serverSideProps,
       token,
+      processOrderForgotPasswordAuthorization: process.env.GRAPHQL_AUTHORIZATION_PROCESSORDERFORGOTPASSWORD!
     },
   }
 }
@@ -61,16 +56,22 @@ function compose_loading() {
   )
 }
 
-const PasswordRestore = ({ token }: { token: string }): JSX.Element => {
+export function PasswordRestore({
+  token,
+  processOrderForgotPasswordAuthorization,
+}: {
+  token: string,
+  processOrderForgotPasswordAuthorization: string
+}) {
   const [signature, setSignature] = useState<string>('')
   const [password, setPassword] = useState<string>('')
   const [passwordView, setPasswordView] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(true)
 
-  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
+  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST!)
 
-  const handleChangeSignature = (value:string) =>setSignature(value),
-    handleChangePassword = (value:string) => setPassword(value),
+  const handleChangeSignature = (value: string) => setSignature(value),
+    handleChangePassword = (value: string) => setPassword(value),
     handleClickPasswordView = () => setPasswordView(passwordView ? false : true),
     handleClickChangePassword = async () => {
       const test = checkPassword(password)
@@ -80,23 +81,29 @@ const PasswordRestore = ({ token }: { token: string }): JSX.Element => {
 
       if (test) {
         if (
-          await processOrderForgotPassword(_fetch, signature, token, password)
+          await processOrderForgotPassword(
+            _fetch,
+            signature,
+            token,
+            password,
+            processOrderForgotPasswordAuthorization
+          )
         ) {
-          Alerting.create('info', 'Senha alterada com sucesso!')
-          setSignature('')
-          setPassword('')
+          Alerting.create('info', 'Senha alterada com sucesso!');
+          setSignature('');
+          setPassword('');
         } else {
           Alerting.create(
             'error',
             'Não foi possível alterar sua senha. Tente novamente!'
-          )
+          );
         }
       }
     }
 
   useEffect(() => {
     setIsLoading(false);
-  }, [])
+  });
 
   if (isLoading) return compose_loading()
 
@@ -157,5 +164,3 @@ const PasswordRestore = ({ token }: { token: string }): JSX.Element => {
     </div>
   )
 }
-
-export default PasswordRestore

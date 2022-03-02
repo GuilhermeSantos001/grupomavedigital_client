@@ -1,10 +1,12 @@
-/**
- * @description Payback -> Cartões Beneficio (Alelo) -> Cadastro
- * @author GuilhermeSantos001
- * @update 10/02/2022
- */
+import { useState } from 'react';
 
-import { useEffect, useState } from 'react';
+import { GetServerSidePropsContext } from 'next/types'
+
+import { useGetUserInfoService } from '@/services/graphql/useGetUserInfoService'
+
+import { verifyCookie } from '@/lib/verifyCookie'
+
+import { compressToEncodedURIComponent } from 'lz-string'
 
 import { Offcanvas } from 'react-bootstrap';
 
@@ -22,10 +24,9 @@ import { ListWithFiveColumns } from '@/components/lists/ListWithFiveColumns';
 import { BoxError } from '@/components/utils/BoxError';
 
 import { PageProps } from '@/pages/_app';
-import {GetMenuMain} from '@/bin/GetMenuMain';
+import { GetMenuMain } from '@/bin/GetMenuMain';
+import { PrivilegesSystem } from '@/types/UserType'
 
-import { Variables } from '@/src/db/variables';
-import hasPrivilege from '@/src/functions/hasPrivilege';
 import Alerting from '@/src/utils/alerting';
 import StringEx from '@/src/utils/stringEx';
 
@@ -46,10 +47,20 @@ const serverSideProps: PageProps = {
   menu: GetMenuMain('mn-payback')
 }
 
-export const getServerSideProps = async () => {
+export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => {
+  const privileges: PrivilegesSystem[] = [
+    'administrador',
+    'fin_gerente',
+    'fin_faturamento',
+    'fin_assistente'
+  ]
+
   return {
     props: {
       ...serverSideProps,
+      privileges,
+      auth: await verifyCookie(req.cookies.auth),
+      getUserInfoAuthorization: process.env.GRAPHQL_AUTHORIZATION_GETUSERINFO!,
     },
   }
 }
@@ -384,7 +395,7 @@ function compose_ready(
                       },
                       enabled: item.status === 'available',
                       handleClick: () => {
-                        if (!item.person || item.status !== 'available')
+                        if (item.person || item.status !== 'available')
                           return Alerting.create('error', 'O cartão não pode ser removido.');
 
                         removeLotItem(item.id);
@@ -472,7 +483,17 @@ function canvas_userInfo(
   )
 }
 
-export default function CardsRemove() {
+export default function CardsRemove(
+  {
+    privileges,
+    auth,
+    getUserInfoAuthorization,
+  }: {
+    privileges: PrivilegesSystem[],
+    auth: string,
+    getUserInfoAuthorization: string
+  }
+) {
   const [syncData, setSyncData] = useState<boolean>(false);
 
   const [isReady, setReady] = useState<boolean>(false)
@@ -488,12 +509,17 @@ export default function CardsRemove() {
   const [textNameCanvasUserInfo, setTextNameCanvasUserInfo] = useState<string>('')
   const [textMatriculeCanvasUserInfo, setTextMatriculeCanvasUserInfo] = useState<string>('')
 
-  const {
-    data: cards,
-    delete: handleDeleteCard,
-    isLoading: isLoadingCards
-  } = useCardsService();
+  const { success, data, error } = useGetUserInfoService(
+    {
+      auth: compressToEncodedURIComponent(auth),
+    },
+    {
+      authorization: getUserInfoAuthorization,
+      encodeuri: 'true'
+    }
+  );
 
+  const { data: cards, isLoading: isLoadingCards, delete: handleDeleteCard } = useCardsService();
   const { data: costCenters, isLoading: isLoadingCostCenters } = useCostCentersService();
 
   const router = useRouter()
@@ -503,14 +529,9 @@ export default function CardsRemove() {
       event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
       path: string
     ) => {
-      event.preventDefault()
-
-      if (path === '/auth/login') {
-        const variables = new Variables(1, 'IndexedDB')
-        await Promise.all([await variables.clear()]).then(() => {
-          router.push(path)
-        })
-      }
+      event.preventDefault();
+      if (path === '/auth/login')
+        router.push(path);
     },
     handleClickNoPrivilege: handleClickFunction = async (
       event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
@@ -545,22 +566,22 @@ export default function CardsRemove() {
     handleChangeTextNameCanvasUserInfo = (text: string) => setTextNameCanvasUserInfo(text),
     handleChangeTextMatriculeUserInfo = (text: string) => setTextMatriculeCanvasUserInfo(text);
 
-  useEffect(() => {
-    hasPrivilege('administrador', 'fin_gerente', 'fin_assistente')
-      .then((isAllowViewPage) => {
-        if (isAllowViewPage) {
-          setReady(true);
-        } else {
-          setNotPrivilege(true);
-        }
+  if (error && !notAuth) {
+    setNotAuth(true);
+    setLoading(false);
+  }
 
-        return setLoading(false);
-      })
-      .catch(() => {
-        setNotAuth(true);
-        return setLoading(false)
-      });
-  }, [])
+  if (success && data && !isReady) {
+    if (
+      privileges
+        .filter(privilege => data.privileges.indexOf(privilege) !== -1)
+        .length <= 0
+    )
+      setNotPrivilege(true);
+
+    setReady(true);
+    setLoading(false);
+  }
 
   if (
     isLoadingCards && !syncData ||

@@ -1,9 +1,3 @@
-/**
- * @description Pagina usada quando o usuario esquece a senha
- * @author GuilhermeSantos001
- * @update 21/11/2021
- */
-
 import React, { useState } from 'react'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -18,7 +12,7 @@ import Alerting from '@/src/utils/alerting'
 
 import authForgotPassword from '@/src/functions/authForgotPassword'
 
-const staticProps: PageProps = {
+const serverSideProps: PageProps = {
   title: 'Esqueci minha senha',
   description:
     'Esqueceu sua senha? Iremos lhe enviar um e-mail, para que você possa alterar sua senha',
@@ -26,8 +20,11 @@ const staticProps: PageProps = {
   menu: GetMenuHome('mn-login')
 }
 
-export const getStaticProps = () => ({
-  props: staticProps,
+export const getServerSideProps = async () => ({
+  props: {
+    ...serverSideProps,
+    authForgotPasswordAuthorization: process.env.GRAPHQL_AUTHORIZATION_AUTHFORGOTPASSWORD!,
+  },
 })
 
 function compose_ready(
@@ -75,21 +72,25 @@ function compose_ready(
   )
 }
 
-const Forgot = (): JSX.Element => {
+export default function Forgot({
+  authForgotPasswordAuthorization,
+}: {
+  authForgotPasswordAuthorization: string
+}) {
   const [username, setUsername] = useState<string>('')
 
-  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
+  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST!)
 
   const handleChangeUsername = (value: string) => setUsername(value),
     handleClickChangePassword = async () => {
-      if (await authForgotPassword(_fetch, username)) {
-        Alerting.create('info', 'Um e-mail será enviado para você em breve.')
-        setUsername('')
+      if (await authForgotPassword(_fetch, username, authForgotPasswordAuthorization)) {
+        Alerting.create('info', 'Um e-mail será enviado para você em breve.');
+        setUsername('');
       } else {
         Alerting.create(
           'error',
           'Não foi possível salvar sua solicitação. Tente novamente, mais tarde!'
-        )
+        );
       }
     }
 
@@ -103,5 +104,3 @@ const Forgot = (): JSX.Element => {
     </div>
   )
 }
-
-export default Forgot

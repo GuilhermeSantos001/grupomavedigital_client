@@ -7,7 +7,7 @@
 import Image from 'next/image'
 
 import { PageProps } from '@/pages/_app'
-import {GetMenuHome} from '@/bin/GetMenuHome'
+import { GetMenuHome } from '@/bin/GetMenuHome'
 
 const staticProps: PageProps = {
   title: 'Grupo Mave Digital',
@@ -36,6 +36,7 @@ const Home = (): JSX.Element => (
           data-testid="image-1"
           className="cursor-pointer card-img-top border border-primary"
           src="/images/tecnologia_e_inovacao.jpg"
+          priority={true}
           alt={`Tecnologia ${`&`} Inovação`}
           width={1920}
           height={1080}
@@ -51,8 +52,8 @@ const Home = (): JSX.Element => (
           </h5>
           <hr data-testid="card-separator-1" className="text-white" />
           <p data-testid="card-text-1" className="card-text text-white fs-6">
-            Queremos que nossos clientes tenham suas informações de qualquer
-            lugar.
+            Graças as inovações tecnológicas agora podemos estar ainda mais
+            próximos de nosso clientes e colaboradores.
           </p>
         </div>
       </div>
@@ -67,6 +68,7 @@ const Home = (): JSX.Element => (
             data-testid="image-2-1"
             className="cursor-pointer card-img-top border border-primary"
             src="/images/notebook.jpg"
+            priority={true}
             alt="Notebook"
             width={1920}
             height={1080}
@@ -96,6 +98,7 @@ const Home = (): JSX.Element => (
             data-testid="image-2-2"
             className="cursor-pointer card-img-top border border-primary"
             src="/images/aula_online.jpg"
+            priority={true}
             alt="Aula Online"
             width={1920}
             height={1080}

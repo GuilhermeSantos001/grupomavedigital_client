@@ -1,30 +1,23 @@
-/**
- * @description Input -> Seleciona um centro de custo
- * @author GuilhermeSantos001
- * @update 11/02/2022
- */
-
 import { useState } from 'react';
 import { Autocomplete, TextField, createFilterOptions, Button } from '@mui/material'
 
-import { AutocompleteLoading } from '@/components/utils/AutocompleteLoading';
-import { AutocompleteError } from '@/components/utils/AutocompleteError';
+import { AutocompleteLoading } from '@/components/utils/AutocompleteLoading'
+import { AutocompleteError } from '@/components/utils/AutocompleteError'
 
-import { CostCenterType } from '@/types/CostCenterType'
+import type { CostCenterType } from '@/types/CostCenterType'
 
-import {
-  useCostCenterService,
+import type {
   DataCostCenter,
-  FunctionCreateCostCenterTypeof
-} from '@/services/useCostCenterService'
-
-import {
-  useCostCentersService,
+  FunctionCreateCostCenterTypeof,
   FunctionUpdateCostCentersTypeof,
   FunctionDeleteCostCentersTypeof
-} from '@/services/useCostCentersService'
+} from '@/types/CostCenterServiceType'
 
-import Alerting from '@/src/utils/alerting';
+import { useCostCenterService } from '@/services/useCostCenterService'
+import { useCostCenterWithIdService } from '@/services/useCostCenterWithIdService'
+import { useCostCentersService } from '@/services/useCostCentersService'
+
+import Alerting from '@/src/utils/alerting'
 
 export type Props = {
   id?: string
@@ -46,7 +39,8 @@ export function SelectCostCenter(props: Props) {
   const [hasEdit, setHasEdit] = useState<boolean>(false);
   const [editValue, setEditValue] = useState<string>('');
 
-  const { data: costCenter, isLoading: isLoadingCostCenter, create: CreateCostCenter } = useCostCenterService(props.id);
+  const { create: CreateCostCenter } = useCostCenterService();
+  const { data: costCenter, isLoading: isLoadingCostCenter } = useCostCenterWithIdService(props.id || '');
   const { data: costCenters, isLoading: isLoadingCostCenters, update: UpdateCostCenters, delete: DeleteCostCenters } = useCostCentersService();
 
   const

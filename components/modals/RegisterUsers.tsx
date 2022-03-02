@@ -1,8 +1,4 @@
-/**
- * @description Modal -> Modal de Cadastro do(a) Funcionário(a)
- * @author GuilhermeSantos001
- * @update 15/02/2022
- */
+// TODO: Finalizar implementação do cadastro de usuários
 
 import React, { useState } from 'react';
 import TextField from '@mui/material/TextField';
@@ -26,6 +22,9 @@ import Alerting from '@/src/utils/alerting';
 
 import { useUserService } from '@/services/useUserService';
 
+import { UserType } from '@/types/UserType';
+import { AddressType } from '@/types/AddressType';
+
 export interface Props {
   show: boolean
   handleClose: () => void
@@ -41,14 +40,41 @@ const Transition = React.forwardRef(function Transition(
 });
 
 export function RegisterUsers(props: Props) {
-  const [syncData, setSyncData] = useState<boolean>(false)
+  const [authorization, setAuthorization] = useState<Pick<UserType, 'authorization'>>({ authorization: '' });
+  const [name, setName] = useState<Pick<UserType, 'name'>>({ name: '' });
+  const [surname, setSurname] = useState<Pick<UserType, 'surname'>>({ surname: '' });
+  const [email, setEmail] = useState<Pick<UserType, 'email'>>({ email: '' });
+  const [password, setPassword] = useState<string>('');
+  const [cnpj, setCNPJ] = useState<Pick<UserType, 'cnpj'>>({ cnpj: '' });
+  const [location, setLocation] = useState<Pick<UserType, 'location'>>({
+    location: {
+      city: '',
+      street: '',
+      number: 0,
+      complement: '',
+      district: '',
+      state: '',
+      zipcode: ''
+    }
+  });
 
-  const [addressId, setAddressId] = useState<string>('')
+  const [addressId, setAddressId] = useState<string>('');
 
   const { create: CreateUser } = useUserService();
 
   const
-    handleChangeAddressId = (value: string) => setAddressId(value)
+    handleChangeAddressId = (value: string) => setAddressId(value),
+    handleChangeAddressData = (data: AddressType) => setLocation({
+      location: {
+        city: data.city.value,
+        street: data.street.value,
+        number: parseInt(data.number),
+        complement: data.complement || '',
+        district: data.neighborhood.value,
+        state: data.district.value,
+        zipcode: data.zipCode
+      }
+    });
 
   const
     canRegisterUser = () => {
@@ -126,6 +152,7 @@ export function RegisterUsers(props: Props) {
           <ListItem>
             <SelectAddress
               handleChangeId={(id) => handleChangeAddressId(id)}
+              handleChangeData={(data) => handleChangeAddressData(data)}
             />
           </ListItem>
         </List>

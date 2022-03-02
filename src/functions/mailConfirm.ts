@@ -1,15 +1,12 @@
-/**
- * @description Efetuada uma chamada para a API para confirmar
- * a conta do usuario
- * @author GuilhermeSantos001
- * @update 04/10/2021
- */
-
 import { compressToEncodedURIComponent } from 'lz-string';
 
 import Fetch from '@/src/utils/fetch';
 
-const mailConfirm = async (_fetch: Fetch, token: string): Promise<boolean> => {
+const mailConfirm = async (
+  _fetch: Fetch,
+  token: string,
+  mailConfirmAuthorization: string,
+): Promise<boolean> => {
   const req = await _fetch.exec<{
     data: {
       response: boolean
@@ -29,7 +26,7 @@ const mailConfirm = async (_fetch: Fetch, token: string): Promise<boolean> => {
       },
     },
     {
-      authorization: 'Pygj6FpZq2RpANJVRjgzJN6fR9FW5pDb7UX7BPJBgZrnXdNPgF7u4VAh2hgUyx9k',
+      authorization: mailConfirmAuthorization,
       encodeuri: 'true'
     }
   ),

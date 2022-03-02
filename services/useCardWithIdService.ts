@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { useSWRConfig } from 'swr';
+import useSWR from 'swr'
 
-import { fetcherAxiosPost } from '@/src/utils/fetcherAxiosPost';
+import { fetcherAxiosGet } from '@/src/utils/fetcherAxiosGet';
 import { fetcherAxiosPut } from '@/src/utils/fetcherAxiosPut';
 import { fetcherAxiosDelete } from '@/src/utils/fetcherAxiosDelete';
+import { ApiResponseSuccessType } from '@/types/ApiResponseSuccessType';
 import { ApiResponseErrorType } from '@/types/ApiResponseErrorType';
 import { ApiResponseSuccessOrErrorType } from '@/types/ApiResponseSuccessOrErrorType';
 
@@ -15,27 +16,28 @@ import type {
 
 import Alerting from '@/src/utils/alerting';
 
-export function useCardService() {
-  const { mutate } = useSWRConfig();
+export function useCardWithIdService(id: string) {
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const uri = `${process.env.NEXT_PUBLIC_API_HOST}/card/${id}`,
+    uriAssignPersonCard = `${process.env.NEXT_PUBLIC_API_HOST}/card/assign/${id}`,
+    uriUnassignPersonCard = `${process.env.NEXT_PUBLIC_API_HOST}/card/unassign/${id}`;
 
-  const create = async (data: DataCard) => {
-    const createUpdate = await fetcherAxiosPost<DataCard, ApiResponseSuccessOrErrorType<CardType, Object>>(`${process.env.NEXT_PUBLIC_API_HOST}/card`, setIsLoading, data);
+  const { data, error, mutate } = useSWR<
+    ApiResponseSuccessType<CardType | undefined>,
+    ApiResponseErrorType<Object>
+  >([uri, setIsLoading], fetcherAxiosGet)
 
-    if (!createUpdate.success) {
-      Alerting.create('error', createUpdate.message);
-      console.error(createUpdate);
-      return undefined;
-    }
+  if (error) {
+    Alerting.create('error', error.message);
+    console.error(error);
+    return { isLoading };
+  }
 
-    const
-      uri = `${process.env.NEXT_PUBLIC_API_HOST}/card/${createUpdate.data.id}`,
-      uriAssignPersonCard = `${process.env.NEXT_PUBLIC_API_HOST}/card/assign/${createUpdate.data.id}`,
-      uriUnassignPersonCard = `${process.env.NEXT_PUBLIC_API_HOST}/card/unassign/${createUpdate.data.id}`;
-
+  if (data?.success)
     return {
-      data: createUpdate.data,
+      isLoading,
+      data: data?.data,
       update: async (newData: DataCard): Promise<boolean> => {
         const updateData = await fetcherAxiosPut<DataCard, ApiResponseSuccessOrErrorType<CardType, Object>>(uri, setIsLoading, newData);
 
@@ -45,16 +47,16 @@ export function useCardService() {
 
           return false;
         } else {
-          mutate([uri, setIsLoading], {
+          mutate({
             success: true,
-            data: { ...createUpdate.data, ...updateData.data }
+            data: { ...data?.data, ...updateData.data }
           });
         }
 
         return true;
       },
-      assignPersonCard: async (data: DataPersonId): Promise<boolean> => {
-        const assignPersonCard = await fetcherAxiosPut<DataPersonId, ApiResponseSuccessOrErrorType<CardType, Object>>(uriAssignPersonCard, setIsLoading, data);
+      assignPersonCard: async (dataPersonId: DataPersonId): Promise<boolean> => {
+        const assignPersonCard = await fetcherAxiosPut<DataPersonId, ApiResponseSuccessOrErrorType<CardType, Object>>(uriAssignPersonCard, setIsLoading, dataPersonId);
 
         if (!assignPersonCard.success) {
           Alerting.create('error', assignPersonCard.message);
@@ -62,9 +64,9 @@ export function useCardService() {
 
           return false;
         } else {
-          mutate([uri, setIsLoading], {
+          mutate({
             success: true,
-            data: { ...createUpdate.data, ...assignPersonCard.data }
+            data: { ...data?.data, ...assignPersonCard.data }
           });
         }
 
@@ -79,9 +81,9 @@ export function useCardService() {
 
           return false;
         } else {
-          mutate([uri, setIsLoading], {
+          mutate({
             success: true,
-            data: { ...createUpdate.data, ...unassignPersonCard.data }
+            data: { ...data?.data, ...unassignPersonCard.data }
           });
         }
 
@@ -96,19 +98,17 @@ export function useCardService() {
 
           return false;
         } else {
-          mutate([uri, setIsLoading], {
-            success: true,
+          mutate({
+            success: false,
             data: undefined
           });
         }
 
         return true;
       }
-    }
-  }
+    };
 
   return {
-    isLoading,
-    create
+    isLoading
   };
 }

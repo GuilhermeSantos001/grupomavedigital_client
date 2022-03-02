@@ -8,12 +8,12 @@ import { MenuResponse, MenuDisable, MenuOptions } from "@/pages/_app"
 
 export function GetMenuMain(firstId?: MenuOptions): MenuResponse {
   const disable: MenuDisable = {
-    "mn-admin": false,
+    "mn-admin": true,
     "mn-dashboard": true,
     "mn-helping": false,
     "mn-herculesStorage": true,
     "mn-home": false,
-    "mn-integration": false,
+    "mn-integration": true,
     "mn-login": false,
     "mn-logout": false,
     "mn-payback": false,
@@ -45,7 +45,7 @@ export function GetMenuMain(firstId?: MenuOptions): MenuResponse {
         active: firstId === 'mn-admin' ? true : false,
         icon: {
           family: 'fas',
-          name: 'user-shield',
+          name: 'tools',
         },
         name: 'Administração',
         link: '/admin',
