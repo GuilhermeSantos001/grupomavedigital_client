@@ -132,8 +132,9 @@ html {
 }
 
 .hover-color-scrollToTop {
-  cursor: pointer;
+  @extend .animation-delay;
 
+  cursor: pointer;
   color: map-get($theme-colors, 'secondary');
 
   &:hover {

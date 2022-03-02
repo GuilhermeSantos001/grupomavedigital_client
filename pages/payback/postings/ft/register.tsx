@@ -1,10 +1,15 @@
 /**
  * @description Payback -> Lançamentos Financeiros -> Cadastro
  * @author GuilhermeSantos001
- * @update 10/02/2022
+ * @update 14/02/2022
  */
 
 import React, { useEffect, useState } from 'react'
+
+import FormControl from '@mui/material/FormControl'
+import Select from '@mui/material/Select'
+import InputLabel from '@mui/material/InputLabel'
+import MenuItem from '@mui/material/MenuItem'
 
 import { useRouter } from 'next/router'
 
@@ -18,22 +23,24 @@ import Button from '@mui/material/Button'
 import NoPrivilege, { handleClickFunction } from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
 
-import SelectCostCenter from '@/components/selects/selectCostCenter'
-import MobileDatePicker from '@/components/selects/mobileDatePicker'
-import AssistantPostingsRegister from '@/components/assistants/assistantPostingsRegister'
-import AssistantCoverageDefine from '@/components/assistants/assistantCoverageDefine'
-import ListWithCheckboxMUI from '@/components/lists/listWithCheckboxMUI'
-import ListWorkplacesSelected from '@/components/lists/listWorkplacesSelected'
-import RegisterWorkplace from '@/components/modals/registerWorkplace'
-import RegisterPeople from '@/components/modals/registerPeople'
-import EditWorkplace from '@/components/modals/editWorkplace'
-import EditPeople from '@/components/modals/editPeople'
-import ListCoverageDefined from '@/components/lists/listCoverageDefined'
+import { DatePicker } from '@/components/selects/DatePicker'
+import { AssistantPostingsRegister } from '@/components/assistants/AssistantPostingsRegister'
+import { AssistantCoverageDefine } from '@/components/assistants/AssistantCoverageDefine'
+import { ListWithCheckboxMUI } from '@/components/lists/ListWithCheckboxMUI'
+import { ListWorkplacesSelected } from '@/components/lists/ListWorkplacesSelected'
+import { RegisterWorkplace } from '@/components/modals/RegisterWorkplace'
+import { RegisterPeople } from '@/components/modals/RegisterPeople'
+import { EditWorkplace } from '@/components/modals/EditWorkplace'
+import { EditPeople } from '@/components/modals/EditPeople'
+import { ListCoverageDefined } from '@/components/lists/ListCoverageDefined'
+
+import { BoxLoadingMagicSpinner } from '@/components/utils/BoxLoadingMagicSpinner'
+import { BoxError } from '@/components/utils/BoxError'
 
 import { PageProps } from '@/pages/_app'
-import PageMenu from '@/bin/main_menu'
+import {GetMenuMain} from '@/bin/GetMenuMain'
 
-import SocketIO from '@/components/socket-io'
+import { SocketConnection } from '@/components/socket-io'
 import {
   PaybackSocketEvents
 } from '@/constants/socketEvents'
@@ -42,7 +49,7 @@ import {
   TYPEOF_LISTENER_PAYBACK_DELETE_MIRROR,
 } from '@/constants/SocketTypes'
 
-import Variables from '@/src/db/variables'
+import { Variables } from '@/src/db/variables'
 import hasPrivilege from '@/src/functions/hasPrivilege'
 import Alerting from '@/src/utils/alerting'
 import StringEx from '@/src/utils/stringEx'
@@ -51,35 +58,24 @@ import DateEx from '@/src/utils/dateEx'
 import getWorkPlaceForTable from '@/src/functions/getWorkPlaceForTable'
 import getPeopleForTable from '@/src/functions/getPeopleForTable'
 
-import { useAppSelector, useAppDispatch } from '@/app/hooks'
+import { CostCenterType } from '@/types/CostCenterType'
+import { WorkplaceType } from '@/types/WorkplaceType'
+import { PersonType } from '@/types/PersonType'
+import { PostingType } from '@/types/PostingType'
+import { CardType } from '@/types/CardType'
 
-import type {
-  CostCenter,
-  Workplace,
-  Person,
-  Scale,
-  Service,
-  Street,
-  Neighborhood,
-  City,
-  District,
-} from '@/app/features/system/system.slice'
-
-import {
-  SystemActions
-} from '@/app/features/system/system.slice'
-
-import {
-  LotItem,
-  Posting,
-  PaybackActions,
-} from '@/app/features/payback/payback.slice'
+import { usePostingsService } from '@/services/usePostingsService'
+import { useCostCentersService } from '@/services/useCostCentersService'
+import { useWorkplacesService } from '@/services/useWorkplacesService'
+import { usePeopleService } from '@/services/usePeopleService'
+import { useCardsService } from '@/services/useCardsService'
+import { useUploadsService } from '@/services/useUploadsService'
 
 const serverSideProps: PageProps = {
   title: 'Lançamentos/Cadastro',
   description: 'Cadastro de lançamentos operacionais',
   themeColor: '#004a6e',
-  menu: PageMenu('mn-payback')
+  menu: GetMenuMain('mn-payback')
 }
 
 export const getServerSideProps = async () => {
@@ -335,14 +331,14 @@ function compose_ready(
   pageSizeOptionsTablePeopleInWorkplaces: number[],
   handleChangePageSizeTableWorkplaces: (pageSize: number) => void,
   handleChangePageSizeTablePeopleInWorkplaces: (pageSize: number) => void,
-  costCenters: CostCenter[],
+  costCenters: CostCenterType[],
   costCenter: string,
   handleChangeCostCenter: (id: string) => void,
-  periodStart: string,
+  periodStart: Date,
   setPeriodStart: React.Dispatch<React.SetStateAction<Date>>,
-  periodEnd: string,
+  periodEnd: Date,
   setPeriodEnd: React.Dispatch<React.SetStateAction<Date>>,
-  workplaces: Workplace[],
+  workplaces: WorkplaceType[],
   showModalRegisterWorkplace: boolean,
   showModalRegisterPeopleInWorkplace: boolean,
   showModalEditWorkplace: boolean,
@@ -355,60 +351,38 @@ function compose_ready(
   handleShowModalEditPeopleInWorkplace: () => void,
   handleCloseModalEditWorkplace: () => void,
   handleCloseModalEditPeopleInWorkplace: () => void,
-  scales: Scale[],
-  services: Service[],
-  streets: Street[],
-  neighborhoods: Neighborhood[],
-  cities: City[],
-  districts: District[],
   selectWorkplaces: string[],
   selectPeopleInWorkplaces: string[],
   handleDefineSelectWorkplaces: (itens: string[]) => void,
   handleDefineSelectPeopleInWorkplaces: (itens: string[]) => void,
-  handleDeleteWorkplaces: (ids: string[]) => void,
-  handleDeletePeopleInWorkplaces: (ids: string[]) => void,
-  people: Person[],
-  appliedWorkplaces: Workplace[],
-  appliedPeopleInWorkplaces: Person[],
-  handleAppendAppliedWorkplaces: (itens: Workplace[]) => void,
-  handleAppendAppliedPeopleInWorkplaces: (itens: Person[]) => void,
-  handleRemoveAppliedWorkplaces: (itens: Workplace[]) => void,
-  handleRemoveAppliedPeopleInWorkplaces: (itens: Person[]) => void,
-  lotItems: LotItem[],
-  postings: Posting[],
+  handleDeleteWorkplaces: (workplacesId: string[]) => void,
+  handleDeletePeopleInWorkplaces: (peopleId: string[]) => void,
+  people: PersonType[],
+  appliedWorkplaces: WorkplaceType[],
+  appliedPeopleInWorkplaces: PersonType[],
+  handleAppendAppliedWorkplaces: (itens: WorkplaceType[]) => void,
+  handleAppendAppliedPeopleInWorkplaces: (itens: PersonType[]) => void,
+  handleRemoveAppliedWorkplaces: (itens: WorkplaceType[]) => void,
+  handleRemoveAppliedPeopleInWorkplaces: (itens: PersonType[]) => void,
+  cards: CardType[],
+  postings: PostingType[],
   showModalAssistantCoverageDefine: boolean,
   handleOpenModalAssistantCoverageDefine: () => void,
   handleCloseModalAssistantCoverageDefine: () => void,
-  postingsDefined: Posting[],
-  handleAppendPostingDefined: (postings: Posting[]) => void,
-  handleDefinePostingDefined: (postings: Posting[]) => void,
+  postingsDefined: PostingType[],
+  handleAppendPostingDefined: (postings: PostingType[]) => void,
+  handleDefinePostingDefined: (postings: PostingType[]) => void,
   handleResetPostingDefined: () => void,
   handleRemovePostingDefined: (id: string) => void,
 ) {
   const
     { columns: workPlaceColumns, rows: workPlaceRows } =
-      getWorkPlaceForTable(
-        workplaces,
-        scales,
-        services,
-        streets,
-        neighborhoods,
-        cities,
-        districts
-      ),
+      getWorkPlaceForTable(workplaces),
     { columns: peopleColumns, rows: peopleRows } =
-      getPeopleForTable(
-        people,
-        scales,
-        services,
-        streets,
-        neighborhoods,
-        cities,
-        districts
-      ),
+      getPeopleForTable(people),
     searchPostingsDefined = () => {
       const search = postings.filter(posting => {
-        if (posting.costCenter === costCenter && posting.paymentStatus === 'payable') {
+        if (costCenters.map(costCenter => costCenter.value).includes(posting.costCenter.value) && posting.paymentStatus === 'pending') {
           if (DateEx.isWithinInterval(new Date(posting.originDate), {
             start: periodStart,
             end: periodEnd
@@ -424,8 +398,8 @@ function compose_ready(
       else {
         Alerting.create('warning', `Nenhum lançamento encontrado, dentro do período informado.`);
 
-        if (postings.filter(posting => posting.costCenter === costCenter && posting.paymentStatus === 'payable').length > 0)
-          Alerting.create('info', `Existem ${postings.filter(posting => posting.paymentStatus === 'payable').length} lançamento(s) a pagar.`);
+        if (postings.filter(posting => posting.costCenter.value === costCenter && posting.paymentStatus === 'pending').length > 0)
+          Alerting.create('info', `Existem ${postings.filter(posting => posting.paymentStatus === 'pending').length} lançamento(s) a pagar.`);
         else
           Alerting.create('info', `Não existem lançamentos a pagar.`);
       }
@@ -433,7 +407,7 @@ function compose_ready(
 
   return (
     <>
-      <SocketIO />
+      {!window.socket && <SocketConnection />}
       <div className="row g-2">
         <div className="col-12">
           <div className="p-3 bg-primary bg-gradient rounded">
@@ -475,20 +449,8 @@ function compose_ready(
                       {
                         selectWorkplaces.length === 1 &&
                         <EditWorkplace
-                          show={showModalEditWorkplace}
                           id={workplaces.find(place => place.id === selectWorkplaces[0])?.id || ""}
-                          name={workplaces.find(place => place.id === selectWorkplaces[0])?.name || ""}
-                          entryTime={workplaces.find(place => place.id === selectWorkplaces[0])?.entryTime || ""}
-                          exitTime={workplaces.find(place => place.id === selectWorkplaces[0])?.exitTime || ""}
-                          services={workplaces.find(place => place.id === selectWorkplaces[0])?.services || []}
-                          scale={workplaces.find(place => place.id === selectWorkplaces[0])?.scale || ""}
-                          street={workplaces.find(place => place.id === selectWorkplaces[0])?.address.street || ""}
-                          numberHome={workplaces.find(place => place.id === selectWorkplaces[0])?.address.number || 0}
-                          complement={workplaces.find(place => place.id === selectWorkplaces[0])?.address.complement || ""}
-                          zipCode={workplaces.find(place => place.id === selectWorkplaces[0])?.address.zipCode || 0}
-                          neighborhood={workplaces.find(place => place.id === selectWorkplaces[0])?.address.neighborhood || ""}
-                          city={workplaces.find(place => place.id === selectWorkplaces[0])?.address.city || ""}
-                          district={workplaces.find(place => place.id === selectWorkplaces[0])?.address.district || ""}
+                          show={showModalEditWorkplace}
                           handleClose={handleCloseModalEditWorkplace}
                         />
                       }
@@ -514,13 +476,35 @@ function compose_ready(
                           />
                         </div>
                       </div>
-                      <SelectCostCenter
-                        costCenter={costCenters.find(_costCenter => _costCenter.id === costCenter)}
-                        disabled={postingsDefined.length > 0}
-                        handleChangeCostCenter={handleChangeCostCenter}
-                      />
+                      <FormControl variant="standard" className='col-12'>
+                        <InputLabel id="select-costCenter-label">
+                          Centro de Custo
+                        </InputLabel>
+                        <Select
+                          labelId="select-costCenter-label"
+                          id="select-costCenter"
+                          value={costCenter}
+                          disabled={postingsDefined.length > 0}
+                          onChange={(e) => handleChangeCostCenter(e.target.value)}
+                          label="Centro de Custo"
+                        >
+                          <MenuItem value="">
+                            <em>Selecionar</em>
+                          </MenuItem>
+                          {
+                            costCenters
+                              .map(costCenter => (
+                                <MenuItem
+                                  key={costCenter.id}
+                                  value={costCenter.id}>
+                                  {costCenter.value}
+                                </MenuItem>
+                              ))
+                          }
+                        </Select>
+                      </FormControl>
                       <div className='d-flex flex-column flex-md-row my-2'>
-                        <MobileDatePicker
+                        <DatePicker
                           className="col px-2 my-2"
                           label="Período de Apuração (Inicial)"
                           value={periodStart}
@@ -538,7 +522,7 @@ function compose_ready(
                             }
                           }}
                         />
-                        <MobileDatePicker
+                        <DatePicker
                           className="col px-2 my-2"
                           label="Período de Apuração (Final)"
                           value={periodEnd}
@@ -655,26 +639,8 @@ function compose_ready(
                       {
                         selectPeopleInWorkplaces.length === 1 &&
                         <EditPeople
-                          show={showModalEditPeopleInWorkplace}
                           id={people.find(person => person.id === selectPeopleInWorkplaces[0])?.id || ""}
-                          matricule={people.find(person => person.id === selectPeopleInWorkplaces[0])?.matricule || 0}
-                          name={people.find(person => person.id === selectPeopleInWorkplaces[0])?.name || ""}
-                          cpf={people.find(person => person.id === selectPeopleInWorkplaces[0])?.cpf || ""}
-                          rg={people.find(person => person.id === selectPeopleInWorkplaces[0])?.rg || ""}
-                          motherName={people.find(person => person.id === selectPeopleInWorkplaces[0])?.motherName || ""}
-                          birthDate={people.find(person => person.id === selectPeopleInWorkplaces[0])?.birthDate || ""}
-                          phone={people.find(person => person.id === selectPeopleInWorkplaces[0])?.phone || ""}
-                          mail={people.find(person => person.id === selectPeopleInWorkplaces[0])?.mail || ""}
-                          scale={people.find(person => person.id === selectPeopleInWorkplaces[0])?.scale || ""}
-                          cards={people.find(person => person.id === selectPeopleInWorkplaces[0])?.cards || []}
-                          services={people.find(person => person.id === selectPeopleInWorkplaces[0])?.services || []}
-                          street={people.find(person => person.id === selectPeopleInWorkplaces[0])?.address.street || ""}
-                          numberHome={people.find(person => person.id === selectPeopleInWorkplaces[0])?.address.number || 0}
-                          complement={people.find(person => person.id === selectPeopleInWorkplaces[0])?.address.complement || ""}
-                          neighborhood={people.find(person => person.id === selectPeopleInWorkplaces[0])?.address.neighborhood || ""}
-                          city={people.find(person => person.id === selectPeopleInWorkplaces[0])?.address.city || ""}
-                          district={people.find(person => person.id === selectPeopleInWorkplaces[0])?.address.district || ""}
-                          zipCode={people.find(person => person.id === selectPeopleInWorkplaces[0])?.address.zipCode || 0}
+                          show={showModalEditPeopleInWorkplace}
                           handleClose={handleCloseModalEditPeopleInWorkplace}
                         />
                       }
@@ -712,10 +678,10 @@ function compose_ready(
                         show={showModalAssistantCoverageDefine}
                         availableWorkplaces={appliedWorkplaces.map(place => place.id)}
                         availablePeopleInWorkplace={appliedPeopleInWorkplaces.map(person => person.id)}
-                        postingCostCenter={costCenter}
+                        postingCostCenterId={costCenter}
                         periodStart={periodStart}
                         periodEnd={periodEnd}
-                        handleFinish={(postings: Posting[]) => {
+                        handleFinish={(postings: PostingType[]) => {
                           if (postings.length > 0) {
                             Alerting.create('success', 'Cobertura(s) aplicada(s) com sucesso!');
                             handleAppendPostingDefined(postings);
@@ -778,9 +744,9 @@ function compose_ready(
                           disabled={
                             assistantFinish ||
                             selectPeopleInWorkplaces.length <= 0 ||
-                            lotItems.filter(item =>
-                              item.person &&
-                              selectPeopleInWorkplaces.includes(item.person)
+                            cards.filter(card =>
+                              card.person &&
+                              selectPeopleInWorkplaces.includes(card.personId)
                             ).length > 0 ||
                             postings.filter(posting =>
                               selectPeopleInWorkplaces.includes(posting.coverage.id) ||
@@ -820,19 +786,7 @@ function compose_ready(
 }
 
 export default function Register() {
-  const
-    dispatch = useAppDispatch(),
-    costCenters = useAppSelector(state => state.system.costCenters || []),
-    workplaces = useAppSelector((state) => state.system.workplaces || []),
-    people = useAppSelector((state) => state.system.people || []),
-    scales = useAppSelector((state) => state.system.scales || []),
-    services = useAppSelector((state) => state.system.services || []),
-    streets = useAppSelector((state) => state.system.streets || []),
-    neighborhoods = useAppSelector((state) => state.system.neighborhoods || []),
-    cities = useAppSelector((state) => state.system.cities || []),
-    districts = useAppSelector((state) => state.system.districts || []),
-    lotItems = useAppSelector((state) => state.payback.lotItems || []),
-    postings = useAppSelector((state) => state.payback.postings || []);
+  const [syncData, setSyncData] = useState<boolean>(false)
 
   const [isReady, setReady] = useState<boolean>(false)
   const [notPrivilege, setNotPrivilege] = useState<boolean>(false)
@@ -853,22 +807,29 @@ export default function Register() {
   const [periodEnd, setPeriodEnd] = useState<Date>(new Date())
 
   const [selectWorkplaces, setSelectWorkplaces] = useState<string[]>([])
-  const [appliedWorkplaces, setAppliedWorkplaces] = useState<Workplace[]>([])
+  const [appliedWorkplaces, setAppliedWorkplaces] = useState<WorkplaceType[]>([])
 
   const [pageSizeTableWorkplaces, setPageSizeTableWorkplaces] = useState<number>(10)
   const pageSizeOptionsTableWorkplaces = [10, 25, 50, 100];
 
   const [selectPeopleInWorkplaces, setSelectPeopleInWorkplaces] = useState<string[]>([])
-  const [appliedPeopleInWorkplaces, setAppliedPeopleInWorkplaces] = useState<Person[]>([])
+  const [appliedPeopleInWorkplaces, setAppliedPeopleInWorkplaces] = useState<PersonType[]>([])
 
   const [pageSizeTablePeopleInWorkplaces, setPageSizeTablePeopleInWorkplaces] = useState<number>(10)
   const pageSizeOptionsTablePeopleInWorkplaces = [10, 25, 50, 100];
 
   const [showModalAssistantCoverageDefine, setShowModalAssistantCoverageDefine] = useState<boolean>(false)
 
-  const [postingsDefined, setPostingsDefined] = useState<Posting[]>([])
+  const [postingsDefined, setPostingsDefined] = useState<PostingType[]>([])
 
   const router = useRouter()
+
+  const { data: postings, isLoading: isLoadingPostings, delete: DeletePostings } = usePostingsService();
+  const { data: costCenters, isLoading: isLoadingCostCenters } = useCostCentersService();
+  const { data: workplaces, isLoading: isLoadingWorkplaces, delete: DeleteWorkplaces } = useWorkplacesService();
+  const { data: people, isLoading: isLoadingPeople, delete: DeletePeople } = usePeopleService();
+  const { data: cards, isLoading: isLoadingCards } = useCardsService();
+  const { data: uploads, isLoading: isLoadingUploads, delete: DeleteUploads } = useUploadsService();
 
   const
     handleClickNoAuth: handleClickFunction = async (
@@ -925,56 +886,73 @@ export default function Register() {
     handleCloseModalEditPeopleInWorkplace = () => setShowModalEditPeopleInWorkplace(false),
     handleDefineSelectWorkplaces = (itens: string[]) => setSelectWorkplaces(itens),
     handleDefineSelectPeopleInWorkplaces = (itens: string[]) => setSelectPeopleInWorkplaces(itens),
-    handleDeleteWorkplaces = (ids: string[]) => ids.forEach(id => {
-      try {
-        dispatch(SystemActions.DELETE_WORKPLACE(id))
-      } catch (error) {
-        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
+    handleDeleteWorkplaces = async (workplacesId: string[]) => {
+      if (!DeleteWorkplaces)
+        return Alerting.create('error', 'Não foi possível deletar o(s) registro(s) selecionado(s). Tente novamente, mais tarde.');
+
+      for (const workplaceId of workplacesId) {
+        const deleted = await DeleteWorkplaces(workplaceId);
+
+        if (!deleted)
+          return Alerting.create('error', `Não foi possível deletar o local de trabalho (${workplaces.find(place => place.id === workplaceId)?.name || '???'}). Verifique se ele não está sendo utilizado em outro registro.`);
+
+        Alerting.create('success', `Local de trabalho (${workplaces.find(place => place.id === workplaceId)?.name || '???'}) deletado com sucesso.`);
       }
-    }),
-    handleDeletePeopleInWorkplaces = (ids: string[]) => ids.forEach(id => {
-      try {
-        dispatch(SystemActions.DELETE_PERSON(id))
-      } catch (error) {
-        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
+    },
+    handleDeletePeopleInWorkplaces = async (peopleId: string[]) => {
+      if (!DeletePeople)
+        return Alerting.create('error', 'Não foi possível deletar o(s) registro(s) selecionado(s). Tente novamente, mais tarde.');
+
+      for (const personId of peopleId) {
+        const deleted = await DeletePeople(personId);
+
+        if (!deleted)
+          return Alerting.create('error', `Não foi possível deletar o(a) funcionario(a) ${people.find(person => person.id === personId)?.name || '???'}. Verifique se ele(a) não está sendo utilizado(a) em outro registro.`);
+
+        Alerting.create('success', `Funcionario(a) ${people.find(person => person.id === personId)?.name || '???'} deletado(a) com sucesso.`);
       }
-    }),
-    handleAppendAppliedWorkplaces = (itens: Workplace[]) => setAppliedWorkplaces([...appliedWorkplaces, ...itens]),
-    handleAppendAppliedPeopleInWorkplaces = (itens: Person[]) => setAppliedPeopleInWorkplaces([...appliedPeopleInWorkplaces, ...itens]),
-    handleRemoveAppliedWorkplaces = (itens: Workplace[]) => {
+    },
+    handleAppendAppliedWorkplaces = (itens: WorkplaceType[]) => setAppliedWorkplaces([...appliedWorkplaces, ...itens]),
+    handleAppendAppliedPeopleInWorkplaces = (itens: PersonType[]) => setAppliedPeopleInWorkplaces([...appliedPeopleInWorkplaces, ...itens]),
+    handleRemoveAppliedWorkplaces = (itens: WorkplaceType[]) => {
       setAppliedWorkplaces(appliedWorkplaces.filter(item => !itens.some(item2 => item2.id === item.id)))
     },
-    handleRemoveAppliedPeopleInWorkplaces = (itens: Person[]) => {
+    handleRemoveAppliedPeopleInWorkplaces = (itens: PersonType[]) => {
       setAppliedPeopleInWorkplaces(appliedPeopleInWorkplaces.filter(item => !itens.some(item2 => item2.id === item.id)))
     },
     handleOpenModalAssistantCoverageDefine = () => setShowModalAssistantCoverageDefine(true),
     handleCloseModalAssistantCoverageDefine = () => setShowModalAssistantCoverageDefine(false),
-    handleAppendPostingDefined = (postings: Posting[]) => setPostingsDefined([...postingsDefined, ...postings]),
-    handleDefinePostingDefined = (postings: Posting[]) => setPostingsDefined(postings),
+    handleAppendPostingDefined = (postings: PostingType[]) => setPostingsDefined([...postingsDefined, ...postings]),
+    handleDefinePostingDefined = (postings: PostingType[]) => setPostingsDefined(postings),
     handleResetPostingDefined = () => setPostingsDefined([]),
-    handleRemovePostingDefined = (id: string) => {
-      try {
-        const
-          posting = postings.find(item => item.id === id),
-          deleteMirrors = [];
+    handleRemovePostingDefined = async (id: string) => {
+      if (!DeletePostings)
+        return Alerting.create('error', 'Não foi possível deletar o(s) registro(s) selecionado(s). Tente novamente, mais tarde.');
 
-        if (posting) {
-          if (posting.covering && posting.covering.mirror)
-            deleteMirrors.push(posting.covering.mirror.fileId);
+      const
+        posting = postings.find(item => item.id === id),
+        deleteMirrors = [];
 
-          if (posting.coverage && posting.coverage.mirror)
-            deleteMirrors.push(posting.coverage.mirror.fileId);
+      if (posting) {
+        if (posting.covering && posting.covering.mirror)
+          deleteMirrors.push(posting.covering.mirror.fileId);
 
-          if (deleteMirrors.length > 0)
-            handleRemoveUploadedFile(deleteMirrors);
+        if (posting.coverage && posting.coverage.mirror)
+          deleteMirrors.push(posting.coverage.mirror.fileId);
 
-          dispatch(PaybackActions.DELETE_POSTING(id));
+        if (deleteMirrors.length > 0)
+          handleRemoveUploadedFile(deleteMirrors);
+
+        const deleted = await DeletePostings(id);
+
+        if (deleted) {
           setPostingsDefined(postingsDefined.filter(item => item.id !== id));
+          Alerting.create('success', `Lançamento ${posting.description || ""} deletado com sucesso.`);
         } else {
-          throw new Error('Lançamento financeiro não encontrado.');
+          Alerting.create('error', `Não foi possível deletar o lançamento ${posting.description || ""}. Tente novamente, mais tarde.`);
         }
-      } catch (error) {
-        Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
+      } else {
+        Alerting.create('warning', 'Lançamento financeiro não encontrado.');
       }
     },
     handleRemoveUploadedFile = (filesId: string[]) =>
@@ -984,7 +962,18 @@ export default function Register() {
           filesId
         })
       ),
-    handleDeleteUpload = (fileId: string) => dispatch(SystemActions.DELETE_UPLOAD(fileId));
+    handleDeleteUpload = async (fileId: string) => {
+      if (!DeleteUploads)
+        return Alerting.create('error', 'Não foi possível deletar o(s) registro(s) selecionado(s). Tente novamente, mais tarde.');
+
+      const deleted = await DeleteUploads(fileId);
+
+      if (deleted) {
+        Alerting.create('success', `Arquivo deletado com sucesso.`);
+      } else {
+        Alerting.create('error', `Não foi possível deletar o arquivo. Tente novamente, mais tarde.`);
+      }
+    };
 
   useEffect(() => {
     hasPrivilege('administrador', 'ope_gerente', 'ope_coordenador', 'ope_mesa')
@@ -1002,6 +991,41 @@ export default function Register() {
         return setLoading(false)
       });
   }, [])
+
+  if (
+    isLoadingPostings && !syncData
+    || isLoadingCostCenters && !syncData
+    || isLoadingWorkplaces && !syncData
+    || isLoadingPeople && !syncData
+    || isLoadingCards && !syncData
+    || isLoadingUploads && !syncData
+  )
+    return <BoxLoadingMagicSpinner />
+
+  if (
+    !syncData
+    && postings
+    && costCenters
+    && workplaces
+    && people
+    && cards
+    && uploads
+  ) {
+    setSyncData(true);
+  } else if (
+    !syncData && !postings
+    || !syncData && !DeletePostings
+    || !syncData && !costCenters
+    || !syncData && !workplaces
+    || !syncData && !DeleteWorkplaces
+    || !syncData && !people
+    || !syncData && !DeletePeople
+    || !syncData && !cards
+    || !syncData && !uploads
+    || !syncData && !DeleteUploads
+  ) {
+    return <BoxError />
+  }
 
   if (loading) return compose_load()
 
@@ -1045,12 +1069,6 @@ export default function Register() {
       handleShowModalEditPeopleInWorkplace,
       handleCloseModalEditWorkplace,
       handleCloseModalEditPeopleInWorkplace,
-      scales,
-      services,
-      streets,
-      neighborhoods,
-      cities,
-      districts,
       selectWorkplaces,
       selectPeopleInWorkplaces,
       handleDefineSelectWorkplaces,
@@ -1064,7 +1082,7 @@ export default function Register() {
       handleAppendAppliedPeopleInWorkplaces,
       handleRemoveAppliedWorkplaces,
       handleRemoveAppliedPeopleInWorkplaces,
-      lotItems,
+      cards,
       postings,
       showModalAssistantCoverageDefine,
       handleOpenModalAssistantCoverageDefine,
@@ -1073,7 +1091,7 @@ export default function Register() {
       handleAppendPostingDefined,
       handleDefinePostingDefined,
       handleResetPostingDefined,
-      handleRemovePostingDefined,
+      handleRemovePostingDefined
     )
   }
 }

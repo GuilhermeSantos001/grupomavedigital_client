@@ -1,21 +1,14 @@
-/**
- * @description Efetuada uma chamada para a API para habilitar a autenticação
- * de duas etapas
- * @author GuilhermeSantos001
- * @update 16/12/2021
- */
-
 import { compressToEncodedURIComponent } from 'lz-string';
 
 import Fetch from '@/src/utils/fetch';
-import Variables from '@/src/db/variables';
 
-const authLogout = async (_fetch: Fetch): Promise<boolean> => {
-  const variables = new Variables(1, 'IndexedDB'),
-    auth = await variables.get<string>('auth'),
-    token = await variables.get<string>('token'),
-    signature = await variables.get<string>('signature')
-
+const authLogout = async (
+  _fetch: Fetch,
+  auth: string,
+  token: string,
+  signature: string,
+  authLogoutAuthorization: string
+): Promise<boolean> => {
   const req = await _fetch.exec<{
     data: {
       response: boolean
@@ -39,7 +32,7 @@ const authLogout = async (_fetch: Fetch): Promise<boolean> => {
       },
     },
     {
-      authorization: 'vlta#eke08uf=48uCuFustLr3ChL9a1*wrE_ayi0L*oFl-UHidlST8moj9f8C5L4',
+      authorization: authLogoutAuthorization,
       encodeuri: 'true',
     }
   ),

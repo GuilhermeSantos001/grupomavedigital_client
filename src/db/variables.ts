@@ -6,7 +6,7 @@
 
 import CoreDB, { Technology } from '@/src/db/core';
 
-export default class Variables extends CoreDB {
+export  class Variables extends CoreDB {
   constructor(version: number, technology: Technology) {
     super('variables', version, technology);
   }

@@ -1,7 +1,7 @@
 /**
  * @description Lista -> Lista de coberturas operacionais lançadas
  * @author GuilhermeSantos001
- * @update 27/01/2022
+ * @update 14/02/2022
  */
 
 import { useState } from 'react';
@@ -28,10 +28,13 @@ import CameraFrontIcon from '@mui/icons-material/CameraFront';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 
+import { BoxLoadingMagicSpinner } from '@/components/utils/BoxLoadingMagicSpinner';
+import { BoxError } from '@/components/utils/BoxError';
+
 import { DatePicker } from '@/components/selects/DatePicker';
 
-import hasPrivilege from '@/src/functions/hasPrivilege'
-import { uploadDownload } from '@/src/functions/getUploads'
+import hasPrivilege from '@/src/functions/hasPrivilege';
+import { uploadDownload } from '@/src/functions/getUploads';
 
 const style = {
   position: 'absolute' as 'absolute',
@@ -46,38 +49,41 @@ import DateEx from '@/src/utils/dateEx';
 import StringEx from '@/src/utils/stringEx';
 import Alerting from '@/src/utils/alerting';
 
-import { useAppSelector, useAppDispatch } from '@/app/hooks';
+import { PostingType } from '@/types/PostingType';
+import { PersonType } from '@/types/PersonType';
 
-import {
-  Posting,
-  PaybackActions
-} from '@/app/features/payback/payback.slice';
-
-import type {
-  Person
-} from '@/app/features/system/system.slice';
+import { usePostingsService } from '@/services/usePostingsService';
 
 export type Props = {
-  postings: Posting[]
+  postings: PostingType[]
   disabledPostingRemove: boolean
   handlePostingRemove: (id: string) => void
 }
 
 export function ListCoverageDefined(props: Props) {
-  const
-    workplaces = useAppSelector(state => state.system.workplaces || []),
-    people = useAppSelector(state => state.system.people || []),
-    reasonForAbsences = useAppSelector(state => state.system.reasonForAbsences || []),
-    scales = useAppSelector(state => state.system.scales || []),
-    services = useAppSelector(state => state.system.services || []);
-
-  const dispatch = useAppDispatch();
+  const [syncData, setSyncData] = useState<boolean>(false);
 
   const [openModal, setOpenModal] = useState<{ [keyof: string]: boolean }>({});
+
+  const { data: postings, isLoading: isLoadingPostings, update: UpdatePostings } = usePostingsService();
 
   const
     handleModalOpen = (key: string) => setOpenModal({ ...openModal, [key]: true }),
     handleModalClose = (key: string) => setOpenModal({ ...openModal, [key]: false });
+
+  if (
+    isLoadingPostings && !syncData
+  )
+    return <BoxLoadingMagicSpinner />
+
+  if (!syncData && postings) {
+    setSyncData(true);
+  } else if (
+    !syncData && !postings
+    || !syncData && !UpdatePostings
+  ) {
+    return <BoxError />
+  }
 
   return (
     <List className='col-12 bg-light-gray border rounded m-2'>
@@ -88,22 +94,13 @@ export function ListCoverageDefined(props: Props) {
             .filter(posting => !posting.managerApproval)
             .map(posting => {
               const
-                coveringWorkplace = workplaces.find(place => place.id === posting.coveringWorkplace),
-                coverageWorkplace = workplaces.find(place => place.id === posting.coverageWorkplace);
+                coveringWorkplace = posting.coveringWorkplace,
+                coverageWorkplace = posting.coverageWorkplace;
 
               let
-                coveringPerson: Person | undefined = undefined,
-                coveragePerson: Person | undefined = undefined,
-                coveringReasonForAbsence: string | undefined = undefined;
-
-              if (posting.covering)
-                coveringPerson = people.find(person => posting.covering && person.id === posting.covering.id);
-
-              if (posting.coverage)
-                coveragePerson = people.find(person => person.id === posting.coverage.id);
-
-              if (coveringPerson)
-                coveringReasonForAbsence = reasonForAbsences.find(reason => posting.covering && reason.id === posting.covering.reasonForAbsence)?.value || "???";
+                coveringPerson = posting.covering ? posting.covering?.person : undefined,
+                coveragePerson = posting.coverage.person,
+                coveringReasonForAbsence = posting.covering ? posting.covering.reasonForAbsence.value : undefined;
 
               if (openModal[posting.id] === undefined)
                 openModal[posting.id] = false;
@@ -114,12 +111,12 @@ export function ListCoverageDefined(props: Props) {
                   handleModalClose,
                   posting,
                   `${coveringWorkplace ?
-                    `${coveringWorkplace.name} (${scales.find(scale => scale.id === coveringWorkplace.scale)?.value || "???"} - ${services.filter(service => coveringWorkplace.services.includes(service.id)).map(service => service.value).join(', ')})`
+                    `${coveringWorkplace.name} (${coveringWorkplace.scale.value} - ${coveringWorkplace.workplaceService.map(_ => _.service.value).join(', ')})`
                     :
                     "???"
                   }`,
                   `${coverageWorkplace ?
-                    `${coverageWorkplace.name} (${scales.find(scale => scale.id === coverageWorkplace.scale)?.value || "???"} - ${services.filter(service => coverageWorkplace.services.includes(service.id)).map(service => service.value).join(', ')})`
+                    `${coverageWorkplace.name} (${coverageWorkplace.scale.value} - ${coverageWorkplace.workplaceService.map(_ => _.service.value).join(', ')})`
                     :
                     "Freelancer"
                   }`,
@@ -146,84 +143,92 @@ export function ListCoverageDefined(props: Props) {
                     <ListItemText primary={coverageWorkplace ? `Posto de Origem: ${coverageWorkplace.name}` : `Freelancer`} secondary={`[${coveragePerson?.matricule || "???"}] - ${coveragePerson?.name || "???"}`} />
                   </ListItem>
                   <Chip label={`Motivo: ${coveringReasonForAbsence ? coveringReasonForAbsence : 'Falta de Efetivo'}`} className='bg-danger text-white shadow me-2' style={{ minWidth: 200 }} />
-                  <Chip label={`Valor: ${StringEx.maskMoney(parseInt(posting.paymentValue))}`} className='bg-success text-white shadow' style={{ minWidth: 150 }} />
-                  <div className='d-flex flex-row justify-content-center align-items-center'>
-                    <Button
-                      variant="outlined"
-                      className='mx-2 rounded'
-                      color="info"
-                      onClick={() => handleModalOpen(posting.id)}
-                    >
-                      <InfoRoundedIcon className='fw-bold fs-3' />
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      className='mx-2 rounded'
-                      color="warning"
-                      title={`Aprovação do Encarregado`}
-                      disabled={posting.foremanApproval}
-                      onClick={() => {
-                        hasPrivilege('administrador', 'ope_coordenador')
-                          .then((isAllowViewPage) => {
-                            if (isAllowViewPage) {
-                              Alerting.create('success', 'Cobertura Aprovada!');
-                              dispatch(PaybackActions.UPDATE_POSTING({
-                                ...posting,
-                                foremanApproval: true,
-                                status: 'available',
-                                paymentStatus: 'payable',
-                                createdAt: new Date().toISOString()
-                              }));
-                            } else {
-                              Alerting.create('success', 'Você não tem privilegio para executar essa ação!');
-                            }
-                          })
-                          .catch(() => {
-                            Alerting.create('error', 'Não foi possível verificar seu privilégio');
-                          });
-                      }}
-                    >
-                      <CameraFrontIcon className='fw-bold fs-3' />
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      className='mx-2 rounded'
-                      color="inherit"
-                      title={`Aprovação do Gerente`}
-                      disabled={!posting.foremanApproval || posting.managerApproval}
-                      onClick={() => {
-                        hasPrivilege('administrador', 'ope_gerente')
-                          .then((isAllowViewPage) => {
-                            if (isAllowViewPage) {
-                              Alerting.create('success', 'Cobertura Aprovada. Um titulo foi gerado para pagamento.');
-                              dispatch(PaybackActions.UPDATE_POSTING({
-                                ...posting,
-                                managerApproval: true,
-                                status: 'available',
-                                paymentStatus: 'payable',
-                                createdAt: new Date().toISOString()
-                              }));
-                            } else {
-                              Alerting.create('success', 'Você não tem privilegio para executar essa ação!');
-                            }
-                          })
-                          .catch(() => {
-                            Alerting.create('error', 'Não foi possível verificar seu privilégio');
-                          });
-                      }}
-                    >
-                      <AdminPanelSettingsIcon className='fw-bold fs-3' />
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      className='mx-2 rounded'
-                      color="error"
-                      disabled={props.disabledPostingRemove}
-                      onClick={() => props.handlePostingRemove(posting.id)}
-                    >
-                      <DeleteForeverIcon className='fw-bold fs-3' />
-                    </Button>
-                  </div>
+                  <Chip label={`Valor: ${StringEx.maskMoney(posting.paymentValue)}`} className='bg-success text-white shadow' style={{ minWidth: 150 }} />
+                </div>
+                <div className='d-flex flex-row justify-content-start align-items-center'>
+                  <Button
+                    variant="outlined"
+                    className='mx-2 rounded'
+                    color="info"
+                    onClick={() => handleModalOpen(posting.id)}
+                  >
+                    <InfoRoundedIcon className='fw-bold fs-3' />
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    className='mx-2 rounded'
+                    color="warning"
+                    title={`Aprovação do Encarregado`}
+                    disabled={posting.foremanApproval}
+                    onClick={() => {
+                      hasPrivilege('administrador', 'ope_coordenador')
+                        .then(async (isAllowViewPage) => {
+                          if (isAllowViewPage) {
+                            if (!UpdatePostings)
+                              return Alerting.create('error', 'Não foi possível executar a operação. Tente novamente, mais tarde!');
+
+                            const updated = await UpdatePostings(posting.id, {
+                              ...posting,
+                              foremanApproval: true,
+                            });
+
+                            if (!updated)
+                              return Alerting.create('error', 'Não foi possível atualizar o registro. Tente novamente, mais tarde!');
+
+                            Alerting.create('success', 'Cobertura Aprovada com sucesso!');
+                          } else {
+                            Alerting.create('success', 'Você não tem permissão para executar essa ação!');
+                          }
+                        })
+                        .catch(() => {
+                          Alerting.create('error', 'Não foi possível verificar suas permissões!');
+                        });
+                    }}
+                  >
+                    <CameraFrontIcon className='fw-bold fs-3' />
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    className='mx-2 rounded'
+                    color="inherit"
+                    title={`Aprovação do Gerente`}
+                    disabled={!posting.foremanApproval || posting.managerApproval}
+                    onClick={() => {
+                      hasPrivilege('administrador', 'ope_gerente')
+                        .then(async (isAllowViewPage) => {
+                          if (isAllowViewPage) {
+                            if (!UpdatePostings)
+                              return Alerting.create('error', 'Não foi possível executar a operação. Tente novamente, mais tarde!');
+
+                            const updated = await UpdatePostings(posting.id, {
+                              ...posting,
+                              managerApproval: true,
+                            });
+
+                            if (!updated)
+                              return Alerting.create('error', 'Não foi possível atualizar o registro. Tente novamente, mais tarde!');
+
+                            Alerting.create('success', 'Cobertura Aprovada com sucesso. Um título para pagamento foi gerado!');
+                          } else {
+                            Alerting.create('success', 'Você não tem permissão para executar essa ação!');
+                          }
+                        })
+                        .catch(() => {
+                          Alerting.create('error', 'Não foi possível verificar suas permissões!');
+                        });
+                    }}
+                  >
+                    <AdminPanelSettingsIcon className='fw-bold fs-3' />
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    className='mx-2 rounded'
+                    color="error"
+                    disabled={props.disabledPostingRemove}
+                    onClick={() => props.handlePostingRemove(posting.id)}
+                  >
+                    <DeleteForeverIcon className='fw-bold fs-3' />
+                  </Button>
                 </div>
               </div>
             })
@@ -239,11 +244,11 @@ export function ListCoverageDefined(props: Props) {
 function ModalPostingInformation(
   openModal: { [keyof: string]: boolean; },
   handleModalClose: (key: string) => void,
-  posting: Posting,
+  posting: PostingType,
   coveringWorkplace: string,
   coverageWorkplace: string,
-  coveringPerson: Person | undefined,
-  coveragePerson: Person | undefined,
+  coveringPerson: Pick<PersonType, 'matricule' | 'name' | 'mail' | 'cards'> | undefined,
+  coveragePerson: Pick<PersonType, 'matricule' | 'name' | 'mail' | 'cards'> | undefined,
   coveringReasonForAbsence: string
 ) {
   return <Modal
@@ -366,7 +371,7 @@ function ModalPostingInformation(
             variant="outlined"
             className='col px-2 my-2'
             disabled={true}
-            defaultValue={StringEx.maskMoney(parseInt(posting.paymentValue))}
+            defaultValue={StringEx.maskMoney(posting.paymentValue)}
           />
           <TextField
             label="Forma de Pagamento"
@@ -395,7 +400,7 @@ function ModalPostingInformation(
             disabled={true}
             multiline
             rows={4}
-            defaultValue={posting.description.length > 0 ? posting.description : 'Nenhuma descrição informada.'}
+            defaultValue={posting.description && posting.description.length > 0 ? posting.description : 'Nenhuma descrição informada.'}
           />
         </div>
       </Box>

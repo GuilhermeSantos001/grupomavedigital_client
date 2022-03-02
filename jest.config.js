@@ -25,6 +25,7 @@ module.exports = {
     '\\.(gif|ttf|eot|svg|png)$': '<rootDir>/test/__mocks__/fileMock.js',
     "^@/bin/(.+)$": "<rootDir>/bin/$1",
     "^@/app/(.+)$": "<rootDir>/app/$1",
+    "^@/middlewares/(.+)$": "<rootDir>/middlewares/$1",
     "^@/services/(.+)$": "<rootDir>/services/$1",
     "^@/types/(.+)$": "<rootDir>/types/$1",
     "^@/constants/(.+)$": "<rootDir>/constants/$1",

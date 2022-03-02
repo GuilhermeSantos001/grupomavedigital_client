@@ -10,6 +10,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
 
 import { PageProps } from '@/pages/_app'
+import { GetMenuHome } from '@/bin/GetMenuHome'
 
 import Fetch from '@/src/utils/fetch'
 
@@ -22,43 +23,7 @@ const staticProps: PageProps = {
   description:
     'Esqueceu sua senha? Iremos lhe enviar um e-mail, para que você possa alterar sua senha',
   themeColor: '#004a6e',
-  menu: [
-    {
-      id: 'mn-helping',
-      active: false,
-      icon: {
-        family: 'fas',
-        name: 'question-circle',
-      },
-      type: 'dropdown',
-      name: 'Precisa de Ajuda?',
-      dropdownId: 'navbarDropdown',
-      content: [
-        {
-          id: 'md-helpdesk',
-          icon: {
-            family: 'fas',
-            name: 'headset',
-          },
-          name: 'HelpDesk',
-          link: '/help/helpdesk',
-        },
-        {
-          id: 'md-sp1',
-          type: 'separator',
-        },
-        {
-          id: 'md-docs',
-          icon: {
-            family: 'fas',
-            name: 'book-reader',
-          },
-          name: 'DOC',
-          link: '/help/docs',
-        },
-      ],
-    },
-  ]
+  menu: GetMenuHome('mn-login')
 }
 
 export const getStaticProps = () => ({
@@ -67,8 +32,8 @@ export const getStaticProps = () => ({
 
 function compose_ready(
   username: string,
-  handleChangeUsername,
-  handleClickChangePassword
+  handleChangeUsername: (value: string) => void,
+  handleClickChangePassword: () => void
 ) {
   return (
     <div className="col-12">
@@ -87,7 +52,7 @@ function compose_ready(
             aria-label="Username"
             aria-describedby="username-addon"
             value={username}
-            onChange={handleChangeUsername}
+            onChange={(e) => handleChangeUsername(e.target.value)}
           />
         </div>
       </div>
@@ -115,12 +80,10 @@ const Forgot = (): JSX.Element => {
 
   const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
 
-  const handleChangeUsername = (e) => {
-    setUsername(e.target.value)
-  },
+  const handleChangeUsername = (value: string) => setUsername(value),
     handleClickChangePassword = async () => {
       if (await authForgotPassword(_fetch, username)) {
-        Alerting.create('info','Um e-mail será enviado para você em breve.')
+        Alerting.create('info', 'Um e-mail será enviado para você em breve.')
         setUsername('')
       } else {
         Alerting.create(

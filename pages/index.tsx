@@ -7,15 +7,13 @@
 import Image from 'next/image'
 
 import { PageProps } from '@/pages/_app'
-import PageMenu from '@/bin/home_menu'
-
-import { AssistantCoverageDefine } from '@/components/assistants/assistantCoverageDefine';
+import {GetMenuHome} from '@/bin/GetMenuHome'
 
 const staticProps: PageProps = {
   title: 'Grupo Mave Digital',
   description: 'Bem-vindo(a) ao ambiente digital interativo do Grupo Mave!',
   themeColor: '#004a6e',
-  menu: PageMenu('mn-home'),
+  menu: GetMenuHome('mn-home'),
 }
 
 export const getStaticProps = () => ({
@@ -28,7 +26,6 @@ const Home = (): JSX.Element => (
     className="p-2"
     style={{ fontFamily: 'Fira Code' }}
   >
-    <AssistantCoverageDefine periodStart={new Date()} periodEnd={new Date} availableWorkplaces={['33d3aeca-4f8f-438c-9563-f34301389e98']} availablePeopleInWorkplace={['740e4604-5f11-46ca-92fa-7776a891b607']} handleFinish={(postings) => console.log(postings)} postingCostCenterId={'4fb7e441-fcf8-4456-a566-40dd535a1500'}  show={true} handleClose={() => console.log('teste')} />
     <h1 data-testid="text-start" className="fw-bold">
       Bem-Vindo(a)
     </h1>

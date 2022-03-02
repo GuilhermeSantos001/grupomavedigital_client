@@ -1,31 +1,17 @@
 /**
  * @description Função usada para retornar a lista das pessoas
  * @author GuilhermeSantos001
- * @update 07/01/2022
+ * @update 14/02/2022
  */
 
 import { GridColDef } from '@mui/x-data-grid';
 
 import StringEx from '@/src/utils/stringEx';
 
-import type {
-  Person,
-  Scale,
-  Service,
-  Street,
-  Neighborhood,
-  City,
-  District
-} from '@/app/features/system/system.slice';
+import {PersonType} from '@/types/PersonType';
 
 export default function getPeopleForTable(
-  people: Person[],
-  scales: Scale[],
-  services: Service[],
-  streets: Street[],
-  neighborhoods: Neighborhood[],
-  cities: City[],
-  districts: District[]
+  people: PersonType[]
 ) {
   const
     columns: GridColDef[] = [
@@ -90,7 +76,7 @@ export default function getPeopleForTable(
         headerAlign: 'center',
         align: 'center',
         valueGetter: (params) => {
-          return `${streets.find(street => street.id === params.row.address.street).name}, ${params.row.address.number} - ${neighborhoods.find(neighborhood => neighborhood.id === params.row.address.neighborhood).name}, ${cities.find(city => city.id === params.row.address.city).name} - ${districts.find(district => district.id === params.row.address.district).name}, ${StringEx.maskZipcode(String(params.row.address.zipCode).padStart(8, '0'))}`;
+          return `${params.row.address.street.value}, ${params.row.address.number} - ${params.row.address.neighborhood.value}, ${params.row.address.city.value} - ${params.row.address.district.value}, ${StringEx.maskZipcode(params.row.address.zipCode, true)}`;
         }
       }
     ],
@@ -99,11 +85,11 @@ export default function getPeopleForTable(
         id: person.id,
         item: index + 1,
         name: person.name,
-        matricule: StringEx.maskMatricule(String(person.matricule).padStart(5, '0')),
-        cpf: StringEx.maskCPF(person.cpf),
-        rg: StringEx.maskRG(person.rg),
-        scale: scales.find(scale => scale.id === person.scale).value,
-        services: services.filter(service => person.services.includes(service.id)).map(service => service.value).join(', '),
+        matricule: StringEx.maskMatricule(parseInt(person.matricule), true),
+        cpf: StringEx.maskCPF(parseInt(person.cpf), true),
+        rg: StringEx.maskRG(parseInt(person.rg) ,true),
+        scale: person.scale.value,
+        services: person.personService.map(_ => _.service.value).join(', '),
         address: person.address,
       }
     })

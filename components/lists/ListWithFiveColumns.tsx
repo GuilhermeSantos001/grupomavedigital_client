@@ -74,7 +74,7 @@ export function ListWithFiveColumns(props: Props) {
     },
     actionMenu = (
       // TODO: Criar componente de janela de ação, deve ser adicionado na camada de loading
-      <div className={`card w-50 bg-light-gray shadow rounded my-2 mx-auto fixed-top fade-effect ${selected.length > 0 ? 'active' : 'deactivate'}`}>
+      <div className={`card w-50 bg-light-gray shadow rounded mt-5 mx-auto fixed-top fade-effect ${selected.length > 0 ? 'active' : 'deactivate'}`}>
         <div className="card-body p-0">
           <p className='bg-primary bg-gradient fw-bold fs-3 text-secondary text-center border-bottom p-2'>
             Ações
@@ -218,7 +218,7 @@ export function ListWithFiveColumns(props: Props) {
             }}
           />
           {props.columns.map((column, index) => {
-            return <b key={index} className={`col-${column.size} py-2 text-center mx-2 text-truncate`}>
+            return <b key={index} title={column.title} className={`col-${column.size} py-2 text-center mx-2 text-truncate`}>
               {column.title}
             </b>
           })}
@@ -266,7 +266,7 @@ export function ListWithFiveColumns(props: Props) {
                     onChange={() => selected.includes(line.id) ? setSelected(selected.filter(id => id !== line.id)) : setSelected([...selected, line.id])}
                   />
                   {line.values.map((value, index2) => {
-                    return <b key={index2} className={`col-${value.size} py-2 text-center mx-2 my-auto text-truncate`}>
+                    return <b key={index2} title={value.data} className={`col-${value.size} py-2 text-center mx-2 my-auto text-truncate`}>
                       {value.data}
                     </b>
                   })}

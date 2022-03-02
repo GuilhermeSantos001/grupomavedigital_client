@@ -18,7 +18,7 @@ import WindowSuperAdmin from '@/components/WindowSuperAdmin'
 import Navbar from '@/components/Navbar'
 import GridContent from '@/components/GridContent'
 
-import { Menu } from '@/pages/_app'
+import { MenuResponse } from '@/pages/_app'
 declare global {
   interface Window {
     loading: 'show' | 'hide' | 'none'
@@ -28,7 +28,7 @@ declare global {
 }
 
 export type Props = {
-  menu: Menu[]
+  menu: MenuResponse
   fullwidth: boolean
   children: React.ReactElement
 }

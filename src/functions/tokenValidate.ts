@@ -5,7 +5,7 @@
  */
 
 import Fetch from '@/src/utils/fetch'
-import Variables from '@/src/db/variables'
+import { Variables } from '@/src/db/variables'
 
 export const saveUpdatedToken = async (signature: string, token) => {
   const variables = new Variables(1, 'IndexedDB')

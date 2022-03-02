@@ -22,9 +22,9 @@ import { ListWithFiveColumns } from '@/components/lists/ListWithFiveColumns';
 import { BoxError } from '@/components/utils/BoxError';
 
 import { PageProps } from '@/pages/_app';
-import PageMenu from '@/bin/main_menu';
+import {GetMenuMain} from '@/bin/GetMenuMain';
 
-import Variables from '@/src/db/variables';
+import { Variables } from '@/src/db/variables';
 import hasPrivilege from '@/src/functions/hasPrivilege';
 import Alerting from '@/src/utils/alerting';
 import StringEx from '@/src/utils/stringEx';
@@ -43,7 +43,7 @@ const serverSideProps: PageProps = {
   title: 'Pagamentos/Cartões Benefício/Remoção',
   description: 'Remoção de cartões beneficio',
   themeColor: '#004a6e',
-  menu: PageMenu('mn-payback')
+  menu: GetMenuMain('mn-payback')
 }
 
 export const getServerSideProps = async () => {

@@ -1,31 +1,39 @@
 /**
- * @description Pagina usada quando o usuario deseja encerrar a sessão
+ * @description Pagina usada quando o usuário deseja encerrar a sessão
  * @author GuilhermeSantos001
- * @update 05/10/2021
+ * @update 15/02/2022
  */
 
 import React, { useEffect, useState } from 'react'
 
+import { GetServerSidePropsContext } from 'next/types'
 import { useRouter } from 'next/router'
 
 import SkeletonLoader from 'tiny-skeleton-loader-react'
 
 import { PageProps } from '@/pages/_app'
+import { GetMenuHome } from '@/bin/GetMenuHome'
 
 import Fetch from '@/src/utils/fetch'
-import Variables from '@/src/db/variables'
+import { verifyCookie } from '@/lib/verifyCookie'
 import AuthLogout from '@/src/functions/authLogout'
 
-const staticProps: PageProps = {
+const serverSideProps: PageProps = {
   title: 'Desconectando',
   description: 'Você está se desconectando do sistema',
   themeColor: '#004a6e',
-  menu: [],
+  menu: GetMenuHome('mn-logout'),
   fullwidth: true
 }
 
-export const getStaticProps = () => ({
-  props: staticProps,
+export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => ({
+  props: {
+    ...serverSideProps,
+    auth: await verifyCookie(req.cookies.auth),
+    token: await verifyCookie(req.cookies.token),
+    signature: await verifyCookie(req.cookies.signature),
+    authLogoutAuthorization: process.env.GRAPHQL_AUTHORIZATION_AUTHLOGOUT as string,
+  },
 })
 
 function compose_load() {
@@ -51,27 +59,44 @@ function compose_load() {
   )
 }
 
-const Logout = (): JSX.Element => {
+export default function Logout({
+  auth,
+  token,
+  signature,
+  authLogoutAuthorization
+}: {
+  auth: string
+  token: string
+  signature: string
+  authLogoutAuthorization: string
+}) {
   const [loading, setLoading] = useState<boolean>(true)
 
   const router = useRouter()
-  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
+  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST!)
 
   useEffect(() => {
     const timer = setTimeout(async () => {
-      const variables = new Variables(1, 'IndexedDB');
+      if (
+        auth && auth !== '' &&
+        token && token !== '' &&
+        signature && signature !== ''
+      )
+        await AuthLogout(
+          _fetch,
+          auth,
+          token,
+          signature,
+          authLogoutAuthorization
+        );
 
-      if (await AuthLogout(_fetch)) {
-        await variables.clear()
+      router.push('/auth/login');
 
-        router.push('/auth/login')
-      }
-
-      setLoading(false)
+      setLoading(false);
     })
 
-    return () => clearTimeout(timer)
-  }, [])
+    return () => clearTimeout(timer);
+  })
 
   if (loading) return compose_load()
 
@@ -89,5 +114,3 @@ const Logout = (): JSX.Element => {
     </div>
   )
 }
-
-export default Logout

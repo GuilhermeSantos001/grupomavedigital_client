@@ -26,14 +26,14 @@ interface Content {
 import Sugar from 'sugar'
 
 import { PageProps } from '@/pages/_app'
-import PageMenu from '@/bin/main_menu'
+import {GetMenuMain} from '@/bin/GetMenuMain'
 import { Accordion } from 'react-bootstrap'
 
 const staticProps: PageProps = {
   title: 'Documentação',
   description: 'Saiba mais sobre o funcionamento da nossa plataforma',
   themeColor: '#004a6e',
-  menu: PageMenu('mn-helping')
+  menu: GetMenuMain('mn-helping')
 },
   sections: Section[] = [
     {

@@ -16,7 +16,7 @@ declare global {
 
 const socket = new SocketConnectionController(String(process.env.NEXT_PUBLIC_WEBSOCKET_HOST));
 
-export default function SocketConnectionComponent() {
+export function SocketConnection() {
   useEffect(() => {
     window.socket = socket;
 

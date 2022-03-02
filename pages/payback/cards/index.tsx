@@ -19,16 +19,16 @@ import NoPrivilege, { handleClickFunction } from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
 
 import { PageProps } from '@/pages/_app'
-import PageMenu from '@/bin/main_menu'
+import {GetMenuMain} from '@/bin/GetMenuMain'
 
-import Variables from '@/src/db/variables'
+import { Variables } from '@/src/db/variables'
 import hasPrivilege from '@/src/functions/hasPrivilege'
 
 const serverSideProps: PageProps = {
   title: 'Pagamentos/Cartões Benefício',
   description: 'Cartões Benefício',
   themeColor: '#004a6e',
-  menu: PageMenu('mn-payback')
+  menu: GetMenuMain('mn-payback')
 }
 
 export const getServerSideProps = async () => {

@@ -76,21 +76,39 @@ export type PrivilegesSystem =
   | 'cont_contabil'
   ;
 
-export interface CommonResponse {
-  success?: boolean;
-  updatedToken: UpdatedToken
+export type MenuResponse = {
+  disable: MenuDisable
+  options: Menu[]
 }
 
-export type UpdatedToken = {
-  signature: string
-  token: string
-}
+export type MenuDisable = { [key in MenuOptions]: boolean | undefined }
+
+export type MenuOptions =
+  | 'mn-home'
+  | 'mn-admin'
+  | 'mn-login'
+  | 'mn-integration'
+  | 'mn-security'
+  | 'mn-dashboard'
+  | 'mn-helping'
+  | 'mn-logout'
+  | 'mn-herculesStorage'
+  | 'mn-payback'
+  | 'mn-payback-cards'
+  | 'mn-payback-separator'
+  | 'mn-payback-postings'
+  | 'mn-helpdesk'
+  | 'mn-helpdesk-separator'
+  | 'mn-docs'
+
+export type Menu = MenuItem | MenuItemDropdown | MenuItemSeparator
+export type Content = Omit<MenuItem, 'active'> | MenuItemDropdown | MenuItemSeparator
 
 export interface PageProps {
   title: string
   description: string
   themeColor: string
-  menu: Menu[]
+  menu: MenuResponse
   fullwidth?: boolean
   socketIO?: {
     room: string[]
@@ -98,7 +116,7 @@ export interface PageProps {
 }
 
 interface MenuItem {
-  id: string
+  id: MenuOptions
   active: boolean
   icon: {
     family: iconsFamily
@@ -119,9 +137,6 @@ interface MenuItemSeparator extends Pick<MenuItem, 'id'> {
   type: 'separator'
 }
 
-export type Menu = MenuItem | MenuItemDropdown | MenuItemSeparator
-type Content = Omit<MenuItem, 'active'> | MenuItemDropdown | MenuItemSeparator
-
 function MyApp({ Component, pageProps }: AppProps) {
   const props: PageProps = pageProps,
     title = props.title ?? 'Grupo Mave Digital',
@@ -133,7 +148,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     fullwidth = props.fullwidth,
     persistor = persistStore(store);
 
-  const reduxLoading = (
+    const reduxLoading = (
     <div
       className='d-flex flex-row justify-content-center align-items-center bg-primary bg-gradient'
       style={{ width: '100vw', height: '100vh' }}

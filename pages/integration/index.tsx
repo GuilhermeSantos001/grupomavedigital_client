@@ -26,10 +26,10 @@ import { RegisterAPIKey } from '@/components/modals/RegisterAPIKey'
 import { Button } from 'react-bootstrap'
 
 import { PageProps } from '@/pages/_app'
-import PageMenu from '@/bin/main_menu'
+import {GetMenuMain} from '@/bin/GetMenuMain'
 
 import Fetch from '@/src/utils/fetch'
-import Variables from '@/src/db/variables'
+import { Variables } from '@/src/db/variables'
 import hasPrivilege from '@/src/functions/hasPrivilege'
 
 import { copyTextToClipboard } from '@/src/functions/copyTextToClipboard';
@@ -40,7 +40,7 @@ const serverSideProps: PageProps = {
   title: 'Integração/API',
   description: 'Gerencie suas chaves de API e execute testes de rota.',
   themeColor: '#004a6e',
-  menu: PageMenu('mn-integration')
+  menu: GetMenuMain('mn-integration')
 }
 
 export const getServerSideProps = async () => {

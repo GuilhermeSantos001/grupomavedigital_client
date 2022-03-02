@@ -1,7 +1,7 @@
 /**
  * @description Pagina para confirmação do e-mail usuário
  * @author GuilhermeSantos001
- * @update 18/01/2022
+ * @update 15/02/2022
  */
 
 import React, { useEffect, useState } from 'react'
@@ -12,6 +12,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
 
 import { PageProps } from '@/pages/_app'
+import { GetMenuHome } from '@/bin/GetMenuHome'
 
 import Alerting from '@/src/utils/alerting'
 
@@ -23,47 +24,13 @@ const serverSideProps: PageProps = {
   title: 'Confirmação da conta',
   description: 'Confirme sua conta para acessar o ambiente digital interativo.',
   themeColor: '#004a6e',
-  menu: [
-    {
-      id: 'mn-helping',
-      active: false,
-      icon: {
-        family: 'fas',
-        name: 'question-circle',
-      },
-      type: 'dropdown',
-      name: 'Precisa de Ajuda?',
-      dropdownId: 'navbarDropdown',
-      content: [
-        {
-          id: 'md-helpdesk',
-          icon: {
-            family: 'fas',
-            name: 'headset',
-          },
-          name: 'HelpDesk',
-          link: '/help/helpdesk',
-        },
-        {
-          id: 'md-sp1',
-          type: 'separator',
-        },
-        {
-          id: 'md-docs',
-          icon: {
-            family: 'fas',
-            name: 'book-reader',
-          },
-          name: 'DOC',
-          link: '/help/docs',
-        },
-      ],
-    },
-  ]
+  menu: GetMenuHome('mn-login')
 }
 
-export async function getServerSideProps(context) {
-  const { token } = context.query
+type CTX = { query: { token: string } };
+
+export async function getServerSideProps(ctx: CTX) {
+  const { token } = ctx.query
 
   return {
     props: {
@@ -94,7 +61,7 @@ function compose_loading() {
   )
 }
 
-const PasswordRestore = ({ token }): JSX.Element => {
+const PasswordRestore = ({ token }: { token: string }): JSX.Element => {
   const [signature, setSignature] = useState<string>('')
   const [password, setPassword] = useState<string>('')
   const [passwordView, setPasswordView] = useState<boolean>(false)
@@ -102,15 +69,9 @@ const PasswordRestore = ({ token }): JSX.Element => {
 
   const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
 
-  const handleChangeSignature = (e) => {
-    setSignature(e.target.value)
-  },
-    handleChangePassword = (e) => {
-      setPassword(e.target.value)
-    },
-    handleClickPasswordView = () => {
-      setPasswordView(passwordView ? false : true)
-    },
+  const handleChangeSignature = (value:string) =>setSignature(value),
+    handleChangePassword = (value:string) => setPassword(value),
+    handleClickPasswordView = () => setPasswordView(passwordView ? false : true),
     handleClickChangePassword = async () => {
       const test = checkPassword(password)
 
@@ -158,7 +119,7 @@ const PasswordRestore = ({ token }): JSX.Element => {
           aria-label="Code"
           aria-describedby="code-addon"
           value={signature}
-          onChange={handleChangeSignature}
+          onChange={(e) => handleChangeSignature(e.target.value)}
         />
       </div>
       <div className="input-group mb-2">
@@ -175,7 +136,7 @@ const PasswordRestore = ({ token }): JSX.Element => {
           aria-label="Password"
           aria-describedby="password-addon"
           value={password}
-          onChange={handleChangePassword}
+          onChange={(e) => handleChangePassword(e.target.value)}
         />
         <span className="input-group-text" id="passwordView-addon">
           <FontAwesomeIcon

@@ -1,7 +1,7 @@
 /**
  * @description Painéis do sistema
  * @author GuilhermeSantos001
- * @update 21/01/2022
+ * @update 15/02/2022
  */
 
 import React, { useEffect, useState } from 'react'
@@ -15,20 +15,20 @@ import SkeletonLoader from 'tiny-skeleton-loader-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
 
-import NoPrivilege from '@/components/noPrivilege'
+import NoPrivilege, { handleClickFunction } from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
 
 import { PageProps } from '@/pages/_app'
-import PageMenu from '@/bin/main_menu'
+import { GetMenuMain } from '@/bin/GetMenuMain'
 
-import Variables from '@/src/db/variables'
+import { Variables } from '@/src/db/variables'
 import hasPrivilege from '@/src/functions/hasPrivilege'
 
 const serverSideProps: PageProps = {
   title: 'System/Dashboard',
   description: 'Painéis de gestão do Grupo Mave',
   themeColor: '#004a6e',
-  menu: PageMenu('mn-dashboard')
+  menu: GetMenuMain('mn-dashboard')
 }
 
 export const getServerSideProps = async () => {
@@ -102,11 +102,11 @@ function compose_load() {
   )
 }
 
-function compose_noPrivilege(handleClick) {
+function compose_noPrivilege(handleClick: handleClickFunction) {
   return <NoPrivilege handleClick={handleClick} />
 }
 
-function compose_noAuth(handleClick) {
+function compose_noAuth(handleClick: handleClickFunction) {
   return <NoAuth handleClick={handleClick} />
 }
 
@@ -173,7 +173,7 @@ function compose_ready() {
   )
 }
 
-function Dashboard() {
+export default function Dashboard() {
   const [isReady, setReady] = useState<boolean>(false)
   const [notPrivilege, setNotPrivilege] = useState<boolean>(false)
   const [notAuth, setNotAuth] = useState<boolean>(false)
@@ -182,8 +182,11 @@ function Dashboard() {
   const router = useRouter()
 
   const
-    handleClickNoAuth = async (e, path) => {
-      e.preventDefault()
+    handleClickNoAuth: handleClickFunction = async (
+      event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+      path: string
+    ) => {
+      event.preventDefault()
 
       if (path === '/auth/login') {
         const variables = new Variables(1, 'IndexedDB')
@@ -192,27 +195,30 @@ function Dashboard() {
         })
       }
     },
-    handleClickNoPrivilege = async (e, path) => {
-      e.preventDefault()
+    handleClickNoPrivilege: handleClickFunction = async (
+      event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+      path: string
+    ) => {
+      event.preventDefault()
       router.push(path)
-    }
+    };
 
-  useEffect(() => {
-    hasPrivilege('administrador')
-      .then((isAllowViewPage) => {
-        if (isAllowViewPage) {
-          setReady(true);
-        } else {
-          setNotPrivilege(true);
-        }
+    useEffect(() => {
+      hasPrivilege('administrador')
+        .then((isAllowViewPage) => {
+          if (isAllowViewPage) {
+            setReady(true);
+          } else {
+            setNotPrivilege(true);
+          }
 
-        return setLoading(false);
-      })
-      .catch(() => {
-        setNotAuth(true);
-        return setLoading(false)
-      });
-  }, [])
+          return setLoading(false);
+        })
+        .catch(() => {
+          setNotAuth(true);
+          return setLoading(false)
+        });
+    }, [])
 
   if (loading) return compose_load()
 
@@ -222,5 +228,3 @@ function Dashboard() {
 
   if (isReady) return compose_ready()
 }
-
-export default Dashboard

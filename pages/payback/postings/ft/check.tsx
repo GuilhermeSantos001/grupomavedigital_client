@@ -1,10 +1,15 @@
 /**
  * @description Payback -> Lançamentos Financeiros -> Apuração
  * @author GuilhermeSantos001
- * @update 27/01/2022
+ * @update 14/02/2022
  */
 
 import React, { useEffect, useState } from 'react'
+
+import FormControl from '@mui/material/FormControl'
+import Select from '@mui/material/Select'
+import InputLabel from '@mui/material/InputLabel'
+import MenuItem from '@mui/material/MenuItem'
 
 import { useRouter } from 'next/router'
 
@@ -16,10 +21,13 @@ import Icon from '@/src/utils/fontAwesomeIcons'
 import NoPrivilege, { handleClickFunction } from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
 
-import { PageProps } from '@/pages/_app'
-import PageMenu from '@/bin/main_menu'
+import { BoxLoadingMagicSpinner } from '@/components/utils/BoxLoadingMagicSpinner'
+import { BoxError } from '@/components/utils/BoxError'
 
-import Variables from '@/src/db/variables'
+import { PageProps } from '@/pages/_app'
+import {GetMenuMain} from '@/bin/GetMenuMain'
+
+import { Variables } from '@/src/db/variables'
 import hasPrivilege from '@/src/functions/hasPrivilege'
 
 import DateEx from '@/src/utils/dateEx'
@@ -27,27 +35,21 @@ import Alerting from '@/src/utils/alerting'
 
 import Button from '@mui/material/Button'
 
-import SelectCostCenter from '@/components/selects/selectCostCenter'
-import MobileDatePicker from '@/components/selects/mobileDatePicker'
-import ListCoverageDefined from '@/components/lists/listCoverageDefined'
+import { DatePicker } from '@/components/selects/DatePicker'
+import { ListCoverageDefined } from '@/components/lists/ListCoverageDefined'
 
-import {
-  useAppSelector
-} from '@/app/hooks'
+import { PostingType } from '@/types/PostingType'
+import { CostCenterType } from '@/types/CostCenterType'
 
-import {
-  CostCenter
-} from '@/app/features/system/system.slice'
+import { usePostingsService } from '@/services/usePostingsService'
+import { useCostCentersService } from '@/services/useCostCentersService'
 
-import {
-  Posting,
-} from '@/app/features/payback/payback.slice'
 
 const serverSideProps: PageProps = {
   title: 'Lançamentos/Apuração',
   description: 'Apuração dos lançamentos operacionais',
   themeColor: '#004a6e',
-  menu: PageMenu('mn-payback')
+  menu: GetMenuMain('mn-payback')
 }
 
 export const getServerSideProps = async () => {
@@ -132,15 +134,15 @@ function compose_noAuth(handleClick: handleClickFunction) {
 
 function compose_ready(
   handleClickBackPage: () => void,
-  postings: Posting[],
-  costCenters: CostCenter[],
+  postings: PostingType[],
+  costCenters: CostCenterType[],
   costCenter: string,
   handleChangeCostCenter: (id: string) => void,
-  periodStart: string,
+  periodStart: Date,
   setPeriodStart: (date: Date) => void,
-  periodEnd: string,
+  periodEnd: Date,
   setPeriodEnd: (date: Date) => void,
-  postingsDefined: Posting[],
+  postingsDefined: PostingType[],
   searchPostingsDefined: () => void,
   handleResetPostingDefined: () => void,
 ) {
@@ -163,12 +165,35 @@ function compose_ready(
           Voltar
         </button>
         <div className='d-flex flex-column my-2'>
-          <SelectCostCenter
-            costCenter={costCenters.find(_costCenter => _costCenter.id === costCenter)}
-            handleChangeCostCenter={handleChangeCostCenter}
-          />
+          <FormControl variant="standard" className='col-12'>
+            <InputLabel id="select-costCenter-label">
+              Centro de Custo
+            </InputLabel>
+            <Select
+              labelId="select-costCenter-label"
+              id="select-costCenter"
+              value={costCenter}
+              disabled={postingsDefined.length > 0}
+              onChange={(e) => handleChangeCostCenter(e.target.value)}
+              label="Centro de Custo"
+            >
+              <MenuItem value="">
+                <em>Selecionar</em>
+              </MenuItem>
+              {
+                costCenters
+                  .map(costCenter => (
+                    <MenuItem
+                      key={costCenter.id}
+                      value={costCenter.id}>
+                      {costCenter.value}
+                    </MenuItem>
+                  ))
+              }
+            </Select>
+          </FormControl>
           <div className='d-flex flex-column flex-md-row my-2'>
-            <MobileDatePicker
+            <DatePicker
               className="col px-2 my-2"
               label="Período de Apuração (Inicial)"
               value={periodStart}
@@ -185,7 +210,7 @@ function compose_ready(
                 }
               }}
             />
-            <MobileDatePicker
+            <DatePicker
               className="col px-2 my-2"
               label="Período de Apuração (Final)"
               value={periodEnd}
@@ -243,9 +268,7 @@ function compose_ready(
 }
 
 export default function Postings() {
-  const
-    postings = useAppSelector(state => state.payback.postings || []),
-    costCenters = useAppSelector(state => state.system.costCenters || []);
+  const [syncData, setSyncData] = useState<boolean>(false)
 
   const [isReady, setReady] = useState<boolean>(false)
   const [notPrivilege, setNotPrivilege] = useState<boolean>(false)
@@ -255,9 +278,12 @@ export default function Postings() {
   const [costCenter, setCostCenter] = useState<string>('')
   const [periodStart, setPeriodStart] = useState<Date>(new Date())
   const [periodEnd, setPeriodEnd] = useState<Date>(new Date())
-  const [postingsDefined, setPostingsDefined] = useState<Posting[]>([])
+  const [postingsDefined, setPostingsDefined] = useState<PostingType[]>([])
 
   const router = useRouter()
+
+  const { data: postings, isLoading: isLoadingPostings } = usePostingsService();
+  const { data: costCenters, isLoading: isLoadingCostCenters } = useCostCentersService();
 
   const
     handleClickNoAuth: handleClickFunction = async (
@@ -282,11 +308,11 @@ export default function Postings() {
     },
     handleClickBackPage = () => router.push('/payback/postings'),
     handleChangeCostCenter = (id: string) => setCostCenter(id),
-    handleDefinePostingDefined = (postings: Posting[]) => setPostingsDefined(postings),
+    handleDefinePostingDefined = (postings: PostingType[]) => setPostingsDefined(postings),
     handleResetPostingDefined = () => setPostingsDefined([]),
     searchPostingsDefined = () => {
       const search = postings.filter(posting => {
-        if (posting.costCenter === costCenter && posting.paymentStatus === 'payable') {
+        if (costCenters.map(costCenter => costCenter.value).includes(posting.costCenter.value) && posting.paymentStatus === 'pending') {
           if (DateEx.isWithinInterval(new Date(posting.originDate), {
             start: periodStart,
             end: periodEnd
@@ -302,8 +328,8 @@ export default function Postings() {
       else {
         Alerting.create('warning', `Nenhum lançamento encontrado, dentro do período informado.`);
 
-        if (postings.filter(posting => posting.costCenter === costCenter && posting.paymentStatus === 'payable').length > 0)
-          Alerting.create('info', `Existem ${postings.filter(posting => posting.paymentStatus === 'payable').length} lançamento(s) a pagar.`);
+        if (postings.filter(posting => costCenters.map(costCenter => costCenter.value).includes(posting.costCenter.value) && posting.paymentStatus === 'pending').length > 0)
+          Alerting.create('info', `Existem ${postings.filter(posting => posting.paymentStatus === 'pending').length} lançamento(s) a pagar.`);
         else
           Alerting.create('info', `Não existem lançamentos a pagar.`);
       }
@@ -325,6 +351,25 @@ export default function Postings() {
         return setLoading(false)
       });
   }, [])
+
+  if (
+    isLoadingPostings && !syncData
+    || isLoadingCostCenters && !syncData
+  )
+    return <BoxLoadingMagicSpinner />
+
+  if (
+    !syncData
+    && postings
+    && costCenters
+  ) {
+    setSyncData(true);
+  } else if (
+    !syncData && !postings
+    || !syncData && !costCenters
+  ) {
+    return <BoxError />
+  }
 
   if (loading) return compose_load()
 

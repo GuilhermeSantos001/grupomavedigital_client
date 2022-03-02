@@ -9,7 +9,7 @@ import { compressToBase64, compressToEncodedURIComponent } from 'lz-string'
 
 import axios from 'axios'
 import Fetch from '@/src/utils/fetch'
-import Variables from '@/src/db/variables'
+import { Variables } from '@/src/db/variables'
 import getUserInfo from '@/src/functions/getUserInfo'
 import { saveUpdatedToken } from '@/src/functions/tokenValidate'
 import { GroupId } from '@/components/storage/Files'

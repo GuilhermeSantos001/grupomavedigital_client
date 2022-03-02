@@ -18,9 +18,9 @@ import NoAuth from '@/components/noAuth'
 import { SelectCostCenter } from '@/components/selects/SelectCostCenter'
 
 import { PageProps } from '@/pages/_app'
-import PageMenu from '@/bin/main_menu'
+import {GetMenuMain} from '@/bin/GetMenuMain'
 
-import Variables from '@/src/db/variables'
+import { Variables } from '@/src/db/variables'
 import hasPrivilege from '@/src/functions/hasPrivilege'
 import StringEx from '@/src/utils/stringEx'
 import Alerting from '@/src/utils/alerting'
@@ -34,7 +34,7 @@ const serverSideProps: PageProps = {
   title: 'Pagamentos/Cartões Benefício/Cadastro',
   description: 'Adição de cartões de benefício',
   themeColor: '#004a6e',
-  menu: PageMenu('mn-payback')
+  menu: GetMenuMain('mn-payback')
 }
 
 export const getServerSideProps = async () => {

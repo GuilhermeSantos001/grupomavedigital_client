@@ -4,10 +4,10 @@
  * @update 21/01/2022
  */
 
-import Fetch from '@/src/utils/fetch'
 import { PrivilegesSystem } from '@/pages/_app';
-import getUserInfo from '@/src/functions/getUserInfo'
 import { saveUpdatedToken } from '@/src/functions/tokenValidate'
+import getUserInfo from '@/src/functions/getUserInfo'
+import Fetch from '@/src/utils/fetch'
 
 export default async function HasPrivilege(...privileges: PrivilegesSystem[]): Promise<boolean> {
   try {

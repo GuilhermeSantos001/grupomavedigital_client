@@ -1,15 +1,9 @@
-/**
- * @description Pagina para confirmação do e-mail usuario
- * @author GuilhermeSantos001
- * @update 13/10/2021
- */
-
 import React, { useEffect, useState } from 'react'
 
 import SkeletonLoader from 'tiny-skeleton-loader-react'
 
 import { PageProps } from '@/pages/_app'
-import PageMenu from '@/bin/main_menu'
+import {GetMenuMain} from '@/bin/GetMenuMain'
 
 import Fetch from '@/src/utils/fetch'
 import mailConfirm from '@/src/functions/mailConfirm'
@@ -18,7 +12,7 @@ const serverSideProps: PageProps = {
   title: 'Confirmação da conta',
   description: 'Confirme sua conta para acessar o ambiente digital interativo.',
   themeColor: '#004a6e',
-  menu: PageMenu()
+  menu: GetMenuMain()
 }
 
 export async function getServerSideProps(context) {

@@ -1,7 +1,7 @@
 /**
  * @description Assistente -> Definição de cobertura
  * @author GuilhermeSantos001
- * @update 13/02/2022
+ * @update 14/02/2022
  */
 
 import { useState } from 'react'
@@ -47,11 +47,12 @@ import Alerting from '@/src/utils/alerting'
 import StringEx from '@/src/utils/stringEx'
 import DateEx from '@/src/utils/dateEx'
 
+import { SocketConnection } from '@/components/socket-io'
 import { DatePicker } from '@/components/selects/DatePicker'
 
 import DropZone from '@/components/dropZone';
 
-import { usePostingService, DataPosting } from '@/services/usePostingService'
+import { usePostingService } from '@/services/usePostingService'
 import { useUploadService, DataUpload } from '@/services/useUploadService'
 import { useUploadsService } from '@/services/useUploadsService'
 import { useCostCentersService } from '@/services/useCostCentersService'
@@ -61,7 +62,7 @@ import { usePersonCoverageService } from '@/services/usePersonCoverageService'
 import { useWorkplacesService } from '@/services/useWorkplacesService'
 import { useReasonForAbsencesService } from '@/services/useReasonForAbsencesService'
 
-import { PostingModality } from '@/types/PostingType';
+import { PostingType, PostingModality } from '@/types/PostingType';
 import { DatabaseModalityOfCoveringType } from '@/types/DatabaseModalityOfCoveringType'
 import { DatabasePaymentMethodType } from '@/types/DatabasePaymentMethodType'
 
@@ -73,7 +74,7 @@ export type Props = {
   periodStart: Date
   periodEnd: Date
   handleClose: () => void;
-  handleFinish: (postings: DataPosting[]) => void;
+  handleFinish: (postings: PostingType[]) => void;
 }
 
 export function AssistantCoverageDefine(props: Props) {
@@ -102,7 +103,7 @@ export function AssistantCoverageDefine(props: Props) {
   const [coverageMirrorFileName, setCoverageMirrorFileName] = useState<string>('');
   const [coverageMirrorFileType, setCoverageMirrorFileType] = useState<string>('');
 
-  const [postings, setPostings] = useState<DataPosting[]>([]);
+  const [postings, setPostings] = useState<PostingType[]>([]);
   const [postingModality, setPostingModality] = useState<PostingModality>('');
   const [postingDescription, setPostingDescription] = useState<string>('');
 
@@ -1034,7 +1035,7 @@ export function AssistantCoverageDefine(props: Props) {
       content: (
         <DatePicker
           className="col px-2"
-          label="Data da Movimentação"
+          label="Data de Pagamento"
           value={paymentDatePayable}
           maxDate={DateEx.addDays(props.periodEnd, 5)}
           minDate={props.periodEnd}
@@ -1079,6 +1080,7 @@ export function AssistantCoverageDefine(props: Props) {
 
   return (
     <>
+      {!window.socket && <SocketConnection />}
       <Modal
         open={props.show}
         onClose={() => {
@@ -1089,8 +1091,8 @@ export function AssistantCoverageDefine(props: Props) {
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
-        <Box className='col-10 rounded' sx={boxSxProps}>
-          <div className='d-flex flex-column flex-md-row p-3'>
+        <Box className='col-10 bg-light-gray bg-gradient rounded shadow' sx={boxSxProps}>
+          <div className='d-flex flex-column flex-md-row p-3 my-2'>
             <Stepper activeStep={activeStep} orientation="vertical" className='col-12 col-md-8 overflow-auto' style={{ height: '85vh' }}>
               {steps.map((step, index) => (
                 <Step key={`${step.label}`}>
@@ -1148,7 +1150,7 @@ export function AssistantCoverageDefine(props: Props) {
                       // ! Falta do Efetivo
                       postingModality === 'absence_person' &&
                       <Typography variant="caption" color="text.secondary">
-                        A cobertura está sendo realizada no {workplaces.find(place => place.id === coveringWorkplace)?.name},
+                        A cobertura está sendo realizada no(a) {workplaces.find(place => place.id === coveringWorkplace)?.name},
                         devido à {reasonForAbsences.find(reason => reason.id === coveringReasonForAbsenceId)?.value} do(a) {people.find(person => person.id === coveringPersonId)?.name}.
                       </Typography>
                     }

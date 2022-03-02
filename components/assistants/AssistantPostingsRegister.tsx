@@ -29,7 +29,7 @@ export interface Props {
   handleFinish: () => void
 }
 
-export default function AssistantPostingsRegister(props: Props): JSX.Element {
+export function AssistantPostingsRegister(props: Props): JSX.Element {
   return (
     <Box className='my-2' sx={{ width: '100%' }}>
       <Stepper activeStep={props.step} alternativeLabel>

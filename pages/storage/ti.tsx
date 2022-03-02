@@ -21,11 +21,11 @@ import NoPrivilege, { handleClickFunction } from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
 
 import { PageProps } from '@/pages/_app'
-import PageMenu from '@/bin/main_menu'
+import {GetMenuMain} from '@/bin/GetMenuMain'
 import { getGroupId, getUserAuth } from '@/pages/storage/index'
 
 import Fetch from '@/src/utils/fetch'
-import Variables from '@/src/db/variables'
+import { Variables } from '@/src/db/variables'
 import hasPrivilege from '@/src/functions/hasPrivilege'
 import signURL from '@/src/functions/signURL'
 import Alerting from '@/src/utils/alerting'
@@ -72,7 +72,7 @@ const serverSideProps: PageProps = {
   title: 'System/Storage',
   description: 'Gestor de documentos online do Grupo Mave Digital',
   themeColor: '#004a6e',
-  menu: PageMenu('mn-herculesStorage'),
+  menu: GetMenuMain('mn-herculesStorage'),
   socketIO: {
     room: ['TI']
   }

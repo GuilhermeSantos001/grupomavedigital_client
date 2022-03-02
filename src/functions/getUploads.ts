@@ -8,7 +8,7 @@
 import { compressToBase64, compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string'
 
 import axios from 'axios'
-import Variables from '@/src/db/variables'
+import { Variables } from '@/src/db/variables'
 import { saveUpdatedToken } from '@/src/functions/tokenValidate'
 import Cookies from 'js-cookie';
 

@@ -9,7 +9,7 @@ import React from 'react'
 import { ThemeProvider } from '@mui/material/styles';
 import { Theme } from '@/styles/theme-material-ui';
 
-import { Dropdown } from 'react-bootstrap'
+import { Dropdown } from 'react-bootstrap';
 
 import Link from 'next/link'
 
@@ -18,10 +18,11 @@ import Icon from '@/src/utils/fontAwesomeIcons'
 
 import type {
   Menu,
+  MenuResponse,
 } from '@/pages/_app'
 
 type MyProps = {
-  menu: Menu[]
+  menu: MenuResponse
   menuShow: boolean
   fullwidth: boolean
 }
@@ -35,11 +36,12 @@ export default class GridContent extends React.Component<MyProps, MyState> {
         const itemNormal = (
           <div
             key={item.id}
-            className="d-flex flex-row ps-2 py-2 mb-2 bg-primary border-bottom rounded"
+            title={item.name}
+            className="d-flex flex-row mb-2 bg-primary rounded"
           >
             <Dropdown className='col-10'>
               <Dropdown.Toggle
-                className={`menuItem ps-0 col-12 animation-delay hover-color text-truncate`}
+                className={`menuItem col-12 text-start animation-delay hover-color text-truncate`}
                 id={item.dropdownId}
               >
                 {item.name}
@@ -48,7 +50,7 @@ export default class GridContent extends React.Component<MyProps, MyState> {
                 {this.composeSubItemsMenu(item.content)}
               </Dropdown.Menu>
             </Dropdown>
-            <div className='col-2 pe-2 d-flex flex-row justify-content-center align-items-center'>
+            <div className='col-2 d-flex flex-row justify-content-center align-items-center'>
               <FontAwesomeIcon
                 icon={Icon.render(item.icon.family, item.icon.name)}
                 className="fs-6 flex-shrink-1 text-secondary my-auto"
@@ -59,7 +61,8 @@ export default class GridContent extends React.Component<MyProps, MyState> {
           itemDisabled = (
             <li
               key={item.id}
-              className="d-flex flex-row ps-2 py-2 mb-2 bg-primary border-bottom rounded dropdown"
+              title={item.name}
+              className="d-flex flex-row p-2 mb-2 bg-primary border-bottom rounded dropdown"
             >
               <div className="btn-group w-100">
                 <a
@@ -71,7 +74,7 @@ export default class GridContent extends React.Component<MyProps, MyState> {
               </div>
               <FontAwesomeIcon
                 icon={Icon.render(item.icon.family, item.icon.name)}
-                className={`fs-6 flex-shrink-1 ${!item.disabled ? 'text-secondary' : 'text-white opacity-50'} me-2 my-auto`}
+                className={`ms-2 flex-shrink-1 ${!item.disabled ? 'text-secondary' : 'text-white opacity-50'} my-auto`}
               />
             </li>
           );
@@ -88,7 +91,8 @@ export default class GridContent extends React.Component<MyProps, MyState> {
         const itemNormal = (
           <div
             key={item.id}
-            className={`d-flex flex-row ps-2 py-2 mb-2 bg-primary border-bottom rounded`}
+            title={item.name}
+            className={`d-flex flex-row p-2 mb-2 bg-primary border-bottom rounded`}
           >
             {
               item.link.indexOf('http') !== -1 ? <Dropdown.Item
@@ -109,14 +113,15 @@ export default class GridContent extends React.Component<MyProps, MyState> {
             }
             <FontAwesomeIcon
               icon={Icon.render(item.icon.family, item.icon.name)}
-              className="fs-6 flex-shrink-1 text-secondary me-2 my-auto"
+              className="ms-2 flex-shrink-1 text-secondary my-auto"
             />
           </div>
         ),
           itemDisabled = (
             <li
               key={item.id}
-              className={`d-flex flex-row ps-2 py-2 mb-2 bg-primary border-bottom rounded`}
+              title={item.name}
+              className={`d-flex flex-row p-2 mb-2 bg-primary border-bottom rounded`}
             >
               <a
                 className='menuItem disabled w-100 text-truncate'
@@ -125,7 +130,7 @@ export default class GridContent extends React.Component<MyProps, MyState> {
               </a>
               <FontAwesomeIcon
                 icon={Icon.render(item.icon.family, item.icon.name)}
-                className={`fs-6 flex-shrink-1 ${!item.disabled ? 'text-secondary' : 'text-white opacity-50'} me-2 my-auto`}
+                className={`ms-2 flex-shrink-1 ${!item.disabled ? 'text-secondary' : 'text-white opacity-50'} my-auto`}
               />
             </li>
           )
@@ -145,7 +150,7 @@ export default class GridContent extends React.Component<MyProps, MyState> {
         )
       } else {
         const itemNormal = (
-          <li key={item.id} className="d-flex flex-row dropdown-item col-11">
+          <li key={item.id} title={item.name} className="d-flex flex-row dropdown-item col-11">
             {item.link.indexOf('http') !== -1 ? (
               <a
                 className={`menuItem w-100 text-truncate animation-delay hover-color ${item.active ? 'active' : ''
@@ -162,6 +167,7 @@ export default class GridContent extends React.Component<MyProps, MyState> {
                   className={`menuItem w-100 text-truncate animation-delay hover-color ${item.active ? 'active' : ''
                     }`}
                   href={item.link}
+                  title={item.name}
                 >
                   {item.name}
                 </a>
@@ -169,12 +175,12 @@ export default class GridContent extends React.Component<MyProps, MyState> {
             )}
             <FontAwesomeIcon
               icon={Icon.render(item.icon.family, item.icon.name)}
-              className="fs-6 flex-shrink-1 text-secondary me-2 my-auto"
+              className="ms-2 flex-shrink-1 text-secondary my-auto"
             />
           </li>
         ),
           itemDisabled = (
-            <li key={item.id} className="d-flex flex-row dropdown-item col-11">
+            <li key={item.id} title={item.name} className="d-flex flex-row dropdown-item col-11">
               <a
                 className='menuItem disabled w-100 text-truncate'
               >
@@ -182,7 +188,7 @@ export default class GridContent extends React.Component<MyProps, MyState> {
               </a>
               <FontAwesomeIcon
                 icon={Icon.render(item.icon.family, item.icon.name)}
-                className={`fs-6 flex-shrink-1 ${!item.disabled ? 'text-secondary' : 'text-white opacity-50'} me-2 my-auto`}
+                className={`ms-2 flex-shrink-1 ${!item.disabled ? 'text-secondary' : 'text-white opacity-50'} my-auto`}
               />
             </li>
           )
@@ -194,39 +200,53 @@ export default class GridContent extends React.Component<MyProps, MyState> {
 
   render() {
     const children = this.props.children,
-      menu = this.composeItemsMenu(this.props.menu);
+      menu = this.composeItemsMenu(this.props.menu.options);
 
     return (
       <div className='p-2'>
         <div
           id="sidebar"
-          className={`p-2 animation-delay ${this.props.fullwidth ? 'fullwidth' : ''
+          className={`d-flex flex-column py-2 my-2 animation-delay overflow-auto ${this.props.fullwidth ? 'fullwidth' : ''
             } ${this.props.menuShow ? 'fullwidth' : ''}`}
+          style={{ height: '80vh' }}
         >
-          <ul className={`list-style-none pe-2 border-end`}>{menu}</ul>
-          <div
-            className='d-flex flex-row justify-content-center align-items-center bg-light-gray border-top p-2 bg-light-gray'
-          >
-            <p className='text-muted my-auto'>
-              Grupo Mave 2020-2022 © Todos direitos reservados.
-            </p>
-          </div>
-          <div
-            className='d-flex flex-row justify-content-center align-items-center bg-light-gray border-top p-2 bg-light-gray'
-          >
-            <p className='text-muted my-auto'>
-              Versão: Jully
-            </p>
-          </div>
+          <ul className={`list-style-none px-2`}>
+            {menu}
+            <div
+              key='build-jully'
+              title={'Acesse a documentação da build atual'}
+              className={`d-flex flex-row p-2 mb-2 bg-primary border-bottom rounded`}
+            >
+              <a
+                className={`menuItem w-100 text-truncate animation-delay hover-color`}
+                href={'https://grupomavedigital-docs.vercel.app/docs/api/system/jully'}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {'Versão - Jully'}
+              </a>
+              <FontAwesomeIcon
+                icon={Icon.render('fas', 'code-branch')}
+                className="ms-2 flex-shrink-1 text-secondary my-auto"
+              />
+            </div>
+          </ul>
         </div>
         <div
           id="content"
-          className={`fade-effect active p-2 border-start animation-delay ${this.props.fullwidth ? 'fullwidth' : ''
+          className={`fade-effect active p-2 mb-5 border-start animation-delay ${this.props.fullwidth ? 'fullwidth' : ''
             }${this.props.menuShow ? 'fullwidth' : ''}`}
         >
           <ThemeProvider theme={Theme}>
             {children}
           </ThemeProvider>
+        </div>
+        <div
+          className='fixed-bottom d-flex flex-row justify-content-center align-items-center bg-light-gray border-top p-2 shadow'
+        >
+          <p className='text-muted my-auto'>
+            Grupo Mave 2020-2022 © Todos direitos reservados.
+          </p>
         </div>
       </div>
     )

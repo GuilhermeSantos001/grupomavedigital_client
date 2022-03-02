@@ -1,10 +1,11 @@
-/**
- * @description Pagina principal do sistema
- * @author GuilhermeSantos001
- * @update 03/02/2022
- */
+import { useEffect, useState } from 'react'
+import { GetServerSidePropsContext } from 'next/types'
 
-import React, { useEffect, useState } from 'react'
+import { useGetUserInfoService } from '@/services/graphql/useGetUserInfoService'
+
+import { verifyCookie } from '@/lib/verifyCookie'
+
+import { compressToEncodedURIComponent } from 'lz-string'
 
 import Image from 'next/image'
 import { useRouter } from 'next/router'
@@ -20,12 +21,12 @@ import NoAuth from '@/components/noAuth'
 import Sugar from 'sugar'
 
 import { PageProps } from '@/pages/_app'
-import PageMenu from '@/bin/main_menu'
+import { GetMenuMain } from '@/bin/GetMenuMain'
 
-import Fetch from '@/src/utils/fetch'
-import Variables from '@/src/db/variables'
-import getUserInfo from '@/src/functions/getUserInfo'
+import { Variables } from '@/src/db/variables'
 import { saveUpdatedToken } from '@/src/functions/tokenValidate'
+
+import { useAPIKeysService } from '@/services/useAPIKeysService'
 
 interface PageData {
   photoProfile: string
@@ -37,13 +38,15 @@ const serverSideProps: PageProps = {
   title: 'System/Home',
   description: 'Grupo Mave Digital seu ambiente de trabalho integrado',
   themeColor: '#004a6e',
-  menu: PageMenu('mn-login')
+  menu: GetMenuMain('mn-login')
 }
 
-export const getServerSideProps = async () => {
+export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => {
   return {
     props: {
       ...serverSideProps,
+      auth: await verifyCookie(req.cookies.auth),
+      getUserInfoAuthorization: process.env.GRAPHQL_AUTHORIZATION_GETUSERINFO!,
     },
   }
 }
@@ -274,61 +277,82 @@ function compose_user_view_1() {
   )
 }
 
-
-function System() {
-  const [isReady, setReady] = useState<boolean>(false)
-  const [notAuth, setNotAuth] = useState<boolean>(false)
-  const [data, setData] = useState<PageData>({
-    username: 'Carregando...',
-    photoProfile: 'avatar.png',
-    privilege: 'Desconhecido',
-  })
-  const [loading, setLoading] = useState<boolean>(true)
-
-  const router = useRouter()
-  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
-
-  const
-    handleClickNoAuth: handleClickFunction = async (
-      event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
-      path: string
-    ) => {
-      event.preventDefault()
-
-      if (path === '/auth/login') {
-        const variables = new Variables(1, 'IndexedDB')
-        await Promise.all([await variables.clear()]).then(() => {
-          router.push(path)
-        })
-      }
+export default function System(
+  {
+    auth,
+    getUserInfoAuthorization,
+  }: {
+    auth: string,
+    getUserInfoAuthorization: string
+  }
+) {
+  const { isValidating, success, data, error } = useGetUserInfoService(
+    {
+      auth: compressToEncodedURIComponent(auth),
+    },
+    {
+      authorization: getUserInfoAuthorization,
+      encodeuri: 'true'
     }
+  );
 
-  useEffect(() => {
-    getUserInfo(_fetch)
-      .then(async ({ photoProfile, username, privilege, updatedToken }) => {
-        setData({
-          photoProfile,
-          username,
-          privilege,
-        })
+  console.log(isValidating,  success, data, error);
 
-        if (updatedToken)
-          await saveUpdatedToken(updatedToken.signature, updatedToken.token);
+  return <p>Testando</p>
 
-        setReady(true)
-        return setLoading(false)
-      })
-      .catch(() => {
-        setNotAuth(true)
-        setLoading(false)
-      });
-  }, [])
+  // const [isReady, setReady] = useState<boolean>(false)
+  // const [notAuth, setNotAuth] = useState<boolean>(false)
+  // const [userInfo, setUserInfo] = useState<PageData>({
+  //   username: 'Carregando...',
+  //   photoProfile: 'avatar.png',
+  //   privilege: 'Desconhecido',
+  // })
+  // const [loading, setLoading] = useState<boolean>(true)
 
-  if (loading) return compose_load()
+  // const router = useRouter()
 
-  if (notAuth) return compose_noAuth(handleClickNoAuth)
+  // const
+  //   handleClickNoAuth: handleClickFunction = async (
+  //     event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+  //     path: string
+  //   ) => {
+  //     event.preventDefault()
 
-  if (isReady) return compose_ready(data);
+  //     if (path === '/auth/login') {
+  //       const variables = new Variables(1, 'IndexedDB')
+  //       await Promise.all([await variables.clear()]).then(() => {
+  //         router.push(path)
+  //       })
+  //     }
+  //   }
+
+  // if (error) {
+  //   setNotAuth(true);
+  //   setLoading(false);
+  // }
+
+  // if (data) {
+  //   setUserInfo({
+  //     photoProfile: data.getUserInfo.photoProfile,
+  //     username: data.getUserInfo.username,
+  //     privilege: data.getUserInfo.privilege
+  //   })
+
+  //   if (data.getUserInfo.updatedToken) {
+  //     saveUpdatedToken(data.getUserInfo.updatedToken.signature, data.getUserInfo.updatedToken.token)
+  //       .then(() => {
+  //         setReady(true);
+  //         setLoading(false);
+  //       })
+  //   } else {
+  //     setReady(true);
+  //     setLoading(false);
+  //   }
+  // }
+
+  // if (loading) return compose_load()
+
+  // if (notAuth) return compose_noAuth(handleClickNoAuth)
+
+  // if (isReady) return compose_ready(userInfo);
 }
-
-export default System

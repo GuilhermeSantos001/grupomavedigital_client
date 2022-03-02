@@ -21,12 +21,12 @@ import NoAuth from '@/components/noAuth'
 import Alerting from '@/src/utils/alerting'
 
 import { PageProps } from '@/pages/_app'
-import PageMenu from '@/bin/main_menu'
+import { GetMenuMain } from '@/bin/GetMenuMain'
 
 import Fetch from '@/src/utils/fetch'
-import Variables from '@/src/db/variables'
+import { Variables } from '@/src/db/variables'
 import getUserInfo from '@/src/functions/getUserInfo'
-import {  saveUpdatedToken } from '@/src/functions/tokenValidate'
+import { saveUpdatedToken } from '@/src/functions/tokenValidate'
 import hasConfiguredTwoFactor from '@/src/functions/hasConfiguredTwoFactor'
 import authSignTwofactor from '@/src/functions/authSignTwofactor'
 import authVerifyTwofactor from '@/src/functions/authVerifyTwofactor'
@@ -45,7 +45,7 @@ const serverSideProps: PageProps = {
   title: 'Segurança',
   description: 'Configurações pessoais de segurança',
   themeColor: '#004a6e',
-  menu: PageMenu('mn-security')
+  menu: GetMenuMain('mn-security')
 }
 
 export const getServerSideProps = async () => {

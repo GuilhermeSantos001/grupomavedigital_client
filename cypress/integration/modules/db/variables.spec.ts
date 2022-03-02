@@ -1,7 +1,7 @@
 /// <reference types="cypress" />
 
 // import function from the application source
-import Variables from '@/src/db/variables'
+import { Variables } from '@/src/db/variables'
 
 interface IUser {
   id: string

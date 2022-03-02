@@ -15,17 +15,17 @@ import NoAuth from '@/components/noAuth'
 import ChartRevenues from '@/components/chartRevenues'
 
 import { PageProps } from '@/pages/_app'
-import PageMenu from '@/bin/main_menu'
+import {GetMenuMain} from '@/bin/GetMenuMain'
 
 import Fetch from '@/src/utils/fetch'
-import Variables from '@/src/db/variables'
+import { Variables } from '@/src/db/variables'
 import hasPrivilege from '@/src/functions/hasPrivilege'
 
 const serverSideProps: PageProps = {
   title: 'Dashboard/Faturamento',
   description: 'Gestão há vista do faturamento',
   themeColor: '#004a6e',
-  menu: PageMenu('mn-dashboard')
+  menu: GetMenuMain('mn-dashboard')
 }
 
 export const getServerSideProps = async () => {

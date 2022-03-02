@@ -8,7 +8,7 @@
 import { compressToEncodedURIComponent } from 'lz-string';
 
 import Fetch from '@/src/utils/fetch';
-import Variables from '@/src/db/variables';
+import { Variables } from '@/src/db/variables';
 
 export interface BankingNatures {
   id: string
