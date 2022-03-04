@@ -9,7 +9,7 @@ export type Props = {
 
 export function AutocompleteError(props: Props) {
   return (
-    <div className='d-flex flex-column flex-md-row'>
+    <div className='d-flex flex-column flex-md-row col'>
       <Autocomplete
         className='col-12 mb-2 mb-md-0 me-md-2'
         value={props.message}

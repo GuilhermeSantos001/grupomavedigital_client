@@ -1,26 +1,28 @@
-/**
- * @description Input -> Seleciona uma cidade
- * @author GuilhermeSantos001
- * @update 11/02/2022
- */
 import { useState } from 'react';
 import { Autocomplete, TextField, createFilterOptions, Button } from '@mui/material'
 
 import { AutocompleteLoading } from '@/components/utils/AutocompleteLoading';
 import { AutocompleteError } from '@/components/utils/AutocompleteError';
 
-import { CityType } from '@/types/CityType'
+import type { CityType } from '@/types/CityType'
+
+import type {
+  DataCity,
+  FunctionCreateCityTypeof,
+  FunctionUpdateCitiesTypeof,
+  FunctionDeleteCitiesTypeof
+} from '@/types/CityServiceType'
 
 import {
-  useCityService,
-  DataCity,
-  FunctionCreateCityTypeof
+  useCityService
 } from '@/services/useCityService'
 
 import {
-  useCitiesService,
-  FunctionUpdateCitiesTypeof,
-  FunctionDeleteCitiesTypeof
+  useCityWithIdService
+} from '@/services/useCityWithIdService'
+
+import {
+  useCitiesService
 } from '@/services/useCitiesService'
 
 import Alerting from '@/src/utils/alerting';
@@ -28,6 +30,7 @@ import Alerting from '@/src/utils/alerting';
 export type Props = {
   id?: string
   disabled?: boolean
+  handleChangeData?: (data: CityType) => void
   handleChangeId: (id: string) => void
 }
 
@@ -40,12 +43,14 @@ const filter = createFilterOptions<FilmOptionType>();
 
 export function SelectCity(props: Props) {
   const [syncData, setSyncData] = useState<boolean>(false);
+  const [returnData, setReturnData] = useState<boolean>(false);
 
   const [value, setValue] = useState<FilmOptionType | null>(null);
   const [hasEdit, setHasEdit] = useState<boolean>(false);
   const [editValue, setEditValue] = useState<string>('');
 
-  const { data: city, isLoading: isLoadingCity, create: CreateCity } = useCityService(props.id);
+  const { create: CreateCity } = useCityService();
+  const { data: city, isLoading: isLoadingCity } = useCityWithIdService(props.id || '');
   const { data: cities, isLoading: isLoadingCities, update: UpdateCities, delete: DeleteCities } = useCitiesService();
 
   const
@@ -72,8 +77,17 @@ export function SelectCity(props: Props) {
     return <AutocompleteError label='Cidade' message='Ocorreu um erro' />
   }
 
+  if (props.id && props.handleChangeData && returnData) {
+    const city = cities.find(city => city.id === props.id);
+
+    if (city)
+      props.handleChangeData(city);
+
+    setReturnData(false);
+  }
+
   return (
-    <div className='d-flex flex-column flex-md-row'>
+    <div className='d-flex flex-column flex-md-row col'>
       <Autocomplete
         className='col-12 col-md-10 mb-2 mb-md-0 me-md-2'
         value={value}
@@ -102,6 +116,7 @@ export function SelectCity(props: Props) {
                     };
 
                     setValue(update);
+                    setReturnData(true);
                     handleUpdateCity(city.id, { value: editValue });
                     props.handleChangeId(city.id);
                   }
@@ -116,6 +131,7 @@ export function SelectCity(props: Props) {
                         id: city.id,
                         value: city.value
                       });
+                      setReturnData(true);
                       props.handleChangeId(city.id);
                     }
                   }
@@ -142,6 +158,7 @@ export function SelectCity(props: Props) {
             }
 
             setValue(city);
+            setReturnData(true);
             props.handleChangeId(city.id);
           } else {
             if (!newValue && props.id) {
@@ -152,6 +169,7 @@ export function SelectCity(props: Props) {
             }
 
             setValue(newValue);
+            setReturnData(true);
             props.handleChangeId(newValue?.id || '');
           }
         }}
@@ -235,6 +253,7 @@ export function SelectCity(props: Props) {
             }
 
             handleRemoveCity(value.id);
+            setReturnData(true);
             props.handleChangeId('');
           } else {
             Alerting.create('info', 'Não é possível remover a cidade sendo usada pelo registro.');

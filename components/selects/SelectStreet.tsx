@@ -1,34 +1,36 @@
-/**
- * @description Input -> Seleciona uma rua
- * @author GuilhermeSantos001
- * @update 10/02/2022
- */
-
 import React, { useState } from 'react';
 import { Autocomplete, TextField, createFilterOptions, Button } from '@mui/material'
 
 import { AutocompleteLoading } from '@/components/utils/AutocompleteLoading';
 import { AutocompleteError } from '@/components/utils/AutocompleteError';
 
-import { StreetType } from '@/types/StreetType'
+import type { StreetType } from '@/types/StreetType'
+
+import type {
+  DataStreet,
+  FunctionCreateStreetTypeof,
+  FunctionUpdateStreetsTypeof,
+  FunctionDeleteStreetsTypeof
+} from '@/types/StreetServiceType'
 
 import {
-  useStreetService,
-  DataStreet,
-  FunctionCreateStreetTypeof
+  useStreetService
 } from '@/services/useStreetService'
 
 import {
-  useStreetsService,
-  FunctionUpdateStreetsTypeof,
-  FunctionDeleteStreetsTypeof
+  useStreetWithIdService
+} from '@/services/useStreetWithIdService'
+
+import {
+  useStreetsService
 } from '@/services/useStreetsService'
 
-import Alerting from '@/src/utils/alerting';
+import Alerting from '@/src/utils/alerting'
 
 export type Props = {
   id?: string
   disabled?: boolean
+  handleChangeData?: (data: StreetType) => void
   handleChangeId: (id: string) => void
 }
 
@@ -41,12 +43,14 @@ const filter = createFilterOptions<FilmOptionType>();
 
 export function SelectStreet(props: Props) {
   const [syncData, setSyncData] = useState<boolean>(false);
+  const [returnData, setReturnData] = useState<boolean>(false);
 
   const [value, setValue] = useState<FilmOptionType | null>(null);
   const [hasEdit, setHasEdit] = useState<boolean>(false);
   const [editValue, setEditValue] = useState<string>('');
 
-  const { data: street, isLoading: isLoadingStreet, create: CreateStreet } = useStreetService(props.id);
+  const { create: CreateStreet } = useStreetService();
+  const { data: street, isLoading: isLoadingStreet } = useStreetWithIdService(props.id || '');
   const { data: streets, isLoading: isLoadingStreets, update: UpdateStreets, delete: DeleteStreets } = useStreetsService();
 
   const
@@ -73,8 +77,17 @@ export function SelectStreet(props: Props) {
     return <AutocompleteError label='Rua' message='Ocorreu um erro' />
   }
 
+  if (props.id && props.handleChangeData && returnData) {
+    const street = streets.find(street => street.id === props.id);
+
+    if (street)
+      props.handleChangeData(street);
+
+    setReturnData(false);
+  }
+
   return (
-    <div className='d-flex flex-column flex-md-row'>
+    <div className='d-flex flex-column flex-md-row col'>
       <Autocomplete
         className='col-12 col-md-10 mb-2 mb-md-0 me-md-2'
         value={value}
@@ -103,6 +116,7 @@ export function SelectStreet(props: Props) {
                     };
 
                     setValue(update);
+                    setReturnData(true);
                     handleUpdateStreet(street.id, { value: editValue });
                     props.handleChangeId(street.id);
                   }
@@ -117,6 +131,7 @@ export function SelectStreet(props: Props) {
                         id: street.id,
                         value: street.value
                       });
+                      setReturnData(true);
                       props.handleChangeId(street.id);
                     }
                   }
@@ -143,6 +158,7 @@ export function SelectStreet(props: Props) {
             }
 
             setValue(street);
+            setReturnData(true);
             props.handleChangeId(street.id);
           } else {
             if (!newValue && props.id) {
@@ -153,6 +169,7 @@ export function SelectStreet(props: Props) {
             }
 
             setValue(newValue);
+            setReturnData(true);
             props.handleChangeId(newValue?.id || '');
           }
         }}
@@ -236,6 +253,7 @@ export function SelectStreet(props: Props) {
             }
 
             handleRemoveStreet(value.id);
+            setReturnData(true);
             props.handleChangeId('');
           } else {
             Alerting.create('info', 'Não é possível remover a rua sendo usada pelo registro.');

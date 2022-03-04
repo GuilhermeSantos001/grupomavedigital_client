@@ -1,6 +1,6 @@
 import { GetUserInfoDocument, GetUserInfoQuery, GetUserInfoQueryVariables, UserInfo } from '@/src/generated/graphql'
 import { request, RequestDocument } from 'graphql-request'
-import useSWR from 'swr'
+import useSWRImmutable from 'swr/immutable'
 
 import { GraphqlHeaders } from '@/types/GraphqlHeaders';
 
@@ -44,7 +44,7 @@ export function useGetUserInfoService(variables: GetUserInfoQueryVariables, head
   setVariables(variables);
   setHeaders(headers);
 
-  const { data, error, isValidating } = useSWR<GetUserInfo>(GetUserInfoDocument, fetcher);
+  const { data, error, isValidating } = useSWRImmutable<GetUserInfo>(GetUserInfoDocument, fetcher);
 
   if (error)
     return {

@@ -1,9 +1,3 @@
-/**
- * @description Modal -> Modal de Edição do local de trabalho
- * @author GuilhermeSantos001
- * @update 13/02/2022
- */
-
 import React, { useState } from 'react';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
@@ -30,7 +24,7 @@ import { SelectScale } from '@/components/selects/SelectScale'
 import ArrayEx from '@/src/utils/arrayEx'
 import Alerting from '@/src/utils/alerting'
 
-import { useWorkplaceService } from '@/services/useWorkplaceService';
+import { useWorkplaceWithIdService } from '@/services/useWorkplaceWithIdService';
 import { useServicesService } from '@/services/useServicesService';
 
 export interface Props {
@@ -58,7 +52,7 @@ export function EditWorkplace(props: Props) {
   const [addressId, setAddressId] = useState<string>('');
   const [scaleId, setScaleId] = useState<string>('')
 
-  const { data: workplace, isLoading: isLoadingWorkplace, update: UpdateWorkplace } = useWorkplaceService(props.id);
+  const { data: workplace, isLoading: isLoadingWorkplace, update: UpdateWorkplace } = useWorkplaceWithIdService(props.id);
   const { data: services, isLoading: isLoadingServices, assignWorkplace: AssignWorkplaceService, unassignWorkplace: UnassignWorkplaceService } = useServicesService();
 
   const
@@ -101,7 +95,7 @@ export function EditWorkplace(props: Props) {
     },
     handleUpdateWorkplace = async () => {
       if (!workplace || !UpdateWorkplace)
-      return Alerting.create('error', 'Não foi possível atualizar os dados do(a) funcionário(a). Tente novamente, mais tarde!.');
+        return Alerting.create('error', 'Não foi possível atualizar os dados do(a) funcionário(a). Tente novamente, mais tarde!.');
 
       const updated = await UpdateWorkplace({
         name,
@@ -166,7 +160,6 @@ export function EditWorkplace(props: Props) {
   }
 
   return (
-    <div>
       <Dialog
         fullScreen
         open={props.show}
@@ -209,12 +202,10 @@ export function EditWorkplace(props: Props) {
             />
           </ListItem>
           <ListItem>
-            <div className='col'>
-              <SelectScale
+            <SelectScale
               id={workplace?.scaleId}
-                handleChangeId={handleChangeScaleId}
-              />
-            </div>
+              handleChangeId={handleChangeScaleId}
+            />
           </ListItem>
           <ListItem>
             <TimePicker
@@ -239,8 +230,8 @@ export function EditWorkplace(props: Props) {
         {
           services.length > 0 &&
           <SelectService
-          itemsLeft={workplace ? ArrayEx.returnItemsOfANotContainInB(services.map(service => service.value), workplace.workplaceService.map(_ => _.service.value)) : []}
-          itemsRight={workplace?.workplaceService.map((_) => _.service.value) || []}
+            itemsLeft={workplace ? ArrayEx.returnItemsOfANotContainInB(services.map(service => service.value), workplace.workplaceService.map(_ => _.service.value)) : []}
+            itemsRight={workplace?.workplaceService.map((_) => _.service.value) || []}
             onChangeAppliedServices={(values) => setAppliedServices(services.filter(service => values.includes(service.value)).map(service => service.id))}
           />
         }
@@ -273,6 +264,5 @@ export function EditWorkplace(props: Props) {
           Cancelar
         </Button>
       </Dialog>
-    </div>
   );
 }

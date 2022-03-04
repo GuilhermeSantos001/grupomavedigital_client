@@ -1,9 +1,3 @@
-/**
- * @description Modal -> Modal de Cadastro de local de trabalho
- * @author GuilhermeSantos001
- * @update 13/02/2022
- */
-
 import React, { useState } from 'react';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
@@ -31,6 +25,7 @@ import Alerting from '@/src/utils/alerting'
 
 import { useWorkplaceService } from '@/services/useWorkplaceService';
 import { useServicesService } from '@/services/useServicesService';
+import type { ServiceType } from '@/types/ServiceType';
 
 export interface Props {
   show: boolean
@@ -58,7 +53,6 @@ export function RegisterWorkplace(props: Props) {
 
   const { create: CreateWorkplace } = useWorkplaceService();
   const { data: services, isLoading: isLoadingServices, assignWorkplace: AssignWorkplaceService } = useServicesService();
-
 
   if (isLoadingServices && !syncData)
     return <DialogLoading
@@ -134,111 +128,104 @@ export function RegisterWorkplace(props: Props) {
     }
 
   return (
-    <div>
-      <Dialog
-        fullScreen
-        open={props.show}
-        onClose={props.handleClose}
-        TransitionComponent={Transition}
-      >
-        <AppBar sx={{ position: 'relative' }}>
-          <Toolbar>
-            <IconButton
-              edge="start"
-              color="inherit"
-              onClick={props.handleClose}
-              aria-label="close"
-            >
-              <CloseIcon />
-            </IconButton>
-            <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
-              Registrar Local de Trabalho
-            </Typography>
-            <Button
-              color="inherit"
-              disabled={!canRegisterWorkPlace()}
-              onClick={handleRegisterWorkplace}
-            >
-              Registrar
-            </Button>
-          </Toolbar>
-        </AppBar>
-        <List>
-          <ListItem>
-            <ListItemText primary="Informações Básicas" />
-          </ListItem>
-          <ListItem>
-            <TextField
-              className='col'
-              label="Nome do Posto"
-              variant="standard"
-              value={name}
-              onChange={(e) => handleChangeName(e.target.value)}
-            />
-          </ListItem>
-          <ListItem>
-            <div className='col'>
-              <SelectScale
-                handleChangeId={handleChangeScaleId}
-              />
-            </div>
-          </ListItem>
-          <ListItem>
-            <TimePicker
-              className='col-12'
-              label="Horário de Entrada"
-              value={entryTime}
-              handleChangeValue={handleChangeEntryTime}
-            />
-          </ListItem>
-          <ListItem>
-            <TimePicker
-              className='col-12'
-              label="Horário de Saída"
-              value={exitTime}
-              handleChangeValue={handleChangeExitTime}
-            />
-          </ListItem>
-          <ListItem>
-            <ListItemText primary="Serviços no Posto" />
-          </ListItem>
-        </List>
-        {
-          services.length > 0 &&
-          <SelectService
-            itemsLeft={services.map((service) => service.value)}
-            itemsRight={[]}
-            onChangeAppliedServices={(values) => setAppliedServices(services.filter(service => values.includes(service.value)).map(service => service.id))}
+    <Dialog
+      fullScreen
+      open={props.show}
+      onClose={props.handleClose}
+      TransitionComponent={Transition}
+    >
+      <AppBar sx={{ position: 'relative' }}>
+        <Toolbar>
+          <IconButton
+            edge="start"
+            color="inherit"
+            onClick={props.handleClose}
+            aria-label="close"
+          >
+            <CloseIcon />
+          </IconButton>
+          <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
+            Registrar Local de Trabalho
+          </Typography>
+          <Button
+            color="inherit"
+            disabled={!canRegisterWorkPlace()}
+            onClick={handleRegisterWorkplace}
+          >
+            Registrar
+          </Button>
+        </Toolbar>
+      </AppBar>
+      <List>
+        <ListItem>
+          <ListItemText primary="Informações Básicas" />
+        </ListItem>
+        <ListItem>
+          <TextField
+            className='col'
+            label="Nome do Posto"
+            variant="standard"
+            value={name}
+            onChange={(e) => handleChangeName(e.target.value)}
           />
-        }
-        <List>
-          <ListItem>
-            <ListItemText primary="Endereço do Posto" />
-          </ListItem>
-          <ListItem>
-            <SelectAddress
-              handleChangeId={handleChangeAddressId}
-            />
-          </ListItem>
-        </List>
-        <Button
-          className='col-10 mx-auto my-2'
-          variant="contained"
-          color="primary"
-          disabled={!canRegisterWorkPlace()}
-          onClick={handleRegisterWorkplace}
-        >
-          Registrar
-        </Button>
-        <Button
-          className='col-10 mx-auto my-2'
-          variant="contained"
-          color="error"
-          onClick={props.handleClose}
-        >
-          Cancelar
-        </Button>
-      </Dialog>
-    </div>
+        </ListItem>
+        <ListItem>
+          <SelectScale
+            handleChangeId={handleChangeScaleId}
+          />
+        </ListItem>
+        <ListItem>
+          <TimePicker
+            className='col-12'
+            label="Horário de Entrada"
+            value={entryTime}
+            handleChangeValue={handleChangeEntryTime}
+          />
+        </ListItem>
+        <ListItem>
+          <TimePicker
+            className='col-12'
+            label="Horário de Saída"
+            value={exitTime}
+            handleChangeValue={handleChangeExitTime}
+          />
+        </ListItem>
+        <ListItem>
+          <ListItemText primary="Serviços no Posto" />
+        </ListItem>
+      </List>
+      <SelectService
+        itemsLeft={services.map((service) => service.value)}
+        itemsRight={[]}
+        onChangeAppliedServices={(values) => setAppliedServices(services.filter(service => values.includes(service.value)).map(service => service.id))}
+      />
+      <List>
+        <ListItem>
+          <ListItemText primary="Endereço do Posto" />
+        </ListItem>
+        <ListItem>
+          <SelectAddress
+            handleChangeId={handleChangeAddressId}
+          />
+        </ListItem>
+      </List>
+      <Button
+        className='col-10 mx-auto my-2'
+        variant="contained"
+        color="primary"
+        disabled={!canRegisterWorkPlace()}
+        onClick={handleRegisterWorkplace}
+      >
+        Registrar
+      </Button>
+      <Button
+        className='col-10 mx-auto my-2'
+        variant="contained"
+        color="error"
+        onClick={props.handleClose}
+      >
+        Cancelar
+      </Button>
+    </Dialog>
   );
 }

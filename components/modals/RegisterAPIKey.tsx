@@ -1,10 +1,4 @@
-/**
- * @description Modal -> Modal de Cadastro da Chave de API
- * @author GuilhermeSantos001
- * @update 11/02/2022
- */
-
-import * as React from 'react';
+import { useState } from 'react';
 import Backdrop from '@mui/material/Backdrop';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
@@ -22,9 +16,11 @@ import CopyAll from '@mui/icons-material/CopyAll';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
-import Fetch from '@/src/utils/fetch'
-import GetUserInfo from '@/src/functions/getUserInfo'
-import Alerting from '@/src/utils/alerting'
+import { compressToEncodedURIComponent } from 'lz-string';
+
+import {
+  useGetUserInfoService
+} from '@/services/graphql/useGetUserInfoService'
 
 import { copyTextToClipboard } from '@/src/functions/copyTextToClipboard';
 
@@ -46,35 +42,22 @@ const style = {
   height: '80%'
 };
 
+import Alerting from '@/src/utils/alerting'
+
 export interface Props {
   show: boolean
-  handleClose: () => void,
-  fetch: Fetch
+  username: string
+  userMail: string
+  handleClose: () => void
 }
 
 export function RegisterAPIKey(props: Props) {
-  const [username, setUsername] = React.useState('');
-  const [userMail, setUserMail] = React.useState('');
-  const [apiKeyValue, setApiKeyValue] = React.useState(generateAPIKey());
-  const [apiKeyTitle, setApiKeyTitle] = React.useState('');
-  const [apiKeyPassphrase, setApiKeyPassphrase] = React.useState('');
-  const [apiKeyPassphraseVisible, setApiKeyPassphraseVisible] = React.useState(false);
-
-  const handleChangeUsername = (value: string) => setUsername(value);
-  const handleChangeUserMail = (value: string) => setUserMail(value);
+  const [apiKeyValue, setApiKeyValue] = useState(generateAPIKey());
+  const [apiKeyTitle, setApiKeyTitle] = useState('');
+  const [apiKeyPassphrase, setApiKeyPassphrase] = useState('');
+  const [apiKeyPassphraseVisible, setApiKeyPassphraseVisible] = useState(false);
 
   const { isLoading: isLoadingAPIKey, create: handleCreateAPIKey, } = useAPIKeyService();
-
-  React.useEffect(() => {
-    const timeout = setTimeout(async () => {
-      const { username, email } = await GetUserInfo(props.fetch);
-
-      handleChangeUsername(username);
-      handleChangeUserMail(email);
-    });
-
-    return () => clearTimeout(timeout);
-  }, []);
 
   return (
     <Modal
@@ -202,8 +185,8 @@ export function RegisterAPIKey(props: Props) {
               onClick={async () => {
                 try {
                   const key = await handleCreateAPIKey({
-                    username,
-                    userMail,
+                    username: props.username,
+                    userMail: props.userMail,
                     title: apiKeyTitle,
                     key: apiKeyValue,
                     passphrase: apiKeyPassphrase

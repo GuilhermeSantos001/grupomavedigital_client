@@ -33,43 +33,41 @@ const Transition = React.forwardRef(function Transition(
 
 export function DialogError(props: Props) {
   return (
-    <div>
-      <Dialog
-        fullScreen
-        open={props.show}
-        onClose={props.handleClose}
-        TransitionComponent={Transition}
-      >
-        <AppBar sx={{ position: 'relative' }}>
-          <Toolbar>
-            <IconButton
-              edge="start"
-              color="inherit"
-              onClick={props.handleClose}
-              aria-label="close"
-            >
-              <CloseIcon />
-            </IconButton>
-            <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
-              {props.header}
-            </Typography>
-            <Button
-              color="inherit"
-              onClick={props.handleClose}
-            >
-              Cancelar
-            </Button>
-          </Toolbar>
-        </AppBar>
-        <List>
-          <ListItem>
-            <ListItemText primary={props.message} />
-          </ListItem>
-          <ListItem>
-            <BoxError />
-          </ListItem>
-        </List>
-      </Dialog>
-    </div>
+    <Dialog
+      fullScreen
+      open={props.show}
+      onClose={props.handleClose}
+      TransitionComponent={Transition}
+    >
+      <AppBar sx={{ position: 'relative' }}>
+        <Toolbar>
+          <IconButton
+            edge="start"
+            color="inherit"
+            onClick={props.handleClose}
+            aria-label="close"
+          >
+            <CloseIcon />
+          </IconButton>
+          <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
+            {props.header}
+          </Typography>
+          <Button
+            color="inherit"
+            onClick={props.handleClose}
+          >
+            Cancelar
+          </Button>
+        </Toolbar>
+      </AppBar>
+      <List>
+        <ListItem>
+          <ListItemText primary={props.message} />
+        </ListItem>
+        <ListItem>
+          <BoxError />
+        </ListItem>
+      </List>
+    </Dialog>
   )
 }

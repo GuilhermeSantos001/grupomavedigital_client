@@ -13,15 +13,24 @@ import type {
   FunctionDeleteCostCentersTypeof
 } from '@/types/CostCenterServiceType'
 
-import { useCostCenterService } from '@/services/useCostCenterService'
-import { useCostCenterWithIdService } from '@/services/useCostCenterWithIdService'
-import { useCostCentersService } from '@/services/useCostCentersService'
+import {
+  useCostCenterService
+} from '@/services/useCostCenterService'
+
+import {
+  useCostCenterWithIdService
+} from '@/services/useCostCenterWithIdService'
+
+import {
+  useCostCentersService
+} from '@/services/useCostCentersService'
 
 import Alerting from '@/src/utils/alerting'
 
 export type Props = {
   id?: string
   disabled?: boolean
+  handleChangeData?: (data: CostCenterType) => void
   handleChangeId: (id: string) => void
 }
 
@@ -34,6 +43,7 @@ const filter = createFilterOptions<FilmOptionType>();
 
 export function SelectCostCenter(props: Props) {
   const [syncData, setSyncData] = useState<boolean>(false);
+  const [returnData, setReturnData] = useState<boolean>(false);
 
   const [value, setValue] = useState<FilmOptionType | null>(null);
   const [hasEdit, setHasEdit] = useState<boolean>(false);
@@ -67,8 +77,17 @@ export function SelectCostCenter(props: Props) {
     return <AutocompleteError label='Centro de Custo' message='Ocorreu um erro' />
   }
 
+  if (props.id && props.handleChangeData && returnData) {
+    const costcenter = costCenters.find(costcenter => costcenter.id === props.id);
+
+    if (costcenter)
+      props.handleChangeData(costcenter);
+
+    setReturnData(false);
+  }
+
   return (
-    <div className='d-flex flex-column flex-md-row'>
+    <div className='d-flex flex-column flex-md-row col'>
       <Autocomplete
         className='col-12 col-md-10 mb-2 mb-md-0 me-md-2'
         value={value}
@@ -97,6 +116,7 @@ export function SelectCostCenter(props: Props) {
                     };
 
                     setValue(update);
+                    setReturnData(true);
                     handleUpdateCostCenter(costCenter.id, { value: editValue });
                     props.handleChangeId(costCenter.id);
                   }
@@ -111,6 +131,7 @@ export function SelectCostCenter(props: Props) {
                         id: costcenter.id,
                         value: costcenter.value
                       });
+                      setReturnData(true);
                       props.handleChangeId(costcenter.id);
                     }
                   }
@@ -137,6 +158,7 @@ export function SelectCostCenter(props: Props) {
             }
 
             setValue(costCenter);
+            setReturnData(true);
             props.handleChangeId(costCenter.id);
           } else {
             if (!newValue && props.id) {
@@ -147,6 +169,7 @@ export function SelectCostCenter(props: Props) {
             }
 
             setValue(newValue);
+            setReturnData(true);
             props.handleChangeId(newValue?.id || '');
           }
         }}
@@ -230,6 +253,7 @@ export function SelectCostCenter(props: Props) {
             }
 
             handleRemoveCostCenter(value.id);
+            setReturnData(true);
             props.handleChangeId('');
           } else {
             Alerting.create('info', 'Não é possível remover o centro de custo sendo usado pelo registro.');

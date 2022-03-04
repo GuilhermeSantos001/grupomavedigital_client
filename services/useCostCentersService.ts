@@ -28,7 +28,7 @@ export function useCostCentersService(take: number = 10) {
   const { data, error, mutate } = useSWR<
     ApiResponseSuccessType<CostCenterType[]>,
     ApiResponseErrorType<Object>
-  >([uri, setIsLoading], fetcherAxiosGet)
+  >([uri, setIsLoading], fetcherAxiosGet, { refreshInterval: 5000 })
 
   if (error) {
     Alerting.create('error', error.message);

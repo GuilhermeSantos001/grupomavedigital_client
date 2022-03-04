@@ -4,11 +4,11 @@
  * @update 14/02/2022
  */
 
-import { GridColDef } from '@mui/x-data-grid';
+import { GridColDef, GridRowsProp } from '@mui/x-data-grid';
 
 import StringEx from '@/src/utils/stringEx';
 
-import {PersonType} from '@/types/PersonType';
+import { PersonType } from '@/types/PersonType';
 
 export default function getPeopleForTable(
   people: PersonType[]
@@ -80,14 +80,14 @@ export default function getPeopleForTable(
         }
       }
     ],
-    rows = people.map((person, index) => {
+    rows: GridRowsProp = people.map((person, index) => {
       return {
         id: person.id,
         item: index + 1,
         name: person.name,
         matricule: StringEx.maskMatricule(parseInt(person.matricule), true),
         cpf: StringEx.maskCPF(parseInt(person.cpf), true),
-        rg: StringEx.maskRG(parseInt(person.rg) ,true),
+        rg: StringEx.maskRG(parseInt(person.rg), true),
         scale: person.scale.value,
         services: person.personService.map(_ => _.service.value).join(', '),
         address: person.address,

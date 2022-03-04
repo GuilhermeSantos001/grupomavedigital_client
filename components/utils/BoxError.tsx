@@ -2,7 +2,7 @@ import { HeartSpinner } from 'react-spinners-kit';
 
 export function BoxError() {
   return (
-    <div className='d-flex flex-column fade-effect active'>
+    <div className='d-flex flex-column col fade-effect active'>
       <div className='d-flex justify-content-center p-2'>
         <p>Não foi possível carregar as informações. Tente novamente, mais tarde!</p>
       </div>

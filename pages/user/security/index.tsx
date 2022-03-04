@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+
 import { Modal } from 'react-bootstrap'
 
 import { GetServerSidePropsContext } from 'next/types'
@@ -588,62 +589,65 @@ function compose_twoFactor(
               </Modal.Title>
             </Modal.Header>
             <Modal.Body>
-              {twoFactorQRCode.length > 0 ? (
-                <>
-                  <div className="d-flex flex-column">
-                    <img
-                      src={twoFactorQRCode}
-                      alt="Escanei com seu aplicativo autenticador"
-                      className="col-6 align-self-center"
-                      height="100%"
+              <div className='overflow-auto' style={{height: '65vh'}}>
+                {twoFactorQRCode.length > 0 ? (
+                  <>
+                    <div className="d-flex flex-column">
+                      <Image
+                        src={twoFactorQRCode}
+                        alt="Escanei com seu aplicativo autenticador"
+                        className="align-self-center"
+                        width="350"
+                        height="350"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <p className="fw-bold">
+                    Aguarde, enquanto geramos seu QRCode...
+                  </p>
+                )}
+                <hr />
+                <div className="input-group mb-3">
+                  <span className="input-group-text" id="codeSecret-addon">
+                    <FontAwesomeIcon
+                      icon={Icon.render('fab', 'keycdn')}
+                      className="ms-2 fs-3 flex-shrink-1 text-primary my-auto"
                     />
-                  </div>
-                </>
-              ) : (
-                <p className="fw-bold">
-                  Aguarde, enquanto geramos seu QRCode...
-                </p>
-              )}
-              <hr />
-              <div className="input-group mb-3">
-                <span className="input-group-text" id="codeSecret-addon">
-                  <FontAwesomeIcon
-                    icon={Icon.render('fab', 'keycdn')}
-                    className="ms-2 fs-3 flex-shrink-1 text-primary my-auto"
+                  </span>
+                  <input
+                    type="phone"
+                    className="form-control"
+                    placeholder="Código de senha de uso único"
+                    aria-label="Code Secret"
+                    aria-describedby="codeSecret-addon"
+                    value={twoFactorCode}
+                    onChange={(e) => handleChangeTwoFactorCode(e.target.value)}
                   />
-                </span>
-                <input
-                  type="phone"
-                  className="form-control"
-                  placeholder="Código de senha de uso único"
-                  aria-label="Code Secret"
-                  aria-describedby="codeSecret-addon"
-                  value={twoFactorCode}
-                  onChange={(e) => handleChangeTwoFactorCode(e.target.value)}
-                />
+                </div>
+                <p className="fw-bold">
+                  Faça a leitura do seu QRCode usando um aplicativo autenticador.
+                </p>
+                <small>
+                  Microsoft Authenticator, recomendado.
+                  <br />
+                  <a
+                    href="https://play.google.com/store/apps/details?id=com.azure.authenticator&hl=pt_BR&gl=US"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Baixar pela Google Play
+                  </a>
+                  <br />
+                  <a
+                    href="https://apps.apple.com/br/app/microsoft-authenticator/id983156458"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Baixar pela Apple Store
+                  </a>
+                </small>
               </div>
-              <p className="fw-bold">
-                Faça a leitura do seu QRCode usando um aplicativo autenticador.
-              </p>
-              <small>
-                Microsoft Authenticator, recomendado.
-                <br />
-                <a
-                  href="https://play.google.com/store/apps/details?id=com.azure.authenticator&hl=pt_BR&gl=US"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Baixar pela Google Play
-                </a>
-                <br />
-                <a
-                  href="https://apps.apple.com/br/app/microsoft-authenticator/id983156458"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Baixar pela Apple Store
-                </a>
-              </small>
             </Modal.Body>
             <Modal.Footer>
               <button

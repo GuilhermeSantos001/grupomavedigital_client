@@ -1,13 +1,8 @@
-/**
- * @author GuilhermeSantos001
- * @update 26/01/2022
- */
-
 import { io, Socket } from 'socket.io-client';
 
 import { compressToBase64, decompressFromBase64 } from 'lz-string';
 
-export default class SocketConnectionController {
+export  class SocketConnectionController {
     socket: Socket
 
     constructor(ip: string) {

@@ -4,48 +4,31 @@ import useSWR from 'swr'
 import { fetcherAxiosGet } from '@/src/utils/fetcherAxiosGet';
 import { fetcherAxiosPut } from '@/src/utils/fetcherAxiosPut';
 import { fetcherAxiosDelete } from '@/src/utils/fetcherAxiosDelete';
-import { PersonType } from '@/types/PersonType'
 import { ApiResponseSuccessType } from '@/types/ApiResponseSuccessType';
 import { ApiResponseErrorType } from '@/types/ApiResponseErrorType';
 import { ApiResponseSuccessOrErrorType } from '@/types/ApiResponseSuccessOrErrorType';
 
+import type {
+  DataPerson
+} from '@/types/PersonServiceType';
+
+import type {
+  PersonType
+} from '@/types/PersonType';
+
 import Alerting from '@/src/utils/alerting';
 
-export type DataPerson = Pick<PersonType,
-  | 'matricule'
-  | 'name'
-  | 'cpf'
-  | 'rg'
-  | 'birthDate'
-  | 'motherName'
-  | 'mail'
-  | 'phone'
-  | 'addressId'
-  | 'scaleId'
-  | 'status'
->;
-
-declare function UpdatePeople(id: string, newData: DataPerson): Promise<boolean>
-declare function DeletePeople(id: string): Promise<boolean>
-
-export type FunctionUpdatePeopleTypeof = typeof UpdatePeople | undefined;
-export type FunctionDeletePeopleTypeof = typeof DeletePeople | undefined;
-export type FunctionNextPageTypeof = (() => void) | undefined;
-export type FunctionPreviousPageTypeof = (() => void) | undefined;
-
-export function usePeopleService(take: number = 10, refreshInterval: number = 1000) {
+export function usePeopleService(take: number = 10) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [uri, setURI] = useState<string>(`${process.env.NEXT_PUBLIC_API_HOST}/people?take=${take}`);
+  const [lastCursorId, setLastCursorId] = useState<number>(0);
 
   const skip = 1;
-
-  const [uri, setURI] = useState<string>(`${process.env.NEXT_PUBLIC_API_HOST}/people?take=${take}`);
-
-  const [lastCursorId, setLastCursorId] = useState<number>(0);
 
   const { data, error, mutate } = useSWR<
     ApiResponseSuccessType<PersonType[]>,
     ApiResponseErrorType<Object>
-  >([uri, setIsLoading], fetcherAxiosGet, { refreshInterval })
+  >([uri, setIsLoading], fetcherAxiosGet, { refreshInterval: 5000 })
 
   if (error) {
     Alerting.create('error', error.message);

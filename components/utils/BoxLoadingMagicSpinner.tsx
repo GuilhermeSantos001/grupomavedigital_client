@@ -6,7 +6,7 @@ export type Props = {
 
 export function BoxLoadingMagicSpinner(props: Props) {
   return (
-    <div className='d-flex flex-row justify-content-center align-items-center p-2 fade-effect active' style={{ height: props.height || 250 }}>
+    <div className='d-flex flex-row justify-content-center align-items-center col p-2 fade-effect active' style={{ height: props.height || 250 }}>
       <MagicSpinner size={42} color={"#004a6e"} />
     </div>
   )

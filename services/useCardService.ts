@@ -7,11 +7,14 @@ import { fetcherAxiosDelete } from '@/src/utils/fetcherAxiosDelete';
 import { ApiResponseErrorType } from '@/types/ApiResponseErrorType';
 import { ApiResponseSuccessOrErrorType } from '@/types/ApiResponseSuccessOrErrorType';
 
-import type { CardType } from '@/types/CardType';
 import type {
   DataCard,
   DataPersonId
 } from '@/types/CardServiceType';
+
+import type {
+  CardType
+} from '@/types/CardType';
 
 import Alerting from '@/src/utils/alerting';
 

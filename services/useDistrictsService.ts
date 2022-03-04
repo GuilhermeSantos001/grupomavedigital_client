@@ -4,36 +4,31 @@ import useSWR from 'swr'
 import { fetcherAxiosGet } from '@/src/utils/fetcherAxiosGet';
 import { fetcherAxiosPut } from '@/src/utils/fetcherAxiosPut';
 import { fetcherAxiosDelete } from '@/src/utils/fetcherAxiosDelete';
-import { DistrictType } from '@/types/DistrictType'
 import { ApiResponseSuccessType } from '@/types/ApiResponseSuccessType';
 import { ApiResponseErrorType } from '@/types/ApiResponseErrorType';
 import { ApiResponseSuccessOrErrorType } from '@/types/ApiResponseSuccessOrErrorType';
 
+import type {
+  DataDistrict
+} from '@/types/DistrictServiceType';
+
+import type {
+  DistrictType
+} from '@/types/DistrictType';
+
 import Alerting from '@/src/utils/alerting';
 
-export type DataDistrict = Pick<DistrictType, 'value'>;
-
-declare function UpdateDistricts(id: string, newData: DataDistrict): Promise<boolean>
-declare function DeleteDistricts(id: string): Promise<boolean>
-
-export type FunctionUpdateDistrictsTypeof = typeof UpdateDistricts | undefined;
-export type FunctionDeleteDistrictsTypeof = typeof DeleteDistricts | undefined;
-export type FunctionNextPageTypeof = (() => void) | undefined;
-export type FunctionPreviousPageTypeof = (() => void) | undefined;
-
-export function useDistrictsService(take: number = 10, refreshInterval: number = 1000) {
+export function useDistrictsService(take: number = 10) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [uri, setURI] = useState<string>(`${process.env.NEXT_PUBLIC_API_HOST}/districts?take=${take}`);
+  const [lastCursorId, setLastCursorId] = useState<number>(0);
 
   const skip = 1;
-
-  const [uri, setURI] = useState<string>(`${process.env.NEXT_PUBLIC_API_HOST}/districts?take=${take}`);
-
-  const [lastCursorId, setLastCursorId] = useState<number>(0);
 
   const { data, error, mutate } = useSWR<
     ApiResponseSuccessType<DistrictType[]>,
     ApiResponseErrorType<Object>
-  >([uri, setIsLoading], fetcherAxiosGet, { refreshInterval })
+  >([uri, setIsLoading], fetcherAxiosGet, { refreshInterval: 5000 })
 
   if (error) {
     Alerting.create('error', error.message);

@@ -1,9 +1,3 @@
-/**
- * @description Assistente -> Definição de cobertura
- * @author GuilhermeSantos001
- * @update 14/02/2022
- */
-
 import { useState } from 'react'
 
 import { PaybackSocketEvents } from '@/constants/socketEvents';
@@ -41,7 +35,6 @@ import Icon from '@/src/utils/fontAwesomeIcons'
 
 import Fetch from '@/src/utils/fetch'
 import { uploadDownload } from '@/src/functions/getUploads'
-import { getUserAuth } from '@/pages/storage/index'
 
 import Alerting from '@/src/utils/alerting'
 import StringEx from '@/src/utils/stringEx'
@@ -50,10 +43,14 @@ import DateEx from '@/src/utils/dateEx'
 import { SocketConnection } from '@/components/socket-io'
 import { DatePicker } from '@/components/selects/DatePicker'
 
-import DropZone from '@/components/dropZone';
+import DropZone from '@/components/dropZone'
+
+import type {
+  DataUpload
+} from '@/types/UploadServiceType'
 
 import { usePostingService } from '@/services/usePostingService'
-import { useUploadService, DataUpload } from '@/services/useUploadService'
+import { useUploadService } from '@/services/useUploadService'
 import { useUploadsService } from '@/services/useUploadsService'
 import { useCostCentersService } from '@/services/useCostCentersService'
 import { usePeopleService } from '@/services/usePeopleService'
@@ -62,12 +59,13 @@ import { usePersonCoverageService } from '@/services/usePersonCoverageService'
 import { useWorkplacesService } from '@/services/useWorkplacesService'
 import { useReasonForAbsencesService } from '@/services/useReasonForAbsencesService'
 
-import { PostingType, PostingModality } from '@/types/PostingType';
+import { PostingType, PostingModality } from '@/types/PostingType'
 import { DatabaseModalityOfCoveringType } from '@/types/DatabaseModalityOfCoveringType'
 import { DatabasePaymentMethodType } from '@/types/DatabasePaymentMethodType'
 
 export type Props = {
-  show: boolean;
+  show: boolean
+  auth: string
   availableWorkplaces: string[]
   availablePeopleInWorkplace: string[]
   postingCostCenterId: string;
@@ -446,7 +444,7 @@ export function AssistantCoverageDefine(props: Props) {
               }
 
               const posting = await CreatePosting({
-                author: await getUserAuth(),
+                author: props.auth,
                 costCenterId: props.postingCostCenterId,
                 periodStart: props.periodStart.toISOString(),
                 periodEnd: props.periodEnd.toISOString(),
@@ -558,7 +556,7 @@ export function AssistantCoverageDefine(props: Props) {
     },
     handleChangeDescription = (text: string) => setPostingDescription(text);
 
-  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
+  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST!)
 
   const steps = [
     {
@@ -729,6 +727,7 @@ export function AssistantCoverageDefine(props: Props) {
         <>
           <DropZone
             fetch={_fetch}
+            auth={props.auth}
             ext={['.pdf']}
             maxSize={20000000}
             limit={1}
@@ -892,6 +891,7 @@ export function AssistantCoverageDefine(props: Props) {
                 </FormControl>
                 <DropZone
                   fetch={_fetch}
+                  auth={props.auth}
                   ext={['.pdf']}
                   maxSize={20000000}
                   limit={1}

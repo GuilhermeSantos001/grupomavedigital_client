@@ -4,36 +4,31 @@ import useSWR from 'swr'
 import { fetcherAxiosGet } from '@/src/utils/fetcherAxiosGet';
 import { fetcherAxiosPut } from '@/src/utils/fetcherAxiosPut';
 import { fetcherAxiosDelete } from '@/src/utils/fetcherAxiosDelete';
-import { StreetType } from '@/types/StreetType';
 import { ApiResponseSuccessType } from '@/types/ApiResponseSuccessType';
 import { ApiResponseErrorType } from '@/types/ApiResponseErrorType';
 import { ApiResponseSuccessOrErrorType } from '@/types/ApiResponseSuccessOrErrorType';
 
+import type {
+  DataStreet
+} from '@/types/StreetServiceType';
+
+import type {
+  StreetType
+} from '@/types/StreetType';
+
 import Alerting from '@/src/utils/alerting';
 
-export type DataStreet = Pick<StreetType, 'value'>;
-
-declare function UpdateStreets(id: string, newData: DataStreet): Promise<boolean>
-declare function DeleteStreets(id: string): Promise<boolean>
-
-export type FunctionUpdateStreetsTypeof = typeof UpdateStreets | undefined;
-export type FunctionDeleteStreetsTypeof = typeof DeleteStreets | undefined;
-export type FunctionNextPageTypeof = (() => void) | undefined;
-export type FunctionPreviousPageTypeof = (() => void) | undefined;
-
-export function useStreetsService(take: number = 10, refreshInterval: number = 1000) {
+export function useStreetsService(take: number = 10) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [uri, setURI] = useState<string>(`${process.env.NEXT_PUBLIC_API_HOST}/streets?take=${take}`);
+  const [lastCursorId, setLastCursorId] = useState<number>(0);
 
   const skip = 1;
-
-  const [uri, setURI] = useState<string>(`${process.env.NEXT_PUBLIC_API_HOST}/streets?take=${take}`);
-
-  const [lastCursorId, setLastCursorId] = useState<number>(0);
 
   const { data, error, mutate } = useSWR<
     ApiResponseSuccessType<StreetType[]>,
     ApiResponseErrorType<Object>
-  >([uri, setIsLoading], fetcherAxiosGet, { refreshInterval })
+  >([uri, setIsLoading], fetcherAxiosGet, { refreshInterval: 5000 })
 
   if (error) {
     Alerting.create('error', error.message);

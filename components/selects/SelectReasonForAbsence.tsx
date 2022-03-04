@@ -1,26 +1,28 @@
-/**
- * @description Input -> Seleciona o motivo de falta
- * @author GuilhermeSantos001
- * @update 13/02/2022
- */
 import { useState } from 'react';
 import { Autocomplete, TextField, createFilterOptions, Button } from '@mui/material'
 
 import { AutocompleteLoading } from '@/components/utils/AutocompleteLoading';
 import { AutocompleteError } from '@/components/utils/AutocompleteError';
 
-import { ReasonForAbsenceType } from '@/types/ReasonForAbsenceType'
+import type { ReasonForAbsenceType } from '@/types/ReasonForAbsenceType'
+
+import type {
+  DataReasonForAbsence,
+  FunctionCreateReasonForAbsenceTypeof,
+  FunctionUpdateReasonForAbsencesTypeof,
+  FunctionDeleteReasonForAbsencesTypeof
+} from '@/types/ReasonForAbsenceServiceType'
 
 import {
-  useReasonForAbsenceService,
-  DataReasonForAbsence,
-  FunctionCreateReasonForAbsenceTypeof
+  useReasonForAbsenceService
 } from '@/services/useReasonForAbsenceService'
 
 import {
-  useReasonForAbsencesService,
-  FunctionUpdateReasonForAbsencesTypeof,
-  FunctionDeleteReasonForAbsencesTypeof
+  useReasonForAbsenceWithIdService
+} from '@/services/useReasonForAbsenceWithIdService'
+
+import {
+  useReasonForAbsencesService
 } from '@/services/useReasonForAbsencesService'
 
 import Alerting from '@/src/utils/alerting';
@@ -28,6 +30,7 @@ import Alerting from '@/src/utils/alerting';
 export type Props = {
   id?: string
   disabled?: boolean
+  handleChangeData?: (data: ReasonForAbsenceType) => void
   handleChangeId: (id: string) => void
 }
 
@@ -40,12 +43,14 @@ const filter = createFilterOptions<FilmOptionType>();
 
 export function SelectReasonForAbsence(props: Props) {
   const [syncData, setSyncData] = useState<boolean>(false);
+  const [returnData, setReturnData] = useState<boolean>(false);
 
   const [value, setValue] = useState<FilmOptionType | null>(null);
   const [hasEdit, setHasEdit] = useState<boolean>(false);
   const [editValue, setEditValue] = useState<string>('');
 
-  const { data: reasonForAbsence, isLoading: isLoadingReasonForAbsence, create: CreateReasonForAbsence } = useReasonForAbsenceService(props.id);
+  const { create: CreateReasonForAbsence } = useReasonForAbsenceService();
+  const { data: reasonForAbsence, isLoading: isLoadingReasonForAbsence } = useReasonForAbsenceWithIdService(props.id || '');
   const { data: reasonForAbsences, isLoading: isLoadingReasonForAbsences, update: UpdateReasonForAbsences, delete: DeleteReasonForAbsences } = useReasonForAbsencesService();
 
   const
@@ -70,6 +75,15 @@ export function SelectReasonForAbsence(props: Props) {
     setSyncData(true);
   } else if (!syncData && !reasonForAbsence || !syncData && !props.id && !reasonForAbsences) {
     return <AutocompleteError label='Motivo de Falta' message='Ocorreu um erro' />
+  }
+
+  if (props.id && props.handleChangeData && returnData) {
+    const reasonForAbsence = reasonForAbsences.find(reasonForAbsence => reasonForAbsence.id === props.id);
+
+    if (reasonForAbsence)
+      props.handleChangeData(reasonForAbsence);
+
+    setReturnData(false);
   }
 
   return (
@@ -102,6 +116,7 @@ export function SelectReasonForAbsence(props: Props) {
                     };
 
                     setValue(update);
+                    setReturnData(true);
                     handleUpdateCity(reasonForAbsence.id, { value: editValue });
                     props.handleChangeId(reasonForAbsence.id);
                   }
@@ -116,6 +131,7 @@ export function SelectReasonForAbsence(props: Props) {
                         id: reasonForAbsence.id,
                         value: reasonForAbsence.value
                       });
+                      setReturnData(true);
                       props.handleChangeId(reasonForAbsence.id);
                     }
                   }
@@ -142,6 +158,7 @@ export function SelectReasonForAbsence(props: Props) {
             }
 
             setValue(reasonForAbsence);
+            setReturnData(true);
             props.handleChangeId(reasonForAbsence.id);
           } else {
             if (!newValue && props.id) {
@@ -152,6 +169,7 @@ export function SelectReasonForAbsence(props: Props) {
             }
 
             setValue(newValue);
+            setReturnData(true);
             props.handleChangeId(newValue?.id || '');
           }
         }}
@@ -235,6 +253,7 @@ export function SelectReasonForAbsence(props: Props) {
             }
 
             handleRemoveCity(value.id);
+            setReturnData(true);
             props.handleChangeId('');
           } else {
             Alerting.create('info', 'Não é possível remover o motive de falta sendo usado pelo registro.');

@@ -4,7 +4,7 @@
  * @update 24/01/2022
  */
 
-import * as React from 'react';
+import React from 'react';
 import Box from '@mui/material/Box';
 import Stepper from '@mui/material/Stepper';
 import Step from '@mui/material/Step';

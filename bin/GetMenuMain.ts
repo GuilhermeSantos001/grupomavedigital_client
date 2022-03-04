@@ -13,7 +13,7 @@ export function GetMenuMain(firstId?: MenuOptions): MenuResponse {
     "mn-helping": false,
     "mn-herculesStorage": true,
     "mn-home": false,
-    "mn-integration": true,
+    "mn-integration": false,
     "mn-login": false,
     "mn-logout": false,
     "mn-payback": false,

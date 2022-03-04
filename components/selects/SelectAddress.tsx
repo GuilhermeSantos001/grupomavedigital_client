@@ -17,7 +17,7 @@ import {
 export type Props = {
   id?: string
   disabled?: boolean
-  handleChangeData: (data: AddressType) => void
+  handleChangeData?: (data: AddressType) => void
   handleChangeId: (id: string) => void
 }
 
@@ -51,7 +51,7 @@ export function SelectAddress(props: Props) {
   }
 
   return (
-    <FormControl variant="outlined" className='col-12'>
+    <FormControl variant="outlined" fullWidth>
       <InputLabel id="select-address-label">
         Endereço
       </InputLabel>

@@ -4,47 +4,31 @@ import useSWR from 'swr'
 import { fetcherAxiosGet } from '@/src/utils/fetcherAxiosGet';
 import { fetcherAxiosPut } from '@/src/utils/fetcherAxiosPut';
 import { fetcherAxiosDelete } from '@/src/utils/fetcherAxiosDelete';
-import { UploadType } from '@/types/UploadType'
 import { ApiResponseSuccessType } from '@/types/ApiResponseSuccessType';
 import { ApiResponseErrorType } from '@/types/ApiResponseErrorType';
 import { ApiResponseSuccessOrErrorType } from '@/types/ApiResponseSuccessOrErrorType';
 
+import type {
+  DataUpload
+} from '@/types/UploadServiceType';
+
+import type {
+  UploadType
+} from '@/types/UploadType';
+
 import Alerting from '@/src/utils/alerting';
 
-export type DataUpload = Pick<UploadType,
-  | 'fileId'
-  | 'authorId'
-  | 'filename'
-  | 'filetype'
-  | 'description'
-  | 'size'
-  | 'compressedSize'
-  | 'version'
-  | 'temporary'
-  | 'expiredAt'
->;
-
-declare function UpdateUploads(id: string, newData: DataUpload): Promise<boolean>
-declare function DeleteUploads(id: string): Promise<boolean>
-
-export type FunctionUpdateUploadsTypeof = typeof UpdateUploads | undefined;
-export type FunctionDeleteUploadsTypeof = typeof DeleteUploads | undefined;
-export type FunctionNextPageTypeof = (() => void) | undefined;
-export type FunctionPreviousPageTypeof = (() => void) | undefined;
-
-export function useUploadsService(take: number = 10, refreshInterval: number = 1000) {
+export function useUploadsService(take: number = 10) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [uri, setURI] = useState<string>(`${process.env.NEXT_PUBLIC_API_HOST}/uploads?take=${take}`);
+  const [lastCursorId, setLastCursorId] = useState<number>(0);
 
   const skip = 1;
-
-  const [uri, setURI] = useState<string>(`${process.env.NEXT_PUBLIC_API_HOST}/uploads?take=${take}`);
-
-  const [lastCursorId, setLastCursorId] = useState<number>(0);
 
   const { data, error, mutate } = useSWR<
     ApiResponseSuccessType<UploadType[]>,
     ApiResponseErrorType<Object>
-  >([uri, setIsLoading], fetcherAxiosGet, { refreshInterval })
+  >([uri, setIsLoading], fetcherAxiosGet, { refreshInterval: 5000 })
 
   if (error) {
     Alerting.create('error', error.message);

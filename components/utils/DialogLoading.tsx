@@ -16,7 +16,7 @@ import { MetroSpinner } from 'react-spinners-kit';
 
 export type Props = {
   header: string
-  message:string
+  message: string
   show: boolean
   handleClose: () => void
 }
@@ -32,45 +32,43 @@ const Transition = React.forwardRef(function Transition(
 
 export function DialogLoading(props: Props) {
   return (
-    <div>
-      <Dialog
-        fullScreen
-        open={props.show}
-        onClose={props.handleClose}
-        TransitionComponent={Transition}
-      >
-        <AppBar sx={{ position: 'relative' }}>
-          <Toolbar>
-            <IconButton
-              edge="start"
-              color="inherit"
-              onClick={props.handleClose}
-              aria-label="close"
-            >
-              <CloseIcon />
-            </IconButton>
-            <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
-              {props.header}
-            </Typography>
-            <Button
-              color="inherit"
-              onClick={props.handleClose}
-            >
-              Cancelar
-            </Button>
-          </Toolbar>
-        </AppBar>
-        <List>
-          <ListItem>
-            <ListItemText primary={props.message} />
-          </ListItem>
-          <ListItem className='d-flex justify-content-center align-items-center'>
-            <div className='d-flex justify-content-center col-6 p-2'>
-              <MetroSpinner size={42} color="#004a6e" />
-            </div>
-          </ListItem>
-        </List>
-      </Dialog>
-    </div>
+    <Dialog
+      fullScreen
+      open={props.show}
+      onClose={props.handleClose}
+      TransitionComponent={Transition}
+    >
+      <AppBar sx={{ position: 'relative' }}>
+        <Toolbar>
+          <IconButton
+            edge="start"
+            color="inherit"
+            onClick={props.handleClose}
+            aria-label="close"
+          >
+            <CloseIcon />
+          </IconButton>
+          <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
+            {props.header}
+          </Typography>
+          <Button
+            color="inherit"
+            onClick={props.handleClose}
+          >
+            Cancelar
+          </Button>
+        </Toolbar>
+      </AppBar>
+      <List>
+        <ListItem>
+          <ListItemText primary={props.message} />
+        </ListItem>
+        <ListItem className='d-flex justify-content-center align-items-center'>
+          <div className='d-flex justify-content-center col-6 p-2'>
+            <MetroSpinner size={42} color="#004a6e" />
+          </div>
+        </ListItem>
+      </List>
+    </Dialog>
   )
 }

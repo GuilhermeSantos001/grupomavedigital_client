@@ -3,33 +3,26 @@ import useSWR from 'swr'
 
 import { fetcherAxiosGet } from '@/src/utils/fetcherAxiosGet';
 import { fetcherAxiosDelete } from '@/src/utils/fetcherAxiosDelete';
-import { APIKeyType } from '@/types/APIKeyType'
 import { ApiResponseSuccessType } from '@/types/ApiResponseSuccessType';
 import { ApiResponseErrorType } from '@/types/ApiResponseErrorType';
 
+import type {
+  APIKeyType
+} from '@/types/APIKeyType';
+
 import Alerting from '@/src/utils/alerting';
-
-export type DataAPIKey = Pick<APIKeyType, 'title' | 'key' | 'passphrase' | 'username' | 'userMail'>;
-
-declare function DeleteAPIKeys(id: string): Promise<boolean>
-
-export type FunctionDeleteAPIKeysTypeof = typeof DeleteAPIKeys | undefined;
-export type FunctionNextPageTypeof = (() => void) | undefined;
-export type FunctionPreviousPageTypeof = (() => void) | undefined;
 
 export function useAPIKeysService(take: number = 10) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [uri, setURI] = useState<string>(`${process.env.NEXT_PUBLIC_API_HOST}/security/keys?take=${take}`);
+  const [lastCursorId, setLastCursorId] = useState<number>(0);
 
   const skip = 1;
-
-  const [uri, setURI] = useState<string>(`${process.env.NEXT_PUBLIC_API_HOST}/security/keys?take=${take}`);
-
-  const [lastCursorId, setLastCursorId] = useState<number>(0);
 
   const { data, error, mutate } = useSWR<
     ApiResponseSuccessType<APIKeyType[]>,
     ApiResponseErrorType<Object>
-  >([uri, setIsLoading], fetcherAxiosGet, { refreshInterval: 1000 })
+  >([uri, setIsLoading], fetcherAxiosGet, { refreshInterval: 5000 })
 
   if (error) {
     Alerting.create('error', error.message);

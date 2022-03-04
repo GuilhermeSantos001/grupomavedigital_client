@@ -4,7 +4,7 @@
  * @update 14/02/2022
  */
 
-import { GridColDef } from '@mui/x-data-grid';
+import { GridColDef, GridRowsProp } from '@mui/x-data-grid';
 
 import StringEx from '@/src/utils/stringEx';
 
@@ -73,7 +73,7 @@ export default function getWorkPlaceForTable(
         }
       }
     ],
-    rows = workplaces.map((place, index) => {
+    rows: GridRowsProp = workplaces.map((place, index) => {
       return {
         id: place.id,
         item: index + 1,

@@ -1,27 +1,28 @@
-/**
- * @description Input -> Seleciona um distrito (Estado)
- * @author GuilhermeSantos001
- * @update 11/02/2022
- */
-
 import { useState } from 'react';
 import { Autocomplete, TextField, createFilterOptions, Button } from '@mui/material'
 
 import { AutocompleteLoading } from '@/components/utils/AutocompleteLoading';
 import { AutocompleteError } from '@/components/utils/AutocompleteError';
 
-import { DistrictType } from '@/types/DistrictType'
+import type { DistrictType } from '@/types/DistrictType'
+
+import type {
+  DataDistrict,
+  FunctionCreateDistrictTypeof,
+  FunctionUpdateDistrictsTypeof,
+  FunctionDeleteDistrictsTypeof
+} from '@/types/DistrictServiceType'
 
 import {
-  useDistrictService,
-  DataDistrict,
-  FunctionCreateDistrictTypeof
+  useDistrictService
 } from '@/services/useDistrictService'
 
 import {
-  useDistrictsService,
-  FunctionUpdateDistrictsTypeof,
-  FunctionDeleteDistrictsTypeof
+  useDistrictWithIdService
+} from '@/services/useDistrictWithIdService'
+
+import {
+  useDistrictsService
 } from '@/services/useDistrictsService'
 
 import Alerting from '@/src/utils/alerting';
@@ -29,6 +30,7 @@ import Alerting from '@/src/utils/alerting';
 export type Props = {
   id?: string
   disabled?: boolean
+  handleChangeData?: (data: DistrictType) => void
   handleChangeId: (id: string) => void
 }
 
@@ -41,12 +43,14 @@ const filter = createFilterOptions<FilmOptionType>();
 
 export function SelectDistrict(props: Props) {
   const [syncData, setSyncData] = useState<boolean>(false);
+  const [returnData, setReturnData] = useState<boolean>(false);
 
   const [value, setValue] = useState<FilmOptionType | null>(null);
   const [hasEdit, setHasEdit] = useState<boolean>(false);
   const [editValue, setEditValue] = useState<string>('');
 
-  const { data: district, isLoading: isLoadingDistrict, create: CreateDistrict } = useDistrictService(props.id);
+  const { create: CreateDistrict } = useDistrictService();
+  const { data: district, isLoading: isLoadingDistrict } = useDistrictWithIdService(props.id || '');
   const { data: districts, isLoading: isLoadingDistricts, update: UpdateDistricts, delete: DeleteDistricts } = useDistrictsService();
 
   const
@@ -73,8 +77,17 @@ export function SelectDistrict(props: Props) {
     return <AutocompleteError label='Estado' message='Ocorreu um erro' />
   }
 
+  if (props.id && props.handleChangeData && returnData) {
+    const district = districts.find(district => district.id === props.id);
+
+    if (district)
+      props.handleChangeData(district);
+
+    setReturnData(false);
+  }
+
   return (
-    <div className='d-flex flex-column flex-md-row'>
+    <div className='d-flex flex-column flex-md-row col'>
       <Autocomplete
         className='col-12 col-md-10 mb-2 mb-md-0 me-md-2'
         value={value}
@@ -103,6 +116,7 @@ export function SelectDistrict(props: Props) {
                     };
 
                     setValue(update);
+                    setReturnData(true);
                     handleUpdateDistrict(district.id, { value: editValue });
                     props.handleChangeId(district.id);
                   }
@@ -117,6 +131,7 @@ export function SelectDistrict(props: Props) {
                         id: district.id,
                         value: district.value
                       });
+                      setReturnData(true);
                       props.handleChangeId(district.id);
                     }
                   }
@@ -143,6 +158,7 @@ export function SelectDistrict(props: Props) {
             }
 
             setValue(district);
+            setReturnData(true);
             props.handleChangeId(district.id);
           } else {
             if (!newValue && props.id) {
@@ -153,6 +169,7 @@ export function SelectDistrict(props: Props) {
             }
 
             setValue(newValue);
+            setReturnData(true);
             props.handleChangeId(newValue?.id || '');
           }
         }}
@@ -236,6 +253,7 @@ export function SelectDistrict(props: Props) {
             }
 
             handleRemoveDistrict(value.id);
+            setReturnData(true);
             props.handleChangeId('');
           } else {
             Alerting.create('info', 'Não é possível remover o estado sendo usado pelo registro.');

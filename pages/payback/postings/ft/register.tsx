@@ -1,10 +1,12 @@
-/**
- * @description Payback -> Lançamentos Financeiros -> Cadastro
- * @author GuilhermeSantos001
- * @update 14/02/2022
- */
+import React, { useState } from 'react'
 
-import React, { useEffect, useState } from 'react'
+import { GetServerSidePropsContext } from 'next/types'
+
+import { useGetUserInfoService } from '@/services/graphql/useGetUserInfoService'
+
+import { verifyCookie } from '@/lib/verifyCookie'
+
+import { compressToEncodedURIComponent } from 'lz-string'
 
 import FormControl from '@mui/material/FormControl'
 import Select from '@mui/material/Select'
@@ -29,16 +31,20 @@ import { AssistantCoverageDefine } from '@/components/assistants/AssistantCovera
 import { ListWithCheckboxMUI } from '@/components/lists/ListWithCheckboxMUI'
 import { ListWorkplacesSelected } from '@/components/lists/ListWorkplacesSelected'
 import { RegisterWorkplace } from '@/components/modals/RegisterWorkplace'
+import { RegisterAddress } from '@/components/modals/RegisterAddress'
 import { RegisterPeople } from '@/components/modals/RegisterPeople'
 import { EditWorkplace } from '@/components/modals/EditWorkplace'
+import { EditAddress } from '@/components/modals/EditAddress'
 import { EditPeople } from '@/components/modals/EditPeople'
 import { ListCoverageDefined } from '@/components/lists/ListCoverageDefined'
+import { SelectAddress } from '@/components/selects/SelectAddress'
 
 import { BoxLoadingMagicSpinner } from '@/components/utils/BoxLoadingMagicSpinner'
 import { BoxError } from '@/components/utils/BoxError'
 
 import { PageProps } from '@/pages/_app'
-import {GetMenuMain} from '@/bin/GetMenuMain'
+import { GetMenuMain } from '@/bin/GetMenuMain'
+import { PrivilegesSystem } from '@/types/UserType'
 
 import { SocketConnection } from '@/components/socket-io'
 import {
@@ -49,8 +55,6 @@ import {
   TYPEOF_LISTENER_PAYBACK_DELETE_MIRROR,
 } from '@/constants/SocketTypes'
 
-import { Variables } from '@/src/db/variables'
-import hasPrivilege from '@/src/functions/hasPrivilege'
 import Alerting from '@/src/utils/alerting'
 import StringEx from '@/src/utils/stringEx'
 import DateEx from '@/src/utils/dateEx'
@@ -60,6 +64,7 @@ import getPeopleForTable from '@/src/functions/getPeopleForTable'
 
 import { CostCenterType } from '@/types/CostCenterType'
 import { WorkplaceType } from '@/types/WorkplaceType'
+import { AddressType } from '@/types/AddressType'
 import { PersonType } from '@/types/PersonType'
 import { PostingType } from '@/types/PostingType'
 import { CardType } from '@/types/CardType'
@@ -67,6 +72,7 @@ import { CardType } from '@/types/CardType'
 import { usePostingsService } from '@/services/usePostingsService'
 import { useCostCentersService } from '@/services/useCostCentersService'
 import { useWorkplacesService } from '@/services/useWorkplacesService'
+import { useAddressesService } from '@/services/useAddressesService'
 import { usePeopleService } from '@/services/usePeopleService'
 import { useCardsService } from '@/services/useCardsService'
 import { useUploadsService } from '@/services/useUploadsService'
@@ -78,10 +84,20 @@ const serverSideProps: PageProps = {
   menu: GetMenuMain('mn-payback')
 }
 
-export const getServerSideProps = async () => {
+export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => {
+  const privileges: PrivilegesSystem[] = [
+    'administrador',
+    'ope_gerente',
+    'ope_coordenador',
+    'ope_mesa'
+  ]
+
   return {
     props: {
       ...serverSideProps,
+      privileges,
+      auth: await verifyCookie(req.cookies.auth),
+      getUserInfoAuthorization: process.env.GRAPHQL_AUTHORIZATION_GETUSERINFO!,
     },
   }
 }
@@ -320,6 +336,7 @@ function compose_noAuth(handleClick: handleClickFunction) {
 
 function compose_ready(
   handleClickBackPage: () => void,
+  auth: string,
   assistantStep: number,
   assistantFinish: boolean,
   handleChangeAssistantStep: (step: number) => void,
@@ -339,23 +356,32 @@ function compose_ready(
   periodEnd: Date,
   setPeriodEnd: React.Dispatch<React.SetStateAction<Date>>,
   workplaces: WorkplaceType[],
+  addresses: AddressType[],
   showModalRegisterWorkplace: boolean,
+  showModalRegisterAddress: boolean,
   showModalRegisterPeopleInWorkplace: boolean,
   showModalEditWorkplace: boolean,
+  showModalEditAddress: boolean,
   showModalEditPeopleInWorkplace: boolean,
   handleShowModalRegisterWorkplace: () => void,
+  handleShowModalRegisterAddress: () => void,
   handleShowModalRegisterPeopleInWorkplace: () => void,
   handleCloseModalRegisterWorkplace: () => void,
+  handleCloseModalRegisterAddress: () => void,
   handleCloseModalRegisterPeopleInWorkplace: () => void,
   handleShowModalEditWorkplace: () => void,
+  handleShowModalEditAddress: () => void,
   handleShowModalEditPeopleInWorkplace: () => void,
   handleCloseModalEditWorkplace: () => void,
+  handleCloseModalEditAddress: () => void,
   handleCloseModalEditPeopleInWorkplace: () => void,
   selectWorkplaces: string[],
+  selectAddressId: string,
   selectPeopleInWorkplaces: string[],
   handleDefineSelectWorkplaces: (itens: string[]) => void,
   handleDefineSelectPeopleInWorkplaces: (itens: string[]) => void,
   handleDeleteWorkplaces: (workplacesId: string[]) => void,
+  handleDeleteAddresses: (addressId: string) => void,
   handleDeletePeopleInWorkplaces: (peopleId: string[]) => void,
   people: PersonType[],
   appliedWorkplaces: WorkplaceType[],
@@ -364,6 +390,7 @@ function compose_ready(
   handleAppendAppliedPeopleInWorkplaces: (itens: PersonType[]) => void,
   handleRemoveAppliedWorkplaces: (itens: WorkplaceType[]) => void,
   handleRemoveAppliedPeopleInWorkplaces: (itens: PersonType[]) => void,
+  handleChangeIdAddress: (id: string) => void,
   cards: CardType[],
   postings: PostingType[],
   showModalAssistantCoverageDefine: boolean,
@@ -373,7 +400,7 @@ function compose_ready(
   handleAppendPostingDefined: (postings: PostingType[]) => void,
   handleDefinePostingDefined: (postings: PostingType[]) => void,
   handleResetPostingDefined: () => void,
-  handleRemovePostingDefined: (id: string) => void,
+  handleRemovePostingDefined: (id: string) => void
 ) {
   const
     { columns: workPlaceColumns, rows: workPlaceRows } =
@@ -408,6 +435,61 @@ function compose_ready(
   return (
     <>
       {!window.socket && <SocketConnection />}
+      {/* <RegisterWorkplace
+        show={showModalRegisterWorkplace}
+        handleClose={handleCloseModalRegisterWorkplace}
+      />
+      <RegisterAddress
+        show={showModalRegisterAddress}
+        handleClose={handleCloseModalRegisterAddress}
+      />
+      {
+        selectWorkplaces.length === 1 &&
+        <EditWorkplace
+          id={workplaces.find(place => place.id === selectWorkplaces[0])?.id || ""}
+          show={showModalEditWorkplace}
+          handleClose={handleCloseModalEditWorkplace}
+        />
+      }
+      {
+        selectAddressId.length > 0 &&
+        <EditAddress
+          id={addresses.find(address => address.id === selectAddressId)?.id || ""}
+          show={showModalEditAddress}
+          handleClose={handleCloseModalEditAddress}
+        />
+      }
+      <RegisterPeople
+        show={showModalRegisterPeopleInWorkplace}
+        handleClose={handleCloseModalRegisterPeopleInWorkplace}
+      />
+      {
+        selectPeopleInWorkplaces.length === 1 &&
+        <EditPeople
+          id={people.find(person => person.id === selectPeopleInWorkplaces[0])?.id || ""}
+          show={showModalEditPeopleInWorkplace}
+          handleClose={handleCloseModalEditPeopleInWorkplace}
+        />
+      }
+      <AssistantCoverageDefine
+        show={showModalAssistantCoverageDefine}
+        auth={auth}
+        availableWorkplaces={appliedWorkplaces.map(place => place.id)}
+        availablePeopleInWorkplace={appliedPeopleInWorkplaces.map(person => person.id)}
+        postingCostCenterId={costCenter}
+        periodStart={periodStart}
+        periodEnd={periodEnd}
+        handleFinish={(postings: PostingType[]) => {
+          if (postings.length > 0) {
+            Alerting.create('success', 'Cobertura(s) aplicada(s) com sucesso!');
+            handleAppendPostingDefined(postings);
+          }
+        }}
+        handleClose={() => {
+          handleRemoveAppliedPeopleInWorkplaces(appliedPeopleInWorkplaces);
+          handleCloseModalAssistantCoverageDefine();
+        }}
+      /> */}
       <div className="row g-2">
         <div className="col-12">
           <div className="p-3 bg-primary bg-gradient rounded">
@@ -442,18 +524,6 @@ function compose_ready(
                   completed: assistantStep > 0,
                   component: (
                     <div className='d-flex flex-column p-2 m-2'>
-                      <RegisterWorkplace
-                        show={showModalRegisterWorkplace}
-                        handleClose={handleCloseModalRegisterWorkplace}
-                      />
-                      {
-                        selectWorkplaces.length === 1 &&
-                        <EditWorkplace
-                          id={workplaces.find(place => place.id === selectWorkplaces[0])?.id || ""}
-                          show={showModalEditWorkplace}
-                          handleClose={handleCloseModalEditWorkplace}
-                        />
-                      }
                       <p className="fw-bold border-bottom text-center my-2">
                         Informações Básicas
                       </p>
@@ -542,7 +612,49 @@ function compose_ready(
                         />
                       </div>
                       <p className="fw-bold border-bottom text-center my-2">
-                        Aplicados
+                        Endereços
+                      </p>
+                      <div className='d-flex flex-column'>
+                        <SelectAddress
+                          handleChangeId={handleChangeIdAddress}
+                        />
+                        <div className='d-flex justify-content-start align-items-start'>
+                          <button
+                            type="button"
+                            className="btn btn-link"
+                            disabled={selectAddressId.length <= 0}
+                            onClick={handleShowModalEditAddress}
+                          >
+                            <FontAwesomeIcon
+                              icon={Icon.render('fas', 'edit')}
+                              className="me-1 flex-shrink-1 my-auto"
+                            /> Atualizar
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-link"
+                            disabled={selectAddressId.length <= 0}
+                            onClick={() => handleDeleteAddresses(selectAddressId)}
+                          >
+                            <FontAwesomeIcon
+                              icon={Icon.render('fas', 'minus-square')}
+                              className="me-1 flex-shrink-1 my-auto"
+                            /> Remover
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-link"
+                            onClick={handleShowModalRegisterAddress}
+                          >
+                            <FontAwesomeIcon
+                              icon={Icon.render('fas', 'plus-square')}
+                              className="me-1 flex-shrink-1 my-auto"
+                            /> Adicionar
+                          </button>
+                        </div>
+                      </div>
+                      <p className="fw-bold border-bottom text-center my-2">
+                        Postos de Trabalho
                       </p>
                       <ListWorkplacesSelected
                         workplaces={appliedWorkplaces}
@@ -550,14 +662,14 @@ function compose_ready(
                       <p className="fw-bold border-bottom text-center my-2">
                         Disponíveis
                       </p>
-                      <ListWithCheckboxMUI
+                      {/* <ListWithCheckboxMUI
                         columns={workPlaceColumns}
                         rows={workPlaceRows}
                         pageSize={pageSizeTableWorkplaces}
                         pageSizeOptions={pageSizeOptionsTableWorkplaces}
                         onChangeSelection={handleDefineSelectWorkplaces}
                         onPageSizeChange={handleChangePageSizeTableWorkplaces}
-                      />
+                      /> */}
                       <div className='d-flex flex-column flex-md-row'>
                         <button
                           type="button"
@@ -632,18 +744,6 @@ function compose_ready(
                   completed: assistantFinish,
                   component: (
                     <div className='d-flex flex-column p-2 m-2'>
-                      <RegisterPeople
-                        show={showModalRegisterPeopleInWorkplace}
-                        handleClose={handleCloseModalRegisterPeopleInWorkplace}
-                      />
-                      {
-                        selectPeopleInWorkplaces.length === 1 &&
-                        <EditPeople
-                          id={people.find(person => person.id === selectPeopleInWorkplaces[0])?.id || ""}
-                          show={showModalEditPeopleInWorkplace}
-                          handleClose={handleCloseModalEditPeopleInWorkplace}
-                        />
-                      }
                       <ListCoverageDefined
                         postings={postingsDefined}
                         disabledPostingRemove={assistantFinish}
@@ -674,24 +774,6 @@ function compose_ready(
                         />
                         Limpar Coberturas Aplicadas
                       </Button>
-                      <AssistantCoverageDefine
-                        show={showModalAssistantCoverageDefine}
-                        availableWorkplaces={appliedWorkplaces.map(place => place.id)}
-                        availablePeopleInWorkplace={appliedPeopleInWorkplaces.map(person => person.id)}
-                        postingCostCenterId={costCenter}
-                        periodStart={periodStart}
-                        periodEnd={periodEnd}
-                        handleFinish={(postings: PostingType[]) => {
-                          if (postings.length > 0) {
-                            Alerting.create('success', 'Cobertura(s) aplicada(s) com sucesso!');
-                            handleAppendPostingDefined(postings);
-                          }
-                        }}
-                        handleClose={() => {
-                          handleRemoveAppliedPeopleInWorkplaces(appliedPeopleInWorkplaces);
-                          handleCloseModalAssistantCoverageDefine();
-                        }}
-                      />
                       <p className="fw-bold border-bottom text-center my-2">
                         Funcionários
                       </p>
@@ -785,7 +867,17 @@ function compose_ready(
   )
 }
 
-export default function Register() {
+export default function Register(
+  {
+    privileges,
+    auth,
+    getUserInfoAuthorization,
+  }: {
+    privileges: PrivilegesSystem[],
+    auth: string,
+    getUserInfoAuthorization: string
+  }
+) {
   const [syncData, setSyncData] = useState<boolean>(false)
 
   const [isReady, setReady] = useState<boolean>(false)
@@ -795,6 +887,9 @@ export default function Register() {
 
   const [showModalRegisterWorkplace, setShowModalRegisterWorkplace] = useState<boolean>(false)
   const [showModalEditWorkplace, setShowModalEditWorkplace] = useState<boolean>(false)
+
+  const [showModalRegisterAddress, setShowModalRegisterAddress] = useState<boolean>(false)
+  const [showModalEditAddress, setShowModalEditAddress] = useState<boolean>(false)
 
   const [showModalRegisterPeopleInWorkplace, setShowModalRegisterPeopleInWorkplace] = useState<boolean>(false)
   const [showModalEditPeopleInWorkplace, setShowModalEditPeopleInWorkplace] = useState<boolean>(false)
@@ -812,6 +907,8 @@ export default function Register() {
   const [pageSizeTableWorkplaces, setPageSizeTableWorkplaces] = useState<number>(10)
   const pageSizeOptionsTableWorkplaces = [10, 25, 50, 100];
 
+  const [selectAddressId, setSelectAddressId] = useState<string>('')
+
   const [selectPeopleInWorkplaces, setSelectPeopleInWorkplaces] = useState<string[]>([])
   const [appliedPeopleInWorkplaces, setAppliedPeopleInWorkplaces] = useState<PersonType[]>([])
 
@@ -822,11 +919,22 @@ export default function Register() {
 
   const [postingsDefined, setPostingsDefined] = useState<PostingType[]>([])
 
+  const { success, data, error } = useGetUserInfoService(
+    {
+      auth: compressToEncodedURIComponent(auth),
+    },
+    {
+      authorization: getUserInfoAuthorization,
+      encodeuri: 'true'
+    }
+  );
+
   const router = useRouter()
 
   const { data: postings, isLoading: isLoadingPostings, delete: DeletePostings } = usePostingsService();
   const { data: costCenters, isLoading: isLoadingCostCenters } = useCostCentersService();
   const { data: workplaces, isLoading: isLoadingWorkplaces, delete: DeleteWorkplaces } = useWorkplacesService();
+  const { data: addresses, isLoading: isLoadingAddresses, delete: DeleteAddresses } = useAddressesService();
   const { data: people, isLoading: isLoadingPeople, delete: DeletePeople } = usePeopleService();
   const { data: cards, isLoading: isLoadingCards } = useCardsService();
   const { data: uploads, isLoading: isLoadingUploads, delete: DeleteUploads } = useUploadsService();
@@ -836,14 +944,9 @@ export default function Register() {
       event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
       path: string
     ) => {
-      event.preventDefault()
-
-      if (path === '/auth/login') {
-        const variables = new Variables(1, 'IndexedDB')
-        await Promise.all([await variables.clear()]).then(() => {
-          router.push(path)
-        })
-      }
+      event.preventDefault();
+      if (path === '/auth/login')
+        router.push(path);
     },
     handleClickNoPrivilege: handleClickFunction = async (
       event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
@@ -877,12 +980,16 @@ export default function Register() {
     handleChangePageSizeTablePeopleInWorkplaces = (pageSize: number) => setPageSizeTablePeopleInWorkplaces(pageSize),
     handleChangeCostCenter = (id: string) => setCostCenter(id),
     handleShowModalRegisterWorkplace = () => setShowModalRegisterWorkplace(true),
+    handleShowModalRegisterAddress = () => setShowModalRegisterAddress(true),
     handleShowModalRegisterPeopleInWorkplace = () => setShowModalRegisterPeopleInWorkplace(true),
     handleCloseModalRegisterWorkplace = () => setShowModalRegisterWorkplace(false),
+    handleCloseModalRegisterAddress = () => setShowModalRegisterAddress(false),
     handleCloseModalRegisterPeopleInWorkplace = () => setShowModalRegisterPeopleInWorkplace(false),
     handleShowModalEditWorkplace = () => setShowModalEditWorkplace(true),
+    handleShowModalEditAddress = () => setShowModalEditAddress(true),
     handleShowModalEditPeopleInWorkplace = () => setShowModalEditPeopleInWorkplace(true),
     handleCloseModalEditWorkplace = () => setShowModalEditWorkplace(false),
+    handleCloseModalEditAddress = () => setShowModalEditAddress(false),
     handleCloseModalEditPeopleInWorkplace = () => setShowModalEditPeopleInWorkplace(false),
     handleDefineSelectWorkplaces = (itens: string[]) => setSelectWorkplaces(itens),
     handleDefineSelectPeopleInWorkplaces = (itens: string[]) => setSelectPeopleInWorkplaces(itens),
@@ -898,6 +1005,17 @@ export default function Register() {
 
         Alerting.create('success', `Local de trabalho (${workplaces.find(place => place.id === workplaceId)?.name || '???'}) deletado com sucesso.`);
       }
+    },
+    handleDeleteAddresses = async (addressId: string) => {
+      if (!DeleteAddresses)
+        return Alerting.create('error', 'Não foi possível deletar o registro. Tente novamente, mais tarde.');
+
+      const deleted = await DeleteAddresses(addressId);
+
+      if (!deleted)
+        return Alerting.create('error', 'Não foi possível deletar o endereço. Verifique se ele não está sendo utilizado em outro registro.');
+
+      Alerting.create('success', 'Endereço deletado com sucesso.');
     },
     handleDeletePeopleInWorkplaces = async (peopleId: string[]) => {
       if (!DeletePeople)
@@ -920,6 +1038,7 @@ export default function Register() {
     handleRemoveAppliedPeopleInWorkplaces = (itens: PersonType[]) => {
       setAppliedPeopleInWorkplaces(appliedPeopleInWorkplaces.filter(item => !itens.some(item2 => item2.id === item.id)))
     },
+    handleChangeIdAddress = (id: string) => setSelectAddressId(id),
     handleOpenModalAssistantCoverageDefine = () => setShowModalAssistantCoverageDefine(true),
     handleCloseModalAssistantCoverageDefine = () => setShowModalAssistantCoverageDefine(false),
     handleAppendPostingDefined = (postings: PostingType[]) => setPostingsDefined([...postingsDefined, ...postings]),
@@ -973,29 +1092,30 @@ export default function Register() {
       } else {
         Alerting.create('error', `Não foi possível deletar o arquivo. Tente novamente, mais tarde.`);
       }
-    };
+    }
 
-  useEffect(() => {
-    hasPrivilege('administrador', 'ope_gerente', 'ope_coordenador', 'ope_mesa')
-      .then((isAllowViewPage) => {
-        if (isAllowViewPage) {
-          setReady(true);
-        } else {
-          setNotPrivilege(true);
-        }
+  if (error && !notAuth) {
+    setNotAuth(true);
+    setLoading(false);
+  }
 
-        return setLoading(false);
-      })
-      .catch(() => {
-        setNotAuth(true);
-        return setLoading(false)
-      });
-  }, [])
+  if (success && data && !isReady) {
+    if (
+      privileges
+        .filter(privilege => data.privileges.indexOf(privilege) !== -1)
+        .length <= 0
+    )
+      setNotPrivilege(true);
+
+    setReady(true);
+    setLoading(false);
+  }
 
   if (
     isLoadingPostings && !syncData
     || isLoadingCostCenters && !syncData
     || isLoadingWorkplaces && !syncData
+    || isLoadingAddresses && !syncData
     || isLoadingPeople && !syncData
     || isLoadingCards && !syncData
     || isLoadingUploads && !syncData
@@ -1007,6 +1127,7 @@ export default function Register() {
     && postings
     && costCenters
     && workplaces
+    && addresses
     && people
     && cards
     && uploads
@@ -1018,6 +1139,7 @@ export default function Register() {
     || !syncData && !costCenters
     || !syncData && !workplaces
     || !syncData && !DeleteWorkplaces
+    || !syncData && !addresses
     || !syncData && !people
     || !syncData && !DeletePeople
     || !syncData && !cards
@@ -1038,6 +1160,7 @@ export default function Register() {
 
     return compose_ready(
       handleClickBackPage,
+      auth,
       assistantStep,
       assistantFinish,
       handleChangeAssistantStep,
@@ -1057,23 +1180,32 @@ export default function Register() {
       periodEnd,
       setPeriodEnd,
       workplaces,
+      addresses,
       showModalRegisterWorkplace,
+      showModalRegisterAddress,
       showModalRegisterPeopleInWorkplace,
       showModalEditWorkplace,
+      showModalEditAddress,
       showModalEditPeopleInWorkplace,
       handleShowModalRegisterWorkplace,
+      handleShowModalRegisterAddress,
       handleShowModalRegisterPeopleInWorkplace,
       handleCloseModalRegisterWorkplace,
+      handleCloseModalRegisterAddress,
       handleCloseModalRegisterPeopleInWorkplace,
       handleShowModalEditWorkplace,
+      handleShowModalEditAddress,
       handleShowModalEditPeopleInWorkplace,
       handleCloseModalEditWorkplace,
+      handleCloseModalEditAddress,
       handleCloseModalEditPeopleInWorkplace,
       selectWorkplaces,
+      selectAddressId,
       selectPeopleInWorkplaces,
       handleDefineSelectWorkplaces,
       handleDefineSelectPeopleInWorkplaces,
       handleDeleteWorkplaces,
+      handleDeleteAddresses,
       handleDeletePeopleInWorkplaces,
       people,
       appliedWorkplaces,
@@ -1082,6 +1214,7 @@ export default function Register() {
       handleAppendAppliedPeopleInWorkplaces,
       handleRemoveAppliedWorkplaces,
       handleRemoveAppliedPeopleInWorkplaces,
+      handleChangeIdAddress,
       cards,
       postings,
       showModalAssistantCoverageDefine,
@@ -1125,7 +1258,7 @@ function onSocketEvents(
         ) => {
           const {
             filesId
-          } = window.socket.decompress<TYPEOF_LISTENER_PAYBACK_DELETE_MIRROR>(data);
+          } = socket.decompress<TYPEOF_LISTENER_PAYBACK_DELETE_MIRROR>(data);
           filesId.forEach(fileId => handleDeleteUpload(fileId));
         }
       )

@@ -1,9 +1,3 @@
-/**
- * @description Efetuada uma chamada para a API para enviar um arquivo
- * @author GuilhermeSantos001
- * @update 14/11/2021
- */
-
 import Fetch from '@/src/utils/fetch';
 import { Variables } from '@/src/db/variables';
 import signURL from '@/src/functions/signURL'
@@ -18,12 +12,10 @@ export interface File {
   status: string
 }
 
-const singleUpload = async (_fetch: Fetch, file: globalThis.File, randomName: boolean): Promise<File> => {
+const singleUpload = async (_fetch: Fetch, auth: string, file: globalThis.File, randomName: boolean): Promise<File> => {
   const formData = new FormData(),
     signedUrl = await signURL(),
     size = file.size,
-    variables = new Variables(1, 'IndexedDB'),
-    auth = await variables.get<string>('auth'),
     operations = `{ "query": "mutation ($file: Upload!, $size: String!, $signedUrl: String!, $auth: String!, $randomName: Boolean!) { singleUpload(file: $file, size: $size, signedUrl: $signedUrl, auth: $auth, randomName: $randomName) { authorId name size compressedSize fileId version status } }", "variables": { "file": null, "size": "${size}", "signedUrl": "${signedUrl}", "auth": "${auth}", "randomName": ${randomName} } }`,
     map = `{"0": ["variables.file"] }`
 

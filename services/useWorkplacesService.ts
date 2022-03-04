@@ -4,43 +4,31 @@ import useSWR from 'swr'
 import { fetcherAxiosGet } from '@/src/utils/fetcherAxiosGet';
 import { fetcherAxiosPut } from '@/src/utils/fetcherAxiosPut';
 import { fetcherAxiosDelete } from '@/src/utils/fetcherAxiosDelete';
-import { WorkplaceType } from '@/types/WorkplaceType';
 import { ApiResponseSuccessType } from '@/types/ApiResponseSuccessType';
 import { ApiResponseErrorType } from '@/types/ApiResponseErrorType';
 import { ApiResponseSuccessOrErrorType } from '@/types/ApiResponseSuccessOrErrorType';
 
+import type {
+  DataWorkplace
+} from '@/types/WorkplaceServiceType';
+
+import type {
+  WorkplaceType
+} from '@/types/WorkplaceType';
+
 import Alerting from '@/src/utils/alerting';
 
-export type DataWorkplace = Pick<WorkplaceType,
-  | "name"
-  | "scaleId"
-  | "entryTime"
-  | "exitTime"
-  | "addressId"
-  | "status"
->;
-
-declare function UpdateWorkplaces(id: string, newData: DataWorkplace): Promise<boolean>
-declare function DeleteWorkplaces(id: string): Promise<boolean>
-
-export type FunctionUpdateWorkplacesTypeof = typeof UpdateWorkplaces | undefined;
-export type FunctionDeleteWorkplacesTypeof = typeof DeleteWorkplaces | undefined;
-export type FunctionNextPageTypeof = (() => void) | undefined;
-export type FunctionPreviousPageTypeof = (() => void) | undefined;
-
-export function useWorkplacesService(take: number = 10, refreshInterval: number = 1000) {
+export function useWorkplacesService(take: number = 10) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [uri, setURI] = useState<string>(`${process.env.NEXT_PUBLIC_API_HOST}/workplaces?take=${take}`);
+  const [lastCursorId, setLastCursorId] = useState<number>(0);
 
   const skip = 1;
-
-  const [uri, setURI] = useState<string>(`${process.env.NEXT_PUBLIC_API_HOST}/workplaces?take=${take}`);
-
-  const [lastCursorId, setLastCursorId] = useState<number>(0);
 
   const { data, error, mutate } = useSWR<
     ApiResponseSuccessType<WorkplaceType[]>,
     ApiResponseErrorType<Object>
-  >([uri, setIsLoading], fetcherAxiosGet, { refreshInterval })
+  >([uri, setIsLoading], fetcherAxiosGet, { refreshInterval: 5000 })
 
   if (error) {
     Alerting.create('error', error.message);

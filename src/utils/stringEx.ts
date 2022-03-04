@@ -6,7 +6,6 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { compressToBase64 } from 'lz-string';
-import { Value } from 'sass';
 
 const StringMask = require('string-mask');
 

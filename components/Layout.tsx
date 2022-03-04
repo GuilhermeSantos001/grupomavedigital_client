@@ -1,9 +1,3 @@
-/**
- * @description Componentes de loading
- * @author GuilhermeSantos001
- * @update 07/02/2022
- */
-
 import { useState, useEffect } from 'react'
 
 import { SnackbarProvider } from 'notistack';
@@ -119,7 +113,7 @@ export default function Layout(props: Props) {
     return () => {
       clearInterval(interval);
     }
-  }, [])
+  })
 
 
   useEffect(() => {

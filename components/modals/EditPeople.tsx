@@ -1,9 +1,3 @@
-/**
- * @description Modal -> Modal de Edição do(a) Funcionário(a)
- * @author GuilhermeSantos001
- * @update 13/02/2022
- */
-
 import React, { useState } from 'react';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
@@ -33,7 +27,7 @@ import ArrayEx from '@/src/utils/arrayEx'
 import StringEx from '@/src/utils/stringEx'
 import Alerting from '@/src/utils/alerting'
 
-import { usePersonService } from '@/services/usePersonService';
+import { usePersonWithIdService } from '@/services/usePersonWithIdService';
 import { useServicesService } from '@/services/useServicesService';
 import { useCardsService } from '@/services/useCardsService';
 
@@ -68,7 +62,7 @@ export function EditPeople(props: Props) {
   const [appliedCards, setAppliedCards] = useState<string[]>([])
   const [appliedServices, setAppliedServices] = useState<string[]>([])
 
-  const { data: person, isLoading: isLoadingPerson, update: UpdatePerson } = usePersonService(props.id);
+  const { data: person, isLoading: isLoadingPerson, update: UpdatePerson } = usePersonWithIdService(props.id);
   const { data: services, isLoading: isLoadingServices, assignPerson: AssignPersonService, unassignPerson: UnassignPersonService } = useServicesService();
   const { data: cards, isLoading: isLoadingCards, assignPerson: AssignPersonCard, unassignPerson: UnassignPersonCard } = useCardsService();
 
@@ -239,168 +233,162 @@ export function EditPeople(props: Props) {
   }
 
   return (
-    <div>
-      <Dialog
-        fullScreen
-        open={props.show}
-        onClose={props.handleClose}
-        TransitionComponent={Transition}
+    <Dialog
+      fullScreen
+      open={props.show}
+      onClose={props.handleClose}
+      TransitionComponent={Transition}
+    >
+      <AppBar sx={{ position: 'relative' }}>
+        <Toolbar>
+          <IconButton
+            edge="start"
+            color="inherit"
+            onClick={props.handleClose}
+            aria-label="close"
+          >
+            <CloseIcon />
+          </IconButton>
+          <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
+            Editar Funcionário(a)
+          </Typography>
+          <Button
+            color="inherit"
+            disabled={!canUpdatePerson()}
+            onClick={handleUpdatePerson}
+          >
+            Atualizar
+          </Button>
+        </Toolbar>
+      </AppBar>
+      <List>
+        <ListItem>
+          <ListItemText primary="Informações Básicas" />
+        </ListItem>
+        <ListItem>
+          <TextField
+            className='col'
+            label="Matrícula"
+            variant="standard"
+            value={StringEx.maskMatricule(matricule, true)}
+            onChange={(e) => handleChangeMatricule(StringEx.removeMaskNum(e.target.value))}
+          />
+        </ListItem>
+        <ListItem>
+          <TextField
+            className='col'
+            label="Nome Completo"
+            variant="standard"
+            value={name}
+            onChange={(e) => handleChangeName(e.target.value)}
+          />
+        </ListItem>
+        <ListItem>
+          <TextField
+            className='col'
+            label="CPF"
+            variant="standard"
+            value={StringEx.maskCPF(cpf, true)}
+            onChange={(e) => handleChangeCPF(StringEx.removeMaskNum(e.target.value))}
+          />
+        </ListItem>
+        <ListItem>
+          <TextField
+            className='col'
+            label="RG"
+            variant="standard"
+            value={StringEx.maskRG(rg, true)}
+            onChange={(e) => handleChangeRG(StringEx.removeMaskNum(e.target.value))}
+          />
+        </ListItem>
+        <ListItem>
+          <TextField
+            className='col'
+            label="Nome da Mãe"
+            variant="standard"
+            value={motherName}
+            onChange={(e) => handleChangeMotherName(e.target.value)}
+          />
+        </ListItem>
+        <ListItem>
+          <TextField
+            className='col'
+            label="Celular"
+            variant="standard"
+            value={StringEx.maskPhone(phone, true)}
+            onChange={(e) => handleChangePhone(StringEx.removeMaskNum(e.target.value))}
+          />
+        </ListItem>
+        <ListItem>
+          <TextField
+            className='col'
+            label="E-mail"
+            variant="standard"
+            value={mail}
+            onChange={(e) => handleChangeMail(e.target.value)}
+          />
+        </ListItem>
+      </List>
+      <List>
+        <ListItem>
+          <DatePicker
+            className='col-12'
+            label="Data de Nascimento"
+            value={birthDate}
+            maxDate={DateEx.addYears(DateEx.subYears(new Date(), 75), 55)}
+            minDate={DateEx.subYears(new Date(), 75)}
+            handleChangeValue={handleChangeBirthDate}
+          />
+        </ListItem>
+        <ListItem>
+          <SelectScale
+            id={person?.scaleId}
+            handleChangeId={(id) => handleChangeScaleId(id)}
+          />
+        </ListItem>
+        <ListItem>
+          <SelectCard
+            selectCards={person?.cards.map(card => `${card.costCenter.value || "???"} - ${card.serialNumber} (4 Últimos Dígitos: ${card.lastCardNumber})`)}
+            handleChangeCard={(cards) => setAppliedCards(cards)}
+          />
+        </ListItem>
+        <ListItem>
+          <ListItemText primary="Funções da Pessoa" />
+        </ListItem>
+      </List>
+      <SelectService
+        itemsLeft={person ? ArrayEx.returnItemsOfANotContainInB(services.map(service => service.value), person.personService.map(_ => _.service.value)) : []}
+        itemsRight={person?.personService.map((_) => _.service.value) || []}
+        onChangeAppliedServices={(values) => setAppliedServices(services.filter(service => values.includes(service.value)).map(service => service.id))}
+      />
+      <List>
+        <ListItem>
+          <ListItemText primary="Endereço" />
+        </ListItem>
+        <ListItem>
+          <SelectAddress
+            id={person?.addressId}
+            handleChangeId={(id) => handleChangeAddressId(id)}
+          />
+        </ListItem>
+      </List>
+      <Button
+        className='col-10 mx-auto my-2'
+        variant="contained"
+        color="primary"
+        disabled={!canUpdatePerson()}
+        onClick={handleUpdatePerson}
       >
-        <AppBar sx={{ position: 'relative' }}>
-          <Toolbar>
-            <IconButton
-              edge="start"
-              color="inherit"
-              onClick={props.handleClose}
-              aria-label="close"
-            >
-              <CloseIcon />
-            </IconButton>
-            <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
-              Editar Funcionário(a)
-            </Typography>
-            <Button
-              color="inherit"
-              disabled={!canUpdatePerson()}
-              onClick={handleUpdatePerson}
-            >
-              Atualizar
-            </Button>
-          </Toolbar>
-        </AppBar>
-        <List>
-          <ListItem>
-            <ListItemText primary="Informações Básicas" />
-          </ListItem>
-          <ListItem>
-            <TextField
-              className='col'
-              label="Matrícula"
-              variant="standard"
-              value={StringEx.maskMatricule(matricule, true)}
-              onChange={(e) => handleChangeMatricule(StringEx.removeMaskNum(e.target.value))}
-            />
-          </ListItem>
-          <ListItem>
-            <TextField
-              className='col'
-              label="Nome Completo"
-              variant="standard"
-              value={name}
-              onChange={(e) => handleChangeName(e.target.value)}
-            />
-          </ListItem>
-          <ListItem>
-            <TextField
-              className='col'
-              label="CPF"
-              variant="standard"
-              value={StringEx.maskCPF(cpf, true)}
-              onChange={(e) => handleChangeCPF(StringEx.removeMaskNum(e.target.value))}
-            />
-          </ListItem>
-          <ListItem>
-            <TextField
-              className='col'
-              label="RG"
-              variant="standard"
-              value={StringEx.maskRG(rg, true)}
-              onChange={(e) => handleChangeRG(StringEx.removeMaskNum(e.target.value))}
-            />
-          </ListItem>
-          <ListItem>
-            <TextField
-              className='col'
-              label="Nome da Mãe"
-              variant="standard"
-              value={motherName}
-              onChange={(e) => handleChangeMotherName(e.target.value)}
-            />
-          </ListItem>
-          <ListItem>
-            <TextField
-              className='col'
-              label="Celular"
-              variant="standard"
-              value={StringEx.maskPhone(phone, true)}
-              onChange={(e) => handleChangePhone(StringEx.removeMaskNum(e.target.value))}
-            />
-          </ListItem>
-          <ListItem>
-            <TextField
-              className='col'
-              label="E-mail"
-              variant="standard"
-              value={mail}
-              onChange={(e) => handleChangeMail(e.target.value)}
-            />
-          </ListItem>
-        </List>
-        <List>
-          <ListItem>
-            <DatePicker
-              className='col-12'
-              label="Data de Nascimento"
-              value={birthDate}
-              maxDate={DateEx.addYears(DateEx.subYears(new Date(), 75), 55)}
-              minDate={DateEx.subYears(new Date(), 75)}
-              handleChangeValue={handleChangeBirthDate}
-            />
-          </ListItem>
-          <ListItem>
-            <div className='col'>
-              <SelectScale
-                id={person?.scaleId}
-                handleChangeId={(id) => handleChangeScaleId(id)}
-              />
-            </div>
-          </ListItem>
-          <ListItem>
-            <div className='col'>
-              <SelectCard
-                selectCards={person?.cards.map(card => `${card.costCenter.value || "???"} - ${card.serialNumber} (4 Últimos Dígitos: ${card.lastCardNumber})`)}
-                handleChangeCard={(cards) => setAppliedCards(cards)}
-              />
-            </div>
-          </ListItem>
-          <ListItem>
-            <ListItemText primary="Funções da Pessoa" />
-          </ListItem>
-        </List>
-        <SelectService
-          itemsLeft={person ? ArrayEx.returnItemsOfANotContainInB(services.map(service => service.value), person.personService.map(_ => _.service.value)) : []}
-          itemsRight={person?.personService.map((_) => _.service.value) || []}
-          onChangeAppliedServices={(values) => setAppliedServices(services.filter(service => values.includes(service.value)).map(service => service.id))}
-        />
-        <List>
-          <ListItem>
-            <ListItemText primary="Endereço" />
-          </ListItem>
-          <ListItem>
-            <SelectAddress
-              id={person?.addressId}
-              handleChangeId={(id) => handleChangeAddressId(id)}
-            />
-          </ListItem>
-        </List>
-        <Button
-          className='col-10 mx-auto my-2'
-          variant="contained"
-          color="primary"
-          disabled={!canUpdatePerson()}
-          onClick={handleUpdatePerson}
-        >
-          Atualizar
-        </Button>
-        <Button
-          className='col-10 mx-auto my-2'
-          variant="contained"
-          color="error"
-          onClick={props.handleClose}
-        >
-          Cancelar
-        </Button>
-      </Dialog>
-    </div>
+        Atualizar
+      </Button>
+      <Button
+        className='col-10 mx-auto my-2'
+        variant="contained"
+        color="error"
+        onClick={props.handleClose}
+      >
+        Cancelar
+      </Button>
+    </Dialog>
   );
 }

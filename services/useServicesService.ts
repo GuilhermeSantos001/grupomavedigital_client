@@ -5,46 +5,33 @@ import { fetcherAxiosPost } from '@/src/utils/fetcherAxiosPost';
 import { fetcherAxiosPut } from '@/src/utils/fetcherAxiosPut';
 import { fetcherAxiosGet } from '@/src/utils/fetcherAxiosGet';
 import { fetcherAxiosDelete } from '@/src/utils/fetcherAxiosDelete';
-import { ServiceType } from '@/types/ServiceType';
 import { ApiResponseSuccessType } from '@/types/ApiResponseSuccessType';
 import { ApiResponseErrorType } from '@/types/ApiResponseErrorType';
 import { ApiResponseSuccessOrErrorType } from '@/types/ApiResponseSuccessOrErrorType';
 
+import {
+  DataService,
+  DataAssignPerson,
+  DataAssignWorkplace
+} from '@/types/ServiceServiceType';
+
+import {
+  ServiceType
+} from '@/types/ServiceType';
+
 import Alerting from '@/src/utils/alerting';
 
-export type DataService = Pick<ServiceType, 'value'>;
-export type DataAssignPerson = { personId: string, serviceId?: string };
-export type DataAssignWorkplace = { workplaceId: string, serviceId?: string };
-
-declare function UpdateServices(id: string, newData: DataService): Promise<boolean>;
-declare function AssignPersonService(data: DataAssignPerson): Promise<boolean>;
-declare function AssignWorkplaceService(data: DataAssignWorkplace): Promise<boolean>;
-declare function UnassignPersonService(): Promise<boolean>;
-declare function UnassignWorkplaceService(): Promise<boolean>;
-declare function DeleteServices(id: string): Promise<boolean>;
-
-export type FunctionUpdateServicesTypeof = typeof UpdateServices | undefined;
-export type FunctionAssignPersonServiceTypeof = typeof AssignPersonService | undefined;
-export type FunctionAssignWorkplaceServiceTypeof = typeof AssignWorkplaceService | undefined;
-export type FunctionUnassignPersonServiceTypeof = typeof UnassignPersonService | undefined;
-export type FunctionUnassignWorkplaceServiceTypeof = typeof UnassignWorkplaceService | undefined;
-export type FunctionDeleteServicesTypeof = typeof DeleteServices | undefined;
-export type FunctionNextPageTypeof = (() => void) | undefined;
-export type FunctionPreviousPageTypeof = (() => void) | undefined;
-
-export function useServicesService(take: number = 10, refreshInterval: number = 1000) {
+export function useServicesService(take: number = 10) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [uri, setURI] = useState<string>(`${process.env.NEXT_PUBLIC_API_HOST}/services?take=${take}`);
+  const [lastCursorId, setLastCursorId] = useState<number>(0);
 
   const skip = 1;
-
-  const [uri, setURI] = useState<string>(`${process.env.NEXT_PUBLIC_API_HOST}/services?take=${take}`);
-
-  const [lastCursorId, setLastCursorId] = useState<number>(0);
 
   const { data, error, mutate } = useSWR<
     ApiResponseSuccessType<ServiceType[]>,
     ApiResponseErrorType<Object>
-  >([uri, setIsLoading], fetcherAxiosGet, { refreshInterval })
+  >([uri, setIsLoading], fetcherAxiosGet, { refreshInterval: 5000 })
 
   if (error) {
     Alerting.create('error', error.message);

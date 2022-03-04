@@ -10,7 +10,7 @@ const handler = (req: NextApiRequest, res: NextApiResponse) => {
   res.status(200).json({
     url: compressToBase64(sign({
       security: compressToBase64(`${process.env.NEXT_PUBLIC_GRAPHQL_HOST}?key=${`${uuidv4()}`}`)
-    }, process.env.SIGNED_URL_SECRET,
+    }, process.env.SIGNED_URL_SECRET!,
       {
         expiresIn: '5m'
       }))

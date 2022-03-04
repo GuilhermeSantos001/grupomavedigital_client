@@ -1,9 +1,3 @@
-/**
- * @description Input -> Seleciona um local de trabalho
- * @author GuilhermeSantos001
- * @update 12/02/2022
- */
-
 import { useState } from 'react';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
@@ -17,15 +11,18 @@ import { BoxError } from '@/components/utils/BoxError';
 import {
   useWorkplacesService
 } from '@/services/useWorkplacesService'
+import { WorkplaceType } from '@/types/WorkplaceType';
 
 export type Props = {
   id?: string
   disabled?: boolean
+  handleChangeData?: (data: WorkplaceType) => void
   handleChangeId: (id: string) => void
 }
 
 export function SelectWorkplace(props: Props) {
   const [syncData, setSyncData] = useState<boolean>(false);
+  const [returnData, setReturnData] = useState<boolean>(false);
 
   const [workplace, setWorkplace] = useState<string>(props.id || '');
 
@@ -43,6 +40,15 @@ export function SelectWorkplace(props: Props) {
   if (workplaces.length <= 0)
     return <OutlinedInputEmpty label='Local de Trabalho' message='Nenhum endereço cadastrado' />
 
+  if (props.id && props.handleChangeData && returnData) {
+    const place = workplaces.find(place => place.id === props.id);
+
+    if (place)
+      props.handleChangeData(place);
+
+    setReturnData(false);
+  }
+
   return (
     <FormControl variant="outlined" className='col-12'>
       <InputLabel id="select-workplace-label">
@@ -55,6 +61,7 @@ export function SelectWorkplace(props: Props) {
         disabled={props.disabled !== undefined ? props.disabled : false}
         onChange={(e) => {
           setWorkplace(e.target.value as string);
+          setReturnData(true);
           props.handleChangeId(e.target.value as string);
         }}
         label="Local de Trabalho"

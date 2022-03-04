@@ -1,27 +1,28 @@
-/**
- * @description Input -> Seleciona uma escala de trabalho
- * @author GuilhermeSantos001
- * @update 11/02/2022
- */
-
 import { useState } from 'react';
 import { Autocomplete, TextField, createFilterOptions, Button } from '@mui/material'
 
 import { AutocompleteLoading } from '@/components/utils/AutocompleteLoading';
 import { AutocompleteError } from '@/components/utils/AutocompleteError';
 
-import { ScaleType } from '@/types/ScaleType'
+import type { ScaleType } from '@/types/ScaleType'
+
+import type {
+  DataScale,
+  FunctionCreateScaleTypeof,
+  FunctionUpdateScalesTypeof,
+  FunctionDeleteScalesTypeof
+} from '@/types/ScaleServiceType'
 
 import {
-  useScaleService,
-  DataScale,
-  FunctionCreateScaleTypeof
+  useScaleService
 } from '@/services/useScaleService'
 
 import {
-  useScalesService,
-  FunctionUpdateScalesTypeof,
-  FunctionDeleteScalesTypeof
+  useScaleWithIdService
+} from '@/services/useScaleWithIdService'
+
+import {
+  useScalesService
 } from '@/services/useScalesService'
 
 import Alerting from '@/src/utils/alerting';
@@ -29,6 +30,7 @@ import Alerting from '@/src/utils/alerting';
 export type Props = {
   id?: string
   disabled?: boolean
+  handleChangeData?: (data: ScaleType) => void
   handleChangeId: (id: string) => void
 }
 
@@ -41,12 +43,14 @@ const filter = createFilterOptions<FilmOptionType>();
 
 export function SelectScale(props: Props) {
   const [syncData, setSyncData] = useState<boolean>(false);
+  const [returnData, setReturnData] = useState<boolean>(false);
 
   const [value, setValue] = useState<FilmOptionType | null>(null);
   const [hasEdit, setHasEdit] = useState<boolean>(false);
   const [editValue, setEditValue] = useState<string>('');
 
-  const { data: scale, isLoading: isLoadingScale, create: CreateScale } = useScaleService(props.id);
+  const { create: CreateScale } = useScaleService();
+  const { data: scale, isLoading: isLoadingScale } = useScaleWithIdService(props.id || '');
   const { data: scales, isLoading: isLoadingScales, update: UpdateScales, delete: DeleteScales } = useScalesService();
 
   const
@@ -73,8 +77,17 @@ export function SelectScale(props: Props) {
     return <AutocompleteError label='Escala de Trabalho' message='Ocorreu um erro' />
   }
 
+  if (props.id && props.handleChangeData && returnData) {
+    const scale = scales.find(scale => scale.id === props.id);
+
+    if (scale)
+      props.handleChangeData(scale);
+
+    setReturnData(false);
+  }
+
   return (
-    <div className='d-flex flex-column flex-md-row'>
+    <div className='d-flex flex-column flex-md-row col'>
       <Autocomplete
         className='col-12 col-md-10 mb-2 mb-md-0 me-md-2'
         value={value}
@@ -103,6 +116,7 @@ export function SelectScale(props: Props) {
                     };
 
                     setValue(update);
+                    setReturnData(true);
                     handleUpdateScale(scale.id, { value: editValue });
                     props.handleChangeId(scale.id);
                   }
@@ -117,6 +131,7 @@ export function SelectScale(props: Props) {
                         id: scale.id,
                         value: scale.value
                       });
+                      setReturnData(true);
                       props.handleChangeId(scale.id);
                     }
                   }
@@ -143,6 +158,7 @@ export function SelectScale(props: Props) {
             }
 
             setValue(scale);
+            setReturnData(true);
             props.handleChangeId(scale.id);
           } else {
             if (!newValue && props.id) {
@@ -153,6 +169,7 @@ export function SelectScale(props: Props) {
             }
 
             setValue(newValue);
+            setReturnData(true);
             props.handleChangeId(newValue?.id || '');
           }
         }}
@@ -236,6 +253,7 @@ export function SelectScale(props: Props) {
             }
 
             handleRemoveScale(value.id);
+            setReturnData(true);
             props.handleChangeId('');
           } else {
             Alerting.create('info', 'Não é possível remover a escala de trabalho sendo usada pelo registro.');

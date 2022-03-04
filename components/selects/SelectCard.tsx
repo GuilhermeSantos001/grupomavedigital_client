@@ -77,59 +77,63 @@ export function SelectCard(props: Props) {
   const availableCards: string[] = [];
 
   if (
-    cards.length > 0 &&  cards.filter(card => props.selectCards && props.selectCards.map(name => cardParseNameGetId(name)).includes(`${card.serialNumber} - ${card.lastCardNumber}`)).length > 0
+    cards.length > 0 && cards.filter(card => props.selectCards && props.selectCards.map(name => cardParseNameGetId(name)).includes(`${card.serialNumber} - ${card.lastCardNumber}`)).length > 0
     || cards.length > 0 && cards.filter(card => !card.person).length > 0
   )
-    return <FormControl className='col-12'>
-      <InputLabel id="select-multiple-checkbox-label">
-        Cartões Benefício (Alelo)
-      </InputLabel>
-      <Select
-        labelId="select-multiple-checkbox-label"
-        id="select-multiple-checkbox"
-        multiple
-        value={selectCards}
-        onChange={(e) => handleChangeCard(e.target.value)}
-        input={<OutlinedInput label="Cartões Benefício (Alelo)" />}
-        renderValue={(selected) => selected.length > 1 ? `${selected.slice(0, 1).join(', ')}, +${selected.length - 1}` : selected.join(', ')}
-        MenuProps={MenuProps}
-      >
-        {cards
-          .filter(card => {
-            if (
-              props.selectCards && props.selectCards.map(name => cardParseNameGetId(name)).includes(`${card.serialNumber} - ${card.lastCardNumber}`)
-              || !card.person
-            ) {
-              const filtered = card.costCenter.value;
+    return (
+      <FormControl fullWidth>
+        <InputLabel id="select-multiple-checkbox-label">
+          Cartões Benefício (Alelo)
+        </InputLabel>
+        <Select
+          labelId="select-multiple-checkbox-label"
+          id="select-multiple-checkbox"
+          multiple
+          value={selectCards}
+          onChange={(e) => handleChangeCard(e.target.value)}
+          input={<OutlinedInput label="Cartões Benefício (Alelo)" />}
+          renderValue={(selected) => selected.length > 1 ? `${selected.slice(0, 1).join(', ')}, +${selected.length - 1}` : selected.join(', ')}
+          MenuProps={MenuProps}
+        >
+          {cards
+            .filter(card => {
+              if (
+                props.selectCards && props.selectCards.map(name => cardParseNameGetId(name)).includes(`${card.serialNumber} - ${card.lastCardNumber}`)
+                || !card.person
+              ) {
+                const filtered = card.costCenter.value;
 
-              if (!availableCards.includes(filtered)) {
-                availableCards.push(filtered)
-                return true;
+                if (!availableCards.includes(filtered)) {
+                  availableCards.push(filtered)
+                  return true;
+                }
               }
-            }
 
-            return false;
-          }).map(card => {
-            const
-              key = `${card.id}_${card.serialNumber}(${card.lastCardNumber})`,
-              value = `${card.costCenter.value || "???"} - N° de Série: ${card.serialNumber} (4 Últimos Dígitos: ${card.lastCardNumber})`,
-              id = `${card.costCenter.value || "???"} - ${card.serialNumber} (4 Últimos Dígitos: ${card.lastCardNumber})`
+              return false;
+            }).map(card => {
+              const
+                key = `${card.id}_${card.serialNumber}(${card.lastCardNumber})`,
+                value = `${card.costCenter.value || "???"} - N° de Série: ${card.serialNumber} (4 Últimos Dígitos: ${card.lastCardNumber})`,
+                id = `${card.costCenter.value || "???"} - ${card.serialNumber} (4 Últimos Dígitos: ${card.lastCardNumber})`
 
-            return (
-              <MenuItem key={key} value={id}>
-                <Checkbox checked={selectCards.includes(id)} />
-                <ListItemText primary={value} />
-              </MenuItem>
-            )
-          })}
-      </Select>
-    </FormControl>
+              return (
+                <MenuItem key={key} value={id}>
+                  <Checkbox checked={selectCards.includes(id)} />
+                  <ListItemText primary={value} />
+                </MenuItem>
+              )
+            })}
+        </Select>
+      </FormControl>
+    )
   else
-    return <TextField
-      className='col-12'
-      label="Cartões Benefício (Alelo)"
-      variant="outlined"
-      defaultValue={`Não existem cartões disponíveis.`}
-      disabled={true}
-    />
+    return (
+      <TextField
+        className='col-12'
+        label="Cartões Benefício (Alelo)"
+        variant="outlined"
+        defaultValue={`Não existem cartões disponíveis.`}
+        disabled={true}
+      />
+    )
 }

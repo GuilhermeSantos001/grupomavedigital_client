@@ -1,9 +1,3 @@
-/**
- * @description Modal -> Modal de edição do endereço
- * @author GuilhermeSantos001
- * @update 11/02/2022
- */
-
 import React, { useState } from 'react';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
@@ -30,8 +24,7 @@ import { SelectDistrict } from '@/components/selects/SelectDistrict';
 import Alerting from '@/src/utils/alerting'
 import StringEx from '@/src/utils/stringEx'
 
-import { useAddressService } from '@/services/useAddressService';
-import { useAddressesService } from '@/services/useAddressesService';
+import { useAddressWithIdService } from '@/services/useAddressWithIdService';
 
 export interface Props {
   id: string
@@ -59,8 +52,7 @@ export function EditAddress(props: Props) {
   const [districtId, setDistrictId] = useState<string>('');
   const [zipCode, setZipCode] = useState<number>(0);
 
-  const { data: address, isLoading: isLoadingAddress } = useAddressService(props.id);
-  const { update: UpdateAddress } = useAddressesService();
+  const { data: address, isLoading: isLoadingAddress, update: UpdateAddress } = useAddressWithIdService(props.id);
 
   const
     handleChangeStreetId = (id: string) => setStreetId(id),
@@ -84,7 +76,7 @@ export function EditAddress(props: Props) {
     handleUpdateAddress = async () => {
       if (!UpdateAddress) return;
 
-      const update = await UpdateAddress(props.id, {
+      const update = await UpdateAddress({
         streetId,
         number: houseNumber.toString(),
         complement,
@@ -125,117 +117,107 @@ export function EditAddress(props: Props) {
   }
 
   return (
-    <div>
-      <Dialog
-        fullScreen
-        open={props.show}
-        onClose={props.handleClose}
-        TransitionComponent={Transition}
+    <Dialog
+      fullScreen
+      open={props.show}
+      onClose={props.handleClose}
+      TransitionComponent={Transition}
+    >
+      <AppBar sx={{ position: 'relative' }}>
+        <Toolbar>
+          <IconButton
+            edge="start"
+            color="inherit"
+            onClick={props.handleClose}
+            aria-label="close"
+          >
+            <CloseIcon />
+          </IconButton>
+          <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
+            Editar Endereço
+          </Typography>
+          <Button
+            color="inherit"
+            disabled={!canUpdateAddress()}
+            onClick={handleUpdateAddress}
+          >
+            Atualizar
+          </Button>
+        </Toolbar>
+      </AppBar>
+      <List>
+        <ListItem>
+          <ListItemText primary="Informações Gerais" />
+        </ListItem>
+        <ListItem>
+          <SelectStreet
+            id={address?.streetId}
+            handleChangeId={handleChangeStreetId}
+          />
+        </ListItem>
+        <ListItem>
+          <TextField
+            className='col'
+            label="Número"
+            variant="standard"
+            value={StringEx.maskHouseNumber(houseNumber, true)}
+            onChange={(e) => handleChangehouseNumber(StringEx.removeMaskNum(e.target.value))}
+          />
+        </ListItem>
+        <ListItem>
+          <TextField
+            className='col'
+            label="Complemento"
+            variant="standard"
+            value={complement}
+            onChange={(e) => handleChangeComplement(e.target.value)}
+          />
+        </ListItem>
+        <ListItem>
+          <SelectNeighborhood
+            id={address?.neighborhoodId}
+            handleChangeId={handleChangeNeighborhoodId}
+          />
+        </ListItem>
+        <ListItem>
+          <SelectCity
+            id={address?.cityId}
+            handleChangeId={handleChangeCityId}
+          />
+        </ListItem>
+        <ListItem>
+          <SelectDistrict
+            id={address?.districtId}
+            handleChangeId={handleChangeDistrictId}
+          />
+        </ListItem>
+        <ListItem>
+          <TextField
+            className='col'
+            label="CEP"
+            variant="standard"
+            value={StringEx.maskZipcode(zipCode, true)}
+            onChange={(e) => handleChangeZipCode(StringEx.removeMaskNum(e.target.value))}
+          />
+        </ListItem>
+      </List>
+      <Button
+        className='col-10 mx-auto my-2'
+        variant="contained"
+        color="primary"
+        disabled={!canUpdateAddress()}
+        onClick={handleUpdateAddress}
       >
-        <AppBar sx={{ position: 'relative' }}>
-          <Toolbar>
-            <IconButton
-              edge="start"
-              color="inherit"
-              onClick={props.handleClose}
-              aria-label="close"
-            >
-              <CloseIcon />
-            </IconButton>
-            <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
-              Editar Endereço
-            </Typography>
-            <Button
-              color="inherit"
-              disabled={!canUpdateAddress()}
-              onClick={handleUpdateAddress}
-            >
-              Atualizar
-            </Button>
-          </Toolbar>
-        </AppBar>
-        <List>
-          <ListItem>
-            <ListItemText primary="Informações Gerais" />
-          </ListItem>
-          <ListItem>
-            <div className='col'>
-              <SelectStreet
-                id={address?.streetId}
-                handleChangeId={handleChangeStreetId}
-              />
-            </div>
-          </ListItem>
-          <ListItem>
-            <TextField
-              className='col'
-              label="Número"
-              variant="standard"
-              value={StringEx.maskHouseNumber(houseNumber, true)}
-              onChange={(e) => handleChangehouseNumber(StringEx.removeMaskNum(e.target.value))}
-            />
-          </ListItem>
-          <ListItem>
-            <TextField
-              className='col'
-              label="Complemento"
-              variant="standard"
-              value={complement}
-              onChange={(e) => handleChangeComplement(e.target.value)}
-            />
-          </ListItem>
-          <ListItem>
-            <div className='col'>
-              <SelectNeighborhood
-                id={address?.neighborhoodId}
-                handleChangeId={handleChangeNeighborhoodId}
-              />
-            </div>
-          </ListItem>
-          <ListItem>
-            <div className='col'>
-              <SelectCity
-                id={address?.cityId}
-                handleChangeId={handleChangeCityId}
-              />
-            </div>
-          </ListItem>
-          <ListItem>
-            <div className='col'>
-              <SelectDistrict
-                id={address?.districtId}
-                handleChangeId={handleChangeDistrictId}
-              />
-            </div>
-          </ListItem>
-          <ListItem>
-            <TextField
-              className='col'
-              label="CEP"
-              variant="standard"
-              value={StringEx.maskZipcode(zipCode, true)}
-              onChange={(e) => handleChangeZipCode(StringEx.removeMaskNum(e.target.value))}
-            />
-          </ListItem>
-        </List>
-        <Button
-          className='col-10 mx-auto my-2'
-          variant="contained"
-          color="primary"
-          disabled={!canUpdateAddress()}
-          onClick={handleUpdateAddress}
-        >
-          Atualizar
-        </Button>
-        <Button
-          className='col-10 mx-auto my-2'
-          variant="contained"
-          color="error"
-          onClick={props.handleClose}
-        >
-          Cancelar
-        </Button>
-      </Dialog>
-    </div>
+        Atualizar
+      </Button>
+      <Button
+        className='col-10 mx-auto my-2'
+        variant="contained"
+        color="error"
+        onClick={props.handleClose}
+      >
+        Cancelar
+      </Button>
+    </Dialog>
   );
 }

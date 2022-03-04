@@ -1,12 +1,6 @@
-/**
- * @description Componente -> Socket.io
- * @author GuilhermeSantos001
- * @update 26/01/2022
- */
-
 import { useEffect } from 'react';
 
-import SocketConnectionController from '../controllers/SocketConnectionController';
+import { SocketConnectionController } from '../controllers/SocketConnectionController';
 
 declare global {
   interface Window {

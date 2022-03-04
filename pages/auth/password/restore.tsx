@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { GetServerSidePropsContext } from 'next/types'
 
@@ -103,7 +103,7 @@ export function PasswordRestore({
 
   useEffect(() => {
     setIsLoading(false);
-  });
+  }, []);
 
   if (isLoading) return compose_loading()
 

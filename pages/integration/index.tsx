@@ -1,17 +1,22 @@
-/**
- * @description Integration - Index
- * @author GuilhermeSantos001
- * @update 07/02/2022
- */
+import { useState } from 'react'
 
-import { useEffect, useState } from 'react'
+import { GetServerSidePropsContext } from 'next/types'
+
+import { useGetUserInfoService } from '@/services/graphql/useGetUserInfoService'
+
+import { verifyCookie } from '@/lib/verifyCookie'
+
+import { compressToEncodedURIComponent } from 'lz-string'
 
 import { useRouter } from 'next/router'
 
-import { APIKeyType } from '@/types/APIKeyType'
+import type { APIKeyType } from '@/types/APIKeyType'
+
+import type {
+  FunctionDeleteAPIKeysTypeof,
+} from '@/types/APIKeyServiceType'
 
 import {
-  FunctionDeleteAPIKeysTypeof,
   useAPIKeysService
 } from '@/services/useAPIKeysService'
 
@@ -26,11 +31,8 @@ import { RegisterAPIKey } from '@/components/modals/RegisterAPIKey'
 import { Button } from 'react-bootstrap'
 
 import { PageProps } from '@/pages/_app'
-import {GetMenuMain} from '@/bin/GetMenuMain'
-
-import Fetch from '@/src/utils/fetch'
-import { Variables } from '@/src/db/variables'
-import hasPrivilege from '@/src/functions/hasPrivilege'
+import { GetMenuMain } from '@/bin/GetMenuMain'
+import { PrivilegesSystem } from '@/types/UserType'
 
 import { copyTextToClipboard } from '@/src/functions/copyTextToClipboard';
 
@@ -43,10 +45,17 @@ const serverSideProps: PageProps = {
   menu: GetMenuMain('mn-integration')
 }
 
-export const getServerSideProps = async () => {
+export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => {
+  const privileges: PrivilegesSystem[] = [
+    'common'
+  ]
+
   return {
     props: {
       ...serverSideProps,
+      privileges,
+      auth: await verifyCookie(req.cookies.auth),
+      getUserInfoAuthorization: process.env.GRAPHQL_AUTHORIZATION_GETUSERINFO!,
     },
   }
 }
@@ -124,8 +133,9 @@ function compose_noAuth(handleClick: handleClickFunction) {
 }
 
 function compose_ready(
-  fetch: Fetch,
   optionSelect: string,
+  username: string,
+  userMail: string,
   handleChangeOption: (option: string) => void,
   showModalRegisterAPIKey: boolean,
   handleOpenModalRegisterAPIKey: () => void,
@@ -135,7 +145,12 @@ function compose_ready(
 ) {
   return (
     <>
-      <RegisterAPIKey show={showModalRegisterAPIKey} handleClose={handleCloseModalRegisterAPIKey} fetch={fetch} />
+      <RegisterAPIKey
+        show={showModalRegisterAPIKey}
+        username={username}
+        userMail={userMail}
+        handleClose={handleCloseModalRegisterAPIKey}
+      />
       <div className='d-flex flex-column flex-md-row p-2 m-2'>
         <div className='d-flex flex-column col-12 col-md-6 px-2'>
           <div className='d-flex flex-row bg-primary bg-gradient text-secondary text-bold align-items-center rounded p-2 my-2'>
@@ -198,6 +213,7 @@ function compose_ready(
                     </div>
                     <div className='col-4 col-md-2 text-end'>
                       <FontAwesomeIcon
+                        title='Copiar a chave de API'
                         icon={Icon.render('fas', 'copy')}
                         className="col mx-1 hover-color hover-light flex-shrink-1 my-auto"
                         style={{ fontSize: '1rem' }}
@@ -207,6 +223,7 @@ function compose_ready(
                         }}
                       />
                       <FontAwesomeIcon
+                        title='Copiar a palavra-passe'
                         icon={Icon.render('fas', 'key')}
                         className="col mx-1 hover-color hover-light flex-shrink-1 my-auto"
                         style={{ fontSize: '1rem' }}
@@ -216,6 +233,7 @@ function compose_ready(
                         }}
                       />
                       <FontAwesomeIcon
+                        title='Deletar a chave de API'
                         icon={Icon.render('fas', 'trash')}
                         className="col mx-1 hover-color hover-light flex-shrink-1 my-auto"
                         style={{ fontSize: '1rem' }}
@@ -246,14 +264,37 @@ function compose_ready(
   )
 }
 
-export default function Integration() {
+export default function Integration(
+  {
+    privileges,
+    auth,
+    getUserInfoAuthorization,
+  }: {
+    privileges: PrivilegesSystem[],
+    auth: string,
+    getUserInfoAuthorization: string
+  }
+) {
   const [isReady, setReady] = useState<boolean>(false)
   const [notPrivilege, setNotPrivilege] = useState<boolean>(false)
   const [notAuth, setNotAuth] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(true)
 
+  const [username, setUsername] = useState<string>('')
+  const [userMail, setUserMail] = useState<string>('')
+
   const [optionSelect, setOptionSelect] = useState<string>('none')
   const [showModalRegisterAPIKey, setShowModalRegisterAPIKey] = useState<boolean>(false)
+
+  const { success, data, error } = useGetUserInfoService(
+    {
+      auth: compressToEncodedURIComponent(auth),
+    },
+    {
+      authorization: getUserInfoAuthorization,
+      encodeuri: 'true'
+    }
+  );
 
   const
     {
@@ -261,7 +302,6 @@ export default function Integration() {
       delete: handleDeleteAPIKeys
     } = useAPIKeysService();
 
-  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
   const router = useRouter()
 
   const
@@ -269,14 +309,9 @@ export default function Integration() {
       event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
       path: string
     ) => {
-      event.preventDefault()
-
-      if (path === '/auth/login') {
-        const variables = new Variables(1, 'IndexedDB')
-        await Promise.all([await variables.clear()]).then(() => {
-          router.push(path)
-        })
-      }
+      event.preventDefault();
+      if (path === '/auth/login')
+        router.push(path);
     },
     handleClickNoPrivilege: handleClickFunction = async (
       event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
@@ -289,22 +324,29 @@ export default function Integration() {
     handleOpenModalRegisterAPIKey = () => setShowModalRegisterAPIKey(true),
     handleCloseModalRegisterAPIKey = () => setShowModalRegisterAPIKey(false);
 
-  useEffect(() => {
-    hasPrivilege('common')
-      .then(async (isAllowViewPage) => {
-        if (isAllowViewPage) {
-          setReady(true);
-        } else {
-          setNotPrivilege(true);
-        }
+  if (error && !notAuth) {
+    setNotAuth(true);
+    setLoading(false);
+  }
 
-        return setLoading(false);
-      })
-      .catch(() => {
-        setNotAuth(true);
-        return setLoading(false)
-      });
-  }, [])
+  if (success && data && !isReady) {
+    if (
+      privileges
+        .filter(privilege => data.privileges.indexOf(privilege) !== -1)
+        .length <= 0
+    )
+      setNotPrivilege(true);
+
+    setReady(true);
+    setLoading(false);
+  }
+
+  if (data && username.length <= 0 && userMail.length <= 0) {
+    const { username, email } = data;
+
+    setUsername(username);
+    setUserMail(email);
+  }
 
   if (loading) return compose_load()
 
@@ -313,8 +355,9 @@ export default function Integration() {
   if (notAuth) return compose_noAuth(handleClickNoAuth)
 
   if (isReady) return compose_ready(
-    _fetch,
     optionSelect,
+    username,
+    userMail,
     handleChangeOption,
     showModalRegisterAPIKey,
     handleOpenModalRegisterAPIKey,

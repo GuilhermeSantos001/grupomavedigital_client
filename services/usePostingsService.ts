@@ -4,56 +4,31 @@ import useSWR from 'swr'
 import { fetcherAxiosGet } from '@/src/utils/fetcherAxiosGet';
 import { fetcherAxiosPut } from '@/src/utils/fetcherAxiosPut';
 import { fetcherAxiosDelete } from '@/src/utils/fetcherAxiosDelete';
-import { PostingType } from '@/types/PostingType';
 import { ApiResponseSuccessType } from '@/types/ApiResponseSuccessType';
 import { ApiResponseErrorType } from '@/types/ApiResponseErrorType';
 import { ApiResponseSuccessOrErrorType } from '@/types/ApiResponseSuccessOrErrorType';
 
+import type {
+  DataPosting
+} from '@/types/PostingServiceType';
+
+import type {
+  PostingType
+} from '@/types/PostingType';
+
 import Alerting from '@/src/utils/alerting';
 
-export type DataPosting = Pick<PostingType,
-  | 'author'
-  | 'costCenterId'
-  | 'periodStart'
-  | 'periodEnd'
-  | 'originDate'
-  | 'description'
-  | 'coveringId'
-  | 'coverageId'
-  | 'coveringWorkplaceId'
-  | 'coverageWorkplaceId'
-  | 'paymentMethod'
-  | 'paymentValue'
-  | 'paymentDatePayable'
-  | 'paymentStatus'
-  | 'paymentDatePaid'
-  | 'paymentDateCancelled'
-  | 'foremanApproval'
-  | 'managerApproval'
-  | 'status'
->;
-
-declare function UpdatePostings(id: string, newData: DataPosting): Promise<boolean>
-declare function DeletePostings(id: string): Promise<boolean>
-
-export type FunctionUpdatePostingsTypeof = typeof UpdatePostings | undefined;
-export type FunctionDeletePostingsTypeof = typeof DeletePostings | undefined;
-export type FunctionNextPageTypeof = (() => void) | undefined;
-export type FunctionPreviousPageTypeof = (() => void) | undefined;
-
-export function usePostingsService(take: number = 10, refreshInterval: number = 1000) {
+export function usePostingsService(take: number = 10) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [uri, setURI] = useState<string>(`${process.env.NEXT_PUBLIC_API_HOST}/postings?take=${take}`);
+  const [lastCursorId, setLastCursorId] = useState<number>(0);
 
   const skip = 1;
-
-  const [uri, setURI] = useState<string>(`${process.env.NEXT_PUBLIC_API_HOST}/postings?take=${take}`);
-
-  const [lastCursorId, setLastCursorId] = useState<number>(0);
 
   const { data, error, mutate } = useSWR<
     ApiResponseSuccessType<PostingType[]>,
     ApiResponseErrorType<Object>
-  >([uri, setIsLoading], fetcherAxiosGet, { refreshInterval })
+  >([uri, setIsLoading], fetcherAxiosGet, { refreshInterval: 2000 })
 
   if (error) {
     Alerting.create('error', error.message);
@@ -102,7 +77,7 @@ export function usePostingsService(take: number = 10, refreshInterval: number = 
             success: true,
             data: data.data.map(posting => {
               if (posting.id === id) {
-                posting = {...posting, ...updateData.data};
+                posting = { ...posting, ...updateData.data };
               }
 
               return posting;

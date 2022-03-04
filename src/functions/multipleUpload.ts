@@ -1,11 +1,4 @@
-/**
- * @description Efetuada uma chamada para a API para enviar vários arquivos
- * @author GuilhermeSantos001
- * @update 11/01/2022
- */
-
 import Fetch from '@/src/utils/fetch';
-import { Variables } from '@/src/db/variables';
 import signURL from '@/src/functions/signURL'
 
 export interface File {
@@ -18,11 +11,9 @@ export interface File {
   status: string
 }
 
-const multipleUpload = async (_fetch: Fetch, files: globalThis.File[], randomName: boolean): Promise<File[]> => {
+const multipleUpload = async (_fetch: Fetch, auth: string, files: globalThis.File[], randomName: boolean): Promise<File[]> => {
   const formData = new FormData(),
-    signedUrl = await signURL(),
-    variables = new Variables(1, 'IndexedDB'),
-    auth = await variables.get<string>('auth');
+    signedUrl = await signURL();
 
   let sizes: any = [],
     map: any = {}
@@ -64,7 +55,7 @@ const multipleUpload = async (_fetch: Fetch, files: globalThis.File[], randomNam
     } = req
 
   if (errors)
-  throw new Error(JSON.stringify(errors));
+    throw new Error(JSON.stringify(errors));
 
   return data.multipleUpload;
 }

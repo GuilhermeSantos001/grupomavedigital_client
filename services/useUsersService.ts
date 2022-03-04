@@ -18,7 +18,7 @@ import {
 
 import Alerting from '@/src/utils/alerting';
 
-export function useUsersService(take: number = 10, refreshInterval: number = 1000) {
+export function useUsersService(take: number = 10) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [uri, setURI] = useState<string>(`${process.env.NEXT_PUBLIC_API_HOST}/users?take=${take}`);
   const [lastCursorId, setLastCursorId] = useState<number>(0);
@@ -28,7 +28,7 @@ export function useUsersService(take: number = 10, refreshInterval: number = 100
   const { data, error, mutate } = useSWR<
     ApiResponseSuccessType<UserType[]>,
     ApiResponseErrorType<Object>
-  >([uri, setIsLoading], fetcherAxiosGet, { refreshInterval })
+  >([uri, setIsLoading], fetcherAxiosGet, { refreshInterval: 5000 })
 
   if (error) {
     Alerting.create('error', error.message);

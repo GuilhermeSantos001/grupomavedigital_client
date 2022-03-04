@@ -1,31 +1,28 @@
-/**
- * @description Input -> Seleciona um serviço
- * @author GuilhermeSantos001
- * @update 11/02/2022
- */
-
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 
 import { BoxLoadingMagicSpinner } from '@/components/utils/BoxLoadingMagicSpinner';
-import {BoxError} from '@/components/utils/BoxError';
+import { BoxError } from '@/components/utils/BoxError';
 
 import { ListItemsForSelection } from '@/components/lists/ListItemsForSelection'
 
 import ArrayEx from '@/src/utils/arrayEx';
 import Alerting from '@/src/utils/alerting';
 
-import {
-  useServiceService,
+import type {
   DataService,
   FunctionCreateServiceTypeof,
+  FunctionUpdateServicesTypeof,
+  FunctionDeleteServicesTypeof,
+} from '@/types/ServiceServiceType';
+
+import {
+  useServiceService
 } from '@/services/useServiceService';
 
 import {
-  useServicesService,
-  FunctionUpdateServicesTypeof,
-  FunctionDeleteServicesTypeof
+  useServicesService
 } from '@/services/useServicesService';
 
 export interface Props {

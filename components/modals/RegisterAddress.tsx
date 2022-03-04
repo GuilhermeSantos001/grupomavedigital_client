@@ -1,9 +1,3 @@
-/**
- * @description Modal -> Modal de Cadastro do endereço
- * @author GuilhermeSantos001
- * @update 11/02/2022
- */
-
 import React, { useState } from 'react';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
@@ -89,113 +83,103 @@ export function RegisterAddress(props: Props) {
     }
 
   return (
-    <div>
-      <Dialog
-        fullScreen
-        open={props.show}
-        onClose={props.handleClose}
-        TransitionComponent={Transition}
+    <Dialog
+      fullScreen
+      open={props.show}
+      onClose={props.handleClose}
+      TransitionComponent={Transition}
+    >
+      <AppBar sx={{ position: 'relative' }}>
+        <Toolbar>
+          <IconButton
+            edge="start"
+            color="inherit"
+            onClick={props.handleClose}
+            aria-label="close"
+          >
+            <CloseIcon />
+          </IconButton>
+          <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
+            Registrar Endereço
+          </Typography>
+          <Button
+            color="inherit"
+            disabled={!canRegisterAddress()}
+            onClick={handleRegisterAddress}
+          >
+            Registrar
+          </Button>
+        </Toolbar>
+      </AppBar>
+      <List>
+        <ListItem>
+          <ListItemText primary="Informações Gerais" />
+        </ListItem>
+        <ListItem>
+          <SelectStreet
+            handleChangeId={handleChangeStreetId}
+          />
+        </ListItem>
+        <ListItem>
+          <TextField
+            className='col'
+            label="Número"
+            variant="standard"
+            value={StringEx.maskHouseNumber(houseNumber, true)}
+            onChange={(e) => handleChangehouseNumber(StringEx.removeMaskNum(e.target.value))}
+          />
+        </ListItem>
+        <ListItem>
+          <TextField
+            className='col'
+            label="Complemento"
+            variant="standard"
+            value={complement}
+            onChange={(e) => handleChangeComplement(e.target.value)}
+          />
+        </ListItem>
+        <ListItem>
+          <SelectNeighborhood
+            handleChangeId={handleChangeNeighborhoodId}
+          />
+        </ListItem>
+        <ListItem>
+          <SelectCity
+            handleChangeId={handleChangeCityId}
+          />
+        </ListItem>
+        <ListItem>
+          <SelectDistrict
+            handleChangeId={handleChangeDistrictId}
+          />
+        </ListItem>
+        <ListItem>
+          <TextField
+            className='col'
+            label="CEP"
+            variant="standard"
+            value={StringEx.maskZipcode(zipCode, true)}
+            onChange={(e) => handleChangeZipCode(StringEx.removeMaskNum(e.target.value))}
+          />
+        </ListItem>
+      </List>
+      <Button
+        className='col-10 mx-auto my-2'
+        variant="contained"
+        color="primary"
+        disabled={!canRegisterAddress()}
+        onClick={handleRegisterAddress}
       >
-        <AppBar sx={{ position: 'relative' }}>
-          <Toolbar>
-            <IconButton
-              edge="start"
-              color="inherit"
-              onClick={props.handleClose}
-              aria-label="close"
-            >
-              <CloseIcon />
-            </IconButton>
-            <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
-              Registrar Endereço
-            </Typography>
-            <Button
-              color="inherit"
-              disabled={!canRegisterAddress()}
-              onClick={handleRegisterAddress}
-            >
-              Registrar
-            </Button>
-          </Toolbar>
-        </AppBar>
-        <List>
-          <ListItem>
-            <ListItemText primary="Informações Gerais" />
-          </ListItem>
-          <ListItem>
-            <div className='col'>
-              <SelectStreet
-                handleChangeId={handleChangeStreetId}
-              />
-            </div>
-          </ListItem>
-          <ListItem>
-            <TextField
-              className='col'
-              label="Número"
-              variant="standard"
-              value={StringEx.maskHouseNumber(houseNumber, true)}
-              onChange={(e) => handleChangehouseNumber(StringEx.removeMaskNum(e.target.value))}
-            />
-          </ListItem>
-          <ListItem>
-            <TextField
-              className='col'
-              label="Complemento"
-              variant="standard"
-              value={complement}
-              onChange={(e) => handleChangeComplement(e.target.value)}
-            />
-          </ListItem>
-          <ListItem>
-            <div className='col'>
-              <SelectNeighborhood
-                handleChangeId={handleChangeNeighborhoodId}
-              />
-            </div>
-          </ListItem>
-          <ListItem>
-            <div className='col'>
-              <SelectCity
-                handleChangeId={handleChangeCityId}
-              />
-            </div>
-          </ListItem>
-          <ListItem>
-            <div className='col'>
-              <SelectDistrict
-                handleChangeId={handleChangeDistrictId}
-              />
-            </div>
-          </ListItem>
-          <ListItem>
-            <TextField
-              className='col'
-              label="CEP"
-              variant="standard"
-              value={StringEx.maskZipcode(zipCode, true)}
-              onChange={(e) => handleChangeZipCode(StringEx.removeMaskNum(e.target.value))}
-            />
-          </ListItem>
-        </List>
-        <Button
-          className='col-10 mx-auto my-2'
-          variant="contained"
-          color="primary"
-          disabled={!canRegisterAddress()}
-          onClick={handleRegisterAddress}
-        >
-          Registrar
-        </Button>
-        <Button
-          className='col-10 mx-auto my-2'
-          variant="contained"
-          color="error"
-          onClick={props.handleClose}
-        >
-          Cancelar
-        </Button>
-      </Dialog>
-    </div>
+        Registrar
+      </Button>
+      <Button
+        className='col-10 mx-auto my-2'
+        variant="contained"
+        color="error"
+        onClick={props.handleClose}
+      >
+        Cancelar
+      </Button>
+    </Dialog>
   );
 }

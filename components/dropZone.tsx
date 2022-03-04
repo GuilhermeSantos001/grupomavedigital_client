@@ -1,9 +1,3 @@
-/**
- * @description DropZone usado para arrastar arquivos/pastas para upload
- * @author GuilhermeSantos001
- * @update 24/01/2022
- */
-
 import React from 'react'
 
 import Sugar from 'sugar'
@@ -23,6 +17,7 @@ declare function callbackAfterUpload(files: IUploadFile | IUploadFile[]): void
 
 type MyProps = {
   fetch: Fetch
+  auth: string
   ext: `.${string}`[]
   maxSize: number
   limit?: number
@@ -262,12 +257,14 @@ export default class DropZone extends React.Component<MyProps, MyState> {
     if (this.state.files.length > 1) {
       params = await multipleUpload(
         this.props.fetch,
+        this.props.auth,
         this.state.files.map((file) => file.raw),
         this.props.randomName !== undefined ? this.props.randomName : false
       )
     } else {
       params = await singleUpload(
         this.props.fetch,
+        this.props.auth,
         this.state.files[0].raw,
         this.props.randomName !== undefined ? this.props.randomName : false
       )

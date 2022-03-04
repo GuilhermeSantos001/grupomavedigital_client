@@ -1,15 +1,8 @@
-/**
- * @description Lista -> Lista com checkbox (MUI)
- * @author GuilhermeSantos001
- * @update 24/01/2022
- */
-
-import * as React from 'react';
-import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridRowsProp, ptBR } from '@mui/x-data-grid';
 
 export interface Props {
   columns: GridColDef[]
-  rows: any[]
+  rows: GridRowsProp
   pageSize: number
   pageSizeOptions: number[]
   onChangeSelection: (itens: string[]) => void

@@ -1,27 +1,28 @@
-/**
- * @description Input -> Seleciona um bairro
- * @author GuilhermeSantos001
- * @update 11/02/2022
- */
-
 import { useState } from 'react';
 import { Autocomplete, TextField, createFilterOptions, Button } from '@mui/material'
 
 import { AutocompleteLoading } from '@/components/utils/AutocompleteLoading';
 import { AutocompleteError } from '@/components/utils/AutocompleteError';
 
-import { NeighborhoodType } from '@/types/NeighborhoodType'
+import type { NeighborhoodType } from '@/types/NeighborhoodType'
+
+import type {
+  DataNeighborhood,
+  FunctionCreateNeighborhoodTypeof,
+  FunctionUpdateNeighborhoodsTypeof,
+  FunctionDeleteNeighborhoodsTypeof
+} from '@/types/NeighborhoodServiceType'
 
 import {
-  useNeighborhoodService,
-  DataNeighborhood,
-  FunctionCreateNeighborhoodTypeof
+  useNeighborhoodService
 } from '@/services/useNeighborhoodService'
 
 import {
-  useNeighborhoodsService,
-  FunctionUpdateNeighborhoodsTypeof,
-  FunctionDeleteNeighborhoodsTypeof
+  useNeighborhoodWithIdService
+} from '@/services/useNeighborhoodWithIdService'
+
+import {
+  useNeighborhoodsService
 } from '@/services/useNeighborhoodsService'
 
 import Alerting from '@/src/utils/alerting';
@@ -29,6 +30,7 @@ import Alerting from '@/src/utils/alerting';
 export type Props = {
   id?: string
   disabled?: boolean
+  handleChangeData?: (data: NeighborhoodType) => void
   handleChangeId: (id: string) => void
 }
 
@@ -41,12 +43,14 @@ const filter = createFilterOptions<FilmOptionType>();
 
 export function SelectNeighborhood(props: Props) {
   const [syncData, setSyncData] = useState<boolean>(false);
+  const [returnData, setReturnData] = useState<boolean>(false);
 
   const [value, setValue] = useState<FilmOptionType | null>(null);
   const [hasEdit, setHasEdit] = useState<boolean>(false);
   const [editValue, setEditValue] = useState<string>('');
 
-  const { data: neighborhood, isLoading: isLoadingNeighborhood, create: CreateNeighborhood } = useNeighborhoodService(props.id);
+  const { create: CreateNeighborhood } = useNeighborhoodService();
+  const { data: neighborhood, isLoading: isLoadingNeighborhood } = useNeighborhoodWithIdService(props.id || '');
   const { data: neighborhoods, isLoading: isLoadingNeighborhoods, update: UpdateNeighborhoods, delete: DeleteNeighborhoods } = useNeighborhoodsService();
 
   const
@@ -73,8 +77,17 @@ export function SelectNeighborhood(props: Props) {
     return <AutocompleteError label='Bairro' message='Ocorreu um erro' />
   }
 
+  if (props.id && props.handleChangeData && returnData) {
+    const neighborhood = neighborhoods.find(neighborhood => neighborhood.id === props.id);
+
+    if (neighborhood)
+      props.handleChangeData(neighborhood);
+
+    setReturnData(false);
+  }
+
   return (
-    <div className='d-flex flex-column flex-md-row'>
+    <div className='d-flex flex-column flex-md-row col'>
       <Autocomplete
         className='col-12 col-md-10 mb-2 mb-md-0 me-md-2'
         value={value}
@@ -103,6 +116,7 @@ export function SelectNeighborhood(props: Props) {
                     };
 
                     setValue(update);
+                    setReturnData(true);
                     handleUpdateNeighborhood(neighborhood.id, { value: editValue });
                     props.handleChangeId(neighborhood.id);
                   }
@@ -117,6 +131,7 @@ export function SelectNeighborhood(props: Props) {
                         id: neighborhood.id,
                         value: neighborhood.value
                       });
+                      setReturnData(true);
                       props.handleChangeId(neighborhood.id);
                     }
                   }
@@ -143,6 +158,7 @@ export function SelectNeighborhood(props: Props) {
             }
 
             setValue(neighborhood);
+            setReturnData(true);
             props.handleChangeId(neighborhood.id);
           } else {
             if (!newValue && props.id) {
@@ -153,6 +169,7 @@ export function SelectNeighborhood(props: Props) {
             }
 
             setValue(newValue);
+            setReturnData(true);
             props.handleChangeId(newValue?.id || '');
           }
         }}
@@ -236,6 +253,7 @@ export function SelectNeighborhood(props: Props) {
             }
 
             handleRemoveNeighborhood(value.id);
+            setReturnData(true);
             props.handleChangeId('');
           } else {
             Alerting.create('info', 'Não é possível remover o bairro sendo usado pelo registro.');

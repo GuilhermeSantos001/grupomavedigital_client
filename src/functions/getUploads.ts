@@ -1,166 +1,156 @@
-/* eslint-disable no-async-promise-executor */
-/**
- * @description Retorna o raw do arquivo hospedado
- * @author GuilhermeSantos001
- * @update 03/03/2022
- */
-
 import { compressToBase64, compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string'
 
-import axios from 'axios'
-import { Variables } from '@/src/db/variables'
-import { saveUpdatedToken } from '@/src/functions/tokenValidate'
+import axios from 'axios';
+import { setSessionCookies, readyCookie } from '@/src/utils/Cookies';
 import Cookies from 'js-cookie';
 
 import {
-  Upload
-} from '@/app/features/system/system.slice';
+  UploadType
+} from '@/types/UploadType';
 
-export async function uploadDownload(filename: string, filetype: string, fileId: string): Promise<void> {
-  return new Promise(async (resolve, reject) => {
-    const
-      variables = new Variables(1, 'IndexedDB'),
-      auth = await variables.get<string>('auth'),
-      token = await variables.get<string>('token'),
-      refreshToken = await variables.get<{
-        signature: string
-        token: string
-      }>('refreshToken'),
-      signature = await variables.get<string>('signature'),
-      uri = `${process.env.NEXT_PUBLIC_EXPRESS_HOST}`;
+export async function uploadDownload(filename: string, filetype: string, fileId: string): Promise<boolean> {
+  const
+    uri = process.env.NEXT_PUBLIC_EXPRESS_HOST!,
+    auth = await readyCookie(Cookies.get('auth') as string),
+    token = await readyCookie(Cookies.get('token') as string),
+    signature = await readyCookie(Cookies.get('signature') as string),
+    refreshTokenValue = await readyCookie(Cookies.get('refreshTokenValue') as string),
+    refreshTokenSignature = await readyCookie(Cookies.get('refreshTokenSignature') as string);
 
-    axios
-      .get(`${uri}/files/uploads/raw/${filename}${filetype}?fileId=${compressToEncodedURIComponent(fileId)}`, {
-        headers: {
-          'key': compressToBase64(process.env.NEXT_PUBLIC_EXPRESS_AUTHORIZATION || ""),
-          'auth': compressToEncodedURIComponent(auth),
-          'token': compressToEncodedURIComponent(token),
-          'refreshToken': compressToEncodedURIComponent(JSON.stringify(refreshToken)),
-          'signature': compressToEncodedURIComponent(signature)
-        },
-        withCredentials: true,
-        responseType: 'blob', // ! Important
-      })
-      .then(async response => {
-        if (response.status == 200) {
-          const url = window.URL.createObjectURL(new Blob([response.data]));
+  if (
+    auth
+    && token
+    && signature
+    && refreshTokenValue
+    && refreshTokenSignature
+  ) {
+    const uploadResponse = await axios.get(`${uri}/files/uploads/raw/${filename}${filetype}?fileId=${compressToEncodedURIComponent(fileId)}`, {
+      headers: {
+        'key': compressToBase64(process.env.NEXT_PUBLIC_EXPRESS_AUTHORIZATION!),
+        'auth': compressToEncodedURIComponent(auth),
+        'token': compressToEncodedURIComponent(token),
+        'signature': compressToEncodedURIComponent(signature),
+        'refreshTokenValue': compressToEncodedURIComponent(refreshTokenValue),
+        'refreshTokenSignature': compressToEncodedURIComponent(refreshTokenSignature)
+      },
+      withCredentials: true,
+      responseType: 'blob', // ! Important
+    })
 
-          const updatedToken = Cookies.get('updatedToken');
+    const { data, status, request } = uploadResponse;
 
-          if (updatedToken) {
-            const token = JSON.parse(decompressFromEncodedURIComponent(updatedToken) || "");
+    console.log(request);
 
-            await saveUpdatedToken(token.signature, token.token);
-          }
+    if (status === 200) {
+      const url = window.URL.createObjectURL(new Blob([data]));
 
-          const link = document.createElement('a');
-          link.href = url;
-          link.setAttribute('download', `${filename}${filetype}`);
-          document.body.appendChild(link);
-          link.click();
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${filename}${filetype}`);
+      document.body.appendChild(link);
+      link.click();
 
-          const clear = setTimeout(() => {
-            document.body.removeChild(link);
+      const clear = setTimeout(() => {
+        document.body.removeChild(link);
 
-            clearTimeout(clear);
-          });
+        clearTimeout(clear);
+      });
 
-          resolve();
-        }
-        else
-          reject(`Não foi possível recuperar o arquivo. Tente novamente, mais tarde!`)
-      })
-      .catch((error) => reject(error))
-  });
+      return true;
+    } else {
+      throw new Error(`Não foi possível recuperar o arquivo. Tente novamente, mais tarde!`);
+    }
+  } else {
+    throw new Error('Credenciais inválidas!');
+  }
 }
 
 export async function uploadRaw(filename: string, filetype: string, fileId: string): Promise<string> {
-  return new Promise(async (resolve, reject) => {
-    const
-      variables = new Variables(1, 'IndexedDB'),
-      auth = await variables.get<string>('auth'),
-      token = await variables.get<string>('token'),
-      refreshToken = await variables.get<{
-        signature: string
-        token: string
-      }>('refreshToken'),
-      signature = await variables.get<string>('signature'),
-      uri = `${process.env.NEXT_PUBLIC_EXPRESS_HOST}`;
+  const
+    uri = process.env.NEXT_PUBLIC_EXPRESS_HOST!,
+    auth = await readyCookie(Cookies.get('auth') as string),
+    token = await readyCookie(Cookies.get('token') as string),
+    signature = await readyCookie(Cookies.get('signature') as string),
+    refreshTokenValue = await readyCookie(Cookies.get('refreshTokenValue') as string),
+    refreshTokenSignature = await readyCookie(Cookies.get('refreshTokenSignature') as string);
 
-    axios
-      .get(`${uri}/files/uploads/raw/${filename}${filetype}?fileId=${compressToEncodedURIComponent(fileId)}`, {
-        headers: {
-          'key': compressToBase64(process.env.NEXT_PUBLIC_EXPRESS_AUTHORIZATION || ""),
-          'auth': compressToEncodedURIComponent(auth),
-          'token': compressToEncodedURIComponent(token),
-          'refreshToken': compressToEncodedURIComponent(JSON.stringify(refreshToken)),
-          'signature': compressToEncodedURIComponent(signature)
-        },
-        withCredentials: true,
-        responseType: 'blob', // ! Important
-      })
-      .then(async response => {
-        if (response.status == 200) {
-          const url = window.URL.createObjectURL(new Blob([response.data]));
+  if (
+    auth
+    && token
+    && signature
+    && refreshTokenValue
+    && refreshTokenSignature
+  ) {
+    const uploadResponse = await axios.get(`${uri}/files/uploads/raw/${filename}${filetype}?fileId=${compressToEncodedURIComponent(fileId)}`, {
+      headers: {
+        'key': compressToBase64(process.env.NEXT_PUBLIC_EXPRESS_AUTHORIZATION!),
+        'auth': compressToEncodedURIComponent(auth),
+        'token': compressToEncodedURIComponent(token),
+        'signature': compressToEncodedURIComponent(signature),
+        'refreshTokenValue': compressToEncodedURIComponent(refreshTokenValue),
+        'refreshTokenSignature': compressToEncodedURIComponent(refreshTokenSignature)
+      },
+      withCredentials: true,
+      responseType: 'blob', // ! Important
+    });
 
-          const updatedToken = Cookies.get('updatedToken');
+    const { data, status, request } = uploadResponse;
 
-          if (updatedToken) {
-            const token = JSON.parse(decompressFromEncodedURIComponent(updatedToken) || "");
+    console.log(request);
 
-            await saveUpdatedToken(token.signature, token.token);
-          }
+    if (status === 200) {
+      const url = window.URL.createObjectURL(new Blob([data]));
 
-          resolve(url);
-        }
-        else
-          reject(`Não foi possível recuperar o arquivo. Tente novamente, mais tarde!`)
-      })
-      .catch((error) => reject(error))
-  });
+      return url;
+    } else {
+      throw new Error(`Não foi possível recuperar o arquivo. Tente novamente, mais tarde!`);
+    }
+  } else {
+    throw new Error('Credenciais inválidas!');
+  }
 }
 
-export async function uploadsAll(): Promise<Upload[]> {
-  return new Promise(async (resolve, reject) => {
-    const
-      variables = new Variables(1, 'IndexedDB'),
-      auth = await variables.get<string>('auth'),
-      token = await variables.get<string>('token'),
-      refreshToken = await variables.get<{
-        signature: string
-        token: string
-      }>('refreshToken'),
-      signature = await variables.get<string>('signature'),
-      uri = `${process.env.NEXT_PUBLIC_EXPRESS_HOST}`;
+// TODO: Devolver o UploadType do Hercules Storage
+export async function uploadsAll(): Promise<UploadType[]> {
+  const
+    uri = process.env.NEXT_PUBLIC_EXPRESS_HOST!,
+    auth = await readyCookie(Cookies.get('auth') as string),
+    token = await readyCookie(Cookies.get('token') as string),
+    signature = await readyCookie(Cookies.get('signature') as string),
+    refreshTokenValue = await readyCookie(Cookies.get('refreshTokenValue') as string),
+    refreshTokenSignature = await readyCookie(Cookies.get('refreshTokenSignature') as string);
 
-    axios
-      .get(`${uri}/files/uploads/all`, {
-        headers: {
-          'key': compressToBase64(process.env.NEXT_PUBLIC_EXPRESS_AUTHORIZATION || ""),
-          'auth': compressToEncodedURIComponent(auth),
-          'token': compressToEncodedURIComponent(token),
-          'refreshToken': compressToEncodedURIComponent(JSON.stringify(refreshToken)),
-          'signature': compressToEncodedURIComponent(signature)
-        },
-        withCredentials: true,
-      })
-      .then(async response => {
-        if (response.status == 200) {
-          const uploads = JSON.parse(decompressFromEncodedURIComponent(response.data) || '[]');
+  if (
+    auth
+    && token
+    && signature
+    && refreshTokenValue
+    && refreshTokenSignature
+  ) {
+    const uploadResponse = await axios.get(`${uri}/files/uploads/all`, {
+      headers: {
+        'key': compressToBase64(process.env.NEXT_PUBLIC_EXPRESS_AUTHORIZATION!),
+        'auth': compressToEncodedURIComponent(auth),
+        'token': compressToEncodedURIComponent(token),
+        'signature': compressToEncodedURIComponent(signature),
+        'refreshTokenValue': compressToEncodedURIComponent(refreshTokenValue),
+        'refreshTokenSignature': compressToEncodedURIComponent(refreshTokenSignature)
+      },
+      withCredentials: true,
+    });
 
-          const updatedToken = Cookies.get('updatedToken');
+    const { data, status, request } = uploadResponse;
 
-          if (updatedToken) {
-            const token = JSON.parse(decompressFromEncodedURIComponent(updatedToken) ||"");
+    console.log(request);
 
-            await saveUpdatedToken(token.signature, token.token);
-          }
+    if (status === 200) {
+      const uploads = JSON.parse(decompressFromEncodedURIComponent(data) || '[]');
 
-          resolve(uploads);
-        }
-        else
-          reject(`Não foi possível recuperar os arquivos. Tente novamente, mais tarde!`)
-      })
-      .catch((error) => reject(error))
-  });
+      return uploads;
+    } else {
+      throw new Error(`Não foi possível recuperar os arquivos. Tente novamente, mais tarde!`);
+    }
+  } else {
+    throw new Error('Credenciais inválidas!');
+  }
 }
