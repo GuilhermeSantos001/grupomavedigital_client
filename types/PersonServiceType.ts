@@ -1,4 +1,4 @@
-import { PersonType } from '@/types/PersonType';
+import type { PersonType } from '@/types/PersonType';
 
 export type DataPerson = Pick<PersonType,
   | 'matricule'

@@ -16,19 +16,13 @@ import CopyAll from '@mui/icons-material/CopyAll';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
-import { compressToEncodedURIComponent } from 'lz-string';
-
-import {
-  useGetUserInfoService
-} from '@/services/graphql/useGetUserInfoService'
-
 import { copyTextToClipboard } from '@/src/functions/copyTextToClipboard';
 
 import { generateAPIKey } from '@/src/functions/generateAPIKey'
 
-import {
-  useAPIKeyService
-} from '@/services/useAPIKeyService'
+import type {
+  FunctionCreateAPIKeyTypeof
+} from '@/types/APIKeyServiceType';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
@@ -48,6 +42,8 @@ export interface Props {
   show: boolean
   username: string
   userMail: string
+  isLoadingAPIKey: boolean
+  createAPIKey: FunctionCreateAPIKeyTypeof
   handleClose: () => void
 }
 
@@ -57,7 +53,7 @@ export function RegisterAPIKey(props: Props) {
   const [apiKeyPassphrase, setApiKeyPassphrase] = useState('');
   const [apiKeyPassphraseVisible, setApiKeyPassphraseVisible] = useState(false);
 
-  const { isLoading: isLoadingAPIKey, create: handleCreateAPIKey, } = useAPIKeyService();
+  const { isLoadingAPIKey, createAPIKey } = props;
 
   return (
     <Modal
@@ -184,7 +180,7 @@ export function RegisterAPIKey(props: Props) {
               disabled={isLoadingAPIKey || !apiKeyValue || !apiKeyTitle || apiKeyTitle.length < 8 || !apiKeyPassphrase || apiKeyPassphrase.length < 8}
               onClick={async () => {
                 try {
-                  const key = await handleCreateAPIKey({
+                  const key = await createAPIKey({
                     username: props.username,
                     userMail: props.userMail,
                     title: apiKeyTitle,

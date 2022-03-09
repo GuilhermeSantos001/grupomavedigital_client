@@ -1,4 +1,4 @@
-import { ScaleType } from '@/types/ScaleType';
+import type { ScaleType } from '@/types/ScaleType';
 
 export type DataScale = Pick<ScaleType, 'value'>;
 

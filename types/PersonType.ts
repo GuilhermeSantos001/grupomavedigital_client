@@ -1,4 +1,17 @@
-import { DatabaseStatusType } from './DatabaseStatusType';
+import type { DatabaseStatusType } from '@/types/DatabaseStatusType'
+
+import type { ServiceType } from '@/types/ServiceType'
+import type { AddressType } from '@/types/AddressType'
+import type { ScaleType } from '@/types/ScaleType'
+import type { CardType } from '@/types/CardType'
+
+export type PersonService = {
+    id: string
+    personId: string
+    person: PersonType
+    serviceId: string
+    service: ServiceType
+}
 
 export type PersonType = {
     id: string
@@ -14,44 +27,10 @@ export type PersonType = {
     addressId: string
     scaleId: string
     status: DatabaseStatusType
-    address: {
-        id: string
-        street: {
-            value: string
-        }
-        number: string
-        complement: string
-        neighborhood: {
-            value: string
-        }
-        city: {
-            value: string
-        }
-        district: {
-            value: string
-        }
-        zipCode: string
-    }
-    scale: {
-        id: string
-        value: string
-    }
-    personService: {
-        id: string
-        service: {
-            value: string
-        }
-    }[]
-    cards: {
-        id: string
-        lotNum: string
-        serialNumber: string
-        lastCardNumber: string
-        costCenter: {
-            id: string
-            value: string
-        }
-    }[]
+    address: AddressType
+    scale: ScaleType
+    personService: PersonService[]
+    cards: CardType[]
     createdAt: string
     updatedAt: string
 }

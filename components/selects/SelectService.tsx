@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 
@@ -9,29 +9,29 @@ import { ListItemsForSelection } from '@/components/lists/ListItemsForSelection'
 
 import ArrayEx from '@/src/utils/arrayEx';
 import Alerting from '@/src/utils/alerting';
+import StringEx from '@/src/utils/stringEx'
 
 import type {
   DataService,
   FunctionCreateServiceTypeof,
   FunctionUpdateServicesTypeof,
-  FunctionDeleteServicesTypeof,
-} from '@/types/ServiceServiceType';
+  FunctionDeleteServicesTypeof
+} from '@/types/ServiceServiceType'
 
-import {
-  useServiceService
-} from '@/services/useServiceService';
-
-import {
-  useServicesService
-} from '@/services/useServicesService';
+import type { ServiceType } from '@/types/ServiceType'
 
 export interface Props {
+  createService: FunctionCreateServiceTypeof
+  services: ServiceType[]
+  isLoadingServices: boolean
+  updateServices: FunctionUpdateServicesTypeof
+  deleteServices: FunctionDeleteServicesTypeof
   itemsLeft: string[];
   itemsRight: string[];
   onChangeAppliedServices: (values: string[]) => void;
 }
 
-export function SelectService(props: Props) {
+function Component(props: Props) {
   const [syncData, setSyncData] = useState<boolean>(false);
 
   const [checked, setChecked] = useState<readonly string[]>([]);
@@ -42,20 +42,29 @@ export function SelectService(props: Props) {
   const [textUpdateService, setTextUpdateService] = useState<string>('');
   const [idUpdateService, setIdUpdateService] = useState<string>('');
 
-  const { create: CreateService } = useServiceService();
-  const { data: services, isLoading: isLoadingService, update: UpdateServices, delete: DeleteServices } = useServicesService();
+  const {
+    createService,
+    services,
+    isLoadingServices,
+    updateServices,
+    deleteServices,
+  } = props;
 
   const
-    handleAppendService: FunctionCreateServiceTypeof = async (data: DataService) => CreateService ? await CreateService(data) : undefined,
-    handleUpdateService: FunctionUpdateServicesTypeof = async (id: string, data: DataService) => UpdateServices ? await UpdateServices(id, data) : false,
-    handleDeleteService: FunctionDeleteServicesTypeof = async (id: string) => DeleteServices ? await DeleteServices(id) : false;
+    handleAppendService: FunctionCreateServiceTypeof = async (data: DataService) => createService ? await createService(data) : undefined,
+    handleUpdateService: FunctionUpdateServicesTypeof = async (id: string, data: DataService) => updateServices ? await updateServices(id, data) : false,
+    handleDeleteService: FunctionDeleteServicesTypeof = async (id: string) => deleteServices ? await deleteServices(id) : false;
 
-  if (isLoadingService && !syncData)
+  if (isLoadingServices && !syncData)
     return <BoxLoadingMagicSpinner />;
 
   if (!syncData && services) {
     setSyncData(true);
-  } else if (!syncData && !services) {
+  } else if (
+    !syncData && !services
+    || !syncData && !updateServices
+    || !syncData && !deleteServices
+  ) {
     return <BoxError />
   }
 
@@ -116,10 +125,13 @@ export function SelectService(props: Props) {
           variant="standard"
           value={hasEditService ? textUpdateService : newService}
           onChange={(e) => {
+            if (StringEx.trim(e.target.value).length <= 0)
+              return Alerting.create('warning', 'Por favor, informe um valor válido.');
+
             if (hasEditService) {
-              setTextUpdateService(e.target.value);
+              setTextUpdateService(StringEx.trim(e.target.value));
             } else {
-              setNewService(e.target.value)
+              setNewService(StringEx.trim(e.target.value))
             }
           }}
         />
@@ -216,3 +228,14 @@ export function SelectService(props: Props) {
     </>
   );
 }
+
+export const SelectService = memo(Component, (prevStates, nextStates) => {
+  if (
+    prevStates.services.length !== nextStates.services.length
+    || prevStates.itemsLeft.length !== nextStates.itemsLeft.length
+    || prevStates.itemsRight.length !== nextStates.itemsRight.length
+  )
+    return false;
+
+  return true;
+});

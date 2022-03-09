@@ -1,13 +1,4 @@
-/**
- * @description Componentes da grade do layout da pagina
- * @author GuilhermeSantos001
- * @update 24/01/2022
- */
-
 import React from 'react'
-
-import { ThemeProvider } from '@mui/material/styles';
-import { Theme } from '@/styles/theme-material-ui';
 
 import { Dropdown } from 'react-bootstrap';
 
@@ -237,9 +228,7 @@ export default class GridContent extends React.Component<MyProps, MyState> {
           className={`fade-effect active p-2 mb-5 border-start animation-delay ${this.props.fullwidth ? 'fullwidth' : ''
             }${this.props.menuShow ? 'fullwidth' : ''}`}
         >
-          <ThemeProvider theme={Theme}>
-            {children}
-          </ThemeProvider>
+          {children}
         </div>
         <div
           className='fixed-bottom d-flex flex-row justify-content-center align-items-center bg-light-gray border-top p-2 shadow'

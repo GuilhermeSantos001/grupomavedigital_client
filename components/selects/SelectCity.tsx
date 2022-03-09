@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Autocomplete, TextField, createFilterOptions, Button } from '@mui/material'
 
 import { AutocompleteLoading } from '@/components/utils/AutocompleteLoading';
 import { AutocompleteError } from '@/components/utils/AutocompleteError';
 
-import type { CityType } from '@/types/CityType'
+import Alerting from '@/src/utils/alerting';
+import StringEx from '@/src/utils/stringEx'
 
 import type {
   DataCity,
@@ -13,22 +14,16 @@ import type {
   FunctionDeleteCitiesTypeof
 } from '@/types/CityServiceType'
 
-import {
-  useCityService
-} from '@/services/useCityService'
-
-import {
-  useCityWithIdService
-} from '@/services/useCityWithIdService'
-
-import {
-  useCitiesService
-} from '@/services/useCitiesService'
-
-import Alerting from '@/src/utils/alerting';
+import type { CityType } from '@/types/CityType'
 
 export type Props = {
-  id?: string
+  createCity: FunctionCreateCityTypeof
+  city?: CityType
+  isLoadingCity?: boolean
+  cities: CityType[]
+  updateCities: FunctionUpdateCitiesTypeof
+  deleteCities: FunctionDeleteCitiesTypeof
+  isLoadingCities: boolean
   disabled?: boolean
   handleChangeData?: (data: CityType) => void
   handleChangeId: (id: string) => void
@@ -41,7 +36,7 @@ export type FilmOptionType = Pick<CityType, 'id' | 'value'> & {
 
 const filter = createFilterOptions<FilmOptionType>();
 
-export function SelectCity(props: Props) {
+ function Component(props: Props) {
   const [syncData, setSyncData] = useState<boolean>(false);
   const [returnData, setReturnData] = useState<boolean>(false);
 
@@ -49,22 +44,28 @@ export function SelectCity(props: Props) {
   const [hasEdit, setHasEdit] = useState<boolean>(false);
   const [editValue, setEditValue] = useState<string>('');
 
-  const { create: CreateCity } = useCityService();
-  const { data: city, isLoading: isLoadingCity } = useCityWithIdService(props.id || '');
-  const { data: cities, isLoading: isLoadingCities, update: UpdateCities, delete: DeleteCities } = useCitiesService();
+  const {
+    createCity,
+    city,
+    isLoadingCity,
+    cities,
+    updateCities,
+    deleteCities,
+    isLoadingCities,
+  } = props;
 
   const
-    handleAppendCity: FunctionCreateCityTypeof = async (data: DataCity) => CreateCity ? await CreateCity(data) : undefined,
-    handleUpdateCity: FunctionUpdateCitiesTypeof = async (id: string, data: DataCity) => UpdateCities ? await UpdateCities(id, data) : false,
-    handleRemoveCity: FunctionDeleteCitiesTypeof = async (id: string) => DeleteCities ? await DeleteCities(id) : false;
+    handleAppendCity: FunctionCreateCityTypeof = async (data: DataCity) => createCity ? await createCity(data) : undefined,
+    handleUpdateCity: FunctionUpdateCitiesTypeof = async (id: string, data: DataCity) => updateCities ? await updateCities(id, data) : false,
+    handleRemoveCity: FunctionDeleteCitiesTypeof = async (id: string) => deleteCities ? await deleteCities(id) : false;
 
   if (!value && hasEdit)
     setHasEdit(false);
 
-  if (isLoadingCity && !syncData || isLoadingCities && !props.id && !syncData)
+  if (isLoadingCity && !syncData || isLoadingCities && !syncData)
     return <AutocompleteLoading label='Cidade' message='Carregando...' />
 
-  if (!syncData && city || !syncData && !props.id && cities) {
+  if (!syncData && city || !syncData && cities) {
     if (city) {
       setValue({
         id: city.id,
@@ -73,15 +74,15 @@ export function SelectCity(props: Props) {
     }
 
     setSyncData(true);
-  } else if (!syncData && !city || !syncData && !props.id && !cities) {
+  } else if (!syncData && !city || !syncData && !cities) {
     return <AutocompleteError label='Cidade' message='Ocorreu um erro' />
   }
 
-  if (props.id && props.handleChangeData && returnData) {
-    const city = cities.find(city => city.id === props.id);
+  if (city && props.handleChangeData && returnData) {
+    const changeCity = cities.find(city => city.id === city.id);
 
-    if (city)
-      props.handleChangeData(city);
+    if (changeCity)
+      props.handleChangeData(changeCity);
 
     setReturnData(false);
   }
@@ -94,9 +95,18 @@ export function SelectCity(props: Props) {
         disabled={props.disabled !== undefined ? props.disabled : false}
         onChange={async (event: any, newValue) => {
           if (typeof newValue === 'string') {
+            if (StringEx.trim(newValue).length <= 0)
+              return Alerting.create('warning', 'Por favor, informe um valor válido.');
+          } else if (newValue) {
+            const inputValue = newValue.inputValue ? newValue.inputValue : newValue.value;
+            if (StringEx.trim(inputValue).length <= 0)
+              return Alerting.create('warning', 'Por favor, informe um valor válido.');
+          }
+
+          if (typeof newValue === 'string') {
             const value: FilmOptionType = {
               id: '',
-              value: newValue,
+              value: StringEx.trim(newValue),
             };
 
             setValue(value);
@@ -121,10 +131,10 @@ export function SelectCity(props: Props) {
                     props.handleChangeId(city.id);
                   }
                 } else {
-                  if (cities.filter(city => city.value === newValue).length <= 0) {
+                  if (cities.filter(city => city.value === value.value).length <= 0) {
                     handleAppendCity({ value: value.value });
                   } else {
-                    const city = cities.find(city => city.value === newValue);
+                    const city = cities.find(city => city.value === value.value);
 
                     if (city) {
                       setValue({
@@ -143,7 +153,7 @@ export function SelectCity(props: Props) {
             const
               city: FilmOptionType = {
                 id: hasEdit ? value?.id || '' : '',
-                value: newValue.inputValue,
+                value: StringEx.trim(newValue.inputValue),
               };
 
             if (!newValue.inputUpdate) {
@@ -161,9 +171,9 @@ export function SelectCity(props: Props) {
             setReturnData(true);
             props.handleChangeId(city.id);
           } else {
-            if (!newValue && props.id) {
+            if (!newValue && props.city) {
               newValue = {
-                id: props.id,
+                id: props.city.id,
                 value: city?.value || '???'
               }
             }
@@ -242,10 +252,13 @@ export function SelectCity(props: Props) {
         color='error'
         disabled={props.disabled ? true : hasEdit || !value}
         onClick={() => {
-          if (value && value.id !== props.id) {
-            if (props.id) {
+          if (props.city && value && props.city.id === value.id)
+            return Alerting.create('info', 'Não é possível remover a cidade sendo usada pelo registro.');
+
+          if (value) {
+            if (props.city) {
               setValue({
-                id: props.id,
+                id: props.city.id,
                 value: city?.value || '???'
               })
             } else {
@@ -255,8 +268,6 @@ export function SelectCity(props: Props) {
             handleRemoveCity(value.id);
             setReturnData(true);
             props.handleChangeId('');
-          } else {
-            Alerting.create('info', 'Não é possível remover a cidade sendo usada pelo registro.');
           }
         }}
       >
@@ -265,3 +276,13 @@ export function SelectCity(props: Props) {
     </div>
   )
 }
+
+export const SelectCity = memo(Component, (prevStates, nextStates) => {
+  if (
+    prevStates.city?.value !== nextStates.city?.value
+    || prevStates.cities.length !== nextStates.cities.length
+  )
+    return false;
+
+  return true;
+});

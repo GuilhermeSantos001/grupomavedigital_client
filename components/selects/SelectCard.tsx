@@ -1,9 +1,3 @@
-/**
- * @description Input -> Seleciona um cartão (Alelo)
- * @author GuilhermeSantos001
- * @update 12/02/2022
- */
-
 import React, { useState } from 'react';
 import TextField from '@mui/material/TextField';
 import OutlinedInput from '@mui/material/OutlinedInput';
@@ -18,10 +12,12 @@ import { OutlinedInputLoading } from '@/components/utils/OutlinedInputLoading';
 import { OutlinedInputEmpty } from '@/components/utils/OutlinedInputEmpty';
 import { BoxError } from '@/components/utils/BoxError';
 
-import { useCardsService } from '@/services/useCardsService';
+import type { CardType } from '@/types/CardType';
 
 export type Props = {
   selectCards?: string[]
+  isLoadingCards: boolean
+  cards: CardType[]
   handleChangeCard: (cards: string[]) => void
 }
 
@@ -38,9 +34,9 @@ const MenuProps = {
 
 export function SelectCard(props: Props) {
   const [syncData, setSyncData] = useState<boolean>(false);
-
-  const { data: cards, isLoading: isLoadingCards } = useCardsService();
   const [selectCards, setSelectCards] = useState<string[]>(props.selectCards || []);
+
+  const { isLoadingCards, cards } = props;
 
   if (isLoadingCards && !syncData)
     return <OutlinedInputLoading label='Cartões Benefício (Alelo)' message='Carregando...' />

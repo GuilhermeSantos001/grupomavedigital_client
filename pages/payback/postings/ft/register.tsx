@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 
 import { GetServerSidePropsContext } from 'next/types'
 
@@ -62,20 +62,128 @@ import DateEx from '@/src/utils/dateEx'
 import getWorkPlaceForTable from '@/src/functions/getWorkPlaceForTable'
 import getPeopleForTable from '@/src/functions/getPeopleForTable'
 
-import { CostCenterType } from '@/types/CostCenterType'
-import { WorkplaceType } from '@/types/WorkplaceType'
-import { AddressType } from '@/types/AddressType'
-import { PersonType } from '@/types/PersonType'
-import { PostingType } from '@/types/PostingType'
-import { CardType } from '@/types/CardType'
+import type { CostCenterType } from '@/types/CostCenterType'
+import type { WorkplaceType } from '@/types/WorkplaceType'
+import type { AddressType } from '@/types/AddressType'
+import type { StreetType } from '@/types/StreetType'
+import type { CityType } from '@/types/CityType'
+import type { NeighborhoodType } from '@/types/NeighborhoodType'
+import type { DistrictType } from '@/types/DistrictType'
+import type { PersonType } from '@/types/PersonType'
+import type { PostingType } from '@/types/PostingType'
+import type { ServiceType } from '@/types/ServiceType'
+import type { CardType } from '@/types/CardType'
+import type { ScaleType } from '@/types/ScaleType'
+import type { UploadType } from '@/types/UploadType'
 
 import { usePostingsService } from '@/services/usePostingsService'
 import { useCostCentersService } from '@/services/useCostCentersService'
+import { useWorkplaceService } from '@/services/useWorkplaceService'
 import { useWorkplacesService } from '@/services/useWorkplacesService'
+import { useAddressService } from '@/services/useAddressService'
 import { useAddressesService } from '@/services/useAddressesService'
+import { usePersonService } from '@/services/usePersonService'
 import { usePeopleService } from '@/services/usePeopleService'
+import { useServicesService } from '@/services/useServicesService'
 import { useCardsService } from '@/services/useCardsService'
 import { useUploadsService } from '@/services/useUploadsService'
+import { useServiceService } from '@/services/useServiceService'
+import { useScaleService } from '@/services/useScaleService'
+import { useScalesService } from '@/services/useScalesService'
+import { useStreetService } from '@/services/useStreetService'
+import { useStreetsService } from '@/services/useStreetsService'
+import { useCityService } from '@/services/useCityService'
+import { useCitiesService } from '@/services/useCitiesService'
+import { useNeighborhoodsService } from '@/services/useNeighborhoodsService'
+import { useNeighborhoodService } from '@/services/useNeighborhoodService'
+import { useDistrictService } from '@/services/useDistrictService'
+import { useDistrictsService } from '@/services/useDistrictsService'
+import { usePostingService } from '@/services/usePostingService'
+import { useUploadService } from '@/services/useUploadService'
+import { usePersonCoveringService } from '@/services/usePersonCoveringService'
+import { usePersonCoverageService } from '@/services/usePersonCoverageService'
+import { useReasonForAbsencesService } from '@/services/useReasonForAbsencesService'
+
+import type {
+  FunctionCreateWorkplaceTypeof,
+  FunctionUpdateWorkplacesTypeof
+} from '@/types/WorkplaceServiceType'
+
+import type {
+  FunctionCreateAddressTypeof,
+  FunctionUpdateAddressesTypeof
+} from '@/types/AddressServiceType';
+
+import type {
+  FunctionCreatePersonTypeof,
+  FunctionUpdatePeopleTypeof
+} from '@/types/PersonServiceType';
+
+import type {
+  DataAssignPerson,
+  DataAssignWorkplace,
+  FunctionCreateServiceTypeof,
+  FunctionUpdateServicesTypeof,
+  FunctionAssignPeopleServiceTypeof,
+  FunctionAssignWorkplacesServiceTypeof,
+  FunctionUnassignPeopleServiceTypeof,
+  FunctionUnassignWorkplacesServiceTypeof,
+  FunctionDeleteServicesTypeof
+} from '@/types/ServiceServiceType';
+
+import type {
+  DataPersonId,
+  FunctionAssignPeopleCardTypeof,
+  FunctionUnassignPeopleCardTypeof
+} from '@/types/CardServiceType';
+
+import type {
+  FunctionCreateScaleTypeof,
+  FunctionUpdateScalesTypeof,
+  FunctionDeleteScalesTypeof,
+} from '@/types/ScaleServiceType'
+
+import type {
+  FunctionCreateStreetTypeof,
+  FunctionUpdateStreetsTypeof,
+  FunctionDeleteStreetsTypeof,
+} from '@/types/StreetServiceType'
+
+import type {
+  FunctionCreateCityTypeof,
+  FunctionUpdateCitiesTypeof,
+  FunctionDeleteCitiesTypeof,
+} from '@/types/CityServiceType'
+
+import type {
+  FunctionCreateNeighborhoodTypeof,
+  FunctionUpdateNeighborhoodsTypeof,
+  FunctionDeleteNeighborhoodsTypeof,
+} from '@/types/NeighborhoodServiceType'
+
+import type {
+  FunctionCreateDistrictTypeof,
+  FunctionUpdateDistrictsTypeof,
+  FunctionDeleteDistrictsTypeof,
+} from '@/types/DistrictServiceType'
+
+import type {
+  FunctionCreatePersonCoveringTypeof
+} from '@/types/PersonCoveringServiceType'
+import type {
+  FunctionCreatePersonCoverageTypeof
+} from '@/types/PersonCoverageServiceType'
+import type {
+  ReasonForAbsenceType
+} from '@/types/ReasonForAbsenceType'
+import type {
+  FunctionCreatePostingTypeof
+} from '@/types/PostingServiceType'
+
+import type {
+  FunctionCreateUploadTypeof,
+  FunctionUpdateUploadsTypeof
+} from '@/types/UploadServiceType'
 
 const serverSideProps: PageProps = {
   title: 'Lançamentos/Cadastro',
@@ -350,13 +458,40 @@ function compose_ready(
   handleChangePageSizeTablePeopleInWorkplaces: (pageSize: number) => void,
   costCenters: CostCenterType[],
   costCenter: string,
+  isLoadingCostCenters: boolean,
   handleChangeCostCenter: (id: string) => void,
   periodStart: Date,
   setPeriodStart: React.Dispatch<React.SetStateAction<Date>>,
   periodEnd: Date,
   setPeriodEnd: React.Dispatch<React.SetStateAction<Date>>,
   workplaces: WorkplaceType[],
+  isLoadingWorkplaces: boolean,
+  createWorkplace: FunctionCreateWorkplaceTypeof,
+  updateWorkplaces: FunctionUpdateWorkplacesTypeof,
+  isLoadingAddresses: boolean,
   addresses: AddressType[],
+  createAddress: FunctionCreateAddressTypeof,
+  updateAddresses: FunctionUpdateAddressesTypeof,
+  isLoadingStreets: boolean,
+  createStreet: FunctionCreateStreetTypeof,
+  streets: StreetType[],
+  updateStreets: FunctionUpdateStreetsTypeof,
+  deleteStreets: FunctionDeleteStreetsTypeof,
+  isLoadingCities: boolean,
+  createCity: FunctionCreateCityTypeof,
+  cities: CityType[],
+  updateCities: FunctionUpdateCitiesTypeof,
+  deleteCities: FunctionDeleteCitiesTypeof,
+  isLoadingNeighborhoods: boolean,
+  createNeighborhood: FunctionCreateNeighborhoodTypeof,
+  neighborhoods: NeighborhoodType[],
+  updateNeighborhoods: FunctionUpdateNeighborhoodsTypeof,
+  deleteNeighborhoods: FunctionDeleteNeighborhoodsTypeof,
+  isLoadingDistricts: boolean,
+  createDistrict: FunctionCreateDistrictTypeof,
+  districts: DistrictType[],
+  updateDistricts: FunctionUpdateDistrictsTypeof,
+  deleteDistricts: FunctionDeleteDistrictsTypeof,
   showModalRegisterWorkplace: boolean,
   showModalRegisterAddress: boolean,
   showModalRegisterPeopleInWorkplace: boolean,
@@ -381,9 +516,16 @@ function compose_ready(
   handleDefineSelectWorkplaces: (itens: string[]) => void,
   handleDefineSelectPeopleInWorkplaces: (itens: string[]) => void,
   handleDeleteWorkplaces: (workplacesId: string[]) => void,
-  handleDeleteAddresses: (addressId: string) => void,
+  handleDeleteAddress: (addressId: string) => void,
   handleDeletePeopleInWorkplaces: (peopleId: string[]) => void,
+  isLoadingPeople: boolean,
   people: PersonType[],
+  createPerson: FunctionCreatePersonTypeof,
+  createPersonCovering: FunctionCreatePersonCoveringTypeof,
+  createPersonCoverage: FunctionCreatePersonCoverageTypeof,
+  updatePeople: FunctionUpdatePeopleTypeof,
+  reasonForAbsences: ReasonForAbsenceType[],
+  isLoadingReasonForAbsences: boolean,
   appliedWorkplaces: WorkplaceType[],
   appliedPeopleInWorkplaces: PersonType[],
   handleAppendAppliedWorkplaces: (itens: WorkplaceType[]) => void,
@@ -391,8 +533,30 @@ function compose_ready(
   handleRemoveAppliedWorkplaces: (itens: WorkplaceType[]) => void,
   handleRemoveAppliedPeopleInWorkplaces: (itens: PersonType[]) => void,
   handleChangeIdAddress: (id: string) => void,
+  isLoadingServices: boolean,
+  services: ServiceType[],
+  createService: FunctionCreateServiceTypeof,
+  updateServices: FunctionUpdateServicesTypeof,
+  deleteServices: FunctionDeleteServicesTypeof,
+  handleAssignPeopleService: FunctionAssignPeopleServiceTypeof,
+  handleAssignWorkplacesService: FunctionAssignWorkplacesServiceTypeof,
+  handleUnassignPeopleService: FunctionUnassignPeopleServiceTypeof,
+  handleUnassignWorkplacesService: FunctionUnassignWorkplacesServiceTypeof,
+  isLoadingCards: boolean,
   cards: CardType[],
+  handleAssignPeopleCard: FunctionAssignPeopleCardTypeof,
+  handleUnassignPeopleCard: FunctionUnassignPeopleCardTypeof,
+  isLoadingScales: boolean,
+  scales: ScaleType[],
+  createScale: FunctionCreateScaleTypeof,
+  updateScales: FunctionUpdateScalesTypeof,
+  deleteScales: FunctionDeleteScalesTypeof,
   postings: PostingType[],
+  createPosting: FunctionCreatePostingTypeof,
+  createUpload: FunctionCreateUploadTypeof,
+  uploads: UploadType[],
+  isLoadingUploads: boolean,
+  updateUploads: FunctionUpdateUploadsTypeof,
   showModalAssistantCoverageDefine: boolean,
   handleOpenModalAssistantCoverageDefine: () => void,
   handleCloseModalAssistantCoverageDefine: () => void,
@@ -435,18 +599,81 @@ function compose_ready(
   return (
     <>
       {!window.socket && <SocketConnection />}
-      {/* <RegisterWorkplace
+      <RegisterWorkplace
         show={showModalRegisterWorkplace}
+        createWorkplace={createWorkplace}
+        addresses={addresses}
+        isLoadingAddresses={isLoadingAddresses}
+        services={services}
+        isLoadingServices={isLoadingServices}
+        createService={createService}
+        updateServices={updateServices}
+        assignWorkplacesService={handleAssignWorkplacesService}
+        deleteServices={deleteServices}
+        createScale={createScale}
+        scale={undefined}
+        isLoadingScale={false}
+        scales={scales}
+        isLoadingScales={isLoadingScales}
+        updateScales={updateScales}
+        deleteScales={deleteScales}
         handleClose={handleCloseModalRegisterWorkplace}
       />
       <RegisterAddress
+        createAddress={createAddress}
+        createStreet={createStreet}
+        street={undefined}
+        isLoadingStreet={false}
+        streets={streets}
+        isLoadingStreets={isLoadingStreets}
+        updateStreets={updateStreets}
+        deleteStreets={deleteStreets}
+        createCity={createCity}
+        city={undefined}
+        isLoadingCity={false}
+        cities={cities}
+        isLoadingCities={isLoadingCities}
+        updateCities={updateCities}
+        deleteCities={deleteCities}
+        createNeighborhood={createNeighborhood}
+        neighborhood={undefined}
+        isLoadingNeighborhood={false}
+        neighborhoods={neighborhoods}
+        isLoadingNeighborhoods={isLoadingNeighborhoods}
+        updateNeighborhoods={updateNeighborhoods}
+        deleteNeighborhoods={deleteNeighborhoods}
+        createDistrict={createDistrict}
+        district={undefined}
+        isLoadingDistrict={false}
+        districts={districts}
+        isLoadingDistricts={isLoadingDistricts}
+        updateDistricts={updateDistricts}
+        deleteDistricts={deleteDistricts}
         show={showModalRegisterAddress}
         handleClose={handleCloseModalRegisterAddress}
       />
       {
         selectWorkplaces.length === 1 &&
         <EditWorkplace
-          id={workplaces.find(place => place.id === selectWorkplaces[0])?.id || ""}
+          workplace={workplaces.find(place => place.id === selectWorkplaces[0])}
+          isLoadingWorkplace={false}
+          updateWorkplaces={updateWorkplaces}
+          addresses={addresses}
+          isLoadingAddresses={isLoadingAddresses}
+          createService={createService}
+          services={services}
+          isLoadingServices={isLoadingServices}
+          updateServices={updateServices}
+          assignWorkplacesService={handleAssignWorkplacesService}
+          unassignWorkplacesService={handleUnassignWorkplacesService}
+          deleteServices={deleteServices}
+          createScale={createScale}
+          scale={workplaces.find(place => place.id === selectWorkplaces[0])?.scale}
+          isLoadingScale={false}
+          scales={scales}
+          isLoadingScales={isLoadingScales}
+          updateScales={updateScales}
+          deleteScales={deleteScales}
           show={showModalEditWorkplace}
           handleClose={handleCloseModalEditWorkplace}
         />
@@ -454,25 +681,110 @@ function compose_ready(
       {
         selectAddressId.length > 0 &&
         <EditAddress
-          id={addresses.find(address => address.id === selectAddressId)?.id || ""}
+          address={addresses.find(address => address.id === selectAddressId)}
+          isLoadingAddress={false}
+          updateAddresses={updateAddresses}
+          createStreet={createStreet}
+          street={addresses.find(address => address.id === selectAddressId)?.street}
+          isLoadingStreet={false}
+          streets={streets}
+          isLoadingStreets={isLoadingStreets}
+          updateStreets={updateStreets}
+          deleteStreets={deleteStreets}
+          createCity={createCity}
+          city={addresses.find(address => address.id === selectAddressId)?.city}
+          isLoadingCity={false}
+          cities={cities}
+          isLoadingCities={isLoadingCities}
+          updateCities={updateCities}
+          deleteCities={deleteCities}
+          createNeighborhood={createNeighborhood}
+          neighborhood={addresses.find(address => address.id === selectAddressId)?.neighborhood}
+          isLoadingNeighborhood={false}
+          neighborhoods={neighborhoods}
+          isLoadingNeighborhoods={isLoadingNeighborhoods}
+          updateNeighborhoods={updateNeighborhoods}
+          deleteNeighborhoods={deleteNeighborhoods}
+          createDistrict={createDistrict}
+          district={addresses.find(address => address.id === selectAddressId)?.district}
+          isLoadingDistrict={false}
+          districts={districts}
+          isLoadingDistricts={isLoadingDistricts}
+          updateDistricts={updateDistricts}
+          deleteDistricts={deleteDistricts}
           show={showModalEditAddress}
           handleClose={handleCloseModalEditAddress}
         />
       }
       <RegisterPeople
         show={showModalRegisterPeopleInWorkplace}
+        createPerson={createPerson}
+        addresses={addresses}
+        isLoadingAddresses={isLoadingAddresses}
+        services={services}
+        isLoadingServices={isLoadingServices}
+        createService={createService}
+        updateServices={updateServices}
+        assignPeopleService={handleAssignPeopleService}
+        deleteServices={deleteServices}
+        cards={cards}
+        isLoadingCards={isLoadingCards}
+        assignPeopleCard={handleAssignPeopleCard}
+        createScale={createScale}
+        scale={undefined}
+        isLoadingScale={false}
+        scales={scales}
+        isLoadingScales={isLoadingScales}
+        updateScales={updateScales}
+        deleteScales={deleteScales}
         handleClose={handleCloseModalRegisterPeopleInWorkplace}
       />
       {
         selectPeopleInWorkplaces.length === 1 &&
         <EditPeople
-          id={people.find(person => person.id === selectPeopleInWorkplaces[0])?.id || ""}
+          person={people.find(person => person.id === selectPeopleInWorkplaces[0])}
+          isLoadingPerson={isLoadingPeople}
+          updatePeople={updatePeople}
+          addresses={addresses}
+          isLoadingAddresses={isLoadingAddresses}
+          createService={createService}
+          services={services}
+          isLoadingServices={isLoadingServices}
+          updateServices={updateServices}
+          assignPeopleService={handleAssignPeopleService}
+          unassignPeopleService={handleUnassignPeopleService}
+          deleteServices={deleteServices}
+          cards={cards}
+          isLoadingCards={isLoadingCards}
+          assignPeopleCard={handleAssignPeopleCard}
+          unassignPeopleCard={handleUnassignPeopleCard}
+          createScale={createScale}
+          scale={people.find(person => person.id === selectPeopleInWorkplaces[0])?.scale}
+          isLoadingScale={false}
+          scales={scales}
+          isLoadingScales={isLoadingScales}
+          updateScales={updateScales}
+          deleteScales={deleteScales}
           show={showModalEditPeopleInWorkplace}
           handleClose={handleCloseModalEditPeopleInWorkplace}
         />
       }
       <AssistantCoverageDefine
-        show={showModalAssistantCoverageDefine}
+        createPosting={createPosting}
+        createUpload={createUpload}
+        updateUploads={updateUploads}
+        uploads={uploads}
+        isLoadingUploads={isLoadingUploads}
+        createPersonCovering={createPersonCovering}
+        createPersonCoverage={createPersonCoverage}
+        costCenters={costCenters}
+        isLoadingCostCenters={isLoadingCostCenters}
+        people={people}
+        isLoadingPeople={isLoadingPeople}
+        workplaces={workplaces}
+        isLoadingWorkplaces={isLoadingWorkplaces}
+        reasonForAbsences={reasonForAbsences}
+        isLoadingReasonForAbsences={isLoadingReasonForAbsences}
         auth={auth}
         availableWorkplaces={appliedWorkplaces.map(place => place.id)}
         availablePeopleInWorkplace={appliedPeopleInWorkplaces.map(person => person.id)}
@@ -485,11 +797,12 @@ function compose_ready(
             handleAppendPostingDefined(postings);
           }
         }}
+        show={showModalAssistantCoverageDefine}
         handleClose={() => {
           handleRemoveAppliedPeopleInWorkplaces(appliedPeopleInWorkplaces);
           handleCloseModalAssistantCoverageDefine();
         }}
-      /> */}
+      />
       <div className="row g-2">
         <div className="col-12">
           <div className="p-3 bg-primary bg-gradient rounded">
@@ -616,6 +929,8 @@ function compose_ready(
                       </p>
                       <div className='d-flex flex-column'>
                         <SelectAddress
+                          addresses={addresses}
+                          isLoadingAddresses={isLoadingAddresses}
                           handleChangeId={handleChangeIdAddress}
                         />
                         <div className='d-flex justify-content-start align-items-start'>
@@ -634,7 +949,7 @@ function compose_ready(
                             type="button"
                             className="btn btn-link"
                             disabled={selectAddressId.length <= 0}
-                            onClick={() => handleDeleteAddresses(selectAddressId)}
+                            onClick={() => handleDeleteAddress(selectAddressId)}
                           >
                             <FontAwesomeIcon
                               icon={Icon.render('fas', 'minus-square')}
@@ -662,14 +977,14 @@ function compose_ready(
                       <p className="fw-bold border-bottom text-center my-2">
                         Disponíveis
                       </p>
-                      {/* <ListWithCheckboxMUI
+                      <ListWithCheckboxMUI
                         columns={workPlaceColumns}
                         rows={workPlaceRows}
                         pageSize={pageSizeTableWorkplaces}
                         pageSizeOptions={pageSizeOptionsTableWorkplaces}
                         onChangeSelection={handleDefineSelectWorkplaces}
                         onPageSizeChange={handleChangePageSizeTableWorkplaces}
-                      /> */}
+                      />
                       <div className='d-flex flex-column flex-md-row'>
                         <button
                           type="button"
@@ -931,13 +1246,63 @@ export default function Register(
 
   const router = useRouter()
 
-  const { data: postings, isLoading: isLoadingPostings, delete: DeletePostings } = usePostingsService();
-  const { data: costCenters, isLoading: isLoadingCostCenters } = useCostCentersService();
-  const { data: workplaces, isLoading: isLoadingWorkplaces, delete: DeleteWorkplaces } = useWorkplacesService();
-  const { data: addresses, isLoading: isLoadingAddresses, delete: DeleteAddresses } = useAddressesService();
-  const { data: people, isLoading: isLoadingPeople, delete: DeletePeople } = usePeopleService();
-  const { data: cards, isLoading: isLoadingCards } = useCardsService();
-  const { data: uploads, isLoading: isLoadingUploads, delete: DeleteUploads } = useUploadsService();
+  const
+    PostingService = useCallback(() => usePostingService(), []),
+    PostingsService = useCallback(() => usePostingsService(), []),
+    CostCentersService = useCallback(() => useCostCentersService(), []),
+    WorkplaceService = useCallback(() => useWorkplaceService(), []),
+    WorkplacesService = useCallback(() => useWorkplacesService(), []),
+    AddressService = useCallback(() => useAddressService(), []),
+    AddressesService = useCallback(() => useAddressesService(), []),
+    PersonService = useCallback(() => usePersonService(), []),
+    PersonCoveringService = useCallback(() => usePersonCoveringService(), []),
+    PersonCoverageService = useCallback(() => usePersonCoverageService(), []),
+    PeopleService = useCallback(() => usePeopleService(), []),
+    ReasonForAbsencesService = useCallback(() => useReasonForAbsencesService(), []),
+    ServiceService = useCallback(() => useServiceService(), []),
+    ServicesService = useCallback(() => useServicesService(), []),
+    CardsService = useCallback(() => useCardsService(), []),
+    UploadService = useCallback(() => useUploadService(), []),
+    UploadsService = useCallback(() => useUploadsService(), []),
+    ScaleService = useCallback(() => useScaleService(), []),
+    ScalesService = useCallback(() => useScalesService(), []),
+    StreetService = useCallback(() => useStreetService(), []),
+    StreetsService = useCallback(() => useStreetsService(), []),
+    CityService = useCallback(() => useCityService(), []),
+    CitiesService = useCallback(() => useCitiesService(), []),
+    NeighborhoodService = useCallback(() => useNeighborhoodService(), []),
+    NeighborhoodsService = useCallback(() => useNeighborhoodsService(), []),
+    DistrictService = useCallback(() => useDistrictService(), []),
+    DistrictsService = useCallback(() => useDistrictsService(), []);
+
+  const
+    { create: CreatePosting } = PostingService(),
+    { data: postings, isLoading: isLoadingPostings, delete: DeletePostings } = PostingsService(),
+    { data: costCenters, isLoading: isLoadingCostCenters } = CostCentersService(),
+    { create: CreateWorkplace } = WorkplaceService(),
+    { data: workplaces, isLoading: isLoadingWorkplaces, update: UpdateWorkplaces, delete: DeleteWorkplaces } = WorkplacesService(),
+    { create: CreateAddress } = AddressService(),
+    { data: addresses, isLoading: isLoadingAddresses, update: UpdateAddresses, delete: DeleteAddresses } = AddressesService(),
+    { create: CreatePerson } = PersonService(),
+    { create: CreatePersonCovering } = PersonCoveringService(),
+    { create: CreatePersonCoverage } = PersonCoverageService(),
+    { data: people, isLoading: isLoadingPeople, update: UpdatePeople, delete: DeletePeople } = PeopleService(),
+    { data: reasonForAbsences, isLoading: isLoadingReasonForAbsences } = ReasonForAbsencesService(),
+    { create: CreateService } = ServiceService(),
+    { data: services, isLoading: isLoadingServices, update: UpdateServices, assignPerson: AssignPeopleService, assignWorkplace: AssignWorkplacesService, unassignPerson: UnassignPeopleService, unassignWorkplace: unassignWorkplacesService, delete: DeleteServices } = ServicesService(),
+    { data: cards, isLoading: isLoadingCards, assignPerson: AssignPeopleCard, unassignPerson: UnassignPeopleCard } = CardsService(),
+    { create: CreateUpload } = UploadService(),
+    { data: uploads, isLoading: isLoadingUploads, update: UpdateUploads, delete: DeleteUploads } = UploadsService(),
+    { create: CreateScale } = ScaleService(),
+    { data: scales, isLoading: isLoadingScales, update: UpdateScales, delete: DeleteScales } = ScalesService(),
+    { create: CreateStreet } = StreetService(),
+    { data: streets, isLoading: isLoadingStreets, update: UpdateStreets, delete: DeleteStreets } = StreetsService(),
+    { create: CreateCity } = CityService(),
+    { data: cities, isLoading: isLoadingCities, update: UpdateCities, delete: DeleteCities } = CitiesService(),
+    { create: CreateNeighborhood } = NeighborhoodService(),
+    { data: neighborhoods, isLoading: isLoadingNeighborhoods, update: UpdateNeighborhoods, delete: DeleteNeighborhoods } = NeighborhoodsService(),
+    { create: CreateDistrict } = DistrictService(),
+    { data: districts, isLoading: isLoadingDistricts, update: UpdateDistricts, delete: DeleteDistricts } = DistrictsService();
 
   const
     handleClickNoAuth: handleClickFunction = async (
@@ -1006,7 +1371,7 @@ export default function Register(
         Alerting.create('success', `Local de trabalho (${workplaces.find(place => place.id === workplaceId)?.name || '???'}) deletado com sucesso.`);
       }
     },
-    handleDeleteAddresses = async (addressId: string) => {
+    handleDeleteAddress = async (addressId: string) => {
       if (!DeleteAddresses)
         return Alerting.create('error', 'Não foi possível deletar o registro. Tente novamente, mais tarde.');
 
@@ -1092,6 +1457,54 @@ export default function Register(
       } else {
         Alerting.create('error', `Não foi possível deletar o arquivo. Tente novamente, mais tarde.`);
       }
+    },
+    handleAssignPeopleService = async (dataAssign: Required<DataAssignPerson>[]) => {
+      if (!AssignPeopleService)
+        return Alerting.create('error', 'Ocorreu um erro inesperado. Tente novamente, mais tarde.');
+
+      for (const assign of dataAssign) {
+        await AssignPeopleService(assign.serviceId, assign);
+      }
+    },
+    handleAssignWorkplacesService = async (dataAssign: Required<DataAssignWorkplace>[]) => {
+      if (!AssignWorkplacesService)
+        return Alerting.create('error', 'Ocorreu um erro inesperado. Tente novamente, mais tarde.');
+
+      for (const assign of dataAssign) {
+        await AssignWorkplacesService(assign.serviceId, assign);
+      }
+    },
+    handleUnassignPeopleService = async (peopleServiceId: string[]) => {
+      if (!UnassignPeopleService)
+        return Alerting.create('error', 'Não foi possível deletar o(s) registro(s) selecionado(s). Tente novamente, mais tarde.');
+
+      for (const personServiceId of peopleServiceId) {
+        await UnassignPeopleService(personServiceId);
+      }
+    },
+    handleUnassignWorkplacesService = async (workplacesServiceId: string[]) => {
+      if (!unassignWorkplacesService)
+        return Alerting.create('error', 'Não foi possível deletar o(s) registro(s) selecionado(s). Tente novamente, mais tarde.');
+
+      for (const personServiceId of workplacesServiceId) {
+        await unassignWorkplacesService(personServiceId);
+      }
+    },
+    handleAssignPeopleCard = async (id: string, dataPersonId: DataPersonId[]) => {
+      if (!AssignPeopleCard)
+        return Alerting.create('error', 'Não foi possível deletar o(s) registro(s) selecionado(s). Tente novamente, mais tarde.');
+
+      for (const personId of dataPersonId) {
+        await AssignPeopleCard(id, personId);
+      }
+    },
+    handleUnassignPeopleCard = async (ids: string[]) => {
+      if (!UnassignPeopleCard)
+        return Alerting.create('error', 'Não foi possível deletar o(s) registro(s) selecionado(s). Tente novamente, mais tarde.');
+
+      for (const id of ids) {
+        await UnassignPeopleCard(id);
+      }
     }
 
   if (error && !notAuth) {
@@ -1117,8 +1530,15 @@ export default function Register(
     || isLoadingWorkplaces && !syncData
     || isLoadingAddresses && !syncData
     || isLoadingPeople && !syncData
+    || isLoadingReasonForAbsences && !syncData
+    || isLoadingServices && !syncData
     || isLoadingCards && !syncData
     || isLoadingUploads && !syncData
+    || isLoadingScales && !syncData
+    || isLoadingStreets && !syncData
+    || isLoadingCities && !syncData
+    || isLoadingNeighborhoods && !syncData
+    || isLoadingDistricts && !syncData
   )
     return <BoxLoadingMagicSpinner />
 
@@ -1129,22 +1549,58 @@ export default function Register(
     && workplaces
     && addresses
     && people
+    && reasonForAbsences
+    && services
     && cards
     && uploads
+    && scales
+    && streets
+    && cities
+    && neighborhoods
+    && districts
   ) {
     setSyncData(true);
   } else if (
-    !syncData && !postings
+    !syncData && !CreatePosting
+    || !syncData && !postings
     || !syncData && !DeletePostings
     || !syncData && !costCenters
     || !syncData && !workplaces
+    || !syncData && !UpdateWorkplaces
     || !syncData && !DeleteWorkplaces
     || !syncData && !addresses
     || !syncData && !people
+    || !syncData && !UpdatePeople
+    || !syncData && !CreatePersonCovering
+    || !syncData && !CreatePersonCoverage
     || !syncData && !DeletePeople
+    || !syncData && !services
+    || !syncData && !AssignPeopleService
+    || !syncData && !AssignWorkplacesService
+    || !syncData && !UnassignPeopleService
+    || !syncData && !unassignWorkplacesService
     || !syncData && !cards
+    || !syncData && !AssignPeopleCard
+    || !syncData && !UnassignPeopleCard
     || !syncData && !uploads
+    || !syncData && !CreateUpload
+    || !syncData && !UpdateUploads
     || !syncData && !DeleteUploads
+    || !syncData && !scales
+    || !syncData && !UpdateScales
+    || !syncData && !DeleteScales
+    || !syncData && !streets
+    || !syncData && !UpdateStreets
+    || !syncData && !DeleteStreets
+    || !syncData && !cities
+    || !syncData && !UpdateCities
+    || !syncData && !DeleteCities
+    || !syncData && !neighborhoods
+    || !syncData && !UpdateNeighborhoods
+    || !syncData && !DeleteNeighborhoods
+    || !syncData && !districts
+    || !syncData && !UpdateDistricts
+    || !syncData && !DeleteDistricts
   ) {
     return <BoxError />
   }
@@ -1174,13 +1630,40 @@ export default function Register(
       handleChangePageSizeTablePeopleInWorkplaces,
       costCenters,
       costCenter,
+      isLoadingCostCenters,
       handleChangeCostCenter,
       periodStart,
       setPeriodStart,
       periodEnd,
       setPeriodEnd,
       workplaces,
+      isLoadingWorkplaces,
+      CreateWorkplace,
+      UpdateWorkplaces,
+      isLoadingAddresses,
       addresses,
+      CreateAddress,
+      UpdateAddresses,
+      isLoadingStreets,
+      CreateStreet,
+      streets,
+      UpdateStreets,
+      DeleteStreets,
+      isLoadingCities,
+      CreateCity,
+      cities,
+      UpdateCities,
+      DeleteCities,
+      isLoadingNeighborhoods,
+      CreateNeighborhood,
+      neighborhoods,
+      UpdateNeighborhoods,
+      DeleteNeighborhoods,
+      isLoadingDistricts,
+      CreateDistrict,
+      districts,
+      UpdateDistricts,
+      DeleteDistricts,
       showModalRegisterWorkplace,
       showModalRegisterAddress,
       showModalRegisterPeopleInWorkplace,
@@ -1205,9 +1688,16 @@ export default function Register(
       handleDefineSelectWorkplaces,
       handleDefineSelectPeopleInWorkplaces,
       handleDeleteWorkplaces,
-      handleDeleteAddresses,
+      handleDeleteAddress,
       handleDeletePeopleInWorkplaces,
+      isLoadingPeople,
       people,
+      CreatePerson,
+      CreatePersonCovering,
+      CreatePersonCoverage,
+      UpdatePeople,
+      reasonForAbsences,
+      isLoadingReasonForAbsences,
       appliedWorkplaces,
       appliedPeopleInWorkplaces,
       handleAppendAppliedWorkplaces,
@@ -1215,8 +1705,30 @@ export default function Register(
       handleRemoveAppliedWorkplaces,
       handleRemoveAppliedPeopleInWorkplaces,
       handleChangeIdAddress,
+      isLoadingServices,
+      services,
+      CreateService,
+      UpdateServices,
+      DeleteServices,
+      handleAssignPeopleService,
+      handleAssignWorkplacesService,
+      handleUnassignPeopleService,
+      handleUnassignWorkplacesService,
+      isLoadingCards,
       cards,
+      handleAssignPeopleCard,
+      handleUnassignPeopleCard,
+      isLoadingScales,
+      scales,
+      CreateScale,
+      UpdateScales,
+      DeleteScales,
       postings,
+      CreatePosting,
+      CreateUpload,
+      uploads,
+      isLoadingUploads,
+      UpdateUploads,
       showModalAssistantCoverageDefine,
       handleOpenModalAssistantCoverageDefine,
       handleCloseModalAssistantCoverageDefine,
@@ -1224,7 +1736,7 @@ export default function Register(
       handleAppendPostingDefined,
       handleDefinePostingDefined,
       handleResetPostingDefined,
-      handleRemovePostingDefined
+      handleRemovePostingDefined,
     )
   }
 }

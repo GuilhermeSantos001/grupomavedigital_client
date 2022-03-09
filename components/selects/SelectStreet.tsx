@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import { useState, memo } from 'react';
 import { Autocomplete, TextField, createFilterOptions, Button } from '@mui/material'
 
 import { AutocompleteLoading } from '@/components/utils/AutocompleteLoading';
 import { AutocompleteError } from '@/components/utils/AutocompleteError';
 
-import type { StreetType } from '@/types/StreetType'
+import Alerting from '@/src/utils/alerting';
+import StringEx from '@/src/utils/stringEx'
 
 import type {
   DataStreet,
@@ -13,22 +14,16 @@ import type {
   FunctionDeleteStreetsTypeof
 } from '@/types/StreetServiceType'
 
-import {
-  useStreetService
-} from '@/services/useStreetService'
-
-import {
-  useStreetWithIdService
-} from '@/services/useStreetWithIdService'
-
-import {
-  useStreetsService
-} from '@/services/useStreetsService'
-
-import Alerting from '@/src/utils/alerting'
+import type { StreetType } from '@/types/StreetType'
 
 export type Props = {
-  id?: string
+  createStreet: FunctionCreateStreetTypeof
+  street?: StreetType
+  isLoadingStreet?: boolean
+  streets: StreetType[]
+  updateStreets: FunctionUpdateStreetsTypeof
+  deleteStreets: FunctionDeleteStreetsTypeof
+  isLoadingStreets: boolean
   disabled?: boolean
   handleChangeData?: (data: StreetType) => void
   handleChangeId: (id: string) => void
@@ -41,7 +36,7 @@ export type FilmOptionType = Pick<StreetType, 'id' | 'value'> & {
 
 const filter = createFilterOptions<FilmOptionType>();
 
-export function SelectStreet(props: Props) {
+ function Component(props: Props) {
   const [syncData, setSyncData] = useState<boolean>(false);
   const [returnData, setReturnData] = useState<boolean>(false);
 
@@ -49,22 +44,28 @@ export function SelectStreet(props: Props) {
   const [hasEdit, setHasEdit] = useState<boolean>(false);
   const [editValue, setEditValue] = useState<string>('');
 
-  const { create: CreateStreet } = useStreetService();
-  const { data: street, isLoading: isLoadingStreet } = useStreetWithIdService(props.id || '');
-  const { data: streets, isLoading: isLoadingStreets, update: UpdateStreets, delete: DeleteStreets } = useStreetsService();
+  const {
+    createStreet,
+    street,
+    isLoadingStreet,
+    streets,
+    updateStreets,
+    deleteStreets,
+    isLoadingStreets,
+  } = props;
 
   const
-    handleAppendStreet: FunctionCreateStreetTypeof = async (data: DataStreet) => CreateStreet ? await CreateStreet(data) : undefined,
-    handleUpdateStreet: FunctionUpdateStreetsTypeof = async (id: string, data: DataStreet) => UpdateStreets ? await UpdateStreets(id, data) : false,
-    handleRemoveStreet: FunctionDeleteStreetsTypeof = async (id: string) => DeleteStreets ? await DeleteStreets(id) : false;
+    handleAppendStreet: FunctionCreateStreetTypeof = async (data: DataStreet) => createStreet ? await createStreet(data) : undefined,
+    handleUpdateStreet: FunctionUpdateStreetsTypeof = async (id: string, data: DataStreet) => updateStreets ? await updateStreets(id, data) : false,
+    handleRemoveStreet: FunctionDeleteStreetsTypeof = async (id: string) => deleteStreets ? await deleteStreets(id) : false;
 
   if (!value && hasEdit)
     setHasEdit(false);
 
-  if (isLoadingStreet && !syncData || isLoadingStreets && !props.id && !syncData)
+  if (isLoadingStreet && !syncData || isLoadingStreets && !syncData)
     return <AutocompleteLoading label='Rua' message='Carregando...' />
 
-  if (!syncData && street || !syncData && !props.id && streets) {
+  if (!syncData && street || !syncData && streets) {
     if (street) {
       setValue({
         id: street.id,
@@ -73,15 +74,15 @@ export function SelectStreet(props: Props) {
     }
 
     setSyncData(true);
-  } else if (!syncData && !street || !syncData && !props.id && !streets) {
+  } else if (!syncData && !street || !syncData && !streets) {
     return <AutocompleteError label='Rua' message='Ocorreu um erro' />
   }
 
-  if (props.id && props.handleChangeData && returnData) {
-    const street = streets.find(street => street.id === props.id);
+  if (street && props.handleChangeData && returnData) {
+    const updateStreet = streets.find(street => street.id === street.id);
 
-    if (street)
-      props.handleChangeData(street);
+    if (updateStreet)
+      props.handleChangeData(updateStreet);
 
     setReturnData(false);
   }
@@ -94,9 +95,18 @@ export function SelectStreet(props: Props) {
         disabled={props.disabled !== undefined ? props.disabled : false}
         onChange={async (event: any, newValue) => {
           if (typeof newValue === 'string') {
+            if (StringEx.trim(newValue).length <= 0)
+              return Alerting.create('warning', 'Por favor, informe um valor válido.');
+          } else if (newValue) {
+            const inputValue = newValue.inputValue ? newValue.inputValue : newValue.value;
+            if (StringEx.trim(inputValue).length <= 0)
+              return Alerting.create('warning', 'Por favor, informe um valor válido.');
+          }
+
+          if (typeof newValue === 'string') {
             const value: FilmOptionType = {
               id: '',
-              value: newValue,
+              value: StringEx.trim(newValue),
             };
 
             setValue(value);
@@ -121,10 +131,10 @@ export function SelectStreet(props: Props) {
                     props.handleChangeId(street.id);
                   }
                 } else {
-                  if (streets.filter(street => street.value === newValue).length <= 0) {
+                  if (streets.filter(street => street.value === value.value).length <= 0) {
                     handleAppendStreet({ value: value.value });
                   } else {
-                    const street = streets.find(street => street.value === newValue);
+                    const street = streets.find(street => street.value === value.value);
 
                     if (street) {
                       setValue({
@@ -143,7 +153,7 @@ export function SelectStreet(props: Props) {
             const
               street: FilmOptionType = {
                 id: hasEdit ? value?.id || '' : '',
-                value: newValue.inputValue,
+                value: StringEx.trim(newValue.inputValue),
               };
 
             if (!newValue.inputUpdate) {
@@ -161,9 +171,9 @@ export function SelectStreet(props: Props) {
             setReturnData(true);
             props.handleChangeId(street.id);
           } else {
-            if (!newValue && props.id) {
+            if (!newValue && props.street) {
               newValue = {
-                id: props.id,
+                id: props.street.id,
                 value: street?.value || '???'
               }
             }
@@ -242,10 +252,13 @@ export function SelectStreet(props: Props) {
         color='error'
         disabled={props.disabled ? true : hasEdit || !value}
         onClick={() => {
-          if (value && value.id !== props.id) {
-            if (props.id) {
+          if (props.street && value && props.street.id === value.id)
+            return Alerting.create('info', 'Não é possível remover a rua sendo usada pelo registro.');
+
+          if (value) {
+            if (props.street) {
               setValue({
-                id: props.id,
+                id: props.street.id,
                 value: street?.value || '???'
               })
             } else {
@@ -255,8 +268,6 @@ export function SelectStreet(props: Props) {
             handleRemoveStreet(value.id);
             setReturnData(true);
             props.handleChangeId('');
-          } else {
-            Alerting.create('info', 'Não é possível remover a rua sendo usada pelo registro.');
           }
         }}
       >
@@ -265,3 +276,13 @@ export function SelectStreet(props: Props) {
     </div>
   )
 }
+
+export const SelectStreet = memo(Component, (prevStates, nextStates) => {
+  if (
+    prevStates.street?.value !== nextStates.street?.value
+    || prevStates.streets.length !== nextStates.streets.length
+  )
+    return false;
+
+  return true;
+});

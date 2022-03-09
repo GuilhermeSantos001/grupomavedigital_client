@@ -1,9 +1,10 @@
-import { DatabaseStatusType } from './DatabaseStatusType'
-import { DatabasePaymentMethodType } from './DatabasePaymentMethodType'
-import { DatabasePaymentStatusType } from './DatabasePaymentStatusType'
-import { PersonCoveringType } from './PersonCoveringType'
-import { PersonCoverageType } from './PersonCoverageType'
-import { WorkplaceType } from './WorkplaceType'
+import type { DatabaseStatusType } from '@/types/DatabaseStatusType'
+import type { DatabasePaymentMethodType } from '@/types/DatabasePaymentMethodType'
+import type { DatabasePaymentStatusType } from '@/types/DatabasePaymentStatusType'
+import type { PersonCoveringType } from '@/types/PersonCoveringType'
+import type { PersonCoverageType } from '@/types/PersonCoverageType'
+import type { WorkplaceType } from '@/types/WorkplaceType'
+import type { CostCenterType } from '@/types/CostCenterType'
 
 export type PostingModality = '' | 'absence_person' | 'lack_people';
 
@@ -29,9 +30,7 @@ export type PostingType = {
     foremanApproval?: boolean
     managerApproval?: boolean
     status: DatabaseStatusType
-    costCenter: {
-        value: string
-    }
+    costCenter: CostCenterType
     covering?: PersonCoveringType
     coverage: PersonCoverageType
     coveringWorkplace: WorkplaceType

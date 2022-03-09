@@ -1,6 +1,7 @@
-import { DatabaseModalityOfCoveringType } from '@/types/DatabaseModalityOfCoveringType'
-import { UploadType } from '@/types/UploadType'
-import {PersonType} from '@/types/PersonType'
+import type { DatabaseModalityOfCoveringType } from '@/types/DatabaseModalityOfCoveringType'
+import type { UploadType } from '@/types/UploadType'
+import type { PersonType } from '@/types/PersonType'
+import type { ReasonForAbsenceType } from '@/types/ReasonForAbsenceType'
 
 export type PersonCoverageType = {
   id: string
@@ -9,10 +10,8 @@ export type PersonCoverageType = {
   personId: string
   modalityOfCoverage: DatabaseModalityOfCoveringType
   mirror: UploadType
-  person: Pick<PersonType, 'matricule' | 'name' | 'mail' | 'cards'>
-  reasonForAbsence: {
-    value: string
-  }
+  person: PersonType
+  reasonForAbsence: ReasonForAbsenceType
   createdAt: string
   updatedAt: string
 }

@@ -1,4 +1,4 @@
-import {  useState } from 'react'
+import { useState, useCallback } from 'react'
 
 import { GetServerSidePropsContext } from 'next/types'
 
@@ -31,6 +31,10 @@ import type {
 } from '@/types/CardServiceType'
 
 import { useCardService } from '@/services/useCardService'
+import { useCostCenterService } from '@/services/useCostCenterService'
+import { useCostCentersService } from '@/services/useCostCentersService'
+import { FunctionCreateCostCenterTypeof, FunctionDeleteCostCentersTypeof, FunctionUpdateCostCentersTypeof } from '@/types/CostCenterServiceType'
+import { CostCenterType } from '@/types/CostCenterType'
 
 const serverSideProps: PageProps = {
   title: 'Pagamentos/Cartões Benefício/Cadastro',
@@ -290,7 +294,12 @@ function compose_noAuth(handleClick: handleClickFunction) {
 
 function compose_ready(
   handleClickBackPage: () => void,
-  handleCreateCard: FunctionCreateCardTypeof,
+  createCard: FunctionCreateCardTypeof,
+  createCostCenter: FunctionCreateCostCenterTypeof,
+  costCenters: CostCenterType[],
+  isLoadingCostCenters: boolean,
+  updateCostCenters: FunctionUpdateCostCentersTypeof,
+  deleteCostCenters: FunctionDeleteCostCentersTypeof,
   costCenter: string,
   handleChangeCostCenter: (id: string) => void,
   lotNum: number,
@@ -394,7 +403,16 @@ function compose_ready(
           <p className="fw-bold border-bottom text-center my-2">
             Centro de Custo {'&'} Número de Série
           </p>
-          <SelectCostCenter handleChangeId={handleChangeCostCenter} />
+          <SelectCostCenter
+            createCostCenter={createCostCenter}
+            costCenter={undefined}
+            isLoadingCostCenter={false}
+            costCenters={costCenters}
+            isLoadingCostCenters={isLoadingCostCenters}
+            updateCostCenters={updateCostCenters}
+            deleteCostCenters={deleteCostCenters}
+            handleChangeId={handleChangeCostCenter}
+          />
           <div className='d-flex flex-column flex-md-row'>
             <div className="input-group my-2 m-md-2">
               <span className="input-group-text" id="serialNumber-addon">
@@ -452,7 +470,7 @@ function compose_ready(
                 type="button"
                 className="btn btn-primary"
                 onClick={async () => {
-                  const card = await handleCreateCard({
+                  const card = await createCard({
                     costCenterId: costCenter,
                     lotNum: String(lotNum).padStart(9, '0'),
                     serialNumber: String(numSerialNumber).padStart(15, '0'),
@@ -509,7 +527,15 @@ export default function CardsRegister(
     }
   );
 
-  const { create: handleCreateCard } = useCardService();
+  const
+    CardService = useCallback(() => useCardService(), []),
+    CostCenterService = useCallback(() => useCostCenterService(), []),
+    CostCentersService = useCallback(() => useCostCentersService(), []);
+
+  const
+    { create: CreateCard } = CardService(),
+    { create: CreateCostCenter } = CostCenterService(),
+    { data: costCenters, isLoading: isLoadingCostCenters, update: UpdateCostCenters, delete: DeleteCostCenters } = CostCentersService();
 
   const router = useRouter()
 
@@ -544,22 +570,22 @@ export default function CardsRegister(
         setNumLastCardNumber(val);
     };
 
-    if (error && !notAuth) {
-      setNotAuth(true);
-      setLoading(false);
-    }
+  if (error && !notAuth) {
+    setNotAuth(true);
+    setLoading(false);
+  }
 
-    if (success && data && !isReady) {
-      if (
-        privileges
-          .filter(privilege => data.privileges.indexOf(privilege) !== -1)
-          .length <= 0
-      )
-        setNotPrivilege(true);
+  if (success && data && !isReady) {
+    if (
+      privileges
+        .filter(privilege => data.privileges.indexOf(privilege) !== -1)
+        .length <= 0
+    )
+      setNotPrivilege(true);
 
-      setReady(true);
-      setLoading(false);
-    }
+    setReady(true);
+    setLoading(false);
+  }
 
   if (loading) return compose_load()
 
@@ -569,7 +595,12 @@ export default function CardsRegister(
 
   if (isReady) return compose_ready(
     handleClickBackPage,
-    handleCreateCard,
+    CreateCard,
+    CreateCostCenter,
+    costCenters,
+    isLoadingCostCenters,
+    UpdateCostCenters,
+    DeleteCostCenters,
     costCenter,
     handleChangeCostCenter,
     lotNum,

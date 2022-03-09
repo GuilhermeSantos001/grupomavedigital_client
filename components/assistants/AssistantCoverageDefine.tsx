@@ -1,13 +1,13 @@
 import { useState } from 'react'
 
-import { PaybackSocketEvents } from '@/constants/socketEvents';
+import { PaybackSocketEvents } from '@/constants/socketEvents'
 
 import {
   TYPEOF_EMITTER_PAYBACK_UPLOAD_MIRROR,
   TYPEOF_LISTENER_PAYBACK_UPLOAD_MIRROR,
   TYPEOF_EMITTER_PAYBACK_CHANGE_TYPE_MIRROR,
   TYPEOF_LISTENER_PAYBACK_CHANGE_TYPE_MIRROR,
-} from '@/constants/SocketTypes';
+} from '@/constants/SocketTypes'
 
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -46,31 +46,79 @@ import { DatePicker } from '@/components/selects/DatePicker'
 import DropZone from '@/components/dropZone'
 
 import type {
-  DataUpload
+  UploadType
+} from '@/types/UploadType'
+
+import type {
+  CostCenterType
+} from '@/types/CostCenterType'
+
+import type {
+  PersonType
+} from '@/types/PersonType'
+
+import type {
+  WorkplaceType
+} from '@/types/WorkplaceType'
+
+import type {
+  ReasonForAbsenceType
+} from '@/types/ReasonForAbsenceType'
+
+import type {
+  PostingType,
+  PostingModality
+} from '@/types/PostingType'
+
+import type {
+  DatabaseModalityOfCoveringType
+} from '@/types/DatabaseModalityOfCoveringType'
+
+import type {
+  DatabasePaymentMethodType
+} from '@/types/DatabasePaymentMethodType'
+
+import type {
+  FunctionCreatePostingTypeof
+} from '@/types/PostingServiceType'
+
+import type {
+  DataUpload,
+  FunctionCreateUploadTypeof,
+  FunctionUpdateUploadsTypeof
 } from '@/types/UploadServiceType'
 
-import { usePostingService } from '@/services/usePostingService'
-import { useUploadService } from '@/services/useUploadService'
-import { useUploadsService } from '@/services/useUploadsService'
-import { useCostCentersService } from '@/services/useCostCentersService'
-import { usePeopleService } from '@/services/usePeopleService'
-import { usePersonCoveringService } from '@/services/usePersonCoveringService'
-import { usePersonCoverageService } from '@/services/usePersonCoverageService'
-import { useWorkplacesService } from '@/services/useWorkplacesService'
-import { useReasonForAbsencesService } from '@/services/useReasonForAbsencesService'
+import type {
+  FunctionCreatePersonCoveringTypeof
+} from '@/types/PersonCoveringServiceType'
 
-import { PostingType, PostingModality } from '@/types/PostingType'
-import { DatabaseModalityOfCoveringType } from '@/types/DatabaseModalityOfCoveringType'
-import { DatabasePaymentMethodType } from '@/types/DatabasePaymentMethodType'
+import type {
+  FunctionCreatePersonCoverageTypeof
+} from '@/types/PersonCoverageServiceType'
 
 export type Props = {
-  show: boolean
+  createPosting: FunctionCreatePostingTypeof
+  createUpload: FunctionCreateUploadTypeof
+  uploads: UploadType[]
+  isLoadingUploads: boolean
+  updateUploads: FunctionUpdateUploadsTypeof
+  createPersonCovering: FunctionCreatePersonCoveringTypeof
+  createPersonCoverage: FunctionCreatePersonCoverageTypeof
+  costCenters: CostCenterType[]
+  isLoadingCostCenters: boolean
+  people: PersonType[]
+  isLoadingPeople: boolean
+  workplaces: WorkplaceType[]
+  isLoadingWorkplaces: boolean
+  reasonForAbsences: ReasonForAbsenceType[]
+  isLoadingReasonForAbsences: boolean
   auth: string
   availableWorkplaces: string[]
   availablePeopleInWorkplace: string[]
   postingCostCenterId: string;
   periodStart: Date
   periodEnd: Date
+  show: boolean
   handleClose: () => void;
   handleFinish: (postings: PostingType[]) => void;
 }
@@ -105,15 +153,23 @@ export function AssistantCoverageDefine(props: Props) {
   const [postingModality, setPostingModality] = useState<PostingModality>('');
   const [postingDescription, setPostingDescription] = useState<string>('');
 
-  const { create: CreatePosting } = usePostingService();
-  const { create: CreateUpload } = useUploadService();
-  const { create: CreatePersonCovering } = usePersonCoveringService();
-  const { create: CreatePersonCoverage } = usePersonCoverageService();
-  const { data: uploads, isLoading: isLoadingUploads, update: UpdateUpload } = useUploadsService();
-  const { data: costCenters, isLoading: isLoadingCostCenters } = useCostCentersService();
-  const { data: people, isLoading: isLoadingPeople } = usePeopleService();
-  const { data: workplaces, isLoading: isLoadingWorkplaces } = useWorkplacesService();
-  const { data: reasonForAbsences, isLoading: isLoadingReasonForAbsences } = useReasonForAbsencesService();
+  const {
+    createPosting,
+    createUpload,
+    uploads,
+    isLoadingUploads,
+    updateUploads,
+    createPersonCovering,
+    createPersonCoverage,
+    costCenters,
+    isLoadingCostCenters,
+    people,
+    isLoadingPeople,
+    workplaces,
+    isLoadingWorkplaces,
+    reasonForAbsences,
+    isLoadingReasonForAbsences
+  } = props;
 
   if (
     isLoadingUploads && !syncData
@@ -140,14 +196,14 @@ export function AssistantCoverageDefine(props: Props) {
     setSyncData(true);
   } else if (
     !syncData && !uploads
+    || !syncData && !createPosting
+    || !syncData && !createUpload
+    || !syncData && !createPersonCovering
+    || !syncData && !createPersonCoverage
     || !syncData && !costCenters
     || !syncData && !people
     || !syncData && !workplaces
     || !syncData && !reasonForAbsences
-    || !syncData && !CreatePosting
-    || !syncData && !CreateUpload
-    || !syncData && !CreatePersonCovering
-    || !syncData && !CreatePersonCoverage
   ) {
     return <ModalError
       header='Registrar Movimentação Operacional'
@@ -159,13 +215,13 @@ export function AssistantCoverageDefine(props: Props) {
   const
     uploadMakeTemporary = async (fileId: string) => {
       try {
-        if (!UpdateUpload)
-          throw new Error('UpdateUpload is not defined');
+        if (!updateUploads)
+          throw new Error('UpdateUploads is not defined');
 
         const upload = uploads.find(upload => upload.fileId === fileId);
 
         if (upload) {
-          const updated = await UpdateUpload(upload.id, {
+          const updated = await updateUploads(upload.id, {
             ...upload,
             temporary: true
           });
@@ -181,13 +237,13 @@ export function AssistantCoverageDefine(props: Props) {
     },
     uploadMakePermanent = async (fileId: string) => {
       try {
-        if (!UpdateUpload)
-          throw new Error('UpdateUpload is not defined');
+        if (!updateUploads)
+          throw new Error('UpdateUploads is not defined');
 
         const upload = uploads.find(upload => upload.fileId === fileId);
 
         if (upload) {
-          const updated = await UpdateUpload(upload.id, {
+          const updated = await updateUploads(upload.id, {
             ...upload,
             temporary: false
           });
@@ -401,7 +457,7 @@ export function AssistantCoverageDefine(props: Props) {
           `${PaybackSocketEvents.PAYBACK_CHANGE_TYPE_MIRROR}-SUCCESS`,
           async (data: string) => {
             try {
-              if (!CreatePosting || !CreatePersonCovering || !CreatePersonCoverage)
+              if (!createPosting || !createPersonCovering || !createPersonCoverage)
                 return Alerting.create('error', 'Não é possível registrar a movimentação operacional. Tente novamente, mais tarde!');
 
               const {
@@ -419,7 +475,7 @@ export function AssistantCoverageDefine(props: Props) {
                   .forEach(fileId => uploadMakePermanent(fileId));
               }
 
-              const personCoverage = await CreatePersonCoverage({
+              const personCoverage = await createPersonCoverage({
                 mirrorId:
                   coveringModality === 'ft'
                     || coveringModality === 'pacote_de_horas' ? coverageMirrorId : '',
@@ -433,7 +489,7 @@ export function AssistantCoverageDefine(props: Props) {
               let personCovering = undefined;
 
               if (postingModality === 'absence_person') {
-                personCovering = await CreatePersonCovering({
+                personCovering = await createPersonCovering({
                   mirrorId: coveringMirrorId,
                   personId: coveringPersonId,
                   reasonForAbsenceId: coveringReasonForAbsenceId,
@@ -443,7 +499,7 @@ export function AssistantCoverageDefine(props: Props) {
                   throw new Error(`Não é possível salvar o funcionário(a) que está sendo coberto. Tente novamente com outro espelho de ponto.`);
               }
 
-              const posting = await CreatePosting({
+              const posting = await createPosting({
                 author: props.auth,
                 costCenterId: props.postingCostCenterId,
                 periodStart: props.periodStart.toISOString(),
@@ -507,7 +563,7 @@ export function AssistantCoverageDefine(props: Props) {
     handleChangeCoveringReasonForAbsenceId = (id: string) => setCoveringReasonForAbsenceId(id),
     handleAppendUploads = async (data: DataUpload) => {
       try {
-        const upload = await CreateUpload(data);
+        const upload = await createUpload(data);
 
         if (!upload)
           throw new Error('Não foi possível criar o anexo.');

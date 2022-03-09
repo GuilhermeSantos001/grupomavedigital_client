@@ -1,4 +1,4 @@
-import { UploadType } from '@/types/UploadType'
+import type { UploadType } from '@/types/UploadType'
 
 export type DataUpload = Pick<UploadType,
   | 'fileId'

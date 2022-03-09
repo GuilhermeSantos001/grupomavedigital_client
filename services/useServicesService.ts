@@ -1,5 +1,7 @@
 import { useState } from 'react';
+
 import useSWR from 'swr'
+import { SWRConfig } from '@/services/config/SWRConfig';
 
 import { fetcherAxiosPost } from '@/src/utils/fetcherAxiosPost';
 import { fetcherAxiosPut } from '@/src/utils/fetcherAxiosPut';
@@ -31,7 +33,7 @@ export function useServicesService(take: number = 10) {
   const { data, error, mutate } = useSWR<
     ApiResponseSuccessType<ServiceType[]>,
     ApiResponseErrorType<Object>
-  >([uri, setIsLoading], fetcherAxiosGet, { refreshInterval: 5000 })
+  >([uri, setIsLoading], fetcherAxiosGet, SWRConfig)
 
   if (error) {
     Alerting.create('error', error.message);
@@ -80,7 +82,7 @@ export function useServicesService(take: number = 10) {
             success: true,
             data: data.data.map(service => {
               if (service.id === id) {
-                service = {...service, ...updateData.data};
+                service = { ...service, ...updateData.data };
               }
 
               return service;
@@ -106,7 +108,7 @@ export function useServicesService(take: number = 10) {
             success: true,
             data: data.data.map(service => {
               if (service.id === id) {
-                service = {...service, ...updateData.data};
+                service = { ...service, ...updateData.data };
               }
 
               return service;
@@ -120,7 +122,7 @@ export function useServicesService(take: number = 10) {
         const
           uriUnassignPerson = `${process.env.NEXT_PUBLIC_API_HOST}/service/unassign/person/${id}`;
 
-        const updateData = await fetcherAxiosDelete< ApiResponseSuccessOrErrorType<ServiceType, Object>>(uriUnassignPerson, setIsLoading);
+        const updateData = await fetcherAxiosDelete<ApiResponseSuccessOrErrorType<ServiceType, Object>>(uriUnassignPerson, setIsLoading);
 
         if (!updateData.success) {
           Alerting.create('error', updateData.message);
@@ -132,7 +134,7 @@ export function useServicesService(take: number = 10) {
             success: true,
             data: data.data.map(service => {
               if (service.id === id) {
-                service = {...service, ...updateData.data};
+                service = { ...service, ...updateData.data };
               }
 
               return service;
@@ -158,7 +160,7 @@ export function useServicesService(take: number = 10) {
             success: true,
             data: data.data.map(service => {
               if (service.id === id) {
-                service = {...service, ...updateData.data};
+                service = { ...service, ...updateData.data };
               }
 
               return service;
@@ -184,7 +186,7 @@ export function useServicesService(take: number = 10) {
             success: true,
             data: data.data.map(service => {
               if (service.id === id) {
-                service = {...service, ...updateData.data};
+                service = { ...service, ...updateData.data };
               }
 
               return service;

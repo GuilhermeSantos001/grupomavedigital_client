@@ -1,9 +1,3 @@
-/**
- * @description Métodos essenciais para se trabalhar com textos
- * @author GuilhermeSantos001
- * @update 28/01/2022
- */
-
 import { v4 as uuidv4 } from 'uuid';
 import { compressToBase64 } from 'lz-string';
 
@@ -15,6 +9,14 @@ class StringEx {
    */
   id(): string {
     return compressToBase64(uuidv4());
+  }
+
+  /**
+   * @description Remove os espaços em branco do texto
+   */
+  trim(value: string, spaces: number = 2): string {
+    const regExp = new RegExp(`\\s{${spaces},}`, 'g');
+    return value.replace(regExp, '').trim();
   }
 
   /**

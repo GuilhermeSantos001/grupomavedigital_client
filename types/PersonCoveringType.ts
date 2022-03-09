@@ -1,5 +1,6 @@
-import { UploadType } from '@/types/UploadType'
-import {PersonType} from '@/types/PersonType'
+import type { UploadType } from '@/types/UploadType'
+import type { PersonType } from '@/types/PersonType'
+import type { ReasonForAbsenceType } from '@/types/ReasonForAbsenceType'
 
 export type PersonCoveringType = {
   id: string
@@ -8,10 +9,8 @@ export type PersonCoveringType = {
   personId: string
   reasonForAbsenceId: string
   mirror: UploadType
-  person: Pick<PersonType, 'matricule' | 'name' | 'mail' | 'cards'>
-  reasonForAbsence: {
-    value: string
-  }
+  person: PersonType
+  reasonForAbsence: ReasonForAbsenceType
   createdAt: string
   updatedAt: string
 }

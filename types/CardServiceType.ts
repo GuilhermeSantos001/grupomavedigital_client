@@ -26,8 +26,8 @@ declare function UnassignPersonCard(): Promise<boolean>
 declare function DeleteCard(): Promise<boolean>
 
 declare function UpdateCards(id: string, newData: DataCard): Promise<boolean>
-declare function AssignPersonCards(id: string, dataPersonId: DataPersonId): Promise<boolean>
-declare function UnassignPersonCards(id: string): Promise<boolean>
+declare function AssignPeopleCard(id: string, dataPersonId: DataPersonId[]): Promise<void>
+declare function UnassignPeopleCard(id: string[]): Promise<void>
 declare function DeleteCards(id: string): Promise<boolean>
 
 export type FunctionCreateCardTypeof = typeof CreateCard;
@@ -38,8 +38,8 @@ export type FunctionUnassignPersonCardTypeof = typeof UnassignPersonCard | undef
 export type FunctionDeleteCardTypeof = typeof DeleteCard | undefined;
 
 export type FunctionUpdateCardsTypeof = typeof UpdateCards | undefined;
-export type FunctionAssignPersonCardsTypeOf = typeof AssignPersonCards | undefined;
-export type FunctionUnassignPersonCardsTypeOf = typeof UnassignPersonCards | undefined;
+export type FunctionAssignPeopleCardTypeof = typeof AssignPeopleCard | undefined;
+export type FunctionUnassignPeopleCardTypeof = typeof UnassignPeopleCard | undefined;
 export type FunctionDeleteCardsTypeof = typeof DeleteCards | undefined;
 export type FunctionNextPageTypeof = (() => void) | undefined;
 export type FunctionPreviousPageTypeof = (() => void) | undefined;

@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Autocomplete, TextField, createFilterOptions, Button } from '@mui/material'
 
 import { AutocompleteLoading } from '@/components/utils/AutocompleteLoading';
 import { AutocompleteError } from '@/components/utils/AutocompleteError';
 
-import type { ScaleType } from '@/types/ScaleType'
+import Alerting from '@/src/utils/alerting';
+import StringEx from '@/src/utils/stringEx'
 
 import type {
   DataScale,
@@ -13,22 +14,16 @@ import type {
   FunctionDeleteScalesTypeof
 } from '@/types/ScaleServiceType'
 
-import {
-  useScaleService
-} from '@/services/useScaleService'
-
-import {
-  useScaleWithIdService
-} from '@/services/useScaleWithIdService'
-
-import {
-  useScalesService
-} from '@/services/useScalesService'
-
-import Alerting from '@/src/utils/alerting';
+import type { ScaleType } from '@/types/ScaleType'
 
 export type Props = {
-  id?: string
+  createScale: FunctionCreateScaleTypeof
+  scale?: ScaleType
+  isLoadingScale?: boolean
+  scales: ScaleType[]
+  updateScales: FunctionUpdateScalesTypeof
+  deleteScales: FunctionDeleteScalesTypeof
+  isLoadingScales: boolean
   disabled?: boolean
   handleChangeData?: (data: ScaleType) => void
   handleChangeId: (id: string) => void
@@ -41,7 +36,7 @@ export type FilmOptionType = Pick<ScaleType, 'id' | 'value'> & {
 
 const filter = createFilterOptions<FilmOptionType>();
 
-export function SelectScale(props: Props) {
+ function Component(props: Props) {
   const [syncData, setSyncData] = useState<boolean>(false);
   const [returnData, setReturnData] = useState<boolean>(false);
 
@@ -49,22 +44,28 @@ export function SelectScale(props: Props) {
   const [hasEdit, setHasEdit] = useState<boolean>(false);
   const [editValue, setEditValue] = useState<string>('');
 
-  const { create: CreateScale } = useScaleService();
-  const { data: scale, isLoading: isLoadingScale } = useScaleWithIdService(props.id || '');
-  const { data: scales, isLoading: isLoadingScales, update: UpdateScales, delete: DeleteScales } = useScalesService();
+  const {
+    createScale,
+    scale,
+    isLoadingScale,
+    scales,
+    updateScales,
+    deleteScales,
+    isLoadingScales,
+  } = props;
 
   const
-    handleAppendScale: FunctionCreateScaleTypeof = async (data: DataScale) => CreateScale ? await CreateScale(data) : undefined,
-    handleUpdateScale: FunctionUpdateScalesTypeof = async (id: string, data: DataScale) => UpdateScales ? await UpdateScales(id, data) : false,
-    handleRemoveScale: FunctionDeleteScalesTypeof = async (id: string) => DeleteScales ? await DeleteScales(id) : false;
+    handleAppendScale: FunctionCreateScaleTypeof = async (data: DataScale) => createScale ? await createScale(data) : undefined,
+    handleUpdateScale: FunctionUpdateScalesTypeof = async (id: string, data: DataScale) => updateScales ? await updateScales(id, data) : false,
+    handleRemoveScale: FunctionDeleteScalesTypeof = async (id: string) => deleteScales ? await deleteScales(id) : false;
 
   if (!value && hasEdit)
     setHasEdit(false);
 
-  if (isLoadingScale && !syncData || isLoadingScales && !props.id && !syncData)
+  if (isLoadingScale && !syncData || isLoadingScales && !syncData)
     return <AutocompleteLoading label='Escala de Trabalho' message='Carregando...' />
 
-  if (!syncData && scale || !syncData && !props.id && scales) {
+  if (!syncData && scale || !syncData && scales) {
     if (scale) {
       setValue({
         id: scale.id,
@@ -73,15 +74,15 @@ export function SelectScale(props: Props) {
     }
 
     setSyncData(true);
-  } else if (!syncData && !scale || !syncData && !props.id && !scales) {
+  } else if (!syncData && !scale || !syncData && !scales) {
     return <AutocompleteError label='Escala de Trabalho' message='Ocorreu um erro' />
   }
 
-  if (props.id && props.handleChangeData && returnData) {
-    const scale = scales.find(scale => scale.id === props.id);
+  if (scale && props.handleChangeData && returnData) {
+    const updateScale = scales.find(scale => scale.id === scale.id);
 
-    if (scale)
-      props.handleChangeData(scale);
+    if (updateScale)
+      props.handleChangeData(updateScale);
 
     setReturnData(false);
   }
@@ -94,9 +95,18 @@ export function SelectScale(props: Props) {
         disabled={props.disabled !== undefined ? props.disabled : false}
         onChange={async (event: any, newValue) => {
           if (typeof newValue === 'string') {
+            if (StringEx.trim(newValue).length <= 0)
+              return Alerting.create('warning', 'Por favor, informe um valor válido.');
+          } else if (newValue) {
+            const inputValue = newValue.inputValue ? newValue.inputValue : newValue.value;
+            if (StringEx.trim(inputValue).length <= 0)
+              return Alerting.create('warning', 'Por favor, informe um valor válido.');
+          }
+
+          if (typeof newValue === 'string') {
             const value: FilmOptionType = {
               id: '',
-              value: newValue,
+              value: StringEx.trim(newValue),
             };
 
             setValue(value);
@@ -121,10 +131,10 @@ export function SelectScale(props: Props) {
                     props.handleChangeId(scale.id);
                   }
                 } else {
-                  if (scales.filter(scale => scale.value === newValue).length <= 0) {
+                  if (scales.filter(scale => scale.value === value.value).length <= 0) {
                     handleAppendScale({ value: value.value });
                   } else {
-                    const scale = scales.find(scale => scale.value === newValue);
+                    const scale = scales.find(scale => scale.value === value.value);
 
                     if (scale) {
                       setValue({
@@ -143,7 +153,7 @@ export function SelectScale(props: Props) {
             const
               scale: FilmOptionType = {
                 id: hasEdit ? value?.id || '' : '',
-                value: newValue.inputValue,
+                value: StringEx.trim(newValue.inputValue),
               };
 
             if (!newValue.inputUpdate) {
@@ -161,9 +171,9 @@ export function SelectScale(props: Props) {
             setReturnData(true);
             props.handleChangeId(scale.id);
           } else {
-            if (!newValue && props.id) {
+            if (!newValue && props.scale) {
               newValue = {
-                id: props.id,
+                id: props.scale.id,
                 value: scale?.value || '???'
               }
             }
@@ -242,10 +252,13 @@ export function SelectScale(props: Props) {
         color='error'
         disabled={props.disabled ? true : hasEdit || !value}
         onClick={() => {
-          if (value && value.id !== props.id) {
-            if (props.id) {
+          if (props.scale && value && props.scale.id === value.id)
+            return Alerting.create('info', 'Não é possível remover a escala de trabalho sendo usada pelo registro.');
+
+          if (value) {
+            if (props.scale) {
               setValue({
-                id: props.id,
+                id: props.scale.id,
                 value: scale?.value || '???'
               })
             } else {
@@ -255,8 +268,6 @@ export function SelectScale(props: Props) {
             handleRemoveScale(value.id);
             setReturnData(true);
             props.handleChangeId('');
-          } else {
-            Alerting.create('info', 'Não é possível remover a escala de trabalho sendo usada pelo registro.');
           }
         }}
       >
@@ -265,3 +276,13 @@ export function SelectScale(props: Props) {
     </div>
   )
 }
+
+export const SelectScale = memo(Component, (prevStates, nextStates) => {
+  if (
+    prevStates.scale?.value !== nextStates.scale?.value
+    || prevStates.scales.length !== nextStates.scales.length
+  )
+    return false;
+
+  return true;
+});

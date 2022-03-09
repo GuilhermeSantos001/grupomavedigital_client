@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Autocomplete, TextField, createFilterOptions, Button } from '@mui/material'
 
 import { AutocompleteLoading } from '@/components/utils/AutocompleteLoading';
 import { AutocompleteError } from '@/components/utils/AutocompleteError';
 
-import type { NeighborhoodType } from '@/types/NeighborhoodType'
+import Alerting from '@/src/utils/alerting';
+import StringEx from '@/src/utils/stringEx'
 
 import type {
   DataNeighborhood,
@@ -13,22 +14,16 @@ import type {
   FunctionDeleteNeighborhoodsTypeof
 } from '@/types/NeighborhoodServiceType'
 
-import {
-  useNeighborhoodService
-} from '@/services/useNeighborhoodService'
-
-import {
-  useNeighborhoodWithIdService
-} from '@/services/useNeighborhoodWithIdService'
-
-import {
-  useNeighborhoodsService
-} from '@/services/useNeighborhoodsService'
-
-import Alerting from '@/src/utils/alerting';
+import type { NeighborhoodType } from '@/types/NeighborhoodType'
 
 export type Props = {
-  id?: string
+  createNeighborhood: FunctionCreateNeighborhoodTypeof
+  neighborhood?: NeighborhoodType
+  isLoadingNeighborhood?: boolean
+  neighborhoods: NeighborhoodType[]
+  updateNeighborhoods: FunctionUpdateNeighborhoodsTypeof
+  deleteNeighborhoods: FunctionDeleteNeighborhoodsTypeof
+  isLoadingNeighborhoods: boolean
   disabled?: boolean
   handleChangeData?: (data: NeighborhoodType) => void
   handleChangeId: (id: string) => void
@@ -41,7 +36,7 @@ export type FilmOptionType = Pick<NeighborhoodType, 'id' | 'value'> & {
 
 const filter = createFilterOptions<FilmOptionType>();
 
-export function SelectNeighborhood(props: Props) {
+ function Component(props: Props) {
   const [syncData, setSyncData] = useState<boolean>(false);
   const [returnData, setReturnData] = useState<boolean>(false);
 
@@ -49,22 +44,28 @@ export function SelectNeighborhood(props: Props) {
   const [hasEdit, setHasEdit] = useState<boolean>(false);
   const [editValue, setEditValue] = useState<string>('');
 
-  const { create: CreateNeighborhood } = useNeighborhoodService();
-  const { data: neighborhood, isLoading: isLoadingNeighborhood } = useNeighborhoodWithIdService(props.id || '');
-  const { data: neighborhoods, isLoading: isLoadingNeighborhoods, update: UpdateNeighborhoods, delete: DeleteNeighborhoods } = useNeighborhoodsService();
+  const {
+    createNeighborhood,
+    neighborhood,
+    isLoadingNeighborhood,
+    neighborhoods,
+    updateNeighborhoods,
+    deleteNeighborhoods,
+    isLoadingNeighborhoods,
+  } = props;
 
   const
-    handleAppendNeighborhood: FunctionCreateNeighborhoodTypeof = async (data: DataNeighborhood) => CreateNeighborhood ? await CreateNeighborhood(data) : undefined,
-    handleUpdateNeighborhood: FunctionUpdateNeighborhoodsTypeof = async (id: string, data: DataNeighborhood) => UpdateNeighborhoods ? await UpdateNeighborhoods(id, data) : false,
-    handleRemoveNeighborhood: FunctionDeleteNeighborhoodsTypeof = async (id: string) => DeleteNeighborhoods ? await DeleteNeighborhoods(id) : false;
+    handleAppendNeighborhood: FunctionCreateNeighborhoodTypeof = async (data: DataNeighborhood) => createNeighborhood ? await createNeighborhood(data) : undefined,
+    handleUpdateNeighborhood: FunctionUpdateNeighborhoodsTypeof = async (id: string, data: DataNeighborhood) => updateNeighborhoods ? await updateNeighborhoods(id, data) : false,
+    handleRemoveNeighborhood: FunctionDeleteNeighborhoodsTypeof = async (id: string) => deleteNeighborhoods ? await deleteNeighborhoods(id) : false;
 
   if (!value && hasEdit)
     setHasEdit(false);
 
-  if (isLoadingNeighborhood && !syncData || isLoadingNeighborhoods && !props.id && !syncData)
+  if (isLoadingNeighborhood && !syncData || isLoadingNeighborhoods && !syncData)
     return <AutocompleteLoading label='Bairro' message='Carregando...' />
 
-  if (!syncData && neighborhood || !syncData && !props.id && neighborhoods) {
+  if (!syncData && neighborhood || !syncData && neighborhoods) {
     if (neighborhood) {
       setValue({
         id: neighborhood.id,
@@ -73,15 +74,15 @@ export function SelectNeighborhood(props: Props) {
     }
 
     setSyncData(true);
-  } else if (!syncData && !neighborhood || !syncData && !props.id && !neighborhoods) {
+  } else if (!syncData && !neighborhood || !syncData && !neighborhoods) {
     return <AutocompleteError label='Bairro' message='Ocorreu um erro' />
   }
 
-  if (props.id && props.handleChangeData && returnData) {
-    const neighborhood = neighborhoods.find(neighborhood => neighborhood.id === props.id);
+  if (neighborhood && props.handleChangeData && returnData) {
+    const updateNeighborhood = neighborhoods.find(neighborhood => neighborhood.id === neighborhood.id);
 
-    if (neighborhood)
-      props.handleChangeData(neighborhood);
+    if (updateNeighborhood)
+      props.handleChangeData(updateNeighborhood);
 
     setReturnData(false);
   }
@@ -94,9 +95,18 @@ export function SelectNeighborhood(props: Props) {
         disabled={props.disabled !== undefined ? props.disabled : false}
         onChange={async (event: any, newValue) => {
           if (typeof newValue === 'string') {
+            if (StringEx.trim(newValue).length <= 0)
+              return Alerting.create('warning', 'Por favor, informe um valor válido.');
+          } else if (newValue) {
+            const inputValue = newValue.inputValue ? newValue.inputValue : newValue.value;
+            if (StringEx.trim(inputValue).length <= 0)
+              return Alerting.create('warning', 'Por favor, informe um valor válido.');
+          }
+
+          if (typeof newValue === 'string') {
             const value: FilmOptionType = {
               id: '',
-              value: newValue,
+              value: StringEx.trim(newValue),
             };
 
             setValue(value);
@@ -121,10 +131,10 @@ export function SelectNeighborhood(props: Props) {
                     props.handleChangeId(neighborhood.id);
                   }
                 } else {
-                  if (neighborhoods.filter(neighborhood => neighborhood.value === newValue).length <= 0) {
+                  if (neighborhoods.filter(neighborhood => neighborhood.value === value.value).length <= 0) {
                     handleAppendNeighborhood({ value: value.value });
                   } else {
-                    const neighborhood = neighborhoods.find(neighborhood => neighborhood.value === newValue);
+                    const neighborhood = neighborhoods.find(neighborhood => neighborhood.value === value.value);
 
                     if (neighborhood) {
                       setValue({
@@ -143,7 +153,7 @@ export function SelectNeighborhood(props: Props) {
             let
               neighborhood: FilmOptionType = {
                 id: hasEdit ? value?.id || '' : '',
-                value: newValue.inputValue,
+                value: StringEx.trim(newValue.inputValue),
               };
 
             if (!newValue.inputUpdate) {
@@ -161,9 +171,9 @@ export function SelectNeighborhood(props: Props) {
             setReturnData(true);
             props.handleChangeId(neighborhood.id);
           } else {
-            if (!newValue && props.id) {
+            if (!newValue && props.neighborhood) {
               newValue = {
-                id: props.id,
+                id: props.neighborhood.id,
                 value: neighborhood?.value || '???'
               }
             }
@@ -242,10 +252,13 @@ export function SelectNeighborhood(props: Props) {
         color='error'
         disabled={props.disabled ? true : hasEdit || !value}
         onClick={() => {
-          if (value && value.id !== props.id) {
-            if (props.id) {
+          if (props.neighborhood && value && props.neighborhood.id === value.id)
+            return Alerting.create('info', 'Não é possível remover o bairro sendo usado pelo registro.');
+
+          if (value) {
+            if (props.neighborhood) {
               setValue({
-                id: props.id,
+                id: props.neighborhood.id,
                 value: neighborhood?.value || '???'
               })
             } else {
@@ -256,7 +269,6 @@ export function SelectNeighborhood(props: Props) {
             setReturnData(true);
             props.handleChangeId('');
           } else {
-            Alerting.create('info', 'Não é possível remover o bairro sendo usado pelo registro.');
           }
         }}
       >
@@ -265,3 +277,13 @@ export function SelectNeighborhood(props: Props) {
     </div>
   )
 }
+
+export const SelectNeighborhood = memo(Component, (prevStates, nextStates) => {
+  if (
+    prevStates.neighborhood?.value !== nextStates.neighborhood?.value
+    || prevStates.neighborhoods.length !== nextStates.neighborhoods.length
+  )
+    return false;
+
+  return true;
+});

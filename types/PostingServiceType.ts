@@ -1,4 +1,4 @@
-import { PostingType } from '@/types/PostingType';
+import type { PostingType } from '@/types/PostingType';
 
 export type DataPosting = Pick<PostingType,
   | 'author'

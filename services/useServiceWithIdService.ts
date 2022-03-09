@@ -1,5 +1,7 @@
 import { useState } from 'react';
+
 import useSWR from 'swr'
+import { SWRConfig } from '@/services/config/SWRConfig';
 
 import { fetcherAxiosPost } from '@/src/utils/fetcherAxiosPost';
 import { fetcherAxiosGet } from '@/src/utils/fetcherAxiosGet';
@@ -34,7 +36,7 @@ export function useServiceWithIdService(id: string) {
   const { data, error, mutate } = useSWR<
     ApiResponseSuccessType<ServiceType | undefined>,
     ApiResponseErrorType<Object>
-  >([uri, setIsLoading], fetcherAxiosGet)
+  >([uri, setIsLoading], fetcherAxiosGet, SWRConfig)
 
   if (error) {
     Alerting.create('error', error.message);

@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
 
+import { ThemeProvider } from '@mui/material/styles';
+import { Theme } from '@/styles/theme-material-ui';
+
 import { SnackbarProvider } from 'notistack';
 
 import { useRouter } from 'next/router'
@@ -137,7 +140,7 @@ export default function Layout(props: Props) {
 
   return <>
     {hasLoadedAPI() ?
-      <>
+      <ThemeProvider theme={Theme}>
         <SnackbarProvider maxSnack={3}>
           <ScrollToTop />
           <Alerting />
@@ -155,7 +158,8 @@ export default function Layout(props: Props) {
             {props.children}
           </GridContent>
         </SnackbarProvider>
-      </> :
+      </ThemeProvider>
+      :
       loadingOverlay ?
         LoadingOverlay(loadingOverlay)
         :

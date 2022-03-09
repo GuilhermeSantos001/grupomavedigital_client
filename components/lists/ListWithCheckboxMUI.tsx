@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 import { DataGrid, GridColDef, GridRowsProp, ptBR } from '@mui/x-data-grid';
 
 export interface Props {
@@ -9,7 +11,7 @@ export interface Props {
   onPageSizeChange: (pageSize: number) => void
 }
 
-export function ListWithCheckboxMUI(props: Props): JSX.Element {
+function Component(props: Props): JSX.Element {
   return (
     <div className='m-2' style={{ height: 350, width: '100%' }}>
       <DataGrid
@@ -25,3 +27,14 @@ export function ListWithCheckboxMUI(props: Props): JSX.Element {
     </div>
   );
 }
+
+export const ListWithCheckboxMUI = memo(Component, (prevProps, nextProps) => {
+  const
+    { rows: prevRows } = prevProps,
+    { rows: nextRows } = nextProps;
+
+  if (prevRows.length !== nextRows.length)
+    return false;
+
+  return true;
+});

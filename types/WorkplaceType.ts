@@ -1,4 +1,17 @@
-import { DatabaseStatusType } from './DatabaseStatusType';
+import type { DatabaseStatusType } from '@/types/DatabaseStatusType'
+
+import type { ServiceType } from '@/types/ServiceType'
+
+import type { AddressType } from '@/types/AddressType';
+import type { ScaleType } from '@/types/ScaleType'
+
+export type WorkplaceServiceType = {
+    id: string
+    workplaceId: string
+    workplace: WorkplaceType
+    serviceId: string
+    service: ServiceType
+}
 
 export type WorkplaceType = {
     id: string
@@ -9,32 +22,9 @@ export type WorkplaceType = {
     exitTime: string
     addressId: string
     status: DatabaseStatusType
-    address: {
-        street: {
-            value: string
-        }
-        number: string
-        complement: string
-        neighborhood: {
-            value: string
-        }
-        city: {
-            value: string
-        }
-        district: {
-            value: string
-        }
-        zipCode: string
-    }
-    scale: {
-        value: string
-    }
-    workplaceService: {
-        id: string
-        service: {
-            value: string
-        }
-    }[]
+    address: AddressType
+    scale: ScaleType
+    workplaceService: WorkplaceServiceType[]
     createdAt: string
     updatedAt: string
 }

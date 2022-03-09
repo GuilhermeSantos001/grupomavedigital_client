@@ -1,4 +1,4 @@
-import { ReasonForAbsenceType } from '@/types/ReasonForAbsenceType'
+import type { ReasonForAbsenceType } from '@/types/ReasonForAbsenceType'
 
 export type DataReasonForAbsence = Pick<ReasonForAbsenceType, 'value'>;
 

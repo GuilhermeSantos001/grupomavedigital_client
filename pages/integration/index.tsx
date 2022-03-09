@@ -13,8 +13,13 @@ import { useRouter } from 'next/router'
 import type { APIKeyType } from '@/types/APIKeyType'
 
 import type {
+  FunctionCreateAPIKeyTypeof,
   FunctionDeleteAPIKeysTypeof,
 } from '@/types/APIKeyServiceType'
+
+import {
+  useAPIKeyService
+} from '@/services/useAPIKeyService'
 
 import {
   useAPIKeysService
@@ -141,6 +146,8 @@ function compose_ready(
   handleOpenModalRegisterAPIKey: () => void,
   handleCloseModalRegisterAPIKey: () => void,
   APIKeys: APIKeyType[],
+  isLoadingAPIKey: boolean,
+  CreateAPIKey: FunctionCreateAPIKeyTypeof,
   handleDeleteAPIKeys: FunctionDeleteAPIKeysTypeof
 ) {
   return (
@@ -149,6 +156,8 @@ function compose_ready(
         show={showModalRegisterAPIKey}
         username={username}
         userMail={userMail}
+        createAPIKey={CreateAPIKey}
+        isLoadingAPIKey={isLoadingAPIKey}
         handleClose={handleCloseModalRegisterAPIKey}
       />
       <div className='d-flex flex-column flex-md-row p-2 m-2'>
@@ -296,11 +305,8 @@ export default function Integration(
     }
   );
 
-  const
-    {
-      data: APIKeys,
-      delete: handleDeleteAPIKeys
-    } = useAPIKeysService();
+  const { isLoading: isLoadingAPIKey, create: CreateAPIKey } = useAPIKeyService();
+  const { data: APIKeys, delete: handleDeleteAPIKeys } = useAPIKeysService();
 
   const router = useRouter()
 
@@ -363,6 +369,8 @@ export default function Integration(
     handleOpenModalRegisterAPIKey,
     handleCloseModalRegisterAPIKey,
     APIKeys,
+    isLoadingAPIKey,
+    CreateAPIKey,
     handleDeleteAPIKeys
   )
 }

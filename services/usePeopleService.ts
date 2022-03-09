@@ -1,5 +1,7 @@
 import { useState } from 'react';
+
 import useSWR from 'swr'
+import { SWRConfig } from '@/services/config/SWRConfig';
 
 import { fetcherAxiosGet } from '@/src/utils/fetcherAxiosGet';
 import { fetcherAxiosPut } from '@/src/utils/fetcherAxiosPut';
@@ -28,7 +30,7 @@ export function usePeopleService(take: number = 10) {
   const { data, error, mutate } = useSWR<
     ApiResponseSuccessType<PersonType[]>,
     ApiResponseErrorType<Object>
-  >([uri, setIsLoading], fetcherAxiosGet, { refreshInterval: 5000 })
+  >([uri, setIsLoading], fetcherAxiosGet, SWRConfig)
 
   if (error) {
     Alerting.create('error', error.message);

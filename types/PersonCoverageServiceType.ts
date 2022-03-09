@@ -1,4 +1,4 @@
-import { PersonCoverageType } from '@/types/PersonCoverageType';
+import type { PersonCoverageType } from '@/types/PersonCoverageType';
 
 export type DataPersonCoverage = Pick<PersonCoverageType,
   | 'mirrorId'

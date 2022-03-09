@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Autocomplete, TextField, createFilterOptions, Button } from '@mui/material'
 
 import { AutocompleteLoading } from '@/components/utils/AutocompleteLoading'
 import { AutocompleteError } from '@/components/utils/AutocompleteError'
 
-import type { CostCenterType } from '@/types/CostCenterType'
+import Alerting from '@/src/utils/alerting'
+import StringEx from '@/src/utils/stringEx'
 
 import type {
   DataCostCenter,
@@ -13,22 +14,16 @@ import type {
   FunctionDeleteCostCentersTypeof
 } from '@/types/CostCenterServiceType'
 
-import {
-  useCostCenterService
-} from '@/services/useCostCenterService'
-
-import {
-  useCostCenterWithIdService
-} from '@/services/useCostCenterWithIdService'
-
-import {
-  useCostCentersService
-} from '@/services/useCostCentersService'
-
-import Alerting from '@/src/utils/alerting'
+import type { CostCenterType } from '@/types/CostCenterType'
 
 export type Props = {
-  id?: string
+  createCostCenter: FunctionCreateCostCenterTypeof
+  costCenter?: CostCenterType
+  isLoadingCostCenter?: boolean
+  costCenters: CostCenterType[]
+  updateCostCenters: FunctionUpdateCostCentersTypeof
+  deleteCostCenters: FunctionDeleteCostCentersTypeof
+  isLoadingCostCenters: boolean
   disabled?: boolean
   handleChangeData?: (data: CostCenterType) => void
   handleChangeId: (id: string) => void
@@ -41,7 +36,7 @@ export type FilmOptionType = Pick<CostCenterType, 'id' | 'value'> & {
 
 const filter = createFilterOptions<FilmOptionType>();
 
-export function SelectCostCenter(props: Props) {
+function Component(props: Props) {
   const [syncData, setSyncData] = useState<boolean>(false);
   const [returnData, setReturnData] = useState<boolean>(false);
 
@@ -49,22 +44,28 @@ export function SelectCostCenter(props: Props) {
   const [hasEdit, setHasEdit] = useState<boolean>(false);
   const [editValue, setEditValue] = useState<string>('');
 
-  const { create: CreateCostCenter } = useCostCenterService();
-  const { data: costCenter, isLoading: isLoadingCostCenter } = useCostCenterWithIdService(props.id || '');
-  const { data: costCenters, isLoading: isLoadingCostCenters, update: UpdateCostCenters, delete: DeleteCostCenters } = useCostCentersService();
+  const {
+    createCostCenter,
+    costCenter,
+    isLoadingCostCenter,
+    costCenters,
+    updateCostCenters,
+    deleteCostCenters,
+    isLoadingCostCenters,
+  } = props;
 
   const
-    handleAppendCostCenter: FunctionCreateCostCenterTypeof = async (data: DataCostCenter) => CreateCostCenter ? await CreateCostCenter(data) : undefined,
-    handleUpdateCostCenter: FunctionUpdateCostCentersTypeof = async (id: string, data: DataCostCenter) => UpdateCostCenters ? await UpdateCostCenters(id, data) : false,
-    handleRemoveCostCenter: FunctionDeleteCostCentersTypeof = async (id: string) => DeleteCostCenters ? await DeleteCostCenters(id) : false;
+    handleAppendCostCenter: FunctionCreateCostCenterTypeof = async (data: DataCostCenter) => createCostCenter ? await createCostCenter(data) : undefined,
+    handleUpdateCostCenter: FunctionUpdateCostCentersTypeof = async (id: string, data: DataCostCenter) => updateCostCenters ? await updateCostCenters(id, data) : false,
+    handleRemoveCostCenter: FunctionDeleteCostCentersTypeof = async (id: string) => deleteCostCenters ? await deleteCostCenters(id) : false;
 
   if (!value && hasEdit)
     setHasEdit(false);
 
-  if (isLoadingCostCenter && !syncData || isLoadingCostCenters && !props.id && !syncData)
+  if (isLoadingCostCenter && !syncData || isLoadingCostCenters && !syncData)
     return <AutocompleteLoading label='Centro de Custo' message='Carregando...' />
 
-  if (!syncData && costCenter || !syncData && !props.id && costCenters) {
+  if (!syncData && costCenter || !syncData && costCenters) {
     if (costCenter) {
       setValue({
         id: costCenter.id,
@@ -73,15 +74,15 @@ export function SelectCostCenter(props: Props) {
     }
 
     setSyncData(true);
-  } else if (!syncData && !costCenter || !syncData && !props.id && !costCenters) {
+  } else if (!syncData && !costCenter || !syncData && !costCenters) {
     return <AutocompleteError label='Centro de Custo' message='Ocorreu um erro' />
   }
 
-  if (props.id && props.handleChangeData && returnData) {
-    const costcenter = costCenters.find(costcenter => costcenter.id === props.id);
+  if (costCenter && props.handleChangeData && returnData) {
+    const changeCostCenter = costCenters.find(costcenter => costcenter.id === costCenter.id);
 
-    if (costcenter)
-      props.handleChangeData(costcenter);
+    if (changeCostCenter)
+      props.handleChangeData(changeCostCenter);
 
     setReturnData(false);
   }
@@ -94,9 +95,18 @@ export function SelectCostCenter(props: Props) {
         disabled={props.disabled !== undefined ? props.disabled : false}
         onChange={async (event: any, newValue) => {
           if (typeof newValue === 'string') {
+            if (StringEx.trim(newValue).length <= 0)
+              return Alerting.create('warning', 'Por favor, informe um valor válido.');
+          } else if (newValue) {
+            const inputValue = newValue.inputValue ? newValue.inputValue : newValue.value;
+            if (StringEx.trim(inputValue).length <= 0)
+              return Alerting.create('warning', 'Por favor, informe um valor válido.');
+          }
+
+          if (typeof newValue === 'string') {
             const value: FilmOptionType = {
               id: '',
-              value: newValue,
+              value: StringEx.trim(newValue),
             };
 
             setValue(value);
@@ -121,10 +131,10 @@ export function SelectCostCenter(props: Props) {
                     props.handleChangeId(costCenter.id);
                   }
                 } else {
-                  if (costCenters.filter(costCenter => costCenter.value === newValue).length <= 0) {
+                  if (costCenters.filter(costCenter => costCenter.value === value.value).length <= 0) {
                     handleAppendCostCenter({ value: value.value });
                   } else {
-                    const costcenter = costCenters.find(costCenter => costCenter.value === newValue);
+                    const costcenter = costCenters.find(costCenter => costCenter.value === value.value);
 
                     if (costcenter) {
                       setValue({
@@ -143,7 +153,7 @@ export function SelectCostCenter(props: Props) {
             const
               costCenter: FilmOptionType = {
                 id: hasEdit ? value?.id || '' : '',
-                value: newValue.inputValue,
+                value: StringEx.trim(newValue.inputValue),
               };
 
             if (!newValue.inputUpdate) {
@@ -161,9 +171,9 @@ export function SelectCostCenter(props: Props) {
             setReturnData(true);
             props.handleChangeId(costCenter.id);
           } else {
-            if (!newValue && props.id) {
+            if (!newValue && props.costCenter) {
               newValue = {
-                id: props.id,
+                id: props.costCenter.id,
                 value: costCenter?.value || '???'
               }
             }
@@ -242,10 +252,13 @@ export function SelectCostCenter(props: Props) {
         color='error'
         disabled={props.disabled ? true : hasEdit || !value}
         onClick={() => {
-          if (value && value.id !== props.id) {
-            if (props.id) {
+          if (props.costCenter && value && props.costCenter.id === value.id)
+            return Alerting.create('info', 'Não é possível remover o centro de custo sendo usado pelo registro.');
+
+          if (value) {
+            if (props.costCenter) {
               setValue({
-                id: props.id,
+                id: props.costCenter.id,
                 value: costCenter?.value || '???'
               })
             } else {
@@ -255,8 +268,6 @@ export function SelectCostCenter(props: Props) {
             handleRemoveCostCenter(value.id);
             setReturnData(true);
             props.handleChangeId('');
-          } else {
-            Alerting.create('info', 'Não é possível remover o centro de custo sendo usado pelo registro.');
           }
         }}
       >
@@ -265,3 +276,13 @@ export function SelectCostCenter(props: Props) {
     </div>
   )
 }
+
+export const SelectCostCenter = memo(Component, (prevStates, nextStates) => {
+  if (
+    prevStates.costCenter?.value !== nextStates.costCenter?.value
+    || prevStates.costCenters.length !== nextStates.costCenters.length
+  )
+    return false;
+
+  return true;
+});

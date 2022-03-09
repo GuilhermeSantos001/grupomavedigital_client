@@ -1,10 +1,4 @@
-/**
- * @description Modal -> Modal de Cadastro do(a) Funcionário(a)
- * @author GuilhermeSantos001
- * @update 13/02/2022
- */
-
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
@@ -32,12 +26,53 @@ import DateEx from '@/src/utils/dateEx'
 import StringEx from '@/src/utils/stringEx'
 import Alerting from '@/src/utils/alerting'
 
-import { usePersonService } from '@/services/usePersonService';
-import { useServicesService } from '@/services/useServicesService';
-import { useCardsService } from '@/services/useCardsService';
+import type {
+  FunctionCreatePersonTypeof
+} from '@/types/PersonServiceType';
+
+import type {
+  FunctionCreateServiceTypeof,
+  FunctionAssignPeopleServiceTypeof,
+  FunctionUpdateServicesTypeof,
+  FunctionDeleteServicesTypeof,
+} from '@/types/ServiceServiceType';
+
+import type {
+  FunctionAssignPeopleCardTypeof
+} from '@/types/CardServiceType';
+
+import {
+  FunctionCreateScaleTypeof,
+  FunctionDeleteScalesTypeof,
+  FunctionUpdateScalesTypeof
+} from '@/types/ScaleServiceType'
+
+import type { AddressType } from '@/types/AddressType'
+import type { ServiceType } from '@/types/ServiceType'
+import type { CardType } from '@/types/CardType'
+import type { ScaleType } from '@/types/ScaleType'
 
 export interface Props {
   show: boolean
+  createPerson: FunctionCreatePersonTypeof
+  isLoadingAddresses: boolean
+  addresses: AddressType[]
+  isLoadingServices: boolean
+  services: ServiceType[]
+  createService: FunctionCreateServiceTypeof
+  assignPeopleService: FunctionAssignPeopleServiceTypeof
+  updateServices: FunctionUpdateServicesTypeof
+  deleteServices: FunctionDeleteServicesTypeof
+  isLoadingCards: boolean
+  cards: CardType[]
+  assignPeopleCard: FunctionAssignPeopleCardTypeof
+  scale: ScaleType | undefined
+  isLoadingScale: boolean
+  scales: ScaleType[]
+  isLoadingScales: boolean
+  createScale: FunctionCreateScaleTypeof
+  updateScales: FunctionUpdateScalesTypeof
+  deleteScales: FunctionDeleteScalesTypeof
   handleClose: () => void
 }
 
@@ -50,7 +85,7 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export function RegisterPeople(props: Props) {
+function Component(props: Props) {
   const [syncData, setSyncData] = useState<boolean>(false)
 
   const [matricule, setMatricule] = useState<number>(0)
@@ -66,33 +101,27 @@ export function RegisterPeople(props: Props) {
   const [appliedCards, setAppliedCards] = useState<string[]>([])
   const [appliedServices, setAppliedServices] = useState<string[]>([])
 
-  const { create: CreatePerson } = usePersonService();
-  const { data: services, assignPerson: AssignPersonService, isLoading: isLoadingServices } = useServicesService();
-  const { data: cards, assignPerson: AssignPersonCard, isLoading: isLoadingCards } = useCardsService();
-
-  if (isLoadingServices && !syncData || isLoadingCards && !syncData)
-    return <DialogLoading
-      header='Registrar Funcionário(a)'
-      message='Carregando...'
-      show={props.show}
-      handleClose={props.handleClose}
-    />
-
-  if (!syncData && services && cards) {
-    setSyncData(true);
-  } else if (
-    !syncData && !services
-    || !syncData && !cards
-    || !syncData && !AssignPersonService
-    || !syncData && !AssignPersonCard
-  ) {
-    return <DialogError
-      header='Registrar Funcionário(a)'
-      message='Ocorreu um erro'
-      show={props.show}
-      handleClose={props.handleClose}
-    />
-  }
+  const {
+    createPerson,
+    isLoadingAddresses,
+    addresses,
+    isLoadingServices,
+    services,
+    createService,
+    assignPeopleService,
+    updateServices,
+    deleteServices,
+    isLoadingCards,
+    cards,
+    assignPeopleCard,
+    scale,
+    isLoadingScale,
+    scales,
+    isLoadingScales,
+    createScale,
+    updateScales,
+    deleteScales,
+  } = props;
 
   const
     handleChangeScaleId = (value: string) => setScaleId(value),
@@ -104,23 +133,23 @@ export function RegisterPeople(props: Props) {
     handleChangeMotherName = (value: string) => setMotherName(value),
     handleChangeBirthDate = (value: Date) => setBirthDate(value),
     handleChangePhone = (value: number) => setPhone(value),
-    handleChangeMail = (value: string) => setMail(value);
-
-  const
-    handleAssignPersonService = async (personId: string, servicesId: string[]) => {
-      if (!AssignPersonService)
-        throw new Error('AssignPersonService is undefined');
+    handleChangeMail = (value: string) => setMail(value),
+    handleAssignPeopleService = async (personId: string, servicesId: string[]) => {
+      if (!assignPeopleService)
+        throw new Error('AssignPeopleService is undefined');
 
       for (const serviceId of servicesId) {
-        const assign = await AssignPersonService(serviceId, { personId });
-
-        if (!assign)
-          throw new Error('AssignPersonService failed');
+        await assignPeopleService([
+          {
+            personId,
+            serviceId
+          }
+        ]);
       }
     },
-    handleAssignPersonCard = async (personId: string, cardsId: string[]) => {
-      if (!AssignPersonCard)
-        throw new Error('AssignPersonCard is undefined');
+    handleAssignPeopleCard = async (personId: string, cardsId: string[]) => {
+      if (!assignPeopleCard)
+        throw new Error('AssignPeopleCard is undefined');
 
       for (const cardId of cardsId) {
         const id = cards.find(card => cardId === `${card.serialNumber} - ${card.lastCardNumber}`)?.id || undefined;
@@ -128,10 +157,7 @@ export function RegisterPeople(props: Props) {
         if (!id)
           throw new Error('Card not found');
 
-        const assign = await AssignPersonCard(id, { personId });
-
-        if (!assign)
-          throw new Error('AssignPersonCard failed');
+        await assignPeopleCard(id, [{ personId }]);
       }
     },
     canRegisterPerson = () => {
@@ -149,7 +175,7 @@ export function RegisterPeople(props: Props) {
         appliedServices.length > 0
     },
     handleRegisterPerson = async () => {
-      const person = await CreatePerson({
+      const person = await createPerson({
         matricule: StringEx.removeMaskNum(matricule.toString()).toString(),
         name,
         cpf: StringEx.removeMaskNum(cpf.toString()).toString(),
@@ -167,8 +193,8 @@ export function RegisterPeople(props: Props) {
         return Alerting.create('error', 'Não foi possível registrar o(a) funcionário(a). Tente novamente com outros dados.');
 
       try {
-        await handleAssignPersonService(person.data.id, appliedServices);
-        await handleAssignPersonCard(person.data.id, appliedCards);
+        await handleAssignPeopleService(person.data.id, appliedServices);
+        await handleAssignPeopleCard(person.data.id, appliedCards);
 
         Alerting.create('success', 'Funcionário(a) registrado(a) com sucesso.');
         props.handleClose();
@@ -177,6 +203,48 @@ export function RegisterPeople(props: Props) {
         props.handleClose();
       }
     };
+
+  if (
+    isLoadingAddresses && !syncData
+    || isLoadingServices && !syncData
+    || isLoadingCards && !syncData
+    || isLoadingScales && !syncData
+  )
+    return <DialogLoading
+      header='Registrar Funcionário(a)'
+      message='Carregando...'
+      show={props.show}
+      handleClose={props.handleClose}
+    />
+
+  if (
+    !syncData
+    && addresses
+    && services
+    && cards
+    && scales
+    && services
+  ) {
+    setSyncData(true);
+  } else if (
+    !syncData && !addresses
+    || !syncData && !services
+    || !syncData && !assignPeopleService
+    || !syncData && !updateServices
+    || !syncData && !deleteServices
+    || !syncData && !cards
+    || !syncData && !assignPeopleCard
+    || !syncData && !scales
+    || !syncData && !updateScales
+    || !syncData && !deleteScales
+  ) {
+    return <DialogError
+      header='Registrar Funcionário(a)'
+      message='Ocorreu um erro'
+      show={props.show}
+      handleClose={props.handleClose}
+    />
+  }
 
   return (
     <Dialog
@@ -288,11 +356,20 @@ export function RegisterPeople(props: Props) {
         </ListItem>
         <ListItem>
           <SelectScale
+            createScale={createScale}
+            scale={scale}
+            isLoadingScale={isLoadingScale}
+            scales={scales}
+            isLoadingScales={isLoadingScales}
+            updateScales={updateScales}
+            deleteScales={deleteScales}
             handleChangeId={(id) => handleChangeScaleId(id)}
           />
         </ListItem>
         <ListItem>
           <SelectCard
+            isLoadingCards={isLoadingCards}
+            cards={cards}
             handleChangeCard={(cards) => setAppliedCards(cards)}
           />
         </ListItem>
@@ -301,6 +378,11 @@ export function RegisterPeople(props: Props) {
         </ListItem>
       </List>
       <SelectService
+        services={services}
+        isLoadingServices={isLoadingServices}
+        createService={createService}
+        updateServices={updateServices}
+        deleteServices={deleteServices}
         itemsLeft={services.map((service) => service.value)}
         itemsRight={[]}
         onChangeAppliedServices={(values) => setAppliedServices(services.filter(service => values.includes(service.value)).map(service => service.id))}
@@ -311,6 +393,8 @@ export function RegisterPeople(props: Props) {
         </ListItem>
         <ListItem>
           <SelectAddress
+            addresses={addresses}
+            isLoadingAddresses={isLoadingAddresses}
             handleChangeId={(id) => handleChangeAddressId(id)}
           />
         </ListItem>
@@ -335,3 +419,16 @@ export function RegisterPeople(props: Props) {
     </Dialog>
   );
 }
+
+export const RegisterPeople = memo(Component, (prevStates, nextStates) => {
+  if (
+    prevStates.show !== nextStates.show
+    || prevStates.addresses.length !== nextStates.addresses.length
+    || prevStates.services.length !== nextStates.services.length
+    || prevStates.cards.length !== nextStates.cards.length
+    || prevStates.scales.length !== nextStates.scales.length
+  )
+    return false;
+
+  return true;
+});

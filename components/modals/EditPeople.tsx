@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
@@ -27,13 +27,60 @@ import ArrayEx from '@/src/utils/arrayEx'
 import StringEx from '@/src/utils/stringEx'
 import Alerting from '@/src/utils/alerting'
 
-import { usePersonWithIdService } from '@/services/usePersonWithIdService';
-import { useServicesService } from '@/services/useServicesService';
-import { useCardsService } from '@/services/useCardsService';
+import type {
+  FunctionUpdatePeopleTypeof
+} from '@/types/PersonServiceType';
+
+import type {
+  FunctionCreateServiceTypeof,
+  FunctionUpdateServicesTypeof,
+  FunctionDeleteServicesTypeof,
+  FunctionAssignPeopleServiceTypeof,
+  FunctionUnassignPeopleServiceTypeof,
+} from '@/types/ServiceServiceType';
+
+import type {
+  FunctionAssignPeopleCardTypeof,
+  FunctionUnassignPeopleCardTypeof
+} from '@/types/CardServiceType';
+
+import type {
+  FunctionCreateScaleTypeof,
+  FunctionUpdateScalesTypeof,
+  FunctionDeleteScalesTypeof
+} from '@/types/ScaleServiceType';
+
+import type { PersonType } from '@/types/PersonType';
+import type { AddressType } from '@/types/AddressType';
+import type { ServiceType } from '@/types/ServiceType';
+import type { CardType } from '@/types/CardType';
+import type { ScaleType } from '@/types/ScaleType';
 
 export interface Props {
-  id: string;
   show: boolean
+  person: PersonType | undefined
+  isLoadingPerson: boolean
+  updatePeople: FunctionUpdatePeopleTypeof
+  addresses: AddressType[]
+  isLoadingAddresses: boolean
+  services: ServiceType[]
+  isLoadingServices: boolean
+  createService: FunctionCreateServiceTypeof,
+  assignPeopleService: FunctionAssignPeopleServiceTypeof
+  unassignPeopleService: FunctionUnassignPeopleServiceTypeof
+  updateServices: FunctionUpdateServicesTypeof,
+  deleteServices: FunctionDeleteServicesTypeof,
+  cards: CardType[]
+  isLoadingCards: boolean
+  assignPeopleCard: FunctionAssignPeopleCardTypeof
+  unassignPeopleCard: FunctionUnassignPeopleCardTypeof
+  createScale: FunctionCreateScaleTypeof
+  scale: ScaleType | undefined
+  isLoadingScale: boolean
+  scales: ServiceType[]
+  isLoadingScales: boolean
+  updateScales: FunctionUpdateScalesTypeof
+  deleteScales: FunctionDeleteScalesTypeof
   handleClose: () => void
 }
 
@@ -46,7 +93,7 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export function EditPeople(props: Props) {
+function Component(props: Props) {
   const [syncData, setSyncData] = useState<boolean>(false)
 
   const [matricule, setMatricule] = useState<number>(0)
@@ -62,9 +109,31 @@ export function EditPeople(props: Props) {
   const [appliedCards, setAppliedCards] = useState<string[]>([])
   const [appliedServices, setAppliedServices] = useState<string[]>([])
 
-  const { data: person, isLoading: isLoadingPerson, update: UpdatePerson } = usePersonWithIdService(props.id);
-  const { data: services, isLoading: isLoadingServices, assignPerson: AssignPersonService, unassignPerson: UnassignPersonService } = useServicesService();
-  const { data: cards, isLoading: isLoadingCards, assignPerson: AssignPersonCard, unassignPerson: UnassignPersonCard } = useCardsService();
+  const {
+    person,
+    isLoadingPerson,
+    updatePeople,
+    addresses,
+    isLoadingAddresses,
+    createService,
+    services,
+    updateServices,
+    deleteServices,
+    isLoadingServices,
+    assignPeopleService,
+    unassignPeopleService,
+    cards,
+    isLoadingCards,
+    assignPeopleCard,
+    unassignPeopleCard,
+    createScale,
+    scale,
+    isLoadingScale,
+    scales,
+    isLoadingScales,
+    updateScales,
+    deleteScales,
+  } = props;
 
   const
     handleChangeScaleId = (value: string) => setScaleId(value),
@@ -79,31 +148,28 @@ export function EditPeople(props: Props) {
     handleChangeMail = (value: string) => setMail(value);
 
   const
-    handleAssignPersonService = async (personId: string, servicesId: string[]) => {
-      if (!AssignPersonService)
-        throw new Error('AssignPersonService is undefined');
+    handleAssignPeopleService = async (personId: string, servicesId: string[]) => {
+      if (!assignPeopleService)
+        throw new Error('AssignPeopleService is undefined');
 
       for (const serviceId of servicesId) {
-        const assign = await AssignPersonService(serviceId, { personId });
-
-        if (!assign)
-          throw new Error('AssignPersonService failed');
+        await assignPeopleService([
+          {
+            personId,
+            serviceId
+          }
+        ]);
       }
     },
-    handleUnassignPersonService = async (personServiceIds: string[]) => {
-      if (!UnassignPersonService)
-        throw new Error('UnassignPersonService is undefined');
+    handleUnassignPeopleService = async (peopleServiceId: string[]) => {
+      if (!unassignPeopleService)
+        throw new Error('UnassignPeopleService is undefined');
 
-      for (const serviceId of personServiceIds) {
-        const unassign = await UnassignPersonService(serviceId);
-
-        if (!unassign)
-          throw new Error('UnassignPersonService failed');
-      }
+      await unassignPeopleService(peopleServiceId);
     },
-    handleAssignPersonCard = async (personId: string, cardsId: string[]) => {
-      if (!AssignPersonCard)
-        throw new Error('AssignPersonCard is undefined');
+    handleAssignPeopleCard = async (personId: string, cardsId: string[]) => {
+      if (!assignPeopleCard)
+        throw new Error('AssignPeopleCard is undefined');
 
       for (const cardId of cardsId) {
         const id = cards.find(card => cardId === `${card.serialNumber} - ${card.lastCardNumber}`)?.id || undefined;
@@ -111,15 +177,12 @@ export function EditPeople(props: Props) {
         if (!id)
           throw new Error('Card not found');
 
-        const assign = await AssignPersonCard(id, { personId });
-
-        if (!assign)
-          throw new Error('AssignPersonCard failed');
+        await assignPeopleCard(id, [{ personId }]);
       }
     },
-    handleUnassignPersonCard = async (cardsId: string[]) => {
-      if (!UnassignPersonCard)
-        throw new Error('UnassignPersonCard is undefined');
+    handleUnassignPeopleCard = async (cardsId: string[]) => {
+      if (!unassignPeopleCard)
+        throw new Error('UnassignPeopleCard is undefined');
 
       for (const cardId of cardsId) {
         const id = cards.find(card => cardId === `${card.serialNumber} - ${card.lastCardNumber}`)?.id || undefined;
@@ -127,10 +190,7 @@ export function EditPeople(props: Props) {
         if (!id)
           throw new Error('Card not found');
 
-        const assign = await UnassignPersonCard(id);
-
-        if (!assign)
-          throw new Error('UnassignPersonCard failed');
+        await unassignPeopleCard([id]);
       }
     },
     canUpdatePerson = () => {
@@ -148,10 +208,10 @@ export function EditPeople(props: Props) {
         appliedServices.length > 0
     },
     handleUpdatePerson = async () => {
-      if (!person || !UpdatePerson)
+      if (!person || !updatePeople)
         return Alerting.create('error', 'Não foi possível atualizar os dados do(a) funcionário(a). Tente novamente, mais tarde!.');
 
-      const updated = await UpdatePerson({
+      const updated = await updatePeople(person.id, {
         matricule: StringEx.removeMaskNum(matricule.toString()).toString(),
         name,
         cpf: StringEx.removeMaskNum(cpf.toString()).toString(),
@@ -175,10 +235,10 @@ export function EditPeople(props: Props) {
           newServices = ArrayEx.returnItemsOfANotContainInB(appliedServices, person.personService.map(_ => _.service.value)),
           removeServices = person.personService.filter(_ => !appliedServices.includes(_.service.value));
 
-        await handleUnassignPersonCard(removeCards.map(card => `${card.serialNumber} - ${card.lastCardNumber}`));
-        await handleUnassignPersonService(removeServices.map(_ => _.id));
-        await handleAssignPersonCard(person.id, newCards);
-        await handleAssignPersonService(person.id, newServices);
+        await handleUnassignPeopleCard(removeCards.map(card => `${card.serialNumber} - ${card.lastCardNumber}`));
+        await handleUnassignPeopleService(removeServices.map(_ => _.id));
+        await handleAssignPeopleCard(person.id, newCards);
+        await handleAssignPeopleService(person.id, newServices);
 
         Alerting.create('success', 'Funcionário(a) teve os dados atualizados com sucesso.');
         props.handleClose();
@@ -190,8 +250,11 @@ export function EditPeople(props: Props) {
 
   if (
     isLoadingPerson && !syncData
+    || isLoadingAddresses && !syncData
     || isLoadingServices && !syncData
     || isLoadingCards && !syncData
+    || isLoadingScale && !syncData
+    || isLoadingScales && !syncData
   )
     return <DialogLoading
       header='Editar Funcionário(a)'
@@ -200,7 +263,15 @@ export function EditPeople(props: Props) {
       handleClose={props.handleClose}
     />
 
-  if (!syncData && person && services && cards) {
+  if (
+    !syncData
+    && person
+    && addresses
+    && services
+    && cards
+    && scale
+    && scales
+  ) {
     handleChangeMatricule(parseInt(person.matricule));
     handleChangeName(person.name);
     handleChangeCPF(parseInt(person.cpf));
@@ -216,13 +287,19 @@ export function EditPeople(props: Props) {
     setSyncData(true);
   } else if (
     !syncData && !person
+    || !syncData && !updatePeople
+    || !syncData && !addresses
     || !syncData && !services
+    || !syncData && !assignPeopleService
+    || !syncData && !unassignPeopleService
+    || !syncData && !updateServices
+    || !syncData && !deleteServices
     || !syncData && !cards
-    || !syncData && !UpdatePerson
-    || !syncData && !AssignPersonService
-    || !syncData && !UnassignPersonService
-    || !syncData && !AssignPersonCard
-    || !syncData && !UnassignPersonCard
+    || !syncData && !assignPeopleCard
+    || !syncData && !unassignPeopleCard
+    || !syncData && !scales
+    || !syncData && !updateScales
+    || !syncData && !deleteScales
   ) {
     return <DialogError
       header='Editar Funcionário(a)'
@@ -342,13 +419,21 @@ export function EditPeople(props: Props) {
         </ListItem>
         <ListItem>
           <SelectScale
-            id={person?.scaleId}
+            createScale={createScale}
+            scale={scale}
+            isLoadingScale={isLoadingScale}
+            scales={scales}
+            isLoadingScales={isLoadingScales}
+            updateScales={updateScales}
+            deleteScales={deleteScales}
             handleChangeId={(id) => handleChangeScaleId(id)}
           />
         </ListItem>
         <ListItem>
           <SelectCard
             selectCards={person?.cards.map(card => `${card.costCenter.value || "???"} - ${card.serialNumber} (4 Últimos Dígitos: ${card.lastCardNumber})`)}
+            isLoadingCards={isLoadingCards}
+            cards={cards}
             handleChangeCard={(cards) => setAppliedCards(cards)}
           />
         </ListItem>
@@ -357,6 +442,11 @@ export function EditPeople(props: Props) {
         </ListItem>
       </List>
       <SelectService
+        createService={createService}
+        services={services}
+        isLoadingServices={isLoadingServices}
+        updateServices={updateServices}
+        deleteServices={deleteServices}
         itemsLeft={person ? ArrayEx.returnItemsOfANotContainInB(services.map(service => service.value), person.personService.map(_ => _.service.value)) : []}
         itemsRight={person?.personService.map((_) => _.service.value) || []}
         onChangeAppliedServices={(values) => setAppliedServices(services.filter(service => values.includes(service.value)).map(service => service.id))}
@@ -368,6 +458,8 @@ export function EditPeople(props: Props) {
         <ListItem>
           <SelectAddress
             id={person?.addressId}
+            addresses={addresses}
+            isLoadingAddresses={isLoadingAddresses}
             handleChangeId={(id) => handleChangeAddressId(id)}
           />
         </ListItem>
@@ -392,3 +484,19 @@ export function EditPeople(props: Props) {
     </Dialog>
   );
 }
+
+export const EditPeople = memo(Component, (prevStates, nextStates) => {
+  if (
+    prevStates.show !== nextStates.show
+    || JSON.stringify(prevStates.person) !== JSON.stringify(nextStates.person)
+    || prevStates.addresses.length !== nextStates.addresses.length
+    || prevStates.services.length !== nextStates.services.length
+    || prevStates.cards.length !== nextStates.cards.length
+    || prevStates.scale?.id !== nextStates.scale?.id
+    || prevStates.scale?.value !== nextStates.scale?.value
+    || prevStates.scales.length !== nextStates.scales.length
+  )
+    return false;
+
+  return true;
+});

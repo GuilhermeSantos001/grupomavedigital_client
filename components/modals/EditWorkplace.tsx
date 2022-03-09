@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
@@ -24,12 +24,47 @@ import { SelectScale } from '@/components/selects/SelectScale'
 import ArrayEx from '@/src/utils/arrayEx'
 import Alerting from '@/src/utils/alerting'
 
-import { useWorkplaceWithIdService } from '@/services/useWorkplaceWithIdService';
-import { useServicesService } from '@/services/useServicesService';
+import type { FunctionUpdateWorkplacesTypeof } from '@/types/WorkplaceServiceType'
+import type {
+  FunctionCreateServiceTypeof,
+  FunctionUpdateServicesTypeof,
+  FunctionAssignWorkplacesServiceTypeof,
+  FunctionUnassignWorkplacesServiceTypeof,
+  FunctionDeleteServicesTypeof,
+} from '@/types/ServiceServiceType';
+
+import {
+  FunctionCreateScaleTypeof,
+  FunctionUpdateScalesTypeof,
+  FunctionDeleteScalesTypeof
+} from '@/types/ScaleServiceType'
+
+import type { WorkplaceType } from '@/types/WorkplaceType'
+import type { AddressType } from '@/types/AddressType'
+import type { ServiceType } from '@/types/ServiceType'
+import type { ScaleType } from '@/types/ScaleType'
 
 export interface Props {
-  id: string
   show: boolean
+  workplace: WorkplaceType | undefined
+  isLoadingWorkplace: boolean
+  updateWorkplaces: FunctionUpdateWorkplacesTypeof
+  isLoadingAddresses: boolean
+  addresses: AddressType[]
+  createService: FunctionCreateServiceTypeof
+  services: ServiceType[]
+  isLoadingServices: boolean
+  updateServices: FunctionUpdateServicesTypeof
+  assignWorkplacesService: FunctionAssignWorkplacesServiceTypeof
+  unassignWorkplacesService: FunctionUnassignWorkplacesServiceTypeof
+  deleteServices: FunctionDeleteServicesTypeof
+  createScale: FunctionCreateScaleTypeof
+  scale: ScaleType | undefined
+  isLoadingScale: boolean
+  scales: ScaleType[]
+  isLoadingScales: boolean
+  updateScales: FunctionUpdateScalesTypeof
+  deleteScales: FunctionDeleteScalesTypeof
   handleClose: () => void
 }
 
@@ -42,7 +77,7 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export function EditWorkplace(props: Props) {
+function Component(props: Props) {
   const [syncData, setSyncData] = useState<boolean>(false)
 
   const [name, setName] = useState<string>('');
@@ -52,8 +87,27 @@ export function EditWorkplace(props: Props) {
   const [addressId, setAddressId] = useState<string>('');
   const [scaleId, setScaleId] = useState<string>('')
 
-  const { data: workplace, isLoading: isLoadingWorkplace, update: UpdateWorkplace } = useWorkplaceWithIdService(props.id);
-  const { data: services, isLoading: isLoadingServices, assignWorkplace: AssignWorkplaceService, unassignWorkplace: UnassignWorkplaceService } = useServicesService();
+  const {
+    workplace,
+    isLoadingWorkplace,
+    updateWorkplaces,
+    isLoadingAddresses,
+    addresses,
+    createService,
+    services,
+    isLoadingServices,
+    updateServices,
+    assignWorkplacesService,
+    unassignWorkplacesService,
+    deleteServices,
+    createScale,
+    scale,
+    isLoadingScale,
+    scales,
+    isLoadingScales,
+    updateScales,
+    deleteScales,
+  } = props;
 
   const
     handleChangeName = (value: string) => setName(value),
@@ -72,32 +126,29 @@ export function EditWorkplace(props: Props) {
         scaleId.length > 0
     },
     handleAssignWorkplaceService = async (workplaceId: string, servicesId: string[]) => {
-      if (!AssignWorkplaceService)
-        throw new Error('AssignWorkplaceService is undefined');
+      if (!assignWorkplacesService)
+        throw new Error('AssignWorkplacesService is undefined');
 
       for (const serviceId of servicesId) {
-        const assign = await AssignWorkplaceService(serviceId, { workplaceId });
-
-        if (!assign)
-          throw new Error('AssignWorkplaceService failed');
+        await assignWorkplacesService([
+          {
+            serviceId,
+            workplaceId
+          }
+        ]);
       }
     },
     handleUnassignWorkplaceService = async (workplaceServicesId: string[]) => {
-      if (!UnassignWorkplaceService)
-        throw new Error('UnassignWorkplaceService is undefined');
+      if (!unassignWorkplacesService)
+        throw new Error('UnassignWorkplacesService is undefined');
 
-      for (const workplaceServiceId of workplaceServicesId) {
-        const unassign = await UnassignWorkplaceService(workplaceServiceId);
-
-        if (!unassign)
-          throw new Error('UnassignWorkplaceService failed');
-      }
+      await unassignWorkplacesService(workplaceServicesId);
     },
     handleUpdateWorkplace = async () => {
-      if (!workplace || !UpdateWorkplace)
+      if (!workplace || !updateWorkplaces)
         return Alerting.create('error', 'Não foi possível atualizar os dados do(a) funcionário(a). Tente novamente, mais tarde!.');
 
-      const updated = await UpdateWorkplace({
+      const updated = await updateWorkplaces(workplace.id, {
         name,
         entryTime: entryTime.toISOString(),
         exitTime: exitTime.toISOString(),
@@ -127,7 +178,10 @@ export function EditWorkplace(props: Props) {
 
   if (
     isLoadingWorkplace && !syncData
+    || isLoadingAddresses && !syncData
     || isLoadingServices && !syncData
+    || isLoadingScale && !syncData
+    || isLoadingScales && !syncData
   )
     return <DialogLoading
       header='Atualizar Local de Trabalho'
@@ -136,7 +190,14 @@ export function EditWorkplace(props: Props) {
       handleClose={props.handleClose}
     />
 
-  if (!syncData && workplace && services) {
+  if (
+    !syncData
+    && workplace
+    && addresses
+    && services
+    && scale
+    && scales
+  ) {
     handleChangeName(workplace.name);
     handleChangeEntryTime(new Date(workplace.entryTime));
     handleChangeExitTime(new Date(workplace.exitTime));
@@ -146,10 +207,17 @@ export function EditWorkplace(props: Props) {
     setSyncData(true);
   } else if (
     !syncData && !workplace
+    || !syncData && !updateWorkplaces
+    || !syncData && !addresses
     || !syncData && !services
-    || !syncData && !UpdateWorkplace
-    || !syncData && !AssignWorkplaceService
-    || !syncData && !UnassignWorkplaceService
+    || !syncData && !updateServices
+    || !syncData && !assignWorkplacesService
+    || !syncData && !unassignWorkplacesService
+    || !syncData && !deleteServices
+    || !syncData && !scale
+    || !syncData && !scales
+    || !syncData && !updateScales
+    || !syncData && !deleteScales
   ) {
     return <DialogError
       header='Atualizar Local de Trabalho'
@@ -160,109 +228,138 @@ export function EditWorkplace(props: Props) {
   }
 
   return (
-      <Dialog
-        fullScreen
-        open={props.show}
-        onClose={props.handleClose}
-        TransitionComponent={Transition}
-      >
-        <AppBar sx={{ position: 'relative' }}>
-          <Toolbar>
-            <IconButton
-              edge="start"
-              color="inherit"
-              onClick={props.handleClose}
-              aria-label="close"
-            >
-              <CloseIcon />
-            </IconButton>
-            <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
-              Atualizar Local de Trabalho
-            </Typography>
-            <Button
-              color="inherit"
-              disabled={!canUpdateWorkplace()}
-              onClick={handleUpdateWorkplace}
-            >
-              Atualizar
-            </Button>
-          </Toolbar>
-        </AppBar>
-        <List>
-          <ListItem>
-            <ListItemText primary="Informações Básicas" />
-          </ListItem>
-          <ListItem>
-            <TextField
-              className='col'
-              label="Nome do Posto"
-              variant="standard"
-              value={name}
-              onChange={(e) => handleChangeName(e.target.value)}
-            />
-          </ListItem>
-          <ListItem>
-            <SelectScale
-              id={workplace?.scaleId}
-              handleChangeId={handleChangeScaleId}
-            />
-          </ListItem>
-          <ListItem>
-            <TimePicker
-              className='col-12'
-              label="Horário de Entrada"
-              value={entryTime}
-              handleChangeValue={handleChangeEntryTime}
-            />
-          </ListItem>
-          <ListItem>
-            <TimePicker
-              className='col-12'
-              label="Horário de Saída"
-              value={exitTime}
-              handleChangeValue={handleChangeExitTime}
-            />
-          </ListItem>
-          <ListItem>
-            <ListItemText primary="Serviços no Posto" />
-          </ListItem>
-        </List>
-        {
-          services.length > 0 &&
-          <SelectService
-            itemsLeft={workplace ? ArrayEx.returnItemsOfANotContainInB(services.map(service => service.value), workplace.workplaceService.map(_ => _.service.value)) : []}
-            itemsRight={workplace?.workplaceService.map((_) => _.service.value) || []}
-            onChangeAppliedServices={(values) => setAppliedServices(services.filter(service => values.includes(service.value)).map(service => service.id))}
+    <Dialog
+      fullScreen
+      open={props.show}
+      onClose={props.handleClose}
+      TransitionComponent={Transition}
+    >
+      <AppBar sx={{ position: 'relative' }}>
+        <Toolbar>
+          <IconButton
+            edge="start"
+            color="inherit"
+            onClick={props.handleClose}
+            aria-label="close"
+          >
+            <CloseIcon />
+          </IconButton>
+          <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
+            Atualizar Local de Trabalho
+          </Typography>
+          <Button
+            color="inherit"
+            disabled={!canUpdateWorkplace()}
+            onClick={handleUpdateWorkplace}
+          >
+            Atualizar
+          </Button>
+        </Toolbar>
+      </AppBar>
+      <List>
+        <ListItem>
+          <ListItemText primary="Informações Básicas" />
+        </ListItem>
+        <ListItem>
+          <TextField
+            className='col'
+            label="Nome do Posto"
+            variant="standard"
+            value={name}
+            onChange={(e) => handleChangeName(e.target.value)}
           />
-        }
-        <List>
-          <ListItem>
-            <ListItemText primary="Endereço do Posto" />
-          </ListItem>
-          <ListItem>
-            <SelectAddress
-              id={workplace?.addressId}
-              handleChangeId={handleChangeAddressId}
-            />
-          </ListItem>
-        </List>
-        <Button
-          className='col-10 mx-auto my-2'
-          variant="contained"
-          color="primary"
-          disabled={!canUpdateWorkplace()}
-          onClick={handleUpdateWorkplace}
-        >
-          Atualizar
-        </Button>
-        <Button
-          className='col-10 mx-auto my-2'
-          variant="contained"
-          color="error"
-          onClick={props.handleClose}
-        >
-          Cancelar
-        </Button>
-      </Dialog>
+        </ListItem>
+        <ListItem>
+          <SelectScale
+            createScale={createScale}
+            scale={scale}
+            isLoadingScale={isLoadingScale}
+            scales={scales}
+            isLoadingScales={isLoadingScales}
+            updateScales={updateScales}
+            deleteScales={deleteScales}
+            handleChangeId={handleChangeScaleId}
+          />
+        </ListItem>
+        <ListItem>
+          <TimePicker
+            className='col-12'
+            label="Horário de Entrada"
+            value={entryTime}
+            handleChangeValue={handleChangeEntryTime}
+          />
+        </ListItem>
+        <ListItem>
+          <TimePicker
+            className='col-12'
+            label="Horário de Saída"
+            value={exitTime}
+            handleChangeValue={handleChangeExitTime}
+          />
+        </ListItem>
+        <ListItem>
+          <ListItemText primary="Serviços no Posto" />
+        </ListItem>
+      </List>
+      {
+        services.length > 0 &&
+        <SelectService
+          createService={createService}
+          services={services}
+          isLoadingServices={isLoadingServices}
+          updateServices={updateServices}
+          deleteServices={deleteServices}
+          itemsLeft={workplace ? ArrayEx.returnItemsOfANotContainInB(services.map(service => service.value), workplace.workplaceService.map(_ => _.service.value)) : []}
+          itemsRight={workplace?.workplaceService.map((_) => _.service.value) || []}
+          onChangeAppliedServices={(values) => setAppliedServices(services.filter(service => values.includes(service.value)).map(service => service.id))}
+        />
+      }
+      <List>
+        <ListItem>
+          <ListItemText primary="Endereço do Posto" />
+        </ListItem>
+        <ListItem>
+          <SelectAddress
+            id={workplace?.addressId}
+            addresses={addresses}
+            isLoadingAddresses={isLoadingAddresses}
+            handleChangeId={handleChangeAddressId}
+          />
+        </ListItem>
+      </List>
+      <Button
+        className='col-10 mx-auto my-2'
+        variant="contained"
+        color="primary"
+        disabled={!canUpdateWorkplace()}
+        onClick={handleUpdateWorkplace}
+      >
+        Atualizar
+      </Button>
+      <Button
+        className='col-10 mx-auto my-2'
+        variant="contained"
+        color="error"
+        onClick={props.handleClose}
+      >
+        Cancelar
+      </Button>
+    </Dialog>
   );
 }
+
+export const EditWorkplace = memo(Component, (prevStates, nextStates) => {
+  if (
+    prevStates.show !== nextStates.show
+    || prevStates.workplace?.id !== nextStates.workplace?.id
+    || JSON.stringify(prevStates.workplace) !== JSON.stringify(nextStates.workplace)
+    || prevStates.addresses.length !== nextStates.addresses.length
+    || prevStates.services.length !== nextStates.services.length
+    || prevStates.scale?.id !== nextStates.scale?.id
+    || prevStates.scale?.value !== nextStates.scale?.value
+    || prevStates.scales.length !== nextStates.scales.length
+  )
+    return false;
+
+  return true;
+});

@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Autocomplete, TextField, createFilterOptions, Button } from '@mui/material'
 
 import { AutocompleteLoading } from '@/components/utils/AutocompleteLoading';
 import { AutocompleteError } from '@/components/utils/AutocompleteError';
 
-import type { DistrictType } from '@/types/DistrictType'
+import Alerting from '@/src/utils/alerting';
+import StringEx from '@/src/utils/stringEx'
 
 import type {
   DataDistrict,
@@ -13,22 +14,16 @@ import type {
   FunctionDeleteDistrictsTypeof
 } from '@/types/DistrictServiceType'
 
-import {
-  useDistrictService
-} from '@/services/useDistrictService'
-
-import {
-  useDistrictWithIdService
-} from '@/services/useDistrictWithIdService'
-
-import {
-  useDistrictsService
-} from '@/services/useDistrictsService'
-
-import Alerting from '@/src/utils/alerting';
+import type { DistrictType } from '@/types/DistrictType'
 
 export type Props = {
-  id?: string
+  createDistrict: FunctionCreateDistrictTypeof
+  district?: DistrictType
+  isLoadingDistrict?: boolean
+  districts: DistrictType[]
+  updateDistricts: FunctionUpdateDistrictsTypeof
+  deleteDistricts: FunctionDeleteDistrictsTypeof
+  isLoadingDistricts: boolean
   disabled?: boolean
   handleChangeData?: (data: DistrictType) => void
   handleChangeId: (id: string) => void
@@ -41,7 +36,7 @@ export type FilmOptionType = Pick<DistrictType, 'id' | 'value'> & {
 
 const filter = createFilterOptions<FilmOptionType>();
 
-export function SelectDistrict(props: Props) {
+function Component(props: Props) {
   const [syncData, setSyncData] = useState<boolean>(false);
   const [returnData, setReturnData] = useState<boolean>(false);
 
@@ -49,22 +44,28 @@ export function SelectDistrict(props: Props) {
   const [hasEdit, setHasEdit] = useState<boolean>(false);
   const [editValue, setEditValue] = useState<string>('');
 
-  const { create: CreateDistrict } = useDistrictService();
-  const { data: district, isLoading: isLoadingDistrict } = useDistrictWithIdService(props.id || '');
-  const { data: districts, isLoading: isLoadingDistricts, update: UpdateDistricts, delete: DeleteDistricts } = useDistrictsService();
+  const {
+    createDistrict,
+    district,
+    isLoadingDistrict,
+    districts,
+    updateDistricts,
+    deleteDistricts,
+    isLoadingDistricts,
+  } = props;
 
   const
-    handleAppendDistrict: FunctionCreateDistrictTypeof = async (data: DataDistrict) => CreateDistrict ? await CreateDistrict(data) : undefined,
-    handleUpdateDistrict: FunctionUpdateDistrictsTypeof = async (id: string, data: DataDistrict) => UpdateDistricts ? await UpdateDistricts(id, data) : false,
-    handleRemoveDistrict: FunctionDeleteDistrictsTypeof = async (id: string) => DeleteDistricts ? await DeleteDistricts(id) : false;
+    handleAppendDistrict: FunctionCreateDistrictTypeof = async (data: DataDistrict) => createDistrict ? await createDistrict(data) : undefined,
+    handleUpdateDistrict: FunctionUpdateDistrictsTypeof = async (id: string, data: DataDistrict) => updateDistricts ? await updateDistricts(id, data) : false,
+    handleRemoveDistrict: FunctionDeleteDistrictsTypeof = async (id: string) => deleteDistricts ? await deleteDistricts(id) : false;
 
   if (!value && hasEdit)
     setHasEdit(false);
 
-  if (isLoadingDistrict && !syncData || isLoadingDistricts && !props.id && !syncData)
+  if (isLoadingDistrict && !syncData || isLoadingDistricts && !syncData)
     return <AutocompleteLoading label='Estado' message='Carregando...' />
 
-  if (!syncData && district || !syncData && !props.id && districts) {
+  if (!syncData && district || !syncData && districts) {
     if (district) {
       setValue({
         id: district.id,
@@ -73,15 +74,15 @@ export function SelectDistrict(props: Props) {
     }
 
     setSyncData(true);
-  } else if (!syncData && !district || !syncData && !props.id && !districts) {
+  } else if (!syncData && !district || !syncData && !districts) {
     return <AutocompleteError label='Estado' message='Ocorreu um erro' />
   }
 
-  if (props.id && props.handleChangeData && returnData) {
-    const district = districts.find(district => district.id === props.id);
+  if (district && props.handleChangeData && returnData) {
+    const changeDistrict = districts.find(district => district.id === district.id);
 
-    if (district)
-      props.handleChangeData(district);
+    if (changeDistrict)
+      props.handleChangeData(changeDistrict);
 
     setReturnData(false);
   }
@@ -94,9 +95,18 @@ export function SelectDistrict(props: Props) {
         disabled={props.disabled !== undefined ? props.disabled : false}
         onChange={async (event: any, newValue) => {
           if (typeof newValue === 'string') {
+            if (StringEx.trim(newValue).length <= 0)
+              return Alerting.create('warning', 'Por favor, informe um valor válido.');
+          } else if (newValue) {
+            const inputValue = newValue.inputValue ? newValue.inputValue : newValue.value;
+            if (StringEx.trim(inputValue).length <= 0)
+              return Alerting.create('warning', 'Por favor, informe um valor válido.');
+          }
+
+          if (typeof newValue === 'string') {
             const value: FilmOptionType = {
               id: '',
-              value: newValue,
+              value: StringEx.trim(newValue),
             };
 
             setValue(value);
@@ -121,10 +131,10 @@ export function SelectDistrict(props: Props) {
                     props.handleChangeId(district.id);
                   }
                 } else {
-                  if (districts.filter(district => district.value === newValue).length <= 0) {
+                  if (districts.filter(district => district.value === value.value).length <= 0) {
                     handleAppendDistrict({ value: value.value });
                   } else {
-                    const district = districts.find(district => district.value === newValue);
+                    const district = districts.find(district => district.value === value.value);
 
                     if (district) {
                       setValue({
@@ -143,7 +153,7 @@ export function SelectDistrict(props: Props) {
             const
               district: FilmOptionType = {
                 id: hasEdit ? value?.id || '' : '',
-                value: newValue.inputValue,
+                value: StringEx.trim(newValue.inputValue),
               };
 
             if (!newValue.inputUpdate) {
@@ -161,9 +171,9 @@ export function SelectDistrict(props: Props) {
             setReturnData(true);
             props.handleChangeId(district.id);
           } else {
-            if (!newValue && props.id) {
+            if (!newValue && props.district) {
               newValue = {
-                id: props.id,
+                id: props.district.id,
                 value: district?.value || '???'
               }
             }
@@ -242,10 +252,13 @@ export function SelectDistrict(props: Props) {
         color='error'
         disabled={props.disabled ? true : hasEdit || !value}
         onClick={() => {
-          if (value && value.id !== props.id) {
-            if (props.id) {
+          if (props.district && value && props.district.id === value.id)
+            return Alerting.create('info', 'Não é possível remover o estado sendo usado pelo registro.');
+
+          if (value) {
+            if (props.district) {
               setValue({
-                id: props.id,
+                id: props.district.id,
                 value: district?.value || '???'
               })
             } else {
@@ -255,8 +268,6 @@ export function SelectDistrict(props: Props) {
             handleRemoveDistrict(value.id);
             setReturnData(true);
             props.handleChangeId('');
-          } else {
-            Alerting.create('info', 'Não é possível remover o estado sendo usado pelo registro.');
           }
         }}
       >
@@ -265,3 +276,13 @@ export function SelectDistrict(props: Props) {
     </div>
   )
 }
+
+export const SelectDistrict = memo(Component, (prevStates, nextStates) => {
+  if (
+    prevStates.district?.value !== nextStates.district?.value
+    || prevStates.districts.length !== nextStates.districts.length
+  )
+    return false;
+
+  return true;
+});

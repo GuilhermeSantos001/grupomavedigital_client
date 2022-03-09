@@ -17,17 +17,17 @@ export type ResponseCreateService = {
 declare function CreateService(data: DataService): Promise<ResponseCreateService>;
 declare function SetService(data: ResponseCreateService): void;
 declare function UpdateService(newData: DataService): Promise<boolean>;
-declare function AssignPersonService(data: DataAssignPerson): Promise<boolean>;
-declare function AssignWorkplaceService(data: DataAssignWorkplace): Promise<boolean>;
+declare function AssignPersonService(dataAssign: DataAssignPerson): Promise<boolean>;
+declare function AssignWorkplaceService(dataAssign: DataAssignWorkplace): Promise<boolean>;
 declare function UnassignPersonService(): Promise<boolean>;
 declare function UnassignWorkplaceService(): Promise<boolean>;
 declare function DeleteService(): Promise<boolean>;
 
 declare function UpdateServices(id: string, newData: DataService): Promise<boolean>;
-declare function AssignPeopleService(data: DataAssignPerson): Promise<boolean>;
-declare function AssignWorkplacesService(data: DataAssignWorkplace): Promise<boolean>;
-declare function UnassignPeopleService(): Promise<boolean>;
-declare function UnassignWorkplacesService(): Promise<boolean>;
+declare function AssignPeopleService(dataAssign: Required<DataAssignPerson>[]): Promise<void>;
+declare function AssignWorkplacesService(dataAssign: Required<DataAssignWorkplace>[]): Promise<void>;
+declare function UnassignPeopleService(peopleServiceId: string[]): Promise<void>;
+declare function UnassignWorkplacesService(workplacesServiceId: string[]): Promise<void>;
 declare function DeleteServices(id: string): Promise<boolean>;
 
 export type FunctionCreateServiceTypeof = typeof CreateService;

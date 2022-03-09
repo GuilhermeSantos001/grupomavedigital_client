@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
@@ -8,25 +8,24 @@ import { OutlinedInputLoading } from '@/components/utils/OutlinedInputLoading';
 import { OutlinedInputEmpty } from '@/components/utils/OutlinedInputEmpty';
 import { BoxError } from '@/components/utils/BoxError';
 
-import {
-  useWorkplacesService
-} from '@/services/useWorkplacesService'
-import { WorkplaceType } from '@/types/WorkplaceType';
+import type { WorkplaceType } from '@/types/WorkplaceType';
 
 export type Props = {
   id?: string
+  workplaces: WorkplaceType[]
+  isLoadingWorkplaces: boolean
   disabled?: boolean
   handleChangeData?: (data: WorkplaceType) => void
   handleChangeId: (id: string) => void
 }
 
-export function SelectWorkplace(props: Props) {
+function Component(props: Props) {
   const [syncData, setSyncData] = useState<boolean>(false);
   const [returnData, setReturnData] = useState<boolean>(false);
 
   const [workplace, setWorkplace] = useState<string>(props.id || '');
 
-  const { data: workplaces, isLoading: isLoadingWorkplaces } = useWorkplacesService();
+  const { workplaces, isLoadingWorkplaces } = props;
 
   if (isLoadingWorkplaces && !syncData)
     return <OutlinedInputLoading label='Local de Trabalho' message='Carregando...' />
@@ -80,3 +79,13 @@ export function SelectWorkplace(props: Props) {
     </FormControl>
   )
 }
+
+export const SelectWorkplace = memo(Component, (prevStates, nextStates) => {
+  if (
+    prevStates.id !== nextStates.id
+    || prevStates.workplaces.length !== nextStates.workplaces.length
+  )
+    return false;
+
+  return true;
+})

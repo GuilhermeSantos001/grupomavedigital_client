@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
@@ -8,26 +8,24 @@ import { OutlinedInputLoading } from '@/components/utils/OutlinedInputLoading';
 import { OutlinedInputEmpty } from '@/components/utils/OutlinedInputEmpty';
 import { BoxError } from '@/components/utils/BoxError';
 
-import { AddressType } from '@/types/AddressType';
-
-import {
-  useAddressesService
-} from '@/services/useAddressesService'
+import type { AddressType } from '@/types/AddressType';
 
 export type Props = {
   id?: string
+  addresses: AddressType[]
+  isLoadingAddresses: boolean
   disabled?: boolean
   handleChangeData?: (data: AddressType) => void
   handleChangeId: (id: string) => void
 }
 
-export function SelectAddress(props: Props) {
+function Component(props: Props) {
   const [syncData, setSyncData] = useState<boolean>(false);
   const [returnData, setReturnData] = useState<boolean>(false);
 
   const [address, setAddress] = useState<string>(props.id || '');
 
-  const { data: addresses, isLoading: isLoadingAddresses } = useAddressesService();
+  const { addresses, isLoadingAddresses } = props;
 
   if (isLoadingAddresses && !syncData)
     return <OutlinedInputLoading label='Endereço' message='Carregando...' />
@@ -81,3 +79,13 @@ export function SelectAddress(props: Props) {
     </FormControl>
   )
 }
+
+export const SelectAddress = memo(Component, (prevStates, nextStates) => {
+  if (
+    prevStates.id !== nextStates.id
+    || prevStates.addresses.length !== nextStates.addresses.length
+  )
+    return false;
+
+  return true;
+})

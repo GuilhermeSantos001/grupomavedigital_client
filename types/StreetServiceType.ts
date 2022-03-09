@@ -1,4 +1,4 @@
-import { StreetType } from '@/types/StreetType';
+import type { StreetType } from '@/types/StreetType';
 
 export type DataStreet = Pick<StreetType, 'value'>;
 

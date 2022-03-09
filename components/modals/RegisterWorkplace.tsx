@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
@@ -23,12 +23,41 @@ import { SelectScale } from '@/components/selects/SelectScale'
 
 import Alerting from '@/src/utils/alerting'
 
-import { useWorkplaceService } from '@/services/useWorkplaceService';
-import { useServicesService } from '@/services/useServicesService';
-import type { ServiceType } from '@/types/ServiceType';
+import type { FunctionCreateWorkplaceTypeof } from '@/types/WorkplaceServiceType'
+import type {
+  FunctionCreateServiceTypeof,
+  FunctionAssignWorkplacesServiceTypeof,
+  FunctionUpdateServicesTypeof,
+  FunctionDeleteServicesTypeof
+} from '@/types/ServiceServiceType'
+import type {
+  FunctionCreateScaleTypeof,
+  FunctionDeleteScalesTypeof,
+  FunctionUpdateScalesTypeof
+} from '@/types/ScaleServiceType'
+
+import type { AddressType } from '@/types/AddressType'
+import type { ServiceType } from '@/types/ServiceType'
+import type { ScaleType } from '@/types/ScaleType'
 
 export interface Props {
   show: boolean
+  createWorkplace: FunctionCreateWorkplaceTypeof
+  addresses: AddressType[]
+  isLoadingAddresses: boolean
+  services: ServiceType[]
+  isLoadingServices: boolean
+  createService: FunctionCreateServiceTypeof
+  assignWorkplacesService: FunctionAssignWorkplacesServiceTypeof
+  updateServices: FunctionUpdateServicesTypeof
+  deleteServices: FunctionDeleteServicesTypeof
+  createScale: FunctionCreateScaleTypeof
+  scale: ScaleType | undefined
+  isLoadingScale: boolean
+  scales: ScaleType[]
+  isLoadingScales: boolean
+  updateScales: FunctionUpdateScalesTypeof
+  deleteScales: FunctionDeleteScalesTypeof
   handleClose: () => void
 }
 
@@ -41,7 +70,7 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export function RegisterWorkplace(props: Props) {
+function Component(props: Props) {
   const [syncData, setSyncData] = useState<boolean>(false)
 
   const [name, setName] = useState<string>('');
@@ -51,10 +80,30 @@ export function RegisterWorkplace(props: Props) {
   const [addressId, setAddressId] = useState<string>('');
   const [scaleId, setScaleId] = useState<string>('')
 
-  const { create: CreateWorkplace } = useWorkplaceService();
-  const { data: services, isLoading: isLoadingServices, assignWorkplace: AssignWorkplaceService } = useServicesService();
+  const {
+    createWorkplace,
+    addresses,
+    isLoadingAddresses,
+    services,
+    isLoadingServices,
+    createService,
+    assignWorkplacesService,
+    updateServices,
+    deleteServices,
+    createScale,
+    scale,
+    isLoadingScale,
+    scales,
+    isLoadingScales,
+    updateScales,
+    deleteScales,
+  } = props;
 
-  if (isLoadingServices && !syncData)
+  if (
+    isLoadingAddresses && !syncData
+    || isLoadingServices && !syncData
+    || isLoadingScales && !syncData
+  )
     return <DialogLoading
       header='Registrar Local de Trabalho'
       message='Carregando...'
@@ -62,11 +111,21 @@ export function RegisterWorkplace(props: Props) {
       handleClose={props.handleClose}
     />
 
-  if (!syncData && services) {
+  if (
+    !syncData && addresses
+    || !syncData && services
+    || !syncData && scales
+  ) {
     setSyncData(true);
   } else if (
-    !syncData && !services
-    || !syncData && !AssignWorkplaceService
+    !syncData && !addresses
+    || !syncData && !services
+    || !syncData && !assignWorkplacesService
+    || !syncData && !updateServices
+    || !syncData && !deleteServices
+    || !syncData && !scales
+    || !syncData && !updateScales
+    || !syncData && !deleteScales
   ) {
     return <DialogError
       header='Registrar Local de Trabalho'
@@ -93,18 +152,20 @@ export function RegisterWorkplace(props: Props) {
         scaleId.length > 0
     },
     handleAssignWorkplaceService = async (workplaceId: string, servicesId: string[]) => {
-      if (!AssignWorkplaceService)
-        throw new Error('AssignWorkplaceService is undefined');
+      if (!assignWorkplacesService)
+        throw new Error('AssignWorkplacesService is undefined');
 
       for (const serviceId of servicesId) {
-        const assign = await AssignWorkplaceService(serviceId, { workplaceId });
-
-        if (!assign)
-          throw new Error('AssignWorkplaceService failed');
+        await assignWorkplacesService([
+          {
+            serviceId,
+            workplaceId
+          }
+        ]);
       }
     },
     handleRegisterWorkplace = async () => {
-      const workplace = await CreateWorkplace({
+      const workplace = await createWorkplace({
         name,
         entryTime: entryTime.toISOString(),
         exitTime: exitTime.toISOString(),
@@ -171,6 +232,13 @@ export function RegisterWorkplace(props: Props) {
         </ListItem>
         <ListItem>
           <SelectScale
+            createScale={createScale}
+            scale={scale}
+            isLoadingScale={isLoadingScale}
+            scales={scales}
+            isLoadingScales={isLoadingScales}
+            updateScales={updateScales}
+            deleteScales={deleteScales}
             handleChangeId={handleChangeScaleId}
           />
         </ListItem>
@@ -195,6 +263,11 @@ export function RegisterWorkplace(props: Props) {
         </ListItem>
       </List>
       <SelectService
+        createService={createService}
+        services={services}
+        isLoadingServices={isLoadingServices}
+        updateServices={updateServices}
+        deleteServices={deleteServices}
         itemsLeft={services.map((service) => service.value)}
         itemsRight={[]}
         onChangeAppliedServices={(values) => setAppliedServices(services.filter(service => values.includes(service.value)).map(service => service.id))}
@@ -205,6 +278,8 @@ export function RegisterWorkplace(props: Props) {
         </ListItem>
         <ListItem>
           <SelectAddress
+            isLoadingAddresses={isLoadingAddresses}
+            addresses={addresses}
             handleChangeId={handleChangeAddressId}
           />
         </ListItem>
@@ -229,3 +304,15 @@ export function RegisterWorkplace(props: Props) {
     </Dialog>
   );
 }
+
+export const RegisterWorkplace = memo(Component, (prevStates, nextStates) => {
+  if (
+    prevStates.show !== nextStates.show
+    || prevStates.addresses.length !== nextStates.addresses.length
+    || prevStates.services.length !== nextStates.services.length
+    || prevStates.scales.length !== nextStates.scales.length
+  )
+    return false;
+
+  return true;
+});

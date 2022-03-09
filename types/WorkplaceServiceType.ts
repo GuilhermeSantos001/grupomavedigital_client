@@ -1,4 +1,4 @@
-import { WorkplaceType } from '@/types/WorkplaceType';
+import type { WorkplaceType } from '@/types/WorkplaceType';
 
 export type DataWorkplace = Pick<WorkplaceType,
   | "name"

@@ -1,4 +1,4 @@
-import { APIKeyType } from '@/types/APIKeyType'
+import type { APIKeyType } from '@/types/APIKeyType'
 
 export type DataAPIKey = Pick<APIKeyType, 'title' | 'key' | 'passphrase' | 'username' | 'userMail'>;
 

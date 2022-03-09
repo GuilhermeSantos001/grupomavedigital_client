@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
@@ -24,10 +24,86 @@ import { SelectDistrict } from '@/components/selects/SelectDistrict';
 import Alerting from '@/src/utils/alerting'
 import StringEx from '@/src/utils/stringEx'
 
-import { useAddressWithIdService } from '@/services/useAddressWithIdService';
+import type {
+  FunctionUpdateAddressesTypeof
+} from '@/types/AddressServiceType'
+
+import type {
+  FunctionCreateStreetTypeof,
+  FunctionUpdateStreetsTypeof,
+  FunctionDeleteStreetsTypeof
+} from '@/types/StreetServiceType'
+
+import type {
+  FunctionCreateNeighborhoodTypeof,
+  FunctionUpdateNeighborhoodsTypeof,
+  FunctionDeleteNeighborhoodsTypeof
+} from '@/types/NeighborhoodServiceType'
+
+import type {
+  FunctionCreateCityTypeof,
+  FunctionUpdateCitiesTypeof,
+  FunctionDeleteCitiesTypeof
+} from '@/types/CityServiceType'
+
+import {
+  FunctionCreateDistrictTypeof,
+  FunctionUpdateDistrictsTypeof,
+  FunctionDeleteDistrictsTypeof
+} from '@/types/DistrictServiceType'
+
+import type {
+  AddressType
+} from '@/types/AddressType'
+
+import type {
+  StreetType
+} from '@/types/StreetType'
+
+import type {
+  NeighborhoodType
+} from '@/types/NeighborhoodType'
+
+import type {
+  CityType
+} from '@/types/CityType'
+
+import {
+  DistrictType
+} from '@/types/DistrictType'
 
 export interface Props {
-  id: string
+  address: AddressType | undefined
+  isLoadingAddress: boolean
+  updateAddresses: FunctionUpdateAddressesTypeof
+  createStreet: FunctionCreateStreetTypeof,
+  street: StreetType | undefined
+  isLoadingStreet: boolean
+  streets: StreetType[]
+  isLoadingStreets: boolean
+  updateStreets: FunctionUpdateStreetsTypeof
+  deleteStreets: FunctionDeleteStreetsTypeof
+  createNeighborhood: FunctionCreateNeighborhoodTypeof
+  neighborhood: NeighborhoodType | undefined
+  isLoadingNeighborhood: boolean
+  neighborhoods: NeighborhoodType[]
+  isLoadingNeighborhoods: boolean
+  updateNeighborhoods: FunctionUpdateNeighborhoodsTypeof
+  deleteNeighborhoods: FunctionDeleteNeighborhoodsTypeof
+  createCity: FunctionCreateCityTypeof
+  city: CityType | undefined
+  isLoadingCity: boolean
+  cities: CityType[]
+  isLoadingCities: boolean
+  updateCities: FunctionUpdateCitiesTypeof
+  deleteCities: FunctionDeleteCitiesTypeof
+  createDistrict: FunctionCreateDistrictTypeof
+  district: DistrictType | undefined
+  isLoadingDistrict: boolean
+  districts: DistrictType[]
+  isLoadingDistricts: boolean
+  updateDistricts: FunctionUpdateDistrictsTypeof
+  deleteDistricts: FunctionDeleteDistrictsTypeof
   show: boolean
   handleClose: () => void
 }
@@ -41,7 +117,7 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export function EditAddress(props: Props) {
+function Component(props: Props) {
   const [syncData, setSyncData] = useState<boolean>(false);
 
   const [streetId, setStreetId] = useState<string>('');
@@ -52,7 +128,39 @@ export function EditAddress(props: Props) {
   const [districtId, setDistrictId] = useState<string>('');
   const [zipCode, setZipCode] = useState<number>(0);
 
-  const { data: address, isLoading: isLoadingAddress, update: UpdateAddress } = useAddressWithIdService(props.id);
+  const {
+    address,
+    isLoadingAddress,
+    updateAddresses,
+    createStreet,
+    street,
+    isLoadingStreet,
+    streets,
+    isLoadingStreets,
+    updateStreets,
+    deleteStreets,
+    createNeighborhood,
+    neighborhood,
+    isLoadingNeighborhood,
+    neighborhoods,
+    isLoadingNeighborhoods,
+    updateNeighborhoods,
+    deleteNeighborhoods,
+    createCity,
+    city,
+    isLoadingCity,
+    cities,
+    isLoadingCities,
+    updateCities,
+    deleteCities,
+    createDistrict,
+    district,
+    isLoadingDistrict,
+    districts,
+    isLoadingDistricts,
+    updateDistricts,
+    deleteDistricts
+  } = props;
 
   const
     handleChangeStreetId = (id: string) => setStreetId(id),
@@ -74,9 +182,10 @@ export function EditAddress(props: Props) {
         zipCode > 0
     },
     handleUpdateAddress = async () => {
-      if (!UpdateAddress) return;
+      if (!address || !updateAddresses)
+        return Alerting.create('error', 'Não foi possível atualizar o endereço. Tente novamente, mais tarde!.');
 
-      const update = await UpdateAddress({
+      const update = await updateAddresses(address.id, {
         streetId,
         number: houseNumber.toString(),
         complement,
@@ -90,7 +199,17 @@ export function EditAddress(props: Props) {
         return Alerting.create('success', 'Endereço atualizado com sucesso!');
     }
 
-  if (isLoadingAddress && !syncData)
+  if (
+    isLoadingAddress && !syncData
+    || isLoadingStreet && !syncData
+    || isLoadingStreets && !syncData
+    || isLoadingNeighborhood && !syncData
+    || isLoadingNeighborhoods && !syncData
+    || isLoadingCity && !syncData
+    || isLoadingCities && !syncData
+    || isLoadingDistrict && !syncData
+    || isLoadingDistricts && !syncData
+  )
     return <DialogLoading
       header='Editar Endereço'
       message='Carregando...'
@@ -98,7 +217,18 @@ export function EditAddress(props: Props) {
       handleClose={props.handleClose}
     />
 
-  if (!syncData && address) {
+  if (
+    !syncData
+    && address
+    && street
+    && streets
+    && neighborhood
+    && neighborhoods
+    && city
+    && cities
+    && district
+    && districts
+  ) {
     handleChangeStreetId(address.streetId);
     handleChangehouseNumber(parseInt(address.number));
     handleChangeComplement(address.complement || '');
@@ -107,7 +237,17 @@ export function EditAddress(props: Props) {
     handleChangeDistrictId(address.districtId);
     handleChangeZipCode(parseInt(address.zipCode));
     setSyncData(true);
-  } else if (!syncData && !address) {
+  } else if (
+    !syncData && !address
+    || !syncData && !street
+    || !syncData && !streets
+    || !syncData && !neighborhood
+    || !syncData && !neighborhoods
+    || !syncData && !city
+    || !syncData && !cities
+    || !syncData && !district
+    || !syncData && !districts
+  ) {
     return <DialogError
       header='Editar Endereço'
       message='Ocorreu um erro'
@@ -151,7 +291,13 @@ export function EditAddress(props: Props) {
         </ListItem>
         <ListItem>
           <SelectStreet
-            id={address?.streetId}
+            createStreet={createStreet}
+            street={street}
+            isLoadingStreet={isLoadingAddress}
+            streets={streets}
+            isLoadingStreets={isLoadingAddress}
+            updateStreets={updateStreets}
+            deleteStreets={deleteStreets}
             handleChangeId={handleChangeStreetId}
           />
         </ListItem>
@@ -175,19 +321,37 @@ export function EditAddress(props: Props) {
         </ListItem>
         <ListItem>
           <SelectNeighborhood
-            id={address?.neighborhoodId}
+            createNeighborhood={createNeighborhood}
+            neighborhood={neighborhood}
+            isLoadingNeighborhood={isLoadingNeighborhood}
+            neighborhoods={neighborhoods}
+            isLoadingNeighborhoods={isLoadingNeighborhood}
+            updateNeighborhoods={updateNeighborhoods}
+            deleteNeighborhoods={deleteNeighborhoods}
             handleChangeId={handleChangeNeighborhoodId}
           />
         </ListItem>
         <ListItem>
           <SelectCity
-            id={address?.cityId}
+            createCity={createCity}
+            city={city}
+            isLoadingCity={isLoadingCity}
+            cities={cities}
+            isLoadingCities={isLoadingCity}
+            updateCities={updateCities}
+            deleteCities={deleteCities}
             handleChangeId={handleChangeCityId}
           />
         </ListItem>
         <ListItem>
           <SelectDistrict
-            id={address?.districtId}
+            createDistrict={createDistrict}
+            district={district}
+            isLoadingDistrict={isLoadingDistrict}
+            districts={districts}
+            isLoadingDistricts={isLoadingDistrict}
+            updateDistricts={updateDistricts}
+            deleteDistricts={deleteDistricts}
             handleChangeId={handleChangeDistrictId}
           />
         </ListItem>
@@ -221,3 +385,24 @@ export function EditAddress(props: Props) {
     </Dialog>
   );
 }
+
+export const EditAddress = memo(Component, (prevStates, nextStates) => {
+  if (
+    prevStates.show !== nextStates.show
+    || prevStates.street?.id !== nextStates.street?.id
+    || prevStates.street?.value !== nextStates.street?.value
+    || prevStates.streets.length !== nextStates.streets.length
+    || prevStates.neighborhood?.id !== nextStates.neighborhood?.id
+    || prevStates.neighborhood?.value !== nextStates.neighborhood?.value
+    || prevStates.neighborhoods.length !== nextStates.neighborhoods.length
+    || prevStates.city?.id !== nextStates.city?.id
+    || prevStates.city?.value !== nextStates.city?.value
+    || prevStates.cities.length !== nextStates.cities.length
+    || prevStates.district?.id !== nextStates.district?.id
+    || prevStates.district?.value !== nextStates.district?.value
+    || prevStates.districts.length !== nextStates.districts.length
+  )
+    return false;
+
+  return true;
+});

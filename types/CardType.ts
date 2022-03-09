@@ -1,4 +1,7 @@
-import { DatabaseStatusType } from './DatabaseStatusType';
+import type { DatabaseStatusType } from '@/types/DatabaseStatusType';
+
+import type { CostCenterType } from '@/types/CostCenterType';
+import type { PersonType } from '@/types/PersonType';
 
 export type CardType = {
   id: string
@@ -11,11 +14,6 @@ export type CardType = {
   status: DatabaseStatusType
   createdAt: string
   updatedAt: string
-  costCenter: {
-    value: string
-  }
-  person: {
-    matricule: string
-    name: string
-  }
+  costCenter: CostCenterType
+  person: PersonType
 }

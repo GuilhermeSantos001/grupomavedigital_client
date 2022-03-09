@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
@@ -13,6 +13,9 @@ import CloseIcon from '@mui/icons-material/Close';
 import Slide from '@mui/material/Slide';
 import { TransitionProps } from '@mui/material/transitions';
 
+import { DialogLoading } from '@/components/utils/DialogLoading';
+import { DialogError } from '@/components/utils/DialogError';
+
 import { SelectStreet } from '@/components/selects/SelectStreet';
 import { SelectNeighborhood } from '@/components/selects/SelectNeighborhood';
 import { SelectCity } from '@/components/selects/SelectCity';
@@ -21,9 +24,84 @@ import { SelectDistrict } from '@/components/selects/SelectDistrict';
 import Alerting from '@/src/utils/alerting'
 import StringEx from '@/src/utils/stringEx'
 
-import { useAddressService } from '@/services/useAddressService';
+import type {
+  FunctionCreateAddressTypeof
+} from '@/types/AddressServiceType'
+
+import type {
+  FunctionCreateStreetTypeof,
+  FunctionUpdateStreetsTypeof,
+  FunctionDeleteStreetsTypeof
+} from '@/types/StreetServiceType'
+
+import type {
+  FunctionCreateNeighborhoodTypeof,
+  FunctionUpdateNeighborhoodsTypeof,
+  FunctionDeleteNeighborhoodsTypeof
+} from '@/types/NeighborhoodServiceType'
+
+import type {
+  FunctionCreateCityTypeof,
+  FunctionUpdateCitiesTypeof,
+  FunctionDeleteCitiesTypeof
+} from '@/types/CityServiceType'
+
+import {
+  FunctionCreateDistrictTypeof,
+  FunctionUpdateDistrictsTypeof,
+  FunctionDeleteDistrictsTypeof
+} from '@/types/DistrictServiceType'
+
+import type {
+  AddressType
+} from '@/types/AddressType'
+
+import type {
+  StreetType
+} from '@/types/StreetType'
+
+import type {
+  NeighborhoodType
+} from '@/types/NeighborhoodType'
+
+import type {
+  CityType
+} from '@/types/CityType'
+
+import {
+  DistrictType
+} from '@/types/DistrictType'
 
 export interface Props {
+  createAddress: FunctionCreateAddressTypeof
+  createStreet: FunctionCreateStreetTypeof,
+  street: StreetType | undefined
+  isLoadingStreet: boolean
+  streets: StreetType[]
+  isLoadingStreets: boolean
+  updateStreets: FunctionUpdateStreetsTypeof
+  deleteStreets: FunctionDeleteStreetsTypeof
+  createNeighborhood: FunctionCreateNeighborhoodTypeof
+  neighborhood: NeighborhoodType | undefined
+  isLoadingNeighborhood: boolean
+  neighborhoods: NeighborhoodType[]
+  isLoadingNeighborhoods: boolean
+  updateNeighborhoods: FunctionUpdateNeighborhoodsTypeof
+  deleteNeighborhoods: FunctionDeleteNeighborhoodsTypeof
+  createCity: FunctionCreateCityTypeof
+  city: CityType | undefined
+  isLoadingCity: boolean
+  cities: CityType[]
+  isLoadingCities: boolean
+  updateCities: FunctionUpdateCitiesTypeof
+  deleteCities: FunctionDeleteCitiesTypeof
+  createDistrict: FunctionCreateDistrictTypeof
+  district: DistrictType | undefined
+  isLoadingDistrict: boolean
+  districts: DistrictType[]
+  isLoadingDistricts: boolean
+  updateDistricts: FunctionUpdateDistrictsTypeof
+  deleteDistricts: FunctionDeleteDistrictsTypeof
   show: boolean
   handleClose: () => void
 }
@@ -37,7 +115,9 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export function RegisterAddress(props: Props) {
+function Component(props: Props) {
+  const [syncData, setSyncData] = useState<boolean>(false);
+
   const [streetId, setStreetId] = useState<string>('');
   const [houseNumber, sethouseNumber] = useState<number>(0);
   const [complement, setComplement] = useState<string>('');
@@ -46,7 +126,37 @@ export function RegisterAddress(props: Props) {
   const [districtId, setDistrictId] = useState<string>('');
   const [zipCode, setZipCode] = useState<number>(0);
 
-  const { create: CreateAddress } = useAddressService();
+  const {
+    createAddress,
+    createStreet,
+    street,
+    isLoadingStreet,
+    streets,
+    isLoadingStreets,
+    updateStreets,
+    deleteStreets,
+    createNeighborhood,
+    neighborhood,
+    isLoadingNeighborhood,
+    neighborhoods,
+    isLoadingNeighborhoods,
+    updateNeighborhoods,
+    deleteNeighborhoods,
+    createCity,
+    city,
+    isLoadingCity,
+    cities,
+    isLoadingCities,
+    updateCities,
+    deleteCities,
+    createDistrict,
+    district,
+    isLoadingDistrict,
+    districts,
+    isLoadingDistricts,
+    updateDistricts,
+    deleteDistricts
+  } = props;
 
   const
     handleChangeStreetId = (id: string) => setStreetId(id),
@@ -68,7 +178,7 @@ export function RegisterAddress(props: Props) {
         zipCode > 0
     },
     handleRegisterAddress = async () => {
-      const address = await CreateAddress({
+      const address = await createAddress({
         streetId,
         number: houseNumber.toString(),
         complement,
@@ -81,6 +191,41 @@ export function RegisterAddress(props: Props) {
       if (address)
         return Alerting.create('success', 'Endereço cadastrado com sucesso!');
     }
+
+  if (
+    isLoadingStreets && !syncData
+    || isLoadingNeighborhoods && !syncData
+    || isLoadingCities && !syncData
+    || isLoadingDistricts && !syncData
+  )
+    return <DialogLoading
+      header='Registrar Endereço'
+      message='Carregando...'
+      show={props.show}
+      handleClose={props.handleClose}
+    />
+
+  if (
+    !syncData
+    && streets
+    && neighborhoods
+    && cities
+    && districts
+  ) {
+    setSyncData(true);
+  } else if (
+    !syncData && !streets
+    || !syncData && !neighborhoods
+    || !syncData && !cities
+    || !syncData && !districts
+  ) {
+    return <DialogError
+      header='Registrar Endereço'
+      message='Ocorreu um erro'
+      show={props.show}
+      handleClose={props.handleClose}
+    />
+  }
 
   return (
     <Dialog
@@ -117,6 +262,13 @@ export function RegisterAddress(props: Props) {
         </ListItem>
         <ListItem>
           <SelectStreet
+            createStreet={createStreet}
+            street={street}
+            isLoadingStreet={isLoadingStreet}
+            streets={streets}
+            isLoadingStreets={isLoadingStreets}
+            updateStreets={updateStreets}
+            deleteStreets={deleteStreets}
             handleChangeId={handleChangeStreetId}
           />
         </ListItem>
@@ -140,16 +292,37 @@ export function RegisterAddress(props: Props) {
         </ListItem>
         <ListItem>
           <SelectNeighborhood
+            createNeighborhood={createNeighborhood}
+            neighborhood={neighborhood}
+            isLoadingNeighborhood={isLoadingNeighborhood}
+            neighborhoods={neighborhoods}
+            isLoadingNeighborhoods={isLoadingNeighborhoods}
+            updateNeighborhoods={updateNeighborhoods}
+            deleteNeighborhoods={deleteNeighborhoods}
             handleChangeId={handleChangeNeighborhoodId}
           />
         </ListItem>
         <ListItem>
           <SelectCity
+            createCity={createCity}
+            city={city}
+            isLoadingCity={isLoadingCity}
+            cities={cities}
+            isLoadingCities={isLoadingCities}
+            updateCities={updateCities}
+            deleteCities={deleteCities}
             handleChangeId={handleChangeCityId}
           />
         </ListItem>
         <ListItem>
           <SelectDistrict
+            createDistrict={createDistrict}
+            district={district}
+            isLoadingDistrict={isLoadingDistrict}
+            districts={districts}
+            isLoadingDistricts={isLoadingDistricts}
+            updateDistricts={updateDistricts}
+            deleteDistricts={deleteDistricts}
             handleChangeId={handleChangeDistrictId}
           />
         </ListItem>
@@ -183,3 +356,24 @@ export function RegisterAddress(props: Props) {
     </Dialog>
   );
 }
+
+export const RegisterAddress = memo(Component, (prevStates, nextStates) => {
+  if (
+    prevStates.show !== nextStates.show
+    || prevStates.street?.id !== nextStates.street?.id
+    || prevStates.street?.value !== nextStates.street?.value
+    || prevStates.streets.length !== nextStates.streets.length
+    || prevStates.neighborhood?.id !== nextStates.neighborhood?.id
+    || prevStates.neighborhood?.value !== nextStates.neighborhood?.value
+    || prevStates.neighborhoods.length !== nextStates.neighborhoods.length
+    || prevStates.city?.id !== nextStates.city?.id
+    || prevStates.city?.value !== nextStates.city?.value
+    || prevStates.cities.length !== nextStates.cities.length
+    || prevStates.district?.id !== nextStates.district?.id
+    || prevStates.district?.value !== nextStates.district?.value
+    || prevStates.districts.length !== nextStates.districts.length
+  )
+    return false;
+
+  return true;
+});
