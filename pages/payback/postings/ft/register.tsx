@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState } from 'react'
 
 import { GetServerSidePropsContext } from 'next/types'
 
@@ -925,7 +925,7 @@ function compose_ready(
                         />
                       </div>
                       <p className="fw-bold border-bottom text-center my-2">
-                        Endereços
+                        Gerenciamento dos Endereços
                       </p>
                       <div className='d-flex flex-column'>
                         <SelectAddress
@@ -974,6 +974,10 @@ function compose_ready(
                       <ListWorkplacesSelected
                         workplaces={appliedWorkplaces}
                       />
+                      <p className="text-center text-muted">
+                        Voce deve selecionar no minimo 2 postos de trabalho para
+                        definir as coberturas.
+                      </p>
                       <p className="fw-bold border-bottom text-center my-2">
                         Disponíveis
                       </p>
@@ -1142,6 +1146,7 @@ function compose_ready(
                             assistantFinish ||
                             selectPeopleInWorkplaces.length <= 0 ||
                             cards.filter(card =>
+                              card.personId &&
                               card.person &&
                               selectPeopleInWorkplaces.includes(card.personId)
                             ).length > 0 ||
@@ -1170,6 +1175,10 @@ function compose_ready(
                           /> Adicionar
                         </button>
                       </div>
+                      <p className="text-start text-muted">
+                        Voce deve selecionar sempre pares de funcionários para
+                        aplicar as coberturas.
+                      </p>
                     </div>
                   )
                 }
@@ -1244,65 +1253,36 @@ export default function Register(
     }
   );
 
+  const
+    { create: CreatePosting } = usePostingService(),
+    { data: postings, isLoading: isLoadingPostings, delete: DeletePostings } = usePostingsService(),
+    { data: costCenters, isLoading: isLoadingCostCenters } = useCostCentersService(),
+    { create: CreateWorkplace } = useWorkplaceService(),
+    { data: workplaces, isLoading: isLoadingWorkplaces, update: UpdateWorkplaces, delete: DeleteWorkplaces } = useWorkplacesService(),
+    { create: CreateAddress } = useAddressService(),
+    { data: addresses, isLoading: isLoadingAddresses, update: UpdateAddresses, delete: DeleteAddresses } = useAddressesService(),
+    { create: CreatePerson } = usePersonService(),
+    { create: CreatePersonCovering } = usePersonCoveringService(),
+    { create: CreatePersonCoverage } = usePersonCoverageService(),
+    { data: people, isLoading: isLoadingPeople, update: UpdatePeople, delete: DeletePeople } = usePeopleService(),
+    { data: reasonForAbsences, isLoading: isLoadingReasonForAbsences } = useReasonForAbsencesService(),
+    { create: CreateService } = useServiceService(),
+    { data: services, isLoading: isLoadingServices, update: UpdateServices, assignPerson: AssignPeopleService, assignWorkplace: AssignWorkplacesService, unassignPerson: UnassignPeopleService, unassignWorkplace: unassignWorkplacesService, delete: DeleteServices } = useServicesService(),
+    { data: cards, isLoading: isLoadingCards, assignPerson: AssignPeopleCard, unassignPerson: UnassignPeopleCard } = useCardsService(),
+    { create: CreateUpload } = useUploadService(),
+    { data: uploads, isLoading: isLoadingUploads, update: UpdateUploads, delete: DeleteUploads } = useUploadsService(),
+    { create: CreateScale } = useScaleService(),
+    { data: scales, isLoading: isLoadingScales, update: UpdateScales, delete: DeleteScales } = useScalesService(),
+    { create: CreateStreet } = useStreetService(),
+    { data: streets, isLoading: isLoadingStreets, update: UpdateStreets, delete: DeleteStreets } = useStreetsService(),
+    { create: CreateCity } = useCityService(),
+    { data: cities, isLoading: isLoadingCities, update: UpdateCities, delete: DeleteCities } = useCitiesService(),
+    { create: CreateNeighborhood } = useNeighborhoodService(),
+    { data: neighborhoods, isLoading: isLoadingNeighborhoods, update: UpdateNeighborhoods, delete: DeleteNeighborhoods } = useNeighborhoodsService(),
+    { create: CreateDistrict } = useDistrictService(),
+    { data: districts, isLoading: isLoadingDistricts, update: UpdateDistricts, delete: DeleteDistricts } = useDistrictsService();
+
   const router = useRouter()
-
-  const
-    PostingService = useCallback(() => usePostingService(), []),
-    PostingsService = useCallback(() => usePostingsService(), []),
-    CostCentersService = useCallback(() => useCostCentersService(), []),
-    WorkplaceService = useCallback(() => useWorkplaceService(), []),
-    WorkplacesService = useCallback(() => useWorkplacesService(), []),
-    AddressService = useCallback(() => useAddressService(), []),
-    AddressesService = useCallback(() => useAddressesService(), []),
-    PersonService = useCallback(() => usePersonService(), []),
-    PersonCoveringService = useCallback(() => usePersonCoveringService(), []),
-    PersonCoverageService = useCallback(() => usePersonCoverageService(), []),
-    PeopleService = useCallback(() => usePeopleService(), []),
-    ReasonForAbsencesService = useCallback(() => useReasonForAbsencesService(), []),
-    ServiceService = useCallback(() => useServiceService(), []),
-    ServicesService = useCallback(() => useServicesService(), []),
-    CardsService = useCallback(() => useCardsService(), []),
-    UploadService = useCallback(() => useUploadService(), []),
-    UploadsService = useCallback(() => useUploadsService(), []),
-    ScaleService = useCallback(() => useScaleService(), []),
-    ScalesService = useCallback(() => useScalesService(), []),
-    StreetService = useCallback(() => useStreetService(), []),
-    StreetsService = useCallback(() => useStreetsService(), []),
-    CityService = useCallback(() => useCityService(), []),
-    CitiesService = useCallback(() => useCitiesService(), []),
-    NeighborhoodService = useCallback(() => useNeighborhoodService(), []),
-    NeighborhoodsService = useCallback(() => useNeighborhoodsService(), []),
-    DistrictService = useCallback(() => useDistrictService(), []),
-    DistrictsService = useCallback(() => useDistrictsService(), []);
-
-  const
-    { create: CreatePosting } = PostingService(),
-    { data: postings, isLoading: isLoadingPostings, delete: DeletePostings } = PostingsService(),
-    { data: costCenters, isLoading: isLoadingCostCenters } = CostCentersService(),
-    { create: CreateWorkplace } = WorkplaceService(),
-    { data: workplaces, isLoading: isLoadingWorkplaces, update: UpdateWorkplaces, delete: DeleteWorkplaces } = WorkplacesService(),
-    { create: CreateAddress } = AddressService(),
-    { data: addresses, isLoading: isLoadingAddresses, update: UpdateAddresses, delete: DeleteAddresses } = AddressesService(),
-    { create: CreatePerson } = PersonService(),
-    { create: CreatePersonCovering } = PersonCoveringService(),
-    { create: CreatePersonCoverage } = PersonCoverageService(),
-    { data: people, isLoading: isLoadingPeople, update: UpdatePeople, delete: DeletePeople } = PeopleService(),
-    { data: reasonForAbsences, isLoading: isLoadingReasonForAbsences } = ReasonForAbsencesService(),
-    { create: CreateService } = ServiceService(),
-    { data: services, isLoading: isLoadingServices, update: UpdateServices, assignPerson: AssignPeopleService, assignWorkplace: AssignWorkplacesService, unassignPerson: UnassignPeopleService, unassignWorkplace: unassignWorkplacesService, delete: DeleteServices } = ServicesService(),
-    { data: cards, isLoading: isLoadingCards, assignPerson: AssignPeopleCard, unassignPerson: UnassignPeopleCard } = CardsService(),
-    { create: CreateUpload } = UploadService(),
-    { data: uploads, isLoading: isLoadingUploads, update: UpdateUploads, delete: DeleteUploads } = UploadsService(),
-    { create: CreateScale } = ScaleService(),
-    { data: scales, isLoading: isLoadingScales, update: UpdateScales, delete: DeleteScales } = ScalesService(),
-    { create: CreateStreet } = StreetService(),
-    { data: streets, isLoading: isLoadingStreets, update: UpdateStreets, delete: DeleteStreets } = StreetsService(),
-    { create: CreateCity } = CityService(),
-    { data: cities, isLoading: isLoadingCities, update: UpdateCities, delete: DeleteCities } = CitiesService(),
-    { create: CreateNeighborhood } = NeighborhoodService(),
-    { data: neighborhoods, isLoading: isLoadingNeighborhoods, update: UpdateNeighborhoods, delete: DeleteNeighborhoods } = NeighborhoodsService(),
-    { create: CreateDistrict } = DistrictService(),
-    { data: districts, isLoading: isLoadingDistricts, update: UpdateDistricts, delete: DeleteDistricts } = DistrictsService();
 
   const
     handleClickNoAuth: handleClickFunction = async (

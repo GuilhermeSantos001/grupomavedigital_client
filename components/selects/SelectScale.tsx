@@ -280,6 +280,7 @@ const filter = createFilterOptions<FilmOptionType>();
 export const SelectScale = memo(Component, (prevStates, nextStates) => {
   if (
     prevStates.scale?.value !== nextStates.scale?.value
+    || prevStates.scales.length <= 0 || nextStates.scales.length <= 0
     || prevStates.scales.length !== nextStates.scales.length
   )
     return false;

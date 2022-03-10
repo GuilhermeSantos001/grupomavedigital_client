@@ -280,6 +280,7 @@ function Component(props: Props) {
 export const SelectCostCenter = memo(Component, (prevStates, nextStates) => {
   if (
     prevStates.costCenter?.value !== nextStates.costCenter?.value
+    || prevStates.costCenters.length <= 0 || nextStates.costCenters.length <= 0
     || prevStates.costCenters.length !== nextStates.costCenters.length
   )
     return false;

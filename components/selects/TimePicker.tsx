@@ -1,9 +1,4 @@
-/**
- * @description Input -> Seleção de Hora
- * @author GuilhermeSantos001
- * @update 11/02/2022
- */
-
+import {memo} from 'react';
 import AdapterDateFns from '@mui/lab/AdapterDateFns'
 import ptBRLocale from 'date-fns/locale/pt-BR';
 import LocalizationProvider from '@mui/lab/LocalizationProvider'
@@ -17,7 +12,7 @@ export type Props = {
   handleChangeValue: (value: Date) => void
 }
 
-export function TimePicker(props: Props) {
+function Component(props: Props) {
   const localeMap = {
     ptBR: ptBRLocale
   };
@@ -31,3 +26,12 @@ export function TimePicker(props: Props) {
     />
   </LocalizationProvider>
 }
+
+export const TimePicker = memo(Component, (prevProps, nextProps) => {
+  if (
+    prevProps.value !== nextProps.value
+  )
+    return false;
+
+  return true;
+});

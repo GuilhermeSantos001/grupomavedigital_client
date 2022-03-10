@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 
 import { GetServerSidePropsContext } from 'next/types'
 
@@ -528,14 +528,9 @@ export default function CardsRegister(
   );
 
   const
-    CardService = useCallback(() => useCardService(), []),
-    CostCenterService = useCallback(() => useCostCenterService(), []),
-    CostCentersService = useCallback(() => useCostCentersService(), []);
-
-  const
-    { create: CreateCard } = CardService(),
-    { create: CreateCostCenter } = CostCenterService(),
-    { data: costCenters, isLoading: isLoadingCostCenters, update: UpdateCostCenters, delete: DeleteCostCenters } = CostCentersService();
+    { create: CreateCard } = useCardService(),
+    { create: CreateCostCenter } = useCostCenterService(),
+    { data: costCenters, isLoading: isLoadingCostCenters, update: UpdateCostCenters, delete: DeleteCostCenters } = useCostCentersService();
 
   const router = useRouter()
 

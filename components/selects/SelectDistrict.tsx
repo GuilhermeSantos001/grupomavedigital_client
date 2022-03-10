@@ -280,6 +280,7 @@ function Component(props: Props) {
 export const SelectDistrict = memo(Component, (prevStates, nextStates) => {
   if (
     prevStates.district?.value !== nextStates.district?.value
+    || prevStates.districts.length <= 0 || nextStates.districts.length <= 0
     || prevStates.districts.length !== nextStates.districts.length
   )
     return false;

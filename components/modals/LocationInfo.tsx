@@ -47,7 +47,7 @@ export function LocationInfo(props: Props) {
       <DialogTitle>{`Localização do(a) ${props.username}`}</DialogTitle>
       <DialogContent>
         <DialogContentText id="location-dialog-slide-description">
-          {`${props.location.street}, ${props.location.number} - ${props.location.district}, ${props.location.city} - ${props.location.state}, ${StringEx.maskZipcode(parseInt(props.location.zipcode), true)}`}
+          {`${props.location.street}, ${props.location.number} - ${props.location.district}, ${props.location.city} - ${props.location.state}, ${StringEx.maskZipcode(parseInt(props.location.zipcode))}`}
         </DialogContentText>
       </DialogContent>
       <DialogActions>

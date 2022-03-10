@@ -10,9 +10,9 @@ import { compressToEncodedURIComponent } from 'lz-string';
 import Fetch from '@/src/utils/fetch';
 import { Variables } from '@/src/db/variables';
 
-import { PrivilegesSystem, CommonResponse, UpdatedToken } from '@/pages/_app'
+import { PrivilegesSystem } from '@/types/UserType'
 
-interface User extends CommonResponse {
+interface User {
   privileges: PrivilegesSystem[]
   privilege: string
   photoProfile: string
@@ -56,7 +56,6 @@ const getUserInfo = async (_fetch: Fetch): Promise<User> => {
         surname: string
         cnpj: string
         location: Location
-        updatedToken: UpdatedToken
       }
     }
     errors: Error[]

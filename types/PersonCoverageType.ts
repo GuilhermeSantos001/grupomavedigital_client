@@ -6,10 +6,10 @@ import type { ReasonForAbsenceType } from '@/types/ReasonForAbsenceType'
 export type PersonCoverageType = {
   id: string
   cursorId: number
-  mirrorId: string
+  mirrorId?: string
   personId: string
   modalityOfCoverage: DatabaseModalityOfCoveringType
-  mirror: UploadType
+  mirror?: UploadType
   person: PersonType
   reasonForAbsence: ReasonForAbsenceType
   createdAt: string

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, memo } from 'react';
 import TextField from '@mui/material/TextField';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputLabel from '@mui/material/InputLabel';
@@ -32,7 +32,7 @@ const MenuProps = {
   }
 }
 
-export function SelectCard(props: Props) {
+function Component(props: Props) {
   const [syncData, setSyncData] = useState<boolean>(false);
   const [selectCards, setSelectCards] = useState<string[]>(props.selectCards || []);
 
@@ -133,3 +133,12 @@ export function SelectCard(props: Props) {
       />
     )
 }
+
+export const SelectCard = memo(Component, (prevProps, nextProps) => {
+  if (
+    prevProps.cards.length !== nextProps.cards.length
+  )
+    return false;
+
+  return true;
+});

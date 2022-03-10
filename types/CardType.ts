@@ -10,10 +10,10 @@ export type CardType = {
   lotNum: string
   serialNumber: string
   lastCardNumber: string
-  personId: string
+  personId?: string
   status: DatabaseStatusType
   createdAt: string
   updatedAt: string
   costCenter: CostCenterType
-  person: PersonType
+  person?: PersonType
 }

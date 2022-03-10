@@ -340,7 +340,7 @@ function ModalPostingInformation(
             <Button
               variant="outlined"
               onClick={() => {
-                if (posting.coverage) {
+                if (posting.coverage && posting.coverage.mirror) {
                   uploadDownload(posting.coverage.mirror.filename, posting.coverage.mirror.filetype, posting.coverage.mirror.fileId)
                     .catch(error => {
                       Alerting.create('error', `Não foi possível baixar o arquivo.`);

@@ -281,6 +281,7 @@ const filter = createFilterOptions<FilmOptionType>();
 export const SelectNeighborhood = memo(Component, (prevStates, nextStates) => {
   if (
     prevStates.neighborhood?.value !== nextStates.neighborhood?.value
+    || prevStates.neighborhoods.length <= 0 || nextStates.neighborhoods.length <= 0
     || prevStates.neighborhoods.length !== nextStates.neighborhoods.length
   )
     return false;

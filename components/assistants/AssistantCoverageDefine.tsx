@@ -35,6 +35,7 @@ import Icon from '@/src/utils/fontAwesomeIcons'
 
 import Fetch from '@/src/utils/fetch'
 import { uploadDownload } from '@/src/functions/getUploads'
+import getValueMoney from '@/src/functions/getValueMoney'
 
 import Alerting from '@/src/utils/alerting'
 import StringEx from '@/src/utils/stringEx'
@@ -476,9 +477,7 @@ export function AssistantCoverageDefine(props: Props) {
               }
 
               const personCoverage = await createPersonCoverage({
-                mirrorId:
-                  coveringModality === 'ft'
-                    || coveringModality === 'pacote_de_horas' ? coverageMirrorId : '',
+                mirrorId: coveringModality === 'ft'|| coveringModality === 'pacote_de_horas' ? coverageMirrorId : undefined,
                 modalityOfCoverage: coveringModality,
                 personId: coveragePersonId,
               })
@@ -506,10 +505,10 @@ export function AssistantCoverageDefine(props: Props) {
                 periodEnd: props.periodEnd.toISOString(),
                 originDate: originDate.toISOString(),
                 description: postingDescription,
-                coveringId: personCovering ? personCovering.data.id : '',
+                coveringId: personCovering ? personCovering.data.id : undefined,
                 coverageId: personCoverage.data.id,
                 coveringWorkplaceId: coveringWorkplace,
-                coverageWorkplaceId: coveringModality === 'ft' || coveringModality === 'pacote_de_horas' ? coverageWorkplace : '',
+                coverageWorkplaceId: coveringModality === 'ft' || coveringModality === 'pacote_de_horas' ? coverageWorkplace : undefined,
                 paymentMethod,
                 paymentValue,
                 paymentDatePayable: paymentDatePayable.toISOString(),
@@ -1080,7 +1079,7 @@ export function AssistantCoverageDefine(props: Props) {
             label="Valor"
             variant="standard"
             value={StringEx.maskMoney(paymentValue)}
-            onChange={(e) => handleChangePaymentValue(StringEx.removeMaskNum(e.target.value))}
+            onChange={(e) => handleChangePaymentValue(getValueMoney(StringEx.removeMaskNum(e.target.value)))}
           />
         </FormControl>
       )

@@ -96,13 +96,13 @@ const Transition = React.forwardRef(function Transition(
 function Component(props: Props) {
   const [syncData, setSyncData] = useState<boolean>(false)
 
-  const [matricule, setMatricule] = useState<number>(0)
+  const [matricule, setMatricule] = useState<string>('')
   const [name, setName] = useState<string>('')
-  const [cpf, setCPF] = useState<number>(0)
-  const [rg, setRG] = useState<number>(0)
+  const [cpf, setCPF] = useState<string>('')
+  const [rg, setRG] = useState<string>('')
   const [motherName, setMotherName] = useState<string>('')
   const [birthDate, setBirthDate] = useState<Date>(DateEx.subYears(new Date(), 75))
-  const [phone, setPhone] = useState<number>(0)
+  const [phone, setPhone] = useState<string>('')
   const [mail, setMail] = useState<string>('')
   const [scaleId, setScaleId] = useState<string>('')
   const [addressId, setAddressId] = useState<string>('')
@@ -138,13 +138,13 @@ function Component(props: Props) {
   const
     handleChangeScaleId = (value: string) => setScaleId(value),
     handleChangeAddressId = (value: string) => setAddressId(value),
-    handleChangeMatricule = (value: number) => setMatricule(value),
+    handleChangeMatricule = (value: string) => value.length <= 5 ? setMatricule(value) : undefined,
     handleChangeName = (value: string) => setName(value),
-    handleChangeCPF = (value: number) => setCPF(value),
-    handleChangeRG = (value: number) => setRG(value),
+    handleChangeCPF = (value: string) => value.length <= 11 ? setCPF(value) : undefined,
+    handleChangeRG = (value: string) => value.length <= 9 ? setRG(value) : undefined,
     handleChangeMotherName = (value: string) => setMotherName(value),
     handleChangeBirthDate = (value: Date) => setBirthDate(value),
-    handleChangePhone = (value: number) => setPhone(value),
+    handleChangePhone = (value: string) => value.length <= 11 ? setPhone(value) : undefined,
     handleChangeMail = (value: string) => setMail(value);
 
   const
@@ -195,13 +195,14 @@ function Component(props: Props) {
     },
     canUpdatePerson = () => {
       return name.length > 0 &&
-        StringEx.removeMaskNum(matricule.toString()).toString().length > 0 &&
-        StringEx.removeMaskNum(cpf.toString()).toString().length >= 11 &&
-        StringEx.removeMaskNum(rg.toString()).toString().length >= 9 &&
+        matricule.length > 0 &&
+        cpf.length >= 11 &&
+        rg.length >= 9 &&
         motherName.length > 0 &&
         birthDate != null &&
-        StringEx.removeMaskNum(phone.toString()).toString().length >= 11 &&
+        phone.length >= 11 &&
         mail.length > 0 &&
+        StringEx.isValidEmail(mail) &&
         scaleId.length > 0 &&
         addressId.length > 0 &&
         appliedCards.length > 0 &&
@@ -212,14 +213,14 @@ function Component(props: Props) {
         return Alerting.create('error', 'Não foi possível atualizar os dados do(a) funcionário(a). Tente novamente, mais tarde!.');
 
       const updated = await updatePeople(person.id, {
-        matricule: StringEx.removeMaskNum(matricule.toString()).toString(),
+        matricule,
         name,
-        cpf: StringEx.removeMaskNum(cpf.toString()).toString(),
-        rg: StringEx.removeMaskNum(rg.toString()).toString(),
+        cpf,
+        rg,
         birthDate: birthDate.toISOString(),
         motherName,
         mail,
-        phone: StringEx.removeMaskNum(phone.toString()).toString(),
+        phone,
         addressId,
         scaleId,
         status: 'available'
@@ -272,13 +273,13 @@ function Component(props: Props) {
     && scale
     && scales
   ) {
-    handleChangeMatricule(parseInt(person.matricule));
+    handleChangeMatricule(person.matricule);
     handleChangeName(person.name);
-    handleChangeCPF(parseInt(person.cpf));
-    handleChangeRG(parseInt(person.rg));
+    handleChangeCPF(person.cpf);
+    handleChangeRG(person.rg);
     handleChangeMotherName(person.motherName);
     handleChangeBirthDate(new Date(person.birthDate));
-    handleChangePhone(parseInt(person.phone));
+    handleChangePhone(person.phone);
     handleChangeMail(person.mail);
     handleChangeScaleId(person.scaleId);
     handleChangeAddressId(person.addressId);
@@ -347,8 +348,8 @@ function Component(props: Props) {
             className='col'
             label="Matrícula"
             variant="standard"
-            value={StringEx.maskMatricule(matricule, true)}
-            onChange={(e) => handleChangeMatricule(StringEx.removeMaskNum(e.target.value))}
+            value={StringEx.maskMatricule(matricule)}
+            onChange={(e) => handleChangeMatricule(StringEx.removeMaskNumToString(e.target.value))}
           />
         </ListItem>
         <ListItem>
@@ -365,8 +366,8 @@ function Component(props: Props) {
             className='col'
             label="CPF"
             variant="standard"
-            value={StringEx.maskCPF(cpf, true)}
-            onChange={(e) => handleChangeCPF(StringEx.removeMaskNum(e.target.value))}
+            value={StringEx.maskCPF(cpf)}
+            onChange={(e) => handleChangeCPF(StringEx.removeMaskNumToString(e.target.value))}
           />
         </ListItem>
         <ListItem>
@@ -374,8 +375,8 @@ function Component(props: Props) {
             className='col'
             label="RG"
             variant="standard"
-            value={StringEx.maskRG(rg, true)}
-            onChange={(e) => handleChangeRG(StringEx.removeMaskNum(e.target.value))}
+            value={StringEx.maskRG(rg)}
+            onChange={(e) => handleChangeRG(StringEx.removeMaskNumToString(e.target.value))}
           />
         </ListItem>
         <ListItem>
@@ -392,8 +393,8 @@ function Component(props: Props) {
             className='col'
             label="Celular"
             variant="standard"
-            value={StringEx.maskPhone(phone, true)}
-            onChange={(e) => handleChangePhone(StringEx.removeMaskNum(e.target.value))}
+            value={StringEx.maskPhone(phone)}
+            onChange={(e) => handleChangePhone(StringEx.removeMaskNumToString(e.target.value))}
           />
         </ListItem>
         <ListItem>

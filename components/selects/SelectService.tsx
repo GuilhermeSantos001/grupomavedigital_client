@@ -125,7 +125,11 @@ function Component(props: Props) {
           variant="standard"
           value={hasEditService ? textUpdateService : newService}
           onChange={(e) => {
-            if (StringEx.trim(e.target.value).length <= 0)
+            if (
+              textUpdateService.length === 0 &&
+              newService.length === 0 &&
+              StringEx.trim(e.target.value).length <= 0
+            )
               return Alerting.create('warning', 'Por favor, informe um valor válido.');
 
             if (hasEditService) {

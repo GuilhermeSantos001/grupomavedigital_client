@@ -83,6 +83,7 @@ function Component(props: Props) {
 export const SelectWorkplace = memo(Component, (prevStates, nextStates) => {
   if (
     prevStates.id !== nextStates.id
+    || prevStates.workplaces.length <= 0 || nextStates.workplaces.length <= 0
     || prevStates.workplaces.length !== nextStates.workplaces.length
   )
     return false;

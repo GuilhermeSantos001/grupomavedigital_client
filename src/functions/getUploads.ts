@@ -8,6 +8,8 @@ import {
   UploadType
 } from '@/types/UploadType';
 
+// TODO: Verificar se os cookies estão sendo retornados do backend corretamente
+
 export async function uploadDownload(filename: string, filetype: string, fileId: string): Promise<boolean> {
   const
     uri = process.env.NEXT_PUBLIC_EXPRESS_HOST!,
@@ -140,8 +142,6 @@ export async function uploadsAll(): Promise<UploadType[]> {
     });
 
     const { data, status, request } = uploadResponse;
-
-    console.log(request);
 
     if (status === 200) {
       const uploads = JSON.parse(decompressFromEncodedURIComponent(data) || '[]');

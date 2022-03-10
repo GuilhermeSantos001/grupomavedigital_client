@@ -1,9 +1,3 @@
-/**
- * @description Função usada para retornar a lista dos locais de trabalho
- * @author GuilhermeSantos001
- * @update 14/02/2022
- */
-
 import { GridColDef, GridRowsProp } from '@mui/x-data-grid';
 
 import StringEx from '@/src/utils/stringEx';
@@ -69,7 +63,7 @@ export default function getWorkPlaceForTable(
         headerAlign: 'center',
         align: 'center',
         valueGetter: (params) => {
-          return `${params.row.address.street.value}, ${params.row.address.number} - ${params.row.address.neighborhood.value}, ${params.row.address.city.value} - ${params.row.address.district.value}, ${StringEx.maskZipcode(params.row.address.zipCode, true)}`;
+          return `${params.row.address.street.value}, ${params.row.address.number} - ${params.row.address.neighborhood.value}, ${params.row.address.city.value} - ${params.row.address.district.value}, ${StringEx.maskZipcode(params.row.address.zipCode)}`;
         }
       }
     ],

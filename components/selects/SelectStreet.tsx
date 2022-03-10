@@ -280,6 +280,7 @@ const filter = createFilterOptions<FilmOptionType>();
 export const SelectStreet = memo(Component, (prevStates, nextStates) => {
   if (
     prevStates.street?.value !== nextStates.street?.value
+    || prevStates.streets.length <= 0 || nextStates.streets.length <= 0
     || prevStates.streets.length !== nextStates.streets.length
   )
     return false;

@@ -76,7 +76,7 @@ export default function getPeopleForTable(
         headerAlign: 'center',
         align: 'center',
         valueGetter: (params) => {
-          return `${params.row.address.street.value}, ${params.row.address.number} - ${params.row.address.neighborhood.value}, ${params.row.address.city.value} - ${params.row.address.district.value}, ${StringEx.maskZipcode(params.row.address.zipCode, true)}`;
+          return `${params.row.address.street.value}, ${params.row.address.number} - ${params.row.address.neighborhood.value}, ${params.row.address.city.value} - ${params.row.address.district.value}, ${StringEx.maskZipcode(params.row.address.zipCode)}`;
         }
       }
     ],
@@ -85,9 +85,9 @@ export default function getPeopleForTable(
         id: person.id,
         item: index + 1,
         name: person.name,
-        matricule: StringEx.maskMatricule(parseInt(person.matricule), true),
-        cpf: StringEx.maskCPF(parseInt(person.cpf), true),
-        rg: StringEx.maskRG(parseInt(person.rg), true),
+        matricule: StringEx.maskMatricule(parseInt(person.matricule)),
+        cpf: StringEx.maskCPF(parseInt(person.cpf)),
+        rg: StringEx.maskRG(parseInt(person.rg)),
         scale: person.scale.value,
         services: person.personService.map(_ => _.service.value).join(', '),
         address: person.address,

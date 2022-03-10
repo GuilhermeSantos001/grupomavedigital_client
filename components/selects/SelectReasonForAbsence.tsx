@@ -281,6 +281,7 @@ const filter = createFilterOptions<FilmOptionType>();
 export const SelectReasonForAbsence = memo(Component, (prevStates, nextStates) => {
   if (
     prevStates.reasonForAbsence?.value !== nextStates.reasonForAbsence?.value
+    || prevStates.reasonForAbsences.length <= 0 || nextStates.reasonForAbsences.length <= 0
     || prevStates.reasonForAbsences.length !== nextStates.reasonForAbsences.length
   )
     return false;

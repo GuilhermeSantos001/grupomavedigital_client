@@ -126,111 +126,142 @@ class StringEx {
     return word;
   }
 
+  isValidEmail(email: string): boolean {
+    const regex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return regex.test(email);
+  }
+
   /**
-   * @description Remove a mascara do tipo numeral do texto
+   * @description Retorna somente os numeros da mascara em formato numero
    */
   removeMaskNum(value: string): number {
     return parseInt(value.replace(/\D/g, ''));
   }
 
   /**
-   * @description Remove a mascara do tipo letra do texto
+   * @description Retorna somente o texto da mascara em formato texto
    */
   removeMaskLetter(value: string): string {
     return value.replace(/[^a-zA-Z]/g, '');
   }
 
   /**
+   * @description Retorna somente os numeros da mascara em formato texto
+   */
+  removeMaskNumToString(value: string): string {
+    return value.replace(/\D/g, '');
+  }
+
+  /**
    * @description Retorna o texto com a mascara do dinheiro aplicada
    */
   maskMoney(value: number): string {
-    const formatter = new StringMask('#.##0,00', { reverse: true });
+    const formatter =
+      value
+        .toLocaleString('pt-br', {
+          minimumFractionDigits: 2
+        });
 
-    return `R$ ${formatter.apply(String(value))}`;
+    return `R$ ${formatter}`;
   }
 
   /**
    * @description Retorna o texto com a mascara de telefone aplicada
    */
-  maskPhone(value: number, padStart?: boolean): string {
-    const formatter = new StringMask('(00) 00000-0000');
+  maskPhone(value: string): string {
+    const
+      formatter =
+        value
+          .toString()
+          .replace(/[\D]/g, '')
+          .replace(/(\d{2})(\d)/, '($1) $2')
+          .replace(/(\d{5})(\d)/, '$1-$2')
+          .replace(/(-\d{4})(\d+?)/, '$1');
 
-    if (padStart)
-      return formatter.apply(String(value).padStart(11, '0'));
-
-    return formatter.apply(value);
+    return formatter;
   }
 
   /**
    * @description Retorna o texto com a mascara do numero da casa aplicada
    */
-  maskHouseNumber(value: number, padStart?: boolean): string {
-    const formatter = new StringMask('0000');
+  maskHouseNumber(value: string): string {
+    const
+      formatter =
+        value
+          .toString()
+          .replace(/[\D]/g, '')
+          .replace(/(\d{4})(\d+?)/, '$1');
 
-    if (padStart)
-      return formatter.apply(String(value).padStart(4, '0'));
-
-    return formatter.apply(String(value));
+    return formatter;
   }
 
   /**
    * @description Retorna o texto com a mascara de cep aplicada
    */
-  maskZipcode(value: number, padStart?: boolean): string {
-    const formatter = new StringMask('00000-000');
+  maskZipcode(value: string): string {
+    const formatter =
+      value
+        .toString()
+        .replace(/[\D]/g, '')
+        .replace(/(\d{5})(\d+?)/, '$1-$2')
+        .replace(/(-\d{3})(\d+?)/, '$1');
 
-    if (padStart)
-      return formatter.apply(String(value).padStart(8, '0'));
-
-    return formatter.apply(String(value));
+    return formatter;
   }
 
   /**
    * @description Retorna o texto com a mascara da matricula aplicada
    */
-  maskMatricule(value: number, padStart?: boolean): string {
-    const formatter = new StringMask('00000');
+  maskMatricule(value: string): string {
+    const formatter =
+      value
+        .toString()
+        .replace(/[\D]/g, '')
+        .replace(/(\d{5})(\d+?)/, '$1');
 
-    if (padStart)
-      return formatter.apply(String(value).padStart(5, '0'));
-
-    return formatter.apply(String(value));
+    return formatter;
   }
 
   /**
    * @description Retorna o texto com a mascara de CNPJ aplicada
    */
-  maskCNPJ(value: number, padStart?: boolean): string {
-    const formatter = new StringMask('00.000.000/0000-00');
+  maskCNPJ(value: string): string {
+    const formatter =
+      value
+        .toString()
+        .replace(/[\D]/g, '')
+        .replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
+        .replace(/(-\d{2})(\d+?)/, '$1');
 
-    if (padStart)
-      return formatter.apply(String(value).padStart(14, '0'));
-
-    return formatter.apply(String(value));
+    return formatter;
   }
 
   /**
    * @description Retorna o texto com a mascara de cpf aplicada
    */
-  maskCPF(value: number, padStart?: boolean): string {
-    const formatter = new StringMask('000.000.000-00');
+  maskCPF(value: string): string {
+    const formatter =
+      value
+        .toString()
+        .replace(/[\D]/g, '')
+        .replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+        .replace(/(-\d{2})(\d+?)/, '$1');
 
-    if (padStart)
-      return formatter.apply(String(value).padStart(11, '0'));
-
-    return formatter.apply(String(value));
+    return formatter;
   }
 
   /**
    * @description Retorna o texto com a mascara de rg aplicada
    */
-  maskRG(value: number, padStart?: boolean): string {
-    const formatter = new StringMask('00.000.000-0');
+  maskRG(value: string): string {
+    const formatter =
+      value
+        .toString()
+        .replace(/[\D]/g, '')
+        .replace(/(\d{2})(\d{3})(\d{3})(\d{1})/, '$1.$2.$3-$4')
+        .replace(/(-\d{1})(\d+?)/, '$1');
 
-    if (padStart)
-      return formatter.apply(String(value).padStart(9, '0'));
-
-    return formatter.apply(String(value));
+    return formatter;
   }
 }
 

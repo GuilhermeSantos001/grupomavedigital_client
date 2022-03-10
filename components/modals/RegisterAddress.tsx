@@ -119,12 +119,12 @@ function Component(props: Props) {
   const [syncData, setSyncData] = useState<boolean>(false);
 
   const [streetId, setStreetId] = useState<string>('');
-  const [houseNumber, sethouseNumber] = useState<number>(0);
+  const [houseNumber, sethouseNumber] = useState<string>('');
   const [complement, setComplement] = useState<string>('');
   const [neighborhoodId, setNeighborhoodId] = useState<string>('');
   const [cityId, setCityId] = useState<string>('');
   const [districtId, setDistrictId] = useState<string>('');
-  const [zipCode, setZipCode] = useState<number>(0);
+  const [zipCode, setZipCode] = useState<string>('');
 
   const {
     createAddress,
@@ -160,32 +160,32 @@ function Component(props: Props) {
 
   const
     handleChangeStreetId = (id: string) => setStreetId(id),
-    handleChangehouseNumber = (value: number) => sethouseNumber(value),
+    handleChangehouseNumber = (value: string) => value.length <= 4 ? sethouseNumber(value) : undefined,
     handleChangeComplement = (value: string) => setComplement(value),
     handleChangeNeighborhoodId = (id: string) => setNeighborhoodId(id),
     handleChangeCityId = (id: string) => setCityId(id),
     handleChangeDistrictId = (id: string) => setDistrictId(id),
-    handleChangeZipCode = (value: number) => setZipCode(value);
+    handleChangeZipCode = (value: string) => value.length <= 8 ? setZipCode(value) : undefined;
 
   const
     canRegisterAddress = () => {
       return streetId.length > 0 &&
-        houseNumber > 0 &&
+        houseNumber.length > 0 &&
         // complement.length > 0 && // ! Complemento não é obrigatório
         neighborhoodId.length > 0 &&
         cityId.length > 0 &&
         districtId.length > 0 &&
-        zipCode > 0
+        zipCode.length > 0
     },
     handleRegisterAddress = async () => {
       const address = await createAddress({
         streetId,
-        number: houseNumber.toString(),
+        number: houseNumber,
         complement,
         neighborhoodId,
         cityId,
         districtId,
-        zipCode: zipCode.toString()
+        zipCode
       });
 
       if (address)
@@ -277,8 +277,8 @@ function Component(props: Props) {
             className='col'
             label="Número"
             variant="standard"
-            value={StringEx.maskHouseNumber(houseNumber, true)}
-            onChange={(e) => handleChangehouseNumber(StringEx.removeMaskNum(e.target.value))}
+            value={StringEx.maskHouseNumber(houseNumber)}
+            onChange={(e) => handleChangehouseNumber(StringEx.removeMaskNumToString(e.target.value))}
           />
         </ListItem>
         <ListItem>
@@ -331,8 +331,8 @@ function Component(props: Props) {
             className='col'
             label="CEP"
             variant="standard"
-            value={StringEx.maskZipcode(zipCode, true)}
-            onChange={(e) => handleChangeZipCode(StringEx.removeMaskNum(e.target.value))}
+            value={StringEx.maskZipcode(zipCode)}
+            onChange={(e) => handleChangeZipCode(StringEx.removeMaskNumToString(e.target.value))}
           />
         </ListItem>
       </List>

@@ -140,7 +140,7 @@ export function RegisterUsers(props: Props) {
               className='col'
               label="Matrícula"
               variant="standard"
-              value={StringEx.maskMatricule(matricule, true)}
+              value={StringEx.maskMatricule(matricule)}
               onChange={(e) => handleChangeMatricule(StringEx.removeMaskNum(e.target.value))}
             />
           </ListItem>
