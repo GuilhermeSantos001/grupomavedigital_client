@@ -4,8 +4,6 @@ import { GetServerSidePropsContext } from 'next/types'
 
 import { useGetUserInfoService } from '@/services/graphql/useGetUserInfoService'
 
-import { verifyCookie } from '@/lib/verifyCookie'
-
 import { compressToEncodedURIComponent } from 'lz-string'
 
 import { useRouter } from 'next/router'
@@ -59,7 +57,7 @@ export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => 
     props: {
       ...serverSideProps,
       privileges,
-      auth: await verifyCookie(req.cookies.auth),
+      auth: req.cookies.auth,
       getUserInfoAuthorization: process.env.GRAPHQL_AUTHORIZATION_GETUSERINFO!,
     },
   }

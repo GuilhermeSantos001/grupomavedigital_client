@@ -171,13 +171,6 @@ const filter = createFilterOptions<FilmOptionType>();
             setReturnData(true);
             props.handleChangeId(neighborhood.id);
           } else {
-            if (!newValue && props.neighborhood) {
-              newValue = {
-                id: props.neighborhood.id,
-                value: neighborhood?.value || '???'
-              }
-            }
-
             setValue(newValue);
             setReturnData(true);
             props.handleChangeId(newValue?.id || '');
@@ -283,6 +276,7 @@ export const SelectNeighborhood = memo(Component, (prevStates, nextStates) => {
     prevStates.neighborhood?.value !== nextStates.neighborhood?.value
     || prevStates.neighborhoods.length <= 0 || nextStates.neighborhoods.length <= 0
     || prevStates.neighborhoods.length !== nextStates.neighborhoods.length
+    || JSON.stringify(prevStates.neighborhoods) !== JSON.stringify(nextStates.neighborhoods)
   )
     return false;
 

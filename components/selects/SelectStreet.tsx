@@ -171,13 +171,6 @@ const filter = createFilterOptions<FilmOptionType>();
             setReturnData(true);
             props.handleChangeId(street.id);
           } else {
-            if (!newValue && props.street) {
-              newValue = {
-                id: props.street.id,
-                value: street?.value || '???'
-              }
-            }
-
             setValue(newValue);
             setReturnData(true);
             props.handleChangeId(newValue?.id || '');
@@ -282,6 +275,7 @@ export const SelectStreet = memo(Component, (prevStates, nextStates) => {
     prevStates.street?.value !== nextStates.street?.value
     || prevStates.streets.length <= 0 || nextStates.streets.length <= 0
     || prevStates.streets.length !== nextStates.streets.length
+    || JSON.stringify(prevStates.streets) !== JSON.stringify(nextStates.streets)
   )
     return false;
 

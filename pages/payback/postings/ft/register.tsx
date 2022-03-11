@@ -4,8 +4,6 @@ import { GetServerSidePropsContext } from 'next/types'
 
 import { useGetUserInfoService } from '@/services/graphql/useGetUserInfoService'
 
-import { verifyCookie } from '@/lib/verifyCookie'
-
 import { compressToEncodedURIComponent } from 'lz-string'
 
 import FormControl from '@mui/material/FormControl'
@@ -39,7 +37,6 @@ import { EditPeople } from '@/components/modals/EditPeople'
 import { ListCoverageDefined } from '@/components/lists/ListCoverageDefined'
 import { SelectAddress } from '@/components/selects/SelectAddress'
 
-import { BoxLoadingMagicSpinner } from '@/components/utils/BoxLoadingMagicSpinner'
 import { BoxError } from '@/components/utils/BoxError'
 
 import { PageProps } from '@/pages/_app'
@@ -77,6 +74,8 @@ import type { ScaleType } from '@/types/ScaleType'
 import type { UploadType } from '@/types/UploadType'
 
 import { usePostingsService } from '@/services/usePostingsService'
+import { usePeopleCoveringService } from '@/services/usePeopleCoveringService'
+import { usePeopleCoverageService } from '@/services/usePeopleCoverageService'
 import { useCostCentersService } from '@/services/useCostCentersService'
 import { useWorkplaceService } from '@/services/useWorkplaceService'
 import { useWorkplacesService } from '@/services/useWorkplacesService'
@@ -102,6 +101,8 @@ import { usePostingService } from '@/services/usePostingService'
 import { useUploadService } from '@/services/useUploadService'
 import { usePersonCoveringService } from '@/services/usePersonCoveringService'
 import { usePersonCoverageService } from '@/services/usePersonCoverageService'
+import { useReasonForAbsenceService } from '@/services/useReasonForAbsenceService'
+import { useReasonForAbsenceWithIdService } from '@/services/useReasonForAbsenceWithIdService'
 import { useReasonForAbsencesService } from '@/services/useReasonForAbsencesService'
 
 import type {
@@ -174,6 +175,11 @@ import type {
   FunctionCreatePersonCoverageTypeof
 } from '@/types/PersonCoverageServiceType'
 import type {
+  FunctionCreateReasonForAbsenceTypeof,
+  FunctionUpdateReasonForAbsencesTypeof,
+  FunctionDeleteReasonForAbsencesTypeof,
+} from '@/types/ReasonForAbsenceServiceType'
+import type {
   ReasonForAbsenceType
 } from '@/types/ReasonForAbsenceType'
 import type {
@@ -204,7 +210,7 @@ export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => 
     props: {
       ...serverSideProps,
       privileges,
-      auth: await verifyCookie(req.cookies.auth),
+      auth: req.cookies.auth,
       getUserInfoAuthorization: process.env.GRAPHQL_AUTHORIZATION_GETUSERINFO!,
     },
   }
@@ -524,8 +530,14 @@ function compose_ready(
   createPersonCovering: FunctionCreatePersonCoveringTypeof,
   createPersonCoverage: FunctionCreatePersonCoverageTypeof,
   updatePeople: FunctionUpdatePeopleTypeof,
+  createReasonForAbsence: FunctionCreateReasonForAbsenceTypeof,
+  reasonForAbsence: ReasonForAbsenceType | undefined,
+  handleChangeIdReasonForAbsence: (id: string) => void,
+  isLoadingReasonForAbsence: boolean,
   reasonForAbsences: ReasonForAbsenceType[],
   isLoadingReasonForAbsences: boolean,
+  updateReasonForAbsences: FunctionUpdateReasonForAbsencesTypeof,
+  deleteReasonForAbsences: FunctionDeleteReasonForAbsencesTypeof,
   appliedWorkplaces: WorkplaceType[],
   appliedPeopleInWorkplaces: PersonType[],
   handleAppendAppliedWorkplaces: (itens: WorkplaceType[]) => void,
@@ -561,7 +573,6 @@ function compose_ready(
   handleOpenModalAssistantCoverageDefine: () => void,
   handleCloseModalAssistantCoverageDefine: () => void,
   postingsDefined: PostingType[],
-  handleAppendPostingDefined: (postings: PostingType[]) => void,
   handleDefinePostingDefined: (postings: PostingType[]) => void,
   handleResetPostingDefined: () => void,
   handleRemovePostingDefined: (id: string) => void
@@ -783,8 +794,14 @@ function compose_ready(
         isLoadingPeople={isLoadingPeople}
         workplaces={workplaces}
         isLoadingWorkplaces={isLoadingWorkplaces}
+        createReasonForAbsence={createReasonForAbsence}
+        reasonForAbsence={reasonForAbsence}
+        handleChangeIdReasonForAbsence={handleChangeIdReasonForAbsence}
+        isLoadingReasonForAbsence={isLoadingReasonForAbsence}
         reasonForAbsences={reasonForAbsences}
         isLoadingReasonForAbsences={isLoadingReasonForAbsences}
+        updateReasonForAbsences={updateReasonForAbsences}
+        deleteReasonForAbsences={deleteReasonForAbsences}
         auth={auth}
         availableWorkplaces={appliedWorkplaces.map(place => place.id)}
         availablePeopleInWorkplace={appliedPeopleInWorkplaces.map(person => person.id)}
@@ -794,7 +811,7 @@ function compose_ready(
         handleFinish={(postings: PostingType[]) => {
           if (postings.length > 0) {
             Alerting.create('success', 'Cobertura(s) aplicada(s) com sucesso!');
-            handleAppendPostingDefined(postings);
+            setTimeout(() => searchPostingsDefined(), 1000);
           }
         }}
         show={showModalAssistantCoverageDefine}
@@ -931,42 +948,14 @@ function compose_ready(
                         <SelectAddress
                           addresses={addresses}
                           isLoadingAddresses={isLoadingAddresses}
+                          disabledButtonAppend={false}
+                          disabledButtonUpdate={selectAddressId.length <= 0}
+                          disabledButtonRemove={selectAddressId.length <= 0}
+                          handleButtonAppend={handleShowModalRegisterAddress}
+                          handleButtonUpdate={handleShowModalEditAddress}
+                          handleButtonRemove={() => handleDeleteAddress(selectAddressId)}
                           handleChangeId={handleChangeIdAddress}
                         />
-                        <div className='d-flex justify-content-start align-items-start'>
-                          <button
-                            type="button"
-                            className="btn btn-link"
-                            disabled={selectAddressId.length <= 0}
-                            onClick={handleShowModalEditAddress}
-                          >
-                            <FontAwesomeIcon
-                              icon={Icon.render('fas', 'edit')}
-                              className="me-1 flex-shrink-1 my-auto"
-                            /> Atualizar
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn-link"
-                            disabled={selectAddressId.length <= 0}
-                            onClick={() => handleDeleteAddress(selectAddressId)}
-                          >
-                            <FontAwesomeIcon
-                              icon={Icon.render('fas', 'minus-square')}
-                              className="me-1 flex-shrink-1 my-auto"
-                            /> Remover
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn-link"
-                            onClick={handleShowModalRegisterAddress}
-                          >
-                            <FontAwesomeIcon
-                              icon={Icon.render('fas', 'plus-square')}
-                              className="me-1 flex-shrink-1 my-auto"
-                            /> Adicionar
-                          </button>
-                        </div>
                       </div>
                       <p className="fw-bold border-bottom text-center my-2">
                         Postos de Trabalho
@@ -1144,17 +1133,7 @@ function compose_ready(
                           className="btn btn-link"
                           disabled={
                             assistantFinish ||
-                            selectPeopleInWorkplaces.length <= 0 ||
-                            cards.filter(card =>
-                              card.personId &&
-                              card.person &&
-                              selectPeopleInWorkplaces.includes(card.personId)
-                            ).length > 0 ||
-                            postings.filter(posting =>
-                              selectPeopleInWorkplaces.includes(posting.coverage.id) ||
-                              posting.covering &&
-                              selectPeopleInWorkplaces.includes(posting.covering.id)
-                            ).length > 0
+                            selectPeopleInWorkplaces.length <= 0
                           }
                           onClick={() => handleDeletePeopleInWorkplaces(selectPeopleInWorkplaces)}
                         >
@@ -1232,6 +1211,7 @@ export default function Register(
   const pageSizeOptionsTableWorkplaces = [10, 25, 50, 100];
 
   const [selectAddressId, setSelectAddressId] = useState<string>('')
+  const [selectReasonForAbsenceId, setSelectReasonForAbsenceId] = useState<string>('')
 
   const [selectPeopleInWorkplaces, setSelectPeopleInWorkplaces] = useState<string[]>([])
   const [appliedPeopleInWorkplaces, setAppliedPeopleInWorkplaces] = useState<PersonType[]>([])
@@ -1256,6 +1236,8 @@ export default function Register(
   const
     { create: CreatePosting } = usePostingService(),
     { data: postings, isLoading: isLoadingPostings, delete: DeletePostings } = usePostingsService(),
+    { data: peopleCovering, isLoading: isLoadingPeopleCovering, delete: DeletePeopleCovering } = usePeopleCoveringService(),
+    { data: peopleCoverage, isLoading: isLoadingPeopleCoverage, delete: DeletePeopleCoverage } = usePeopleCoverageService(),
     { data: costCenters, isLoading: isLoadingCostCenters } = useCostCentersService(),
     { create: CreateWorkplace } = useWorkplaceService(),
     { data: workplaces, isLoading: isLoadingWorkplaces, update: UpdateWorkplaces, delete: DeleteWorkplaces } = useWorkplacesService(),
@@ -1265,8 +1247,10 @@ export default function Register(
     { create: CreatePersonCovering } = usePersonCoveringService(),
     { create: CreatePersonCoverage } = usePersonCoverageService(),
     { data: people, isLoading: isLoadingPeople, update: UpdatePeople, delete: DeletePeople } = usePeopleService(),
-    { data: reasonForAbsences, isLoading: isLoadingReasonForAbsences } = useReasonForAbsencesService(),
+    { create: CreateReasonForAbsence } = useReasonForAbsenceService(),
+    { data: reasonForAbsences, isLoading: isLoadingReasonForAbsences, update: UpdateReasonForAbsence, delete: DeleteReasonForAbsence } = useReasonForAbsencesService(),
     { create: CreateService } = useServiceService(),
+    { data: reasonForAbsence, isLoading: isLoadingReasonForAbsence } = useReasonForAbsenceWithIdService(selectReasonForAbsenceId),
     { data: services, isLoading: isLoadingServices, update: UpdateServices, assignPerson: AssignPeopleService, assignWorkplace: AssignWorkplacesService, unassignPerson: UnassignPeopleService, unassignWorkplace: unassignWorkplacesService, delete: DeleteServices } = useServicesService(),
     { data: cards, isLoading: isLoadingCards, assignPerson: AssignPeopleCard, unassignPerson: UnassignPeopleCard } = useCardsService(),
     { create: CreateUpload } = useUploadService(),
@@ -1342,14 +1326,31 @@ export default function Register(
       if (!DeleteWorkplaces)
         return Alerting.create('error', 'Não foi possível deletar o(s) registro(s) selecionado(s). Tente novamente, mais tarde.');
 
+      const newAppliedWorkplaces: WorkplaceType[] = [];
+
       for (const workplaceId of workplacesId) {
+        const place = workplaces.find(place => place.id === workplaceId);
+
+        if (!place)
+          return Alerting.create('error', `Não foi possível deletar o local de trabalho, ele não foi encontrado.`);
+
+        const services = place.workplaceService;
+
+        if (services && services.length > 0)
+          await handleUnassignWorkplacesService(services.map(service => service.id));
+
         const deleted = await DeleteWorkplaces(workplaceId);
 
         if (!deleted)
-          return Alerting.create('error', `Não foi possível deletar o local de trabalho (${workplaces.find(place => place.id === workplaceId)?.name || '???'}). Verifique se ele não está sendo utilizado em outro registro.`);
+          return Alerting.create('error', `Não foi possível deletar o local de trabalho (${place.name}). Verifique se ele não está sendo utilizado em outro registro.`);
 
-        Alerting.create('success', `Local de trabalho (${workplaces.find(place => place.id === workplaceId)?.name || '???'}) deletado com sucesso.`);
+        newAppliedWorkplaces.push(place);
+
+        Alerting.create('success', `Local de trabalho (${place.name}) deletado com sucesso.`);
       }
+
+      if (newAppliedWorkplaces.length > 0)
+        handleRemoveAppliedWorkplaces(newAppliedWorkplaces);
     },
     handleDeleteAddress = async (addressId: string) => {
       if (!DeleteAddresses)
@@ -1366,14 +1367,39 @@ export default function Register(
       if (!DeletePeople)
         return Alerting.create('error', 'Não foi possível deletar o(s) registro(s) selecionado(s). Tente novamente, mais tarde.');
 
+      const newPeopleInWorkplaces: PersonType[] = [];
+
       for (const personId of peopleId) {
+        if (postings.filter(posting => posting.coveringId === personId || posting.coverageId === personId).length > 0)
+          return Alerting.create('error', `Não foi possível deletar o(a) funcionario(a) ${people.find(person => person.id === personId)?.name || '???'}. Verifique se ele não está sendo utilizado em outro registro.`);
+
+        const person = people.find(person => person.id === personId);
+
+        if (!person)
+          return Alerting.create('error', `Não foi possível deletar o(a) funcionario(a), ele(a) não foi encontrado(a).`);
+
+        const
+          cards = person.cards,
+          services = person.personService;
+
+        if (cards && cards.length > 0)
+          await handleUnassignPeopleCard(cards.map(card => card.id));
+
+        if (services && services.length > 0)
+          await handleUnassignPeopleService(services.map(service => service.id));
+
         const deleted = await DeletePeople(personId);
 
         if (!deleted)
-          return Alerting.create('error', `Não foi possível deletar o(a) funcionario(a) ${people.find(person => person.id === personId)?.name || '???'}. Verifique se ele(a) não está sendo utilizado(a) em outro registro.`);
+          return Alerting.create('error', `Não foi possível deletar o(a) funcionario(a) ${person.name}. Verifique se ele(a) não está sendo utilizado(a) em outro registro.`);
 
-        Alerting.create('success', `Funcionario(a) ${people.find(person => person.id === personId)?.name || '???'} deletado(a) com sucesso.`);
+          newPeopleInWorkplaces.push(person);
+
+        Alerting.create('success', `Funcionario(a) ${person.name} deletado(a) com sucesso.`);
       }
+
+      if (newPeopleInWorkplaces.length > 0)
+        handleRemoveAppliedPeopleInWorkplaces(newPeopleInWorkplaces);
     },
     handleAppendAppliedWorkplaces = (itens: WorkplaceType[]) => setAppliedWorkplaces([...appliedWorkplaces, ...itens]),
     handleAppendAppliedPeopleInWorkplaces = (itens: PersonType[]) => setAppliedPeopleInWorkplaces([...appliedPeopleInWorkplaces, ...itens]),
@@ -1384,33 +1410,44 @@ export default function Register(
       setAppliedPeopleInWorkplaces(appliedPeopleInWorkplaces.filter(item => !itens.some(item2 => item2.id === item.id)))
     },
     handleChangeIdAddress = (id: string) => setSelectAddressId(id),
+    handleChangeIdReasonForAbsence = (id: string) => setSelectReasonForAbsenceId(id),
     handleOpenModalAssistantCoverageDefine = () => setShowModalAssistantCoverageDefine(true),
     handleCloseModalAssistantCoverageDefine = () => setShowModalAssistantCoverageDefine(false),
-    handleAppendPostingDefined = (postings: PostingType[]) => setPostingsDefined([...postingsDefined, ...postings]),
     handleDefinePostingDefined = (postings: PostingType[]) => setPostingsDefined(postings),
     handleResetPostingDefined = () => setPostingsDefined([]),
     handleRemovePostingDefined = async (id: string) => {
-      if (!DeletePostings)
+      if (!DeletePostings || !DeletePeopleCovering || !DeletePeopleCoverage)
         return Alerting.create('error', 'Não foi possível deletar o(s) registro(s) selecionado(s). Tente novamente, mais tarde.');
 
       const
         posting = postings.find(item => item.id === id),
+        deleteFiles = [],
         deleteMirrors = [];
 
       if (posting) {
-        if (posting.covering && posting.covering.mirror)
-          deleteMirrors.push(posting.covering.mirror.fileId);
+        if (posting.covering && posting.covering.mirror) {
+          deleteFiles.push(posting.covering.mirror.fileId);
+          deleteMirrors.push(posting.covering.mirror.id);
+        }
 
-        if (posting.coverage && posting.coverage.mirror)
-          deleteMirrors.push(posting.coverage.mirror.fileId);
+        if (posting.coverage && posting.coverage.mirror) {
+          deleteFiles.push(posting.coverage.mirror.fileId);
+          deleteMirrors.push(posting.coverage.mirror.id);
+        }
 
-        if (deleteMirrors.length > 0)
-          handleRemoveUploadedFile(deleteMirrors);
+        if (deleteFiles.length > 0 && deleteMirrors.length)
+          handleRemoveUploadedFile(deleteFiles, deleteMirrors);
 
         const deleted = await DeletePostings(id);
 
         if (deleted) {
           setPostingsDefined(postingsDefined.filter(item => item.id !== id));
+
+          if (posting.coveringId)
+            await DeletePeopleCovering(posting.coveringId);
+          if (posting.coverageId.length > 0)
+            await DeletePeopleCoverage(posting.coverageId);
+
           Alerting.create('success', `Lançamento ${posting.description || ""} deletado com sucesso.`);
         } else {
           Alerting.create('error', `Não foi possível deletar o lançamento ${posting.description || ""}. Tente novamente, mais tarde.`);
@@ -1419,18 +1456,19 @@ export default function Register(
         Alerting.create('warning', 'Lançamento financeiro não encontrado.');
       }
     },
-    handleRemoveUploadedFile = (filesId: string[]) =>
+    handleRemoveUploadedFile = (filesId: string[], mirrorsId: string[]) =>
       window.socket.emit(
         PaybackSocketEvents.PAYBACK_DELETE_MIRROR,
         window.socket.compress<TYPEOF_EMITTER_PAYBACK_DELETE_MIRROR>({
-          filesId
+          filesId,
+          mirrorsId
         })
       ),
-    handleDeleteUpload = async (fileId: string) => {
+    handleDeleteUpload = async (mirrorId: string) => {
       if (!DeleteUploads)
         return Alerting.create('error', 'Não foi possível deletar o(s) registro(s) selecionado(s). Tente novamente, mais tarde.');
 
-      const deleted = await DeleteUploads(fileId);
+      const deleted = await DeleteUploads(mirrorId);
 
       if (deleted) {
         Alerting.create('success', `Arquivo deletado com sucesso.`);
@@ -1506,6 +1544,8 @@ export default function Register(
 
   if (
     isLoadingPostings && !syncData
+    || isLoadingPeopleCovering && !syncData
+    || isLoadingPeopleCoverage && !syncData
     || isLoadingCostCenters && !syncData
     || isLoadingWorkplaces && !syncData
     || isLoadingAddresses && !syncData
@@ -1520,11 +1560,13 @@ export default function Register(
     || isLoadingNeighborhoods && !syncData
     || isLoadingDistricts && !syncData
   )
-    return <BoxLoadingMagicSpinner />
+    return compose_load();
 
   if (
     !syncData
     && postings
+    && peopleCovering
+    && peopleCoverage
     && costCenters
     && workplaces
     && addresses
@@ -1544,6 +1586,8 @@ export default function Register(
     !syncData && !CreatePosting
     || !syncData && !postings
     || !syncData && !DeletePostings
+    || !syncData && !DeletePeopleCovering
+    || !syncData && !DeletePeopleCoverage
     || !syncData && !costCenters
     || !syncData && !workplaces
     || !syncData && !UpdateWorkplaces
@@ -1554,6 +1598,9 @@ export default function Register(
     || !syncData && !CreatePersonCovering
     || !syncData && !CreatePersonCoverage
     || !syncData && !DeletePeople
+    || !syncData && !reasonForAbsences
+    || !syncData && !UpdateReasonForAbsence
+    || !syncData && !DeleteReasonForAbsence
     || !syncData && !services
     || !syncData && !AssignPeopleService
     || !syncData && !AssignWorkplacesService
@@ -1676,8 +1723,14 @@ export default function Register(
       CreatePersonCovering,
       CreatePersonCoverage,
       UpdatePeople,
+      CreateReasonForAbsence,
+      reasonForAbsence,
+      handleChangeIdReasonForAbsence,
+      isLoadingReasonForAbsence,
       reasonForAbsences,
       isLoadingReasonForAbsences,
+      UpdateReasonForAbsence,
+      DeleteReasonForAbsence,
       appliedWorkplaces,
       appliedPeopleInWorkplaces,
       handleAppendAppliedWorkplaces,
@@ -1713,7 +1766,6 @@ export default function Register(
       handleOpenModalAssistantCoverageDefine,
       handleCloseModalAssistantCoverageDefine,
       postingsDefined,
-      handleAppendPostingDefined,
       handleDefinePostingDefined,
       handleResetPostingDefined,
       handleRemovePostingDefined,
@@ -1749,9 +1801,9 @@ function onSocketEvents(
           data: string
         ) => {
           const {
-            filesId
+            mirrorsId
           } = socket.decompress<TYPEOF_LISTENER_PAYBACK_DELETE_MIRROR>(data);
-          filesId.forEach(fileId => handleDeleteUpload(fileId));
+          mirrorsId.forEach(mirrorId => handleDeleteUpload(mirrorId));
         }
       )
 

@@ -11,7 +11,6 @@ import { RainbowSpinner, GooSpinner, PongSpinner } from "react-spinners-kit"
 
 import ScrollToTop from '@/components/scrollToTop'
 import Alerting from '@/components/Alerting'
-import WindowSuperAdmin from '@/components/WindowSuperAdmin'
 import Navbar from '@/components/Navbar'
 import GridContent from '@/components/GridContent'
 
@@ -140,25 +139,26 @@ export default function Layout(props: Props) {
 
   return <>
     {hasLoadedAPI() ?
-      <ThemeProvider theme={Theme}>
-        <SnackbarProvider maxSnack={3}>
-          <ScrollToTop />
-          <Alerting />
-          <WindowSuperAdmin />
-          <Navbar
-            menuShow={showFullWidth}
-            setMenuShow={handleFullWidth}
-            fullwidth={props.fullwidth}
-          />
-          <GridContent
-            menuShow={showFullWidth}
-            menu={props.menu}
-            fullwidth={props.fullwidth}
-          >
-            {props.children}
-          </GridContent>
-        </SnackbarProvider>
-      </ThemeProvider>
+      <>
+        <ScrollToTop />
+        <Alerting />
+        <Navbar
+          menuShow={showFullWidth}
+          setMenuShow={handleFullWidth}
+          fullwidth={props.fullwidth}
+        />
+        <ThemeProvider theme={Theme}>
+          <SnackbarProvider maxSnack={3}>
+            <GridContent
+              menuShow={showFullWidth}
+              menu={props.menu}
+              fullwidth={props.fullwidth}
+            >
+              {props.children}
+            </GridContent>
+          </SnackbarProvider>
+        </ThemeProvider>
+      </>
       :
       loadingOverlay ?
         LoadingOverlay(loadingOverlay)

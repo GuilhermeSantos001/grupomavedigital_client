@@ -4,8 +4,6 @@ import { GetServerSidePropsContext } from 'next/types'
 
 import { useGetUserInfoService } from '@/services/graphql/useGetUserInfoService'
 
-import { verifyCookie } from '@/lib/verifyCookie'
-
 import { compressToEncodedURIComponent } from 'lz-string'
 
 import { Offcanvas } from 'react-bootstrap';
@@ -59,7 +57,7 @@ export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => 
     props: {
       ...serverSideProps,
       privileges,
-      auth: await verifyCookie(req.cookies.auth),
+      auth: req.cookies.auth,
       getUserInfoAuthorization: process.env.GRAPHQL_AUTHORIZATION_GETUSERINFO!,
     },
   }
@@ -379,9 +377,11 @@ function compose_ready(
                       },
                       enabled: item.person ? true : false,
                       handleClick: () => {
-                        handleChangeTextNameCanvasUserInfo(`${item.person.name}`);
-                        handleChangeTextMatriculeCanvasUserInfo(`Matrícula: ${item.person.matricule}`);
-                        openCanvasUserInfo();
+                        if (item.person) {
+                          handleChangeTextNameCanvasUserInfo(`${item.person.name}`);
+                          handleChangeTextMatriculeCanvasUserInfo(`Matrícula: ${item.person.matricule}`);
+                          openCanvasUserInfo();
+                        }
                       },
                       popover: {
                         title: 'Usuário Atribuído',
@@ -566,22 +566,22 @@ export default function CardsRemove(
     handleChangeTextNameCanvasUserInfo = (text: string) => setTextNameCanvasUserInfo(text),
     handleChangeTextMatriculeUserInfo = (text: string) => setTextMatriculeCanvasUserInfo(text);
 
-  if (error && !notAuth) {
-    setNotAuth(true);
-    setLoading(false);
-  }
+    if (error && !notAuth) {
+      setNotAuth(true);
+      setLoading(false);
+    }
 
-  if (success && data && !isReady) {
-    if (
-      privileges
-        .filter(privilege => data.privileges.indexOf(privilege) !== -1)
-        .length <= 0
-    )
-      setNotPrivilege(true);
+    if (success && data && !isReady) {
+      if (
+        privileges
+          .filter(privilege => data.privileges.indexOf(privilege) !== -1)
+          .length <= 0
+      )
+        setNotPrivilege(true);
 
-    setReady(true);
-    setLoading(false);
-  }
+      setReady(true);
+      setLoading(false);
+    }
 
   if (
     isLoadingCards && !syncData ||

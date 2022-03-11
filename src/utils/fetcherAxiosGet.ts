@@ -4,7 +4,9 @@ import axios from 'axios'
 
 export function fetcherAxiosGet(url: string, setLoading: Dispatch<SetStateAction<boolean>>) {
   setLoading(true);
-  return axios.get(url, { headers: { 'key': compressToBase64(process.env.NEXT_PUBLIC_EXPRESS_AUTHORIZATION || "") } })
+  return axios.get(url, { headers: { 'key': compressToBase64(process.env.NEXT_PUBLIC_EXPRESS_AUTHORIZATION!) } })
     .then(res => res.data)
-    .finally(() => setLoading(false));
+    .finally(() => {
+      setLoading(false);
+    });
 }

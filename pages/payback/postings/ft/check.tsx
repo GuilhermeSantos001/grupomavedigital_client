@@ -1,10 +1,10 @@
-/**
- * @description Payback -> Lançamentos Financeiros -> Apuração
- * @author GuilhermeSantos001
- * @update 14/02/2022
- */
-
 import React, { useEffect, useState } from 'react'
+
+import { GetServerSidePropsContext } from 'next/types'
+
+import { useGetUserInfoService } from '@/services/graphql/useGetUserInfoService'
+
+import { compressToEncodedURIComponent } from 'lz-string'
 
 import FormControl from '@mui/material/FormControl'
 import Select from '@mui/material/Select'
@@ -21,11 +21,11 @@ import Icon from '@/src/utils/fontAwesomeIcons'
 import NoPrivilege, { handleClickFunction } from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
 
-import { BoxLoadingMagicSpinner } from '@/components/utils/BoxLoadingMagicSpinner'
 import { BoxError } from '@/components/utils/BoxError'
 
 import { PageProps } from '@/pages/_app'
-import {GetMenuMain} from '@/bin/GetMenuMain'
+import { GetMenuMain } from '@/bin/GetMenuMain'
+import { PrivilegesSystem } from '@/types/UserType'
 
 import { Variables } from '@/src/db/variables'
 import hasPrivilege from '@/src/functions/hasPrivilege'
@@ -52,10 +52,19 @@ const serverSideProps: PageProps = {
   menu: GetMenuMain('mn-payback')
 }
 
-export const getServerSideProps = async () => {
+export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => {
+  const privileges: PrivilegesSystem[] = [
+    'administrador',
+    'ope_gerente',
+    'ope_coordenador'
+  ]
+
   return {
     props: {
       ...serverSideProps,
+      privileges,
+      auth: req.cookies.auth,
+      getUserInfoAuthorization: process.env.GRAPHQL_AUTHORIZATION_GETUSERINFO!,
     },
   }
 }
@@ -267,7 +276,17 @@ function compose_ready(
   )
 }
 
-export default function Postings() {
+export default function Postings(
+  {
+    privileges,
+    auth,
+    getUserInfoAuthorization,
+  }: {
+    privileges: PrivilegesSystem[],
+    auth: string,
+    getUserInfoAuthorization: string
+  }
+) {
   const [syncData, setSyncData] = useState<boolean>(false)
 
   const [isReady, setReady] = useState<boolean>(false)
@@ -279,6 +298,16 @@ export default function Postings() {
   const [periodStart, setPeriodStart] = useState<Date>(new Date())
   const [periodEnd, setPeriodEnd] = useState<Date>(new Date())
   const [postingsDefined, setPostingsDefined] = useState<PostingType[]>([])
+
+  const { success, data, error } = useGetUserInfoService(
+    {
+      auth: compressToEncodedURIComponent(auth),
+    },
+    {
+      authorization: getUserInfoAuthorization,
+      encodeuri: 'true'
+    }
+  );
 
   const router = useRouter()
 
@@ -335,28 +364,28 @@ export default function Postings() {
       }
     };
 
-  useEffect(() => {
-    hasPrivilege('administrador', 'ope_gerente', 'ope_coordenador', 'ope_mesa')
-      .then((isAllowViewPage) => {
-        if (isAllowViewPage) {
-          setReady(true);
-        } else {
-          setNotPrivilege(true);
-        }
+  if (error && !notAuth) {
+    setNotAuth(true);
+    setLoading(false);
+  }
 
-        return setLoading(false);
-      })
-      .catch(() => {
-        setNotAuth(true);
-        return setLoading(false)
-      });
-  }, [])
+  if (success && data && !isReady) {
+    if (
+      privileges
+        .filter(privilege => data.privileges.indexOf(privilege) !== -1)
+        .length <= 0
+    )
+      setNotPrivilege(true);
+
+    setReady(true);
+    setLoading(false);
+  }
 
   if (
     isLoadingPostings && !syncData
     || isLoadingCostCenters && !syncData
   )
-    return <BoxLoadingMagicSpinner />
+    return compose_load()
 
   if (
     !syncData

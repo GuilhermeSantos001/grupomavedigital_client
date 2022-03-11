@@ -6,8 +6,6 @@ import { GetServerSidePropsContext } from 'next/types'
 
 import { useGetUserInfoService } from '@/services/graphql/useGetUserInfoService'
 
-import { verifyCookie } from '@/lib/verifyCookie'
-
 import { compressToEncodedURIComponent } from 'lz-string'
 
 import Image from 'next/image'
@@ -53,7 +51,7 @@ export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => 
   return {
     props: {
       ...serverSideProps,
-      auth: await verifyCookie(req.cookies.auth),
+      auth: req.cookies.auth,
       getUserInfoAuthorization: process.env.GRAPHQL_AUTHORIZATION_GETUSERINFO!,
       authSignTwofactorAuthorization: process.env.GRAPHQL_AUTHORIZATION_AUTHSIGNTWOFACTOR!,
       authVerifyTwofactorAuthorization: process.env.GRAPHQL_AUTHORIZATION_AUTHVERIFYTWOFACTOR!,

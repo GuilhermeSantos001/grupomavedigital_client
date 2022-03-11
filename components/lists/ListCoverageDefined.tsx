@@ -1,9 +1,3 @@
-/**
- * @description Lista -> Lista de coberturas operacionais lançadas
- * @author GuilhermeSantos001
- * @update 14/02/2022
- */
-
 import { useState } from 'react';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'

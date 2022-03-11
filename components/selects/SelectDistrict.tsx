@@ -171,13 +171,6 @@ function Component(props: Props) {
             setReturnData(true);
             props.handleChangeId(district.id);
           } else {
-            if (!newValue && props.district) {
-              newValue = {
-                id: props.district.id,
-                value: district?.value || '???'
-              }
-            }
-
             setValue(newValue);
             setReturnData(true);
             props.handleChangeId(newValue?.id || '');
@@ -282,6 +275,7 @@ export const SelectDistrict = memo(Component, (prevStates, nextStates) => {
     prevStates.district?.value !== nextStates.district?.value
     || prevStates.districts.length <= 0 || nextStates.districts.length <= 0
     || prevStates.districts.length !== nextStates.districts.length
+    || JSON.stringify(prevStates.districts) !== JSON.stringify(nextStates.districts)
   )
     return false;
 

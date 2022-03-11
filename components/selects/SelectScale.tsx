@@ -171,13 +171,6 @@ const filter = createFilterOptions<FilmOptionType>();
             setReturnData(true);
             props.handleChangeId(scale.id);
           } else {
-            if (!newValue && props.scale) {
-              newValue = {
-                id: props.scale.id,
-                value: scale?.value || '???'
-              }
-            }
-
             setValue(newValue);
             setReturnData(true);
             props.handleChangeId(newValue?.id || '');
@@ -282,6 +275,7 @@ export const SelectScale = memo(Component, (prevStates, nextStates) => {
     prevStates.scale?.value !== nextStates.scale?.value
     || prevStates.scales.length <= 0 || nextStates.scales.length <= 0
     || prevStates.scales.length !== nextStates.scales.length
+    || JSON.stringify(prevStates.scales) !== JSON.stringify(nextStates.scales)
   )
     return false;
 

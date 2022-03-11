@@ -2,9 +2,6 @@
 import { NextResponse } from 'next/server';
 import { cookieOptions } from '@/constants/cookieOptions';
 
-import { jwtVerify } from 'jose'
-import { compressToUint8Array } from 'lz-string'
-
 export type SessionCookies = {
   authorization: string;
   token: string;
@@ -34,18 +31,5 @@ export async function setSessionCookies(cookies: SessionCookies, res: NextRespon
     });
   } catch (error) {
     throw new Error(String(error));
-  }
-}
-
-export async function readyCookie(cookie: string) {
-  try {
-    const verified = await jwtVerify(
-      cookie,
-      compressToUint8Array(process.env.SIGNED_COOKIE_SECRET!)
-    );
-
-    return verified.payload.value as string;
-  } catch {
-    return false;
   }
 }

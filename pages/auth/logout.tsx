@@ -9,7 +9,6 @@ import { PageProps } from '@/pages/_app'
 import { GetMenuHome } from '@/bin/GetMenuHome'
 
 import Fetch from '@/src/utils/fetch'
-import { verifyCookie } from '@/lib/verifyCookie'
 import AuthLogout from '@/src/functions/authLogout'
 
 const serverSideProps: PageProps = {
@@ -23,9 +22,9 @@ const serverSideProps: PageProps = {
 export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => ({
   props: {
     ...serverSideProps,
-    auth: await verifyCookie(req.cookies.auth),
-    token: await verifyCookie(req.cookies.token),
-    signature: await verifyCookie(req.cookies.signature),
+    auth: req.cookies.auth,
+    token: req.cookies.token,
+    signature: req.cookies.signature,
     authLogoutAuthorization: process.env.GRAPHQL_AUTHORIZATION_AUTHLOGOUT as string,
   },
 })

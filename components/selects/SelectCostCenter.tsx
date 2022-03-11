@@ -171,13 +171,6 @@ function Component(props: Props) {
             setReturnData(true);
             props.handleChangeId(costCenter.id);
           } else {
-            if (!newValue && props.costCenter) {
-              newValue = {
-                id: props.costCenter.id,
-                value: costCenter?.value || '???'
-              }
-            }
-
             setValue(newValue);
             setReturnData(true);
             props.handleChangeId(newValue?.id || '');
@@ -282,6 +275,7 @@ export const SelectCostCenter = memo(Component, (prevStates, nextStates) => {
     prevStates.costCenter?.value !== nextStates.costCenter?.value
     || prevStates.costCenters.length <= 0 || nextStates.costCenters.length <= 0
     || prevStates.costCenters.length !== nextStates.costCenters.length
+    || JSON.stringify(prevStates.costCenters) !== JSON.stringify(nextStates.costCenters)
   )
     return false;
 

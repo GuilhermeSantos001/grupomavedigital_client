@@ -137,6 +137,7 @@ function Component(props: Props) {
 export const SelectCard = memo(Component, (prevProps, nextProps) => {
   if (
     prevProps.cards.length !== nextProps.cards.length
+    || JSON.stringify(prevProps.cards) !== JSON.stringify(nextProps.cards)
   )
     return false;
 

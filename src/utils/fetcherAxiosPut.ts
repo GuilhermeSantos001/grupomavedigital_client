@@ -4,7 +4,7 @@ import axios from 'axios'
 
 export function fetcherAxiosPut<Data, Response>(url: string, setLoading: Dispatch<SetStateAction<boolean>>, data: Data): Promise<Response> {
   setLoading(true);
-  return axios.put(url, data, { headers: { 'Content-Type': 'application/json', 'key': compressToBase64(process.env.NEXT_PUBLIC_EXPRESS_AUTHORIZATION || "") } })
+  return axios.put(url, data, { headers: { 'Content-Type': 'application/json', 'key': compressToBase64(process.env.NEXT_PUBLIC_EXPRESS_AUTHORIZATION!) } })
     .then(res => res.data)
     .finally(() => setLoading(false));
 }

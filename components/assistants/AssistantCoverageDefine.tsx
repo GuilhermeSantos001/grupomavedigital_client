@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 
 import { PaybackSocketEvents } from '@/constants/socketEvents'
 
@@ -13,6 +13,7 @@ import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import Modal from '@mui/material/Modal'
+import Fade from '@mui/material/Fade'
 import Stepper from '@mui/material/Stepper'
 import Step from '@mui/material/Step'
 import StepLabel from '@mui/material/StepLabel'
@@ -45,6 +46,8 @@ import { SocketConnection } from '@/components/socket-io'
 import { DatePicker } from '@/components/selects/DatePicker'
 
 import DropZone from '@/components/dropZone'
+
+import { SelectReasonForAbsence } from '@/components/selects/SelectReasonForAbsence'
 
 import type {
   UploadType
@@ -97,6 +100,12 @@ import type {
   FunctionCreatePersonCoverageTypeof
 } from '@/types/PersonCoverageServiceType'
 
+import {
+  FunctionCreateReasonForAbsenceTypeof,
+  FunctionUpdateReasonForAbsencesTypeof,
+  FunctionDeleteReasonForAbsencesTypeof
+} from '@/types/ReasonForAbsenceServiceType'
+
 export type Props = {
   createPosting: FunctionCreatePostingTypeof
   createUpload: FunctionCreateUploadTypeof
@@ -111,8 +120,14 @@ export type Props = {
   isLoadingPeople: boolean
   workplaces: WorkplaceType[]
   isLoadingWorkplaces: boolean
+  createReasonForAbsence: FunctionCreateReasonForAbsenceTypeof
+  reasonForAbsence: ReasonForAbsenceType | undefined
+  handleChangeIdReasonForAbsence: (id: string) => void
+  isLoadingReasonForAbsence: boolean
   reasonForAbsences: ReasonForAbsenceType[]
   isLoadingReasonForAbsences: boolean
+  updateReasonForAbsences: FunctionUpdateReasonForAbsencesTypeof
+  deleteReasonForAbsences: FunctionDeleteReasonForAbsencesTypeof
   auth: string
   availableWorkplaces: string[]
   availablePeopleInWorkplace: string[]
@@ -432,6 +447,105 @@ export function AssistantCoverageDefine(props: Props) {
 
       window.loading = 'show';
 
+      const success = async (data: string) => {
+        try {
+          if (!createPosting || !createPersonCovering || !createPersonCoverage)
+            return Alerting.create('error', 'Não é possível registrar a movimentação operacional. Tente novamente, mais tarde!');
+
+          if (data.length > 0) {
+            const {
+              filesId,
+              type,
+            } = window.socket.decompress<TYPEOF_LISTENER_PAYBACK_CHANGE_TYPE_MIRROR>(data);
+
+            if (type === 'TEMPORARY') {
+              filesId
+                .filter(fileId => fileId.length > 0)
+                .forEach(fileId => uploadMakeTemporary(fileId));
+            } else if (type === 'PERMANENT') {
+              filesId
+                .filter(fileId => fileId.length > 0)
+                .forEach(fileId => uploadMakePermanent(fileId));
+            }
+          }
+
+          const personCoverage = await createPersonCoverage({
+            mirrorId: coveringModality === 'ft' || coveringModality === 'pacote_de_horas' ? coverageMirrorId : undefined,
+            modalityOfCoverage: coveringModality,
+            personId: coveragePersonId,
+          })
+
+          if (!personCoverage)
+            return Alerting.create('error', 'Não é possível salvar o funcionário(a) de cobertura. Tente novamente com outro espelho de ponto');
+
+          let personCovering = undefined;
+
+          if (postingModality === 'absence_person') {
+            personCovering = await createPersonCovering({
+              mirrorId: coveringMirrorId,
+              personId: coveringPersonId,
+              reasonForAbsenceId: coveringReasonForAbsenceId,
+            })
+
+            if (!personCovering)
+              throw new Error(`Não é possível salvar o funcionário(a) que está sendo coberto. Tente novamente com outro espelho de ponto.`);
+          }
+
+          const posting = await createPosting({
+            author: props.auth,
+            costCenterId: props.postingCostCenterId,
+            periodStart: props.periodStart.toISOString(),
+            periodEnd: props.periodEnd.toISOString(),
+            originDate: originDate.toISOString(),
+            description: postingDescription,
+            coveringId: personCovering ? personCovering.data.id : undefined,
+            coverageId: personCoverage.data.id,
+            coveringWorkplaceId: coveringWorkplace,
+            coverageWorkplaceId: coveringModality === 'ft' || coveringModality === 'pacote_de_horas' ? coverageWorkplace : undefined,
+            paymentMethod,
+            paymentValue,
+            paymentDatePayable: paymentDatePayable.toISOString(),
+            paymentStatus: 'pending',
+            status: 'available'
+          });
+
+          if (!posting)
+            throw new Error(`Não é possível salvar a movimentação operacional. Tente novamente, mais tarde!`);
+
+          clearInputs();
+          setPostings([...postings, posting.data]);
+
+          window.loading = 'hide';
+          Alerting.create('success', 'Movimentação registrada com sucesso.');
+        } catch (error) {
+          window.loading = 'hide';
+          Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
+
+          // ! Limpa os anexos dos espelhos de ponto
+          setCoveringMirrorId('');
+          setCoveringMirrorFileId('');
+          setCoveringMirrorFileName('');
+          setCoveringMirrorFileType('');
+          setCoverageMirrorId('');
+          setCoverageMirrorFileId('');
+          setCoverageMirrorFileName('');
+          setCoverageMirrorFileType('');
+
+          // ! Falta do efetivo
+          if (
+            postingModality === 'absence_person'
+          )
+            setActiveStep(3);
+          // ! Falta de Efetivo
+          else if (postingModality === 'lack_people')
+            setActiveStep(7);
+        }
+      }
+
+      if (coveringModality === 'ft' || coveringModality === 'pacote_de_horas') {
+        return success('');
+      }
+
       // ! Confirma o anexo dos espelhos de ponto
       setTimeout(() => {
         window.socket.emit(
@@ -456,98 +570,7 @@ export function AssistantCoverageDefine(props: Props) {
         .socket.
         on(
           `${PaybackSocketEvents.PAYBACK_CHANGE_TYPE_MIRROR}-SUCCESS`,
-          async (data: string) => {
-            try {
-              if (!createPosting || !createPersonCovering || !createPersonCoverage)
-                return Alerting.create('error', 'Não é possível registrar a movimentação operacional. Tente novamente, mais tarde!');
-
-              const {
-                filesId,
-                type,
-              } = window.socket.decompress<TYPEOF_LISTENER_PAYBACK_CHANGE_TYPE_MIRROR>(data);
-
-              if (type === 'TEMPORARY') {
-                filesId
-                  .filter(fileId => fileId.length > 0)
-                  .forEach(fileId => uploadMakeTemporary(fileId));
-              } else if (type === 'PERMANENT') {
-                filesId
-                  .filter(fileId => fileId.length > 0)
-                  .forEach(fileId => uploadMakePermanent(fileId));
-              }
-
-              const personCoverage = await createPersonCoverage({
-                mirrorId: coveringModality === 'ft'|| coveringModality === 'pacote_de_horas' ? coverageMirrorId : undefined,
-                modalityOfCoverage: coveringModality,
-                personId: coveragePersonId,
-              })
-
-              if (!personCoverage)
-                return Alerting.create('error', 'Não é possível salvar o funcionário(a) de cobertura. Tente novamente com outro espelho de ponto');
-
-              let personCovering = undefined;
-
-              if (postingModality === 'absence_person') {
-                personCovering = await createPersonCovering({
-                  mirrorId: coveringMirrorId,
-                  personId: coveringPersonId,
-                  reasonForAbsenceId: coveringReasonForAbsenceId,
-                })
-
-                if (!personCovering)
-                  throw new Error(`Não é possível salvar o funcionário(a) que está sendo coberto. Tente novamente com outro espelho de ponto.`);
-              }
-
-              const posting = await createPosting({
-                author: props.auth,
-                costCenterId: props.postingCostCenterId,
-                periodStart: props.periodStart.toISOString(),
-                periodEnd: props.periodEnd.toISOString(),
-                originDate: originDate.toISOString(),
-                description: postingDescription,
-                coveringId: personCovering ? personCovering.data.id : undefined,
-                coverageId: personCoverage.data.id,
-                coveringWorkplaceId: coveringWorkplace,
-                coverageWorkplaceId: coveringModality === 'ft' || coveringModality === 'pacote_de_horas' ? coverageWorkplace : undefined,
-                paymentMethod,
-                paymentValue,
-                paymentDatePayable: paymentDatePayable.toISOString(),
-                paymentStatus: 'pending',
-                status: 'available'
-              });
-
-              if (!posting)
-                throw new Error(`Não é possível salvar a movimentação operacional. Tente novamente, mais tarde!`);
-
-              clearInputs();
-              setPostings([...postings, posting.data]);
-
-              window.loading = 'hide';
-              Alerting.create('success', 'Movimentação registrada com sucesso.');
-            } catch (error) {
-              window.loading = 'hide';
-              Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
-
-              // ! Limpa os anexos dos espelhos de ponto
-              setCoveringMirrorId('');
-              setCoveringMirrorFileId('');
-              setCoveringMirrorFileName('');
-              setCoveringMirrorFileType('');
-              setCoverageMirrorId('');
-              setCoverageMirrorFileId('');
-              setCoverageMirrorFileName('');
-              setCoverageMirrorFileType('');
-
-              // ! Falta do efetivo
-              if (
-                postingModality === 'absence_person'
-              )
-                setActiveStep(3);
-              // ! Falta de Efetivo
-              else if (postingModality === 'lack_people')
-                setActiveStep(7);
-            }
-          })
+          async (data: string) => success(data))
 
       window
         .socket.
@@ -559,7 +582,10 @@ export function AssistantCoverageDefine(props: Props) {
     },
     handleChangeCoveringWorkplace = (event: SelectChangeEvent) => setCoveringWorkplace(event.target.value),
     handleChangeCoveringPersonId = (event: SelectChangeEvent) => setCoveringPersonId(event.target.value),
-    handleChangeCoveringReasonForAbsenceId = (id: string) => setCoveringReasonForAbsenceId(id),
+    handleChangeCoveringReasonForAbsenceId = (id: string) => {
+      setCoveringReasonForAbsenceId(id);
+      props.handleChangeIdReasonForAbsence(id);
+    },
     handleAppendUploads = async (data: DataUpload) => {
       try {
         const upload = await createUpload(data);
@@ -747,32 +773,16 @@ export function AssistantCoverageDefine(props: Props) {
       label: 'Motivo da Ausência',
       description: `Informe o motivo da ausência da pessoa que está sendo substituída.`,
       content: (
-        <FormControl variant="standard" className='col-12'>
-          <InputLabel id="select-covering-workplace-label">
-            Locais de Trabalho
-          </InputLabel>
-          <Select
-            labelId="select-covering-workplace-label"
-            id="select-covering-workplace"
-            value={coveringReasonForAbsenceId}
-            onChange={(e) => handleChangeCoveringReasonForAbsenceId(e.target.value)}
-            label="Local de Trabalho"
-          >
-            <MenuItem value="">
-              <em>Selecionar</em>
-            </MenuItem>
-            {
-              reasonForAbsences
-                .map(reason => (
-                  <MenuItem
-                    key={reason.id}
-                    value={reason.id}>
-                    {reason.value}
-                  </MenuItem>
-                ))
-            }
-          </Select>
-        </FormControl>
+        <SelectReasonForAbsence
+          createReasonForAbsence={props.createReasonForAbsence}
+          reasonForAbsence={props.reasonForAbsence}
+          isLoadingReasonForAbsence={props.isLoadingReasonForAbsence}
+          reasonForAbsences={reasonForAbsences}
+          isLoadingReasonForAbsences={isLoadingReasonForAbsences}
+          updateReasonForAbsences={props.updateReasonForAbsences}
+          deleteReasonForAbsences={props.deleteReasonForAbsences}
+          handleChangeId={handleChangeCoveringReasonForAbsenceId}
+        />
       )
     },
     {
@@ -1130,140 +1140,153 @@ export function AssistantCoverageDefine(props: Props) {
     left: '50%',
     transform: 'translate(-50%, -50%)',
     bgcolor: 'background.paper',
+    width: '100%',
+    height: '100%',
     boxShadow: 24
   }
+
+  const ModalStepperClose = useCallback(() => {
+    clearInputs();
+    props.handleFinish(postings);
+    props.handleClose();
+  }, [postings]);
 
   return (
     <>
       {!window.socket && <SocketConnection />}
       <Modal
         open={props.show}
-        onClose={() => {
-          clearInputs();
-          props.handleFinish(postings);
-          props.handleClose();
-        }}
+        onClose={ModalStepperClose}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
-        <Box className='col-10 bg-light-gray bg-gradient rounded shadow' sx={boxSxProps}>
-          <div className='d-flex flex-column flex-md-row p-3 my-2'>
-            <Stepper activeStep={activeStep} orientation="vertical" className='col-12 col-md-8 overflow-auto' style={{ height: '85vh' }}>
-              {steps.map((step, index) => (
-                <Step key={`${step.label}`}>
-                  <StepLabel
-                    optional={
-                      index === steps.length - 1 ? (
-                        <Typography variant="caption">Última Etapa</Typography>
-                      ) : null
-                    }
-                  >
-                    {step.label}
-                  </StepLabel>
-                  <StepContent>
-                    {step.content}
-                    <Typography className='mt-2'>{step.description}</Typography>
-                    <Box sx={{ mb: 2 }}>
-                      <div>
-                        <Button
-                          variant="contained"
-                          onClick={() => {
-                            if (index === steps.length - 1)
-                              return handleFinish();
+        <Fade in={props.show}>
+          <Box className='bg-light-gray bg-gradient rounded shadow' sx={boxSxProps}>
+            <div className='d-flex flex-column flex-md-row p-2 my-2'>
+              <Stepper activeStep={activeStep} orientation="vertical" className='col-12 col-md-8 overflow-auto' style={{ height: '95vh' }}>
+                {steps.map((step, index) => (
+                  <Step key={`${step.label}`}>
+                    <StepLabel
+                      optional={
+                        index === steps.length - 1 ? (
+                          <Typography variant="caption">Última Etapa</Typography>
+                        ) : null
+                      }
+                    >
+                      {step.label}
+                    </StepLabel>
+                    <StepContent>
+                      {step.content}
+                      <Typography className='mt-2'>{step.description}</Typography>
+                      <Box sx={{ mb: 2 }}>
+                        <div>
+                          <Button
+                            variant="contained"
+                            onClick={() => {
+                              if (index === steps.length - 1)
+                                return handleFinish();
 
-                            handleNext();
-                          }}
-                          sx={{ mt: 1, mr: 1 }}
-                        >
-                          {index === steps.length - 1 ? 'Finalizar' : 'Próximo'}
-                        </Button>
-                        <Button
-                          disabled={index === 0}
-                          onClick={handleBack}
-                          sx={{ mt: 1, mr: 1 }}
-                        >
-                          Voltar
-                        </Button>
-                      </div>
-                    </Box>
-                  </StepContent>
-                </Step>
-              ))}
-            </Stepper>
-            <div className='col d-none d-md-flex flex-column overflow-auto' style={{ height: '85vh' }}>
-              <Card className='m-3'>
-                <CardActionArea className='p-2'>
-                  <CardContent>
-                    <Typography gutterBottom variant="h5" component="div">
-                      Movimentação Operacional
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" className='mb-2'>
-                      Data de Origem: {originDate.toLocaleDateString()}
-                    </Typography>
-                    <Divider className='mb-2' />
-                    {
-                      // ! Falta do Efetivo
-                      postingModality === 'absence_person' &&
-                      <Typography variant="caption" color="text.secondary">
-                        A cobertura está sendo realizada no(a) {workplaces.find(place => place.id === coveringWorkplace)?.name},
-                        devido à {reasonForAbsences.find(reason => reason.id === coveringReasonForAbsenceId)?.value} do(a) {people.find(person => person.id === coveringPersonId)?.name}.
+                              handleNext();
+                            }}
+                            sx={{ mt: 1, mr: 1 }}
+                          >
+                            {index === steps.length - 1 ? 'Finalizar' : 'Próximo'}
+                          </Button>
+                          <Button
+                            disabled={index === 0}
+                            onClick={handleBack}
+                            sx={{ mt: 1, mr: 1 }}
+                          >
+                            Voltar
+                          </Button>
+                        </div>
+                      </Box>
+                    </StepContent>
+                  </Step>
+                ))}
+              </Stepper>
+              <div className='col d-none d-md-flex flex-column overflow-auto' style={{ height: '85vh' }}>
+                <Card className='m-3'>
+                  <CardActionArea className='p-2'>
+                    <CardContent>
+                      <Typography gutterBottom variant="h5" component="div">
+                        Movimentação Operacional
                       </Typography>
-                    }
-                    {
-                      // ! Falta de Efetivo
-                      postingModality === 'lack_people' &&
-                      <Typography variant="caption" color="text.secondary">
-                        O posto {workplaces.find(place => place.id === coveringWorkplace)?.name}, está sendo coberto
-                        devido a falta de efetivo.
+                      <Typography variant="body2" color="text.secondary" className='mb-2'>
+                        Data de Origem: {originDate.toLocaleDateString()}
                       </Typography>
-                    }
-                    <br />
-                    {
-                      coveringModality === 'ft' &&
+                      <Divider className='mb-2' />
+                      {
+                        // ! Falta do Efetivo
+                        postingModality === 'absence_person' &&
+                        <Typography variant="caption" color="text.secondary">
+                          A cobertura está sendo realizada no(a) {workplaces.find(place => place.id === coveringWorkplace)?.name},
+                          devido à {reasonForAbsences.find(reason => reason.id === coveringReasonForAbsenceId)?.value} do(a) {people.find(person => person.id === coveringPersonId)?.name}.
+                        </Typography>
+                      }
+                      {
+                        // ! Falta de Efetivo
+                        postingModality === 'lack_people' &&
+                        <Typography variant="caption" color="text.secondary">
+                          O posto {workplaces.find(place => place.id === coveringWorkplace)?.name}, está sendo coberto
+                          devido a falta de efetivo.
+                        </Typography>
+                      }
+                      <br />
+                      {
+                        coveringModality === 'ft' &&
+                        <Typography variant="caption" color="text.secondary">
+                          {people.find(person => person.id === coveragePersonId)?.name} está realizando a cobertura,
+                          ele(a) está realizando uma Folga Trabalhada (FT), o posto de origem é {workplaces.find(place => place.id === coverageWorkplace)?.name}.
+                        </Typography>
+                      }
+                      {
+                        coveringModality === 'freelancer' &&
+                        <Typography variant="caption" color="text.secondary">
+                          {people.find(person => person.id === coveragePersonId)?.name} está realizando a cobertura,
+                          ele(a) é Freelancer.
+                        </Typography>
+                      }
+                      {
+                        coveringModality === '' &&
+                        <Typography variant="caption" color="text.secondary">
+                          {people.find(person => person.id === coveragePersonId)?.name} está realizando a cobertura...
+                        </Typography>
+                      }
+                      <br />
                       <Typography variant="caption" color="text.secondary">
-                        {people.find(person => person.id === coveragePersonId)?.name} está realizando a cobertura,
-                        ele(a) está realizando uma Folga Trabalhada (FT), o posto de origem é {workplaces.find(place => place.id === coverageWorkplace)?.name}.
+                        Será Pago: {StringEx.maskMoney(paymentValue)} {
+                          paymentMethod === 'card' && 'no Cartão Benefício (Alelo)' ||
+                          paymentMethod === 'money' && 'em Dinheiro' ||
+                          paymentMethod === '' && '...'
+                        }.
                       </Typography>
-                    }
-                    {
-                      coveringModality === 'freelancer' &&
+                      <br />
                       <Typography variant="caption" color="text.secondary">
-                        {people.find(person => person.id === coveragePersonId)?.name} está realizando a cobertura,
-                        ele(a) é Freelancer.
+                        Previsão de pagamento: {new Date(paymentDatePayable).toLocaleDateString()}
                       </Typography>
-                    }
-                    {
-                      coveringModality === '' &&
-                      <Typography variant="caption" color="text.secondary">
-                        {people.find(person => person.id === coveragePersonId)?.name} está realizando a cobertura...
-                      </Typography>
-                    }
-                    <br />
-                    <Typography variant="caption" color="text.secondary">
-                      Será Pago: {StringEx.maskMoney(paymentValue)} {
-                        paymentMethod === 'card' && 'no Cartão Benefício (Alelo)' ||
-                        paymentMethod === 'money' && 'em Dinheiro' ||
-                        paymentMethod === '' && '...'
-                      }.
-                    </Typography>
-                    <br />
-                    <Typography variant="caption" color="text.secondary">
-                      Previsão de pagamento: {new Date(paymentDatePayable).toLocaleDateString()}
-                    </Typography>
-                  </CardContent>
-                </CardActionArea>
-              </Card>
-              <TextField
-                label="Descrição"
-                className='mx-3'
-                multiline
-                rows={4}
-                value={postingDescription}
-                onChange={(e) => handleChangeDescription(e.target.value)}
-              />
+                    </CardContent>
+                  </CardActionArea>
+                </Card>
+                <TextField
+                  label="Descrição"
+                  className='mx-3'
+                  multiline
+                  rows={4}
+                  value={postingDescription}
+                  onChange={(e) => handleChangeDescription(e.target.value)}
+                />
+                <Button
+                  className='p-2 m-2'
+                  variant='contained'
+                  onClick={ModalStepperClose}
+                >
+                  Sair
+                </Button>
+              </div>
             </div>
-          </div>
-        </Box>
+          </Box>
+        </Fade>
       </Modal>
     </>
   )

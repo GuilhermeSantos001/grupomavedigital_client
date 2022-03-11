@@ -171,13 +171,6 @@ const filter = createFilterOptions<FilmOptionType>();
             setReturnData(true);
             props.handleChangeId(reasonForAbsence.id);
           } else {
-            if (!newValue && props.reasonForAbsence) {
-              newValue = {
-                id: props.reasonForAbsence.id,
-                value: reasonForAbsence?.value || '???'
-              }
-            }
-
             setValue(newValue);
             setReturnData(true);
             props.handleChangeId(newValue?.id || '');
@@ -283,6 +276,7 @@ export const SelectReasonForAbsence = memo(Component, (prevStates, nextStates) =
     prevStates.reasonForAbsence?.value !== nextStates.reasonForAbsence?.value
     || prevStates.reasonForAbsences.length <= 0 || nextStates.reasonForAbsences.length <= 0
     || prevStates.reasonForAbsences.length !== nextStates.reasonForAbsences.length
+    || JSON.stringify(prevStates.reasonForAbsences) !== JSON.stringify(nextStates.reasonForAbsences)
   )
     return false;
 

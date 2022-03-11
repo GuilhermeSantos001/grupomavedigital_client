@@ -7,6 +7,8 @@ import Link from 'next/link'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
 
+import { motion } from "framer-motion"
+
 import type {
   Menu,
   MenuResponse,
@@ -195,13 +197,15 @@ export default class GridContent extends React.Component<MyProps, MyState> {
 
     return (
       <div className='p-2'>
-        <div
+        <motion.div
+          layout
           id="sidebar"
-          className={`d-flex flex-column py-2 my-2 animation-delay overflow-auto ${this.props.fullwidth ? 'fullwidth' : ''
+          className={`d-flex flex-column py-2 my-2 overflow-auto ${this.props.fullwidth ? 'fullwidth' : ''
             } ${this.props.menuShow ? 'fullwidth' : ''}`}
           style={{ height: '80vh' }}
-        >
-          <ul className={`list-style-none px-2`}>
+          transition={{ duration: 0.2}}
+          children={(
+            <ul className={`list-style-none px-2`}>
             {menu}
             <div
               key='build-jully'
@@ -222,7 +226,8 @@ export default class GridContent extends React.Component<MyProps, MyState> {
               />
             </div>
           </ul>
-        </div>
+          )}
+        />
         <div
           id="content"
           className={`fade-effect active p-2 mb-5 border-start animation-delay ${this.props.fullwidth ? 'fullwidth' : ''

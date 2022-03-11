@@ -236,6 +236,7 @@ function Component(props: Props) {
 export const SelectService = memo(Component, (prevStates, nextStates) => {
   if (
     prevStates.services.length !== nextStates.services.length
+    || JSON.stringify(prevStates.services) !== JSON.stringify(nextStates.services)
     || prevStates.itemsLeft.length !== nextStates.itemsLeft.length
     || prevStates.itemsRight.length !== nextStates.itemsRight.length
   )

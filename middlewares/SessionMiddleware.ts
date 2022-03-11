@@ -1,15 +1,15 @@
 // eslint-disable-next-line @next/next/no-server-import-in-page
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyCookie } from '@/lib/verifyCookie';
 import { setSessionCookies } from '@/src/utils/Cookies';
 
 export async function SessionMiddleware(req: NextRequest, res: NextResponse) {
   try {
-    const auth = await verifyCookie(req.cookies.auth),
-      token = await verifyCookie(req.cookies.token),
-      signature = await verifyCookie(req.cookies.signature),
-      refreshTokenValue = await verifyCookie(req.cookies.refreshTokenValue),
-      refreshTokenSignature = await verifyCookie(req.cookies.refreshTokenSignature);
+    const
+      auth = req.cookies.auth,
+      token = req.cookies.token,
+      signature = req.cookies.signature,
+      refreshTokenValue = req.cookies.refreshTokenValue,
+      refreshTokenSignature = req.cookies.refreshTokenSignature;
 
     const
       pageName = req.page.name,

@@ -4,8 +4,6 @@ import { GetServerSidePropsContext } from 'next/types'
 
 import { useGetUserInfoService } from '@/services/graphql/useGetUserInfoService'
 
-import { verifyCookie } from '@/lib/verifyCookie'
-
 import { compressToEncodedURIComponent } from 'lz-string'
 
 import Link from 'next/link'
@@ -43,7 +41,7 @@ export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => 
     props: {
       ...serverSideProps,
       privileges,
-      auth: await verifyCookie(req.cookies.auth),
+      auth: req.cookies.auth,
       getUserInfoAuthorization: process.env.GRAPHQL_AUTHORIZATION_GETUSERINFO!,
     },
   }
@@ -181,23 +179,6 @@ function compose_ready() {
                 />
                 <Link href="/payback/cards/titles/paid">
                   Títulos Pagos
-                </Link>
-              </p>
-              <hr />
-            </div>
-            <div className='d-flex align-items-center justify-content-center col-12 bg-primary bg-gradient rounded p-2'>
-              <p className='fs-5 my-auto text-secondary fw-bold text-center'>
-                Relatórios
-              </p>
-            </div>
-            <div className='d-flex flex-column flex-md-row align-items-center border-bottom my-3'>
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'flag')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/cards/report/credit">
-                  Relatório dos Créditos
                 </Link>
               </p>
               <hr />

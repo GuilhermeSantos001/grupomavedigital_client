@@ -342,7 +342,7 @@ function Component(props: Props) {
         color="error"
         onClick={props.handleClose}
       >
-        Cancelar
+        Sair
       </Button>
     </Dialog>
   );
