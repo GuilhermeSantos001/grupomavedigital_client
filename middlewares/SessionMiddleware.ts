@@ -1,6 +1,6 @@
 // eslint-disable-next-line @next/next/no-server-import-in-page
 import { NextRequest, NextResponse } from 'next/server'
-import { setSessionCookies } from '@/src/utils/Cookies';
+import { setSessionCookies, clearSessionCookies } from '@/src/utils/Cookies';
 
 export async function SessionMiddleware(req: NextRequest, res: NextResponse) {
   try {
@@ -44,8 +44,11 @@ export async function SessionMiddleware(req: NextRequest, res: NextResponse) {
       }),
       data = await validate.json();
 
-    if (validate.status !== 200 || !data.success)
-      throw new Error('Session is invalid');
+
+    if (validate.status !== 200 || !data.success) {
+      await clearSessionCookies(res);
+      return res;
+    }
 
     if (data.auth && data.token && data.refreshToken && data.signature)
       await setSessionCookies({

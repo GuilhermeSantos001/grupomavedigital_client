@@ -470,7 +470,7 @@ export function AssistantCoverageDefine(props: Props) {
           }
 
           const personCoverage = await createPersonCoverage({
-            mirrorId: coveringModality === 'ft' || coveringModality === 'pacote_de_horas' ? coverageMirrorId : undefined,
+            mirrorId: coveringModality === 'ft' ? coverageMirrorId : undefined,
             modalityOfCoverage: coveringModality,
             personId: coveragePersonId,
           })
@@ -501,7 +501,7 @@ export function AssistantCoverageDefine(props: Props) {
             coveringId: personCovering ? personCovering.data.id : undefined,
             coverageId: personCoverage.data.id,
             coveringWorkplaceId: coveringWorkplace,
-            coverageWorkplaceId: coveringModality === 'ft' || coveringModality === 'pacote_de_horas' ? coverageWorkplace : undefined,
+            coverageWorkplaceId: coveringModality === 'ft' ? coverageWorkplace : undefined,
             paymentMethod,
             paymentValue,
             paymentDatePayable: paymentDatePayable.toISOString(),
@@ -542,7 +542,7 @@ export function AssistantCoverageDefine(props: Props) {
         }
       }
 
-      if (coveringModality === 'ft' || coveringModality === 'pacote_de_horas') {
+      if (coveringModality === 'ft') {
         return success('');
       }
 

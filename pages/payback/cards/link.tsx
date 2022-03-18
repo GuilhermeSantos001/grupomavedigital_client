@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 
 import { GetServerSidePropsContext } from 'next/types'
 
@@ -23,8 +23,8 @@ import { GetMenuMain } from '@/bin/GetMenuMain'
 import { PrivilegesSystem } from '@/types/UserType'
 
 const serverSideProps: PageProps = {
-  title: 'Pagamentos/Lançamentos Operacionais',
-  description: 'Lançamentos Operacionais',
+  title: 'Pagamentos/Cartões Benefício',
+  description: 'Cartões Benefício',
   themeColor: '#004a6e',
   menu: GetMenuMain('mn-payback')
 }
@@ -32,9 +32,9 @@ const serverSideProps: PageProps = {
 export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => {
   const privileges: PrivilegesSystem[] = [
     'administrador',
-    'ope_gerente',
-    'ope_coordenador',
-    'ope_mesa'
+    'fin_gerente',
+    'fin_faturamento',
+    'fin_assistente'
   ]
 
   return {
@@ -126,16 +126,16 @@ function compose_ready() {
         <div className="p-3 bg-primary bg-gradient rounded">
           <p className="text-center text-secondary fw-bold fs-5 my-2">
             <FontAwesomeIcon
-              icon={Icon.render('fas', 'money-check-alt')}
+              icon={Icon.render('fas', 'id-card')}
               className="me-2 fs-3 flex-shrink-1 text-secondary my-auto"
-            /> Lançamentos Operacionais
+            /> Alelo - Cartões Benefício
           </p>
         </div>
         <div className="p-3 bg-light-gray rounded overflow-auto">
           <div className="my-1 text-primary">
             <div className='d-flex align-items-center justify-content-center col-12 bg-primary bg-gradient rounded p-2'>
               <p className='fs-5 my-auto text-secondary fw-bold text-center'>
-                FT/Freelancer
+                Cartões
               </p>
             </div>
             <div className='d-flex flex-column flex-md-row align-items-center border-bottom my-3'>
@@ -144,74 +144,41 @@ function compose_ready() {
                   icon={Icon.render('fas', 'plus-square')}
                   className="me-1 flex-shrink-1 my-auto"
                 />
-                <Link href="/payback/postings/ft/register">Registrar</Link>
+                <Link href="/payback/cards/register">Registrar</Link>
               </p>
               <hr />
               <p className="text-center text-md-start px-2 fs-6 fw-bold">
                 <FontAwesomeIcon
-                  icon={Icon.render('fas', 'certificate')}
+                  icon={Icon.render('fas', 'minus-square')}
                   className="me-1 flex-shrink-1 my-auto"
                 />
-                <Link href="/payback/postings/ft/check">Verificar</Link>
-              </p>
-              <hr />
-            </div>
-            <div className='d-flex align-items-center justify-content-center col-12 bg-primary bg-gradient rounded p-2'>
-              <p className='fs-5 my-auto text-secondary fw-bold text-center'>
-                B2
-              </p>
-            </div>
-            <div className='d-flex flex-column flex-md-row align-items-center border-bottom my-3'>
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'user-gear')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/postings/b2/manager">Controle</Link>
-              </p>
-              <hr />
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'money-bill-1-wave')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/postings/b2/paycheck">Histórico de Pagamento</Link>
+                <Link href="/payback/cards/remove">Remover</Link>
               </p>
               <hr />
             </div>
             <div className='d-flex align-items-center justify-content-center col-12 bg-primary bg-gradient rounded p-2'>
               <p className='fs-5 my-auto text-secondary fw-bold text-center'>
-                Cartões Alelo
+                Títulos
               </p>
             </div>
             <div className='d-flex flex-column flex-md-row align-items-center border-bottom my-3'>
               <p className="text-center text-md-start px-2 fs-6 fw-bold">
                 <FontAwesomeIcon
-                  icon={Icon.render('fas', 'user-plus')}
+                  icon={Icon.render('fas', 'money-check')}
                   className="me-1 flex-shrink-1 my-auto"
                 />
-                <Link href="/payback/cards/link">
-                  Associar
+                <Link href="/payback/cards/titles/pay">
+                  Títulos a Pagar
                 </Link>
               </p>
               <hr />
               <p className="text-center text-md-start px-2 fs-6 fw-bold">
                 <FontAwesomeIcon
-                  icon={Icon.render('fas', 'user-minus')}
+                  icon={Icon.render('fas', 'money-check-alt')}
                   className="me-1 flex-shrink-1 my-auto"
                 />
-                <Link href="/payback/cards/unlink">
-                  Desassociar
-                </Link>
-              </p>
-              <hr />
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'search')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/cards/links">
-                  Verificar Associações
+                <Link href="/payback/cards/titles/paid">
+                  Títulos Pagos
                 </Link>
               </p>
               <hr />
@@ -223,7 +190,7 @@ function compose_ready() {
   )
 }
 
-export default function Postings(
+export default function Cards(
   {
     privileges,
     auth,
@@ -264,9 +231,9 @@ export default function Postings(
       event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
       path: string
     ) => {
-      event.preventDefault();
-      router.push(path);
-    }
+      event.preventDefault()
+      router.push(path)
+    };
 
   if (error && !notAuth) {
     setNotAuth(true);

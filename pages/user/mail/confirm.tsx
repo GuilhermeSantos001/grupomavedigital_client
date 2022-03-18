@@ -66,7 +66,7 @@ const MailConfirm = ({
     mailConfirm(_fetch, token, mailConfirmAuthorization)
       .then(() => setIsReady(true))
       .finally(() => setIsLoading(false))
-  })
+  }, []);
 
   return (
     <div data-testid="div-container" className="p-2">

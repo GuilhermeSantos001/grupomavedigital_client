@@ -126,92 +126,46 @@ function compose_ready() {
         <div className="p-3 bg-primary bg-gradient rounded">
           <p className="text-center text-secondary fw-bold fs-5 my-2">
             <FontAwesomeIcon
-              icon={Icon.render('fas', 'money-check-alt')}
+              icon={Icon.render('fas', 'cash-register')}
               className="me-2 fs-3 flex-shrink-1 text-secondary my-auto"
-            /> Lançamentos Operacionais
+            /> Caixinha
           </p>
         </div>
         <div className="p-3 bg-light-gray rounded overflow-auto">
           <div className="my-1 text-primary">
             <div className='d-flex align-items-center justify-content-center col-12 bg-primary bg-gradient rounded p-2'>
               <p className='fs-5 my-auto text-secondary fw-bold text-center'>
-                FT/Freelancer
+                Operacional
               </p>
             </div>
             <div className='d-flex flex-column flex-md-row align-items-center border-bottom my-3'>
               <p className="text-center text-md-start px-2 fs-6 fw-bold">
                 <FontAwesomeIcon
-                  icon={Icon.render('fas', 'plus-square')}
+                  icon={Icon.render('fas', 'dollar')}
                   className="me-1 flex-shrink-1 my-auto"
                 />
-                <Link href="/payback/postings/ft/register">Registrar</Link>
-              </p>
-              <hr />
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'certificate')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/postings/ft/check">Verificar</Link>
-              </p>
-              <hr />
-            </div>
-            <div className='d-flex align-items-center justify-content-center col-12 bg-primary bg-gradient rounded p-2'>
-              <p className='fs-5 my-auto text-secondary fw-bold text-center'>
-                B2
-              </p>
-            </div>
-            <div className='d-flex flex-column flex-md-row align-items-center border-bottom my-3'>
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'user-gear')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/postings/b2/manager">Controle</Link>
-              </p>
-              <hr />
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'money-bill-1-wave')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/postings/b2/paycheck">Histórico de Pagamento</Link>
-              </p>
-              <hr />
-            </div>
-            <div className='d-flex align-items-center justify-content-center col-12 bg-primary bg-gradient rounded p-2'>
-              <p className='fs-5 my-auto text-secondary fw-bold text-center'>
-                Cartões Alelo
-              </p>
-            </div>
-            <div className='d-flex flex-column flex-md-row align-items-center border-bottom my-3'>
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'user-plus')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/cards/link">
-                  Associar
+                <Link href="/payback/postings/cashier/payment/ft">
+                  Pagamento de FT/Free
                 </Link>
               </p>
               <hr />
               <p className="text-center text-md-start px-2 fs-6 fw-bold">
                 <FontAwesomeIcon
-                  icon={Icon.render('fas', 'user-minus')}
+                  icon={Icon.render('fas', 'dollar')}
                   className="me-1 flex-shrink-1 my-auto"
                 />
-                <Link href="/payback/cards/unlink">
-                  Desassociar
+                <Link href="/payback/postings/cashier/payment/b2">
+                  Pagamento de B2
                 </Link>
               </p>
               <hr />
               <p className="text-center text-md-start px-2 fs-6 fw-bold">
                 <FontAwesomeIcon
-                  icon={Icon.render('fas', 'search')}
+                  icon={Icon.render('fas', 'dollar')}
                   className="me-1 flex-shrink-1 my-auto"
                 />
-                <Link href="/payback/cards/links">
-                  Verificar Associações
+                <Link href="/payback/postings/cashier/payment/ph">
+                  Pagamento de Pacote de Horas
                 </Link>
               </p>
               <hr />

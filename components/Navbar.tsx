@@ -43,7 +43,7 @@ export default class Navbar extends React.Component<MyProps, MyState> {
                     className="material-icons fs-1"
                     onClick={this.props.setMenuShow}
                   >
-                    {`${this.props.menuShow ? 'menu_open' : 'menu'}`}
+                    {`${this.props.menuShow ? 'menu' : 'menu_open'}`}
                   </span>
                 </p>
               </div>

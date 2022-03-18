@@ -33,3 +33,15 @@ export async function setSessionCookies(cookies: SessionCookies, res: NextRespon
     throw new Error(String(error));
   }
 }
+
+export async function clearSessionCookies(res: NextResponse) {
+  try {
+    res.clearCookie('auth');
+    res.clearCookie('token');
+    res.clearCookie('signature');
+    res.clearCookie('refreshTokenValue');
+    res.clearCookie('refreshTokenSignature');
+  } catch (error) {
+    throw new Error(String(error));
+  }
+}

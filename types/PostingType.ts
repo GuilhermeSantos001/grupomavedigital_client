@@ -25,8 +25,8 @@ export type PostingType = {
     paymentValue: number
     paymentDatePayable: string
     paymentStatus: DatabasePaymentStatusType
-    paymentDatePaid?: Date
-    paymentDateCancelled?: Date
+    paymentDatePaid?: string
+    paymentDateCancelled?: string
     foremanApproval?: boolean
     managerApproval?: boolean
     status: DatabaseStatusType

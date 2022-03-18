@@ -9,6 +9,7 @@ export type Props = {
   label: string
   value: Date
   className: string
+  disabled?: boolean
   handleChangeValue: (value: Date) => void
 }
 
@@ -21,6 +22,7 @@ function Component(props: Props) {
     <MobileTimePicker
       label={props.label}
       value={props.value}
+      disabled={props.disabled !== undefined ? props.disabled : false}
       onChange={(newValue) => props.handleChangeValue(newValue || new Date())}
       renderInput={(params) => <TextField className={props.className} {...params} />}
     />

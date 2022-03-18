@@ -1,9 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 
 import { GetServerSidePropsContext } from 'next/types'
 import { useRouter } from 'next/router'
-
-import SkeletonLoader from 'tiny-skeleton-loader-react'
 
 import { PageProps } from '@/pages/_app'
 import { GetMenuHome } from '@/bin/GetMenuHome'
@@ -22,35 +20,12 @@ const serverSideProps: PageProps = {
 export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => ({
   props: {
     ...serverSideProps,
-    auth: req.cookies.auth,
-    token: req.cookies.token,
-    signature: req.cookies.signature,
+    auth: req.cookies.auth ? req.cookies.auth : '',
+    token: req.cookies.token ? req.cookies.token : '',
+    signature: req.cookies.signature ? req.cookies.signature : '',
     authLogoutAuthorization: process.env.GRAPHQL_AUTHORIZATION_AUTHLOGOUT as string,
   },
 })
-
-function compose_load() {
-  return (
-    <div className="d-flex flex-column p-2">
-      <div className="col-12 d-flex flex-column">
-        <div className="my-1">
-          <SkeletonLoader width="100%" height="3rem" circle={false} />
-        </div>
-        <div className="col-12 my-1">
-          <SkeletonLoader width="100%" height="0.1rem" circle={false} />
-        </div>
-        <div className="col-12 my-2">
-          <SkeletonLoader
-            width="100%"
-            height="4rem"
-            radius={10}
-            circle={false}
-          />
-        </div>
-      </div>
-    </div>
-  )
-}
 
 export default function Logout({
   auth,
@@ -63,8 +38,6 @@ export default function Logout({
   signature: string
   authLogoutAuthorization: string
 }) {
-  const [loading, setLoading] = useState<boolean>(true)
-
   const router = useRouter()
   const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST!)
 
@@ -84,14 +57,10 @@ export default function Logout({
         );
 
       router.push('/auth/login');
-
-      setLoading(false);
-    })
+    }, 2000);
 
     return () => clearTimeout(timer);
-  })
-
-  if (loading) return compose_load()
+  }, [])
 
   return (
     <div

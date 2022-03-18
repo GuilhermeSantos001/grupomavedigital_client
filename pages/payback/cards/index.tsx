@@ -167,8 +167,8 @@ function compose_ready() {
                   icon={Icon.render('fas', 'money-check')}
                   className="me-1 flex-shrink-1 my-auto"
                 />
-                <Link href="/payback/cards/titles/pay">
-                  Títulos a Pagar
+                <Link href="/payback/cards/titles/ft/pay">
+                  Pagar FT/FREE
                 </Link>
               </p>
               <hr />
@@ -177,8 +177,48 @@ function compose_ready() {
                   icon={Icon.render('fas', 'money-check-alt')}
                   className="me-1 flex-shrink-1 my-auto"
                 />
-                <Link href="/payback/cards/titles/paid">
-                  Títulos Pagos
+                <Link href="/payback/cards/titles/ft/paid">
+                  Pagos FT/FREE
+                </Link>
+              </p>
+              <hr />
+              <p className="text-center text-md-start px-2 fs-6 fw-bold">
+                <FontAwesomeIcon
+                  icon={Icon.render('fas', 'money-check')}
+                  className="me-1 flex-shrink-1 my-auto"
+                />
+                <Link href="/payback/cards/titles/b2/pay">
+                  Pagar B2
+                </Link>
+              </p>
+              <hr />
+              <p className="text-center text-md-start px-2 fs-6 fw-bold">
+                <FontAwesomeIcon
+                  icon={Icon.render('fas', 'money-check-alt')}
+                  className="me-1 flex-shrink-1 my-auto"
+                />
+                <Link href="/payback/cards/titles/b2/paid">
+                  Pagos B2
+                </Link>
+              </p>
+              <hr />
+              <p className="text-center text-md-start px-2 fs-6 fw-bold">
+                <FontAwesomeIcon
+                  icon={Icon.render('fas', 'money-check')}
+                  className="me-1 flex-shrink-1 my-auto"
+                />
+                <Link href="/payback/cards/titles/ph/pay">
+                  Pagar Pacote de Horas
+                </Link>
+              </p>
+              <hr />
+              <p className="text-center text-md-start px-2 fs-6 fw-bold">
+                <FontAwesomeIcon
+                  icon={Icon.render('fas', 'money-check-alt')}
+                  className="me-1 flex-shrink-1 my-auto"
+                />
+                <Link href="/payback/cards/titles/ph/paid">
+                  Pagos Pacote de Horas
                 </Link>
               </p>
               <hr />

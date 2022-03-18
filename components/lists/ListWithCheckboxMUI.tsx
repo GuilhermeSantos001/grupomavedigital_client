@@ -7,6 +7,7 @@ export interface Props {
   rows: GridRowsProp
   pageSize: number
   pageSizeOptions: number[]
+  deepCompare?: boolean
   onChangeSelection: (itens: string[]) => void
   onPageSizeChange: (pageSize: number) => void
 }
@@ -35,6 +36,18 @@ export const ListWithCheckboxMUI = memo(Component, (prevProps, nextProps) => {
 
   if (prevRows.length !== nextRows.length)
     return false;
+
+  if (prevProps.deepCompare) {
+    for (let i = 0; i < prevRows.length; i++) {
+      if (typeof prevRows[i] === 'object' || typeof prevRows[i] === 'function') {
+        if (JSON.stringify(prevRows[i]) !== JSON.stringify(nextRows[i]))
+          return false;
+      } else {
+        if (prevRows[i] !== nextRows[i])
+          return false;
+      }
+    }
+  }
 
   return true;
 });

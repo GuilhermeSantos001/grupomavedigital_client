@@ -450,6 +450,7 @@ function compose_noAuth(handleClick: handleClickFunction) {
 
 function compose_ready(
   handleClickBackPage: () => void,
+  privileges: PrivilegesSystem[],
   auth: string,
   assistantStep: number,
   assistantFinish: boolean,
@@ -584,7 +585,12 @@ function compose_ready(
       getPeopleForTable(people),
     searchPostingsDefined = () => {
       const search = postings.filter(posting => {
-        if (costCenters.map(costCenter => costCenter.value).includes(posting.costCenter.value) && posting.paymentStatus === 'pending') {
+        if (
+          costCenters
+            .map(costCenter => costCenter.value)
+            .includes(posting.costCenter.value) &&
+          posting.paymentStatus === 'pending'
+        ) {
           if (DateEx.isWithinInterval(new Date(posting.originDate), {
             start: periodStart,
             end: periodEnd
@@ -595,16 +601,18 @@ function compose_ready(
         return false;
       });
 
+      if (postings.filter(posting => posting.costCenter.id === costCenter && posting.paymentStatus === 'pending').length > 0)
+        Alerting.create('info', `Existem ${postings.filter(posting => posting.paymentStatus === 'pending').length} lançamento(s) a pagar.`);
+      else
+        Alerting.create('info', `Não existem lançamentos a pagar.`);
+
+      if (search.length > 0 && search.filter(posting => !posting.foremanApproval || !posting.managerApproval).length <= 0)
+        return Alerting.create('warning', `Todos os lançamentos registrados nesse período já foram aprovados.`);
+
       if (search.length > 0)
         handleDefinePostingDefined(search);
-      else {
+      else
         Alerting.create('warning', `Nenhum lançamento encontrado, dentro do período informado.`);
-
-        if (postings.filter(posting => posting.costCenter.value === costCenter && posting.paymentStatus === 'pending').length > 0)
-          Alerting.create('info', `Existem ${postings.filter(posting => posting.paymentStatus === 'pending').length} lançamento(s) a pagar.`);
-        else
-          Alerting.create('info', `Não existem lançamentos a pagar.`);
-      }
     };
 
   return (
@@ -811,7 +819,7 @@ function compose_ready(
         handleFinish={(postings: PostingType[]) => {
           if (postings.length > 0) {
             Alerting.create('success', 'Cobertura(s) aplicada(s) com sucesso!');
-            setTimeout(() => searchPostingsDefined(), 1000);
+            setTimeout(() => searchPostingsDefined(), 2000);
           }
         }}
         show={showModalAssistantCoverageDefine}
@@ -1054,6 +1062,7 @@ function compose_ready(
                     <div className='d-flex flex-column p-2 m-2'>
                       <ListCoverageDefined
                         postings={postingsDefined}
+                        privileges={privileges}
                         disabledPostingRemove={assistantFinish}
                         handlePostingRemove={handleRemovePostingDefined}
                       />
@@ -1393,7 +1402,7 @@ export default function Register(
         if (!deleted)
           return Alerting.create('error', `Não foi possível deletar o(a) funcionario(a) ${person.name}. Verifique se ele(a) não está sendo utilizado(a) em outro registro.`);
 
-          newPeopleInWorkplaces.push(person);
+        newPeopleInWorkplaces.push(person);
 
         Alerting.create('success', `Funcionario(a) ${person.name} deletado(a) com sucesso.`);
       }
@@ -1643,6 +1652,7 @@ export default function Register(
 
     return compose_ready(
       handleClickBackPage,
+      data?.privileges as PrivilegesSystem[],
       auth,
       assistantStep,
       assistantFinish,

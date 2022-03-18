@@ -115,7 +115,7 @@ export default function Layout(props: Props) {
     return () => {
       clearInterval(interval);
     }
-  })
+  }, [])
 
 
   useEffect(() => {

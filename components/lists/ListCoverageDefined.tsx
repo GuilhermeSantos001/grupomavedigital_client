@@ -27,7 +27,6 @@ import { BoxError } from '@/components/utils/BoxError';
 
 import { DatePicker } from '@/components/selects/DatePicker';
 
-import hasPrivilege from '@/src/functions/hasPrivilege';
 import { uploadDownload } from '@/src/functions/getUploads';
 
 const style = {
@@ -45,11 +44,13 @@ import Alerting from '@/src/utils/alerting';
 
 import { PostingType } from '@/types/PostingType';
 import { PersonType } from '@/types/PersonType';
+import { PrivilegesSystem } from '@/types/UserType'
 
 import { usePostingsService } from '@/services/usePostingsService';
 
 export type Props = {
   postings: PostingType[]
+  privileges: PrivilegesSystem[]
   disabledPostingRemove: boolean
   handlePostingRemove: (id: string) => void
 }
@@ -154,29 +155,33 @@ export function ListCoverageDefined(props: Props) {
                     color="warning"
                     title={`Aprovação do Encarregado`}
                     disabled={posting.foremanApproval}
-                    onClick={() => {
-                      hasPrivilege('administrador', 'ope_coordenador')
-                        .then(async (isAllowViewPage) => {
-                          if (isAllowViewPage) {
-                            if (!UpdatePostings)
-                              return Alerting.create('error', 'Não foi possível executar a operação. Tente novamente, mais tarde!');
+                    onClick={async () => {
+                      const privileges = props.privileges.filter(
+                        privilege =>
+                          privilege === 'administrador' ||
+                          privilege === 'ope_coordenador'
+                      );
 
-                            const updated = await UpdatePostings(posting.id, {
-                              ...posting,
-                              foremanApproval: true,
-                            });
+                      if (
+                        props.privileges
+                          .filter(privilege => privileges.indexOf(privilege) !== -1)
+                          .length > 0
+                      ) {
+                        if (!UpdatePostings)
+                          return Alerting.create('error', 'Não foi possível executar a operação. Tente novamente, mais tarde!');
 
-                            if (!updated)
-                              return Alerting.create('error', 'Não foi possível atualizar o registro. Tente novamente, mais tarde!');
-
-                            Alerting.create('success', 'Cobertura Aprovada com sucesso!');
-                          } else {
-                            Alerting.create('success', 'Você não tem permissão para executar essa ação!');
-                          }
-                        })
-                        .catch(() => {
-                          Alerting.create('error', 'Não foi possível verificar suas permissões!');
+                        const updated = await UpdatePostings(posting.id, {
+                          ...posting,
+                          foremanApproval: true,
                         });
+
+                        if (!updated)
+                          return Alerting.create('error', 'Não foi possível atualizar o registro. Tente novamente, mais tarde!');
+
+                        Alerting.create('success', 'Cobertura Aprovada com sucesso!');
+                      } else {
+                        Alerting.create('error', 'Você não tem privilégios para executar esta ação!');
+                      }
                     }}
                   >
                     <CameraFrontIcon className='fw-bold fs-3' />
@@ -187,29 +192,33 @@ export function ListCoverageDefined(props: Props) {
                     color="inherit"
                     title={`Aprovação do Gerente`}
                     disabled={!posting.foremanApproval || posting.managerApproval}
-                    onClick={() => {
-                      hasPrivilege('administrador', 'ope_gerente')
-                        .then(async (isAllowViewPage) => {
-                          if (isAllowViewPage) {
-                            if (!UpdatePostings)
-                              return Alerting.create('error', 'Não foi possível executar a operação. Tente novamente, mais tarde!');
+                    onClick={async () => {
+                      const privileges = props.privileges.filter(
+                        privilege =>
+                          privilege === 'administrador' ||
+                          privilege === 'ope_gerente'
+                      );
 
-                            const updated = await UpdatePostings(posting.id, {
-                              ...posting,
-                              managerApproval: true,
-                            });
+                      if (
+                        props.privileges
+                          .filter(privilege => privileges.indexOf(privilege) !== -1)
+                          .length > 0
+                      ) {
+                        if (!UpdatePostings)
+                          return Alerting.create('error', 'Não foi possível executar a operação. Tente novamente, mais tarde!');
 
-                            if (!updated)
-                              return Alerting.create('error', 'Não foi possível atualizar o registro. Tente novamente, mais tarde!');
-
-                            Alerting.create('success', 'Cobertura Aprovada com sucesso. Um título para pagamento foi gerado!');
-                          } else {
-                            Alerting.create('success', 'Você não tem permissão para executar essa ação!');
-                          }
-                        })
-                        .catch(() => {
-                          Alerting.create('error', 'Não foi possível verificar suas permissões!');
+                        const updated = await UpdatePostings(posting.id, {
+                          ...posting,
+                          managerApproval: true,
                         });
+
+                        if (!updated)
+                          return Alerting.create('error', 'Não foi possível atualizar o registro. Tente novamente, mais tarde!');
+
+                        Alerting.create('success', `Cobertura Aprovada com sucesso. Um título no valor de R$ ${StringEx.maskMoney(posting.paymentValue)} foi gerado.`);
+                      } else {
+                        Alerting.create('error', 'Você não tem privilégios para executar esta ação!');
+                      }
                     }}
                   >
                     <AdminPanelSettingsIcon className='fw-bold fs-3' />

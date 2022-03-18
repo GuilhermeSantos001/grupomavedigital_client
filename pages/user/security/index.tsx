@@ -587,7 +587,7 @@ function compose_twoFactor(
               </Modal.Title>
             </Modal.Header>
             <Modal.Body>
-              <div className='overflow-auto' style={{height: '65vh'}}>
+              <div className='overflow-auto' style={{ height: '65vh' }}>
                 {twoFactorQRCode.length > 0 ? (
                   <>
                     <div className="d-flex flex-column">
@@ -819,7 +819,7 @@ export default function Security(
     });
 
     return () => clearTimeout(timeout);
-  });
+  }, []);
 
   if (error && !notAuth) {
     setNotAuth(true);

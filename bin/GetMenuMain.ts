@@ -1,9 +1,3 @@
-/**
- * @description Menu Principal do sistema
- * @author GuilhermeSantos001
- * @update 14/02/2022
- */
-
 import { MenuResponse, MenuDisable, MenuOptions } from "@/pages/_app"
 
 export function GetMenuMain(firstId?: MenuOptions): MenuResponse {
@@ -17,7 +11,9 @@ export function GetMenuMain(firstId?: MenuOptions): MenuResponse {
     "mn-login": false,
     "mn-logout": false,
     "mn-payback": false,
-    "mn-payback-separator": false,
+    "mn-payback-separator-1": false,
+    "mn-payback-separator-2": false,
+    "mn-payback-cashier": false,
     "mn-payback-cards": false,
     "mn-payback-postings": false,
     "mn-helpdesk": true,
@@ -107,6 +103,20 @@ export function GetMenuMain(firstId?: MenuOptions): MenuResponse {
         dropdownId: 'navbarDropdown',
         content: [
           {
+            id: 'mn-payback-cashier',
+            icon: {
+              family: 'fas',
+              name: 'cash-register',
+            },
+            name: 'Caixinha',
+            link: '/payback/cashier',
+            disabled: disable['mn-payback-cashier'] ? true : false,
+          },
+          {
+            id: 'mn-payback-separator-1',
+            type: 'separator',
+          },
+          {
             id: 'mn-payback-cards',
             icon: {
               family: 'fas',
@@ -117,7 +127,7 @@ export function GetMenuMain(firstId?: MenuOptions): MenuResponse {
             disabled: disable['mn-payback-cards'] ? true : false,
           },
           {
-            id: 'mn-payback-separator',
+            id: 'mn-payback-separator-2',
             type: 'separator',
           },
           {
