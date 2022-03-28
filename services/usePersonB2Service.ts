@@ -23,7 +23,7 @@ export function usePersonB2Service() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const create = async (data: DataPersonB2) => {
-    const createUpdate = await fetcherAxiosPost<DataPersonB2, ApiResponseSuccessOrErrorType<PersonB2Type, Object>>(`${process.env.NEXT_PUBLIC_API_HOST}/b2/person`, setIsLoading, data);
+    const createUpdate = await fetcherAxiosPost<DataPersonB2, ApiResponseSuccessOrErrorType<PersonB2Type, Object>>(`${process.env.NEXT_PUBLIC_API_HOST}/b2/people`, setIsLoading, data);
 
     if (!createUpdate.success) {
       Alerting.create('error', createUpdate.message);
@@ -31,7 +31,7 @@ export function usePersonB2Service() {
       return undefined;
     }
 
-    const uri = `${process.env.NEXT_PUBLIC_API_HOST}/b2/person/${createUpdate.data.id}`;
+    const uri = `${process.env.NEXT_PUBLIC_API_HOST}/b2/people/${createUpdate.data.id}`;
 
     return {
       data: createUpdate.data,

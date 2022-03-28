@@ -1,14 +1,29 @@
 import { v4 as uuidv4 } from 'uuid';
 import { compressToBase64 } from 'lz-string';
 
-const StringMask = require('string-mask');
-
 class StringEx {
   /**
    * @description Retorna um texto representando um identificador único
    */
   id(): string {
     return compressToBase64(uuidv4());
+  }
+
+  /**
+   * @description Retorna um texto aleatório
+   */
+  randomText(length: number = 100): string {
+    const
+      characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',
+      charactersLength = characters.length;
+
+    let result = '';
+
+    for (var i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+
+    return result;
   }
 
   /**

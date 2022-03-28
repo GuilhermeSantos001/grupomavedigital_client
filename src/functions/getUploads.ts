@@ -30,7 +30,6 @@ export async function uploadDownload(filename: string, filetype: string, fileId:
 
     const clear = setTimeout(() => {
       document.body.removeChild(link);
-
       clearTimeout(clear);
     });
 

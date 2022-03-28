@@ -547,7 +547,7 @@ export function AssistantCoverageDefine(props: Props) {
       }
 
       // ! Confirma o anexo dos espelhos de ponto
-      setTimeout(() => {
+      const timeout = setTimeout(() => {
         window.socket.emit(
           PaybackSocketEvents.PAYBACK_CHANGE_TYPE_MIRROR,
           window.socket.compress<TYPEOF_EMITTER_PAYBACK_CHANGE_TYPE_MIRROR>({
@@ -558,6 +558,7 @@ export function AssistantCoverageDefine(props: Props) {
             type: 'PERMANENT'
           })
         );
+        clearTimeout(timeout);
       }, 1000);
 
       if (window.socket.hasListeners(`${PaybackSocketEvents.PAYBACK_CHANGE_TYPE_MIRROR}-SUCCESS`))

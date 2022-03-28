@@ -6,14 +6,14 @@ import { useGetUserInfoService } from '@/services/graphql/useGetUserInfoService'
 
 import { compressToEncodedURIComponent } from 'lz-string'
 
-import Link from 'next/link'
-
 import { useRouter } from 'next/router'
 
 import SkeletonLoader from 'tiny-skeleton-loader-react'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
+
+import { ModuleCardControl } from '@/components/cards/ModuleCardControl'
 
 import NoPrivilege, { handleClickFunction } from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
@@ -138,90 +138,61 @@ function compose_ready() {
                 Cartões
               </p>
             </div>
-            <div className='d-flex flex-column flex-md-row align-items-center border-bottom my-3'>
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'plus-square')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/cards/register">Registrar</Link>
-              </p>
-              <hr />
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'minus-square')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/cards/remove">Remover</Link>
-              </p>
-              <hr />
+            <div className='d-flex flex-column flex-md-row align-items-center my-2'>
+              <ModuleCardControl
+                title='Registrar'
+                subtitle='Registre os cartões de benefício para os colaboradores.'
+                link={"/payback/cards/register"}
+                help={{
+                  title: 'Registro dos Cartões Alelo',
+                  description: `
+                  Os cartões de benefício são os cartões que os colaboradores utilizam para receber pagamentos.
+                  Você deve manter uma lista de cartões registrados durante 90 dias, após esse prazo, os cartões que
+                  não estão sendo utilizados serão automaticamente desativados pela administradora do cartão.
+                  `,
+                }}
+              />
+              <ModuleCardControl
+                title='Remover'
+                subtitle='Remova os cartões de benefício, caso não seja mais necessário.'
+                link={"/payback/cards/remove"}
+                help={{
+                  title: 'Remoção dos Cartões Alelo',
+                  description: `
+                  Os cartões não utilizados por nenhum colaborador poderão ser removidos
+                  a qualquer momento.
+                  `,
+                }}
+              />
             </div>
             <div className='d-flex align-items-center justify-content-center col-12 bg-primary bg-gradient rounded p-2'>
               <p className='fs-5 my-auto text-secondary fw-bold text-center'>
                 Títulos
               </p>
             </div>
-            <div className='d-flex flex-column flex-md-row align-items-center border-bottom my-3'>
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'money-check')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/cards/titles/ft/pay">
-                  Pagar FT/FREE
-                </Link>
-              </p>
-              <hr />
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'money-check-alt')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/cards/titles/ft/paid">
-                  Pagos FT/FREE
-                </Link>
-              </p>
-              <hr />
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'money-check')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/cards/titles/b2/pay">
-                  Pagar B2
-                </Link>
-              </p>
-              <hr />
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'money-check-alt')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/cards/titles/b2/paid">
-                  Pagos B2
-                </Link>
-              </p>
-              <hr />
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'money-check')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/cards/titles/ph/pay">
-                  Pagar Pacote de Horas
-                </Link>
-              </p>
-              <hr />
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'money-check-alt')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/cards/titles/ph/paid">
-                  Pagos Pacote de Horas
-                </Link>
-              </p>
-              <hr />
+            <div className='d-flex flex-column flex-md-row align-items-center my-2'>
+              <ModuleCardControl
+                title='Pagar FT/FREE'
+                subtitle='Gere o arquivo de pagamento da Alelo.'
+                link={"/payback/cards/titles/ft/pay"}
+              />
+              <ModuleCardControl
+                title='Pagos FT/FREE'
+                subtitle='Histórico dos pagamentos nos cartões Alelo.'
+                link={"/payback/cards/titles/ft/paid"}
+              />
+            </div>
+            <div className='d-flex flex-column flex-md-row align-items-center my-2'>
+              <ModuleCardControl
+                title='Pagar B2'
+                subtitle='Controle dos pagamentos e visualização dos itens pagos.'
+                link={"/payback/cards/titles/b2/manager"}
+              />
+              <ModuleCardControl
+                title='Pagar Pacote de Horas'
+                subtitle='Controle dos pagamentos e visualização dos itens pagos.'
+                link={"/payback/cards/titles/ph/manager"}
+              />
             </div>
           </div>
         </div>

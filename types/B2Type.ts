@@ -29,6 +29,7 @@ export type B2Type = {
   level: number
   roleGratification: RoleGratification
   gratification: number
+  onlyHistory: boolean
   paymentMethod: DatabasePaymentMethodType
   paymentValue: number
   paymentDatePayable: string

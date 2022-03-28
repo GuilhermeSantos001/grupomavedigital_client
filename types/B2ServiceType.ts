@@ -19,10 +19,13 @@ export type DataB2 = Pick<B2Type,
   | 'level'
   | 'roleGratification'
   | 'gratification'
+  | 'onlyHistory'
   | 'paymentMethod'
   | 'paymentValue'
   | 'paymentDatePayable'
+  | 'paymentDatePaid'
   | 'paymentStatus'
+  | 'paymentDateCancelled'
   | 'status'
 >;
 

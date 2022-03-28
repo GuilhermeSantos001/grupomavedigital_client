@@ -142,6 +142,13 @@ export default function getB2ForTable(
         align: 'center'
       },
       {
+        field: 'payment_method',
+        headerName: 'Forma de Pagamento',
+        width: 250,
+        headerAlign: 'center',
+        align: 'center'
+      },
+      {
         field: 'payment_status',
         headerName: 'Já foi Pago?',
         width: 250,
@@ -170,6 +177,7 @@ export default function getB2ForTable(
         gratification: StringEx.maskMoney(posting.gratification),
         payment_value: StringEx.maskMoney(posting.paymentValue),
         payment_date: new Date(posting.paymentDatePayable).toLocaleDateString(),
+        payment_method: posting.paymentMethod === 'money' ? 'Dinheiro' : 'Cartão Alelo',
         payment_status: posting.paymentStatus === 'paid' ? 'Sim' : 'Não'
       }
     })

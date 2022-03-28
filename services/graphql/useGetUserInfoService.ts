@@ -12,39 +12,13 @@ declare type QueryResponse = {
   error?: unknown
 }
 
-let
-  variables: GetUserInfoQueryVariables,
-  headers: GraphqlHeaders;
-
-function setVariables(value: GetUserInfoQueryVariables) {
-  variables = value;
-}
-
-function getVariables() {
-  return variables;
-}
-
-function setHeaders(value: GraphqlHeaders) {
-  headers = value;
-}
-
-function getHeaders() {
-  return headers;
-}
-
-const
-  fetcher = (query: RequestDocument) => request<GetUserInfo, GetUserInfoQueryVariables>(
+export function useGetUserInfoService(variables: GetUserInfoQueryVariables, headers: GraphqlHeaders): QueryResponse {
+  const { data, error, isValidating } = useSWRImmutable<GetUserInfo>(GetUserInfoDocument, (query: RequestDocument) => request<GetUserInfo, GetUserInfoQueryVariables>(
     process.env.NEXT_PUBLIC_GRAPHQL_HOST!,
     query,
-    getVariables(),
-    getHeaders()
-  )
-
-export function useGetUserInfoService(variables: GetUserInfoQueryVariables, headers: GraphqlHeaders): QueryResponse {
-  setVariables(variables);
-  setHeaders(headers);
-
-  const { data, error, isValidating } = useSWRImmutable<GetUserInfo>(GetUserInfoDocument, fetcher);
+    variables,
+    headers
+  ));
 
   if (error)
     return {

@@ -272,9 +272,13 @@ export default class DropZone extends React.Component<MyProps, MyState> {
 
     this.handleClickTrashAll()
 
-    this.props.onCallbackAfterUpload(params)
+    if (this.props.onCallbackAfterUpload)
+      this.props.onCallbackAfterUpload(params);
 
-    setTimeout(() => this.setState({ uploading: false }))
+    const timeout = setTimeout(() => {
+      this.setState({ uploading: false });
+      clearTimeout(timeout);
+    })
   }
 
   handleChangeInputFileType(e: React.ChangeEvent<HTMLSelectElement>) {
@@ -296,11 +300,12 @@ export default class DropZone extends React.Component<MyProps, MyState> {
       removeAllItems: true
     })
 
-    setTimeout(() => {
+    const timeout = setTimeout(() => {
       this.setState({
         files: [],
         message: dropZoneMessage.beforeDragEnter,
-      })
+      });
+      clearTimeout(timeout);
     }, 400)
   }
 
@@ -314,7 +319,7 @@ export default class DropZone extends React.Component<MyProps, MyState> {
       }),
     })
 
-    setTimeout(() => {
+    const timeout = setTimeout(() => {
       const files = this.state.files.filter((file) => file.name !== filename)
 
       this.setState({
@@ -324,6 +329,8 @@ export default class DropZone extends React.Component<MyProps, MyState> {
             ? dropZoneMessage.beforeDragEnter
             : dropZoneMessage.afterDrop,
       })
+
+      clearTimeout(timeout);
     }, 400)
   }
 
@@ -347,7 +354,10 @@ export default class DropZone extends React.Component<MyProps, MyState> {
 
   async processFiles(items: any) {
     if (this.props.limit !== undefined)
-      if (this.props.limit > 0 && this.state.files.length >= this.props.limit)
+      if (
+        this.props.limit > 0 && this.state.files.length >= this.props.limit ||
+        this.props.limit > 0 && items.length > this.props.limit
+      )
         return this.setDropInvalid('exceedLimit');
 
     const valid = Array.from({ length: items.length }).filter((_, i) =>
@@ -520,12 +530,14 @@ export default class DropZone extends React.Component<MyProps, MyState> {
       message: dropZoneMessage.invalid,
     })
 
-    setTimeout(() => {
+    const timeout = setTimeout(() => {
       this.setState({
         ...this.state,
         invalid: false,
         message: dropZoneMessage.beforeDragEnter,
       })
+
+      clearTimeout(timeout);
     }, 1500)
   }
 

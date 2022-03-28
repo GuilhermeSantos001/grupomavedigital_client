@@ -65,7 +65,7 @@ export function usePeopleB2Service(take: number = 10) {
         setURI(`${process.env.NEXT_PUBLIC_API_HOST}/b2p${query}`);
       },
       update: async (id: string, newData: DataPersonB2): Promise<boolean> => {
-        const uri = `${process.env.NEXT_PUBLIC_API_HOST}/b2/person/${id}`;
+        const uri = `${process.env.NEXT_PUBLIC_API_HOST}/b2/people/${id}`;
 
         const updateData = await fetcherAxiosPut<DataPersonB2, ApiResponseSuccessOrErrorType<PersonB2Type, Object>>(uri, setIsLoading, newData);
 
@@ -90,7 +90,7 @@ export function usePeopleB2Service(take: number = 10) {
         return true;
       },
       delete: async (id: string): Promise<boolean> => {
-        const uri = `${process.env.NEXT_PUBLIC_API_HOST}/b2/person/${id}`;
+        const uri = `${process.env.NEXT_PUBLIC_API_HOST}/b2/people/${id}`;
 
         const deleteData = await fetcherAxiosDelete<ApiResponseErrorType<Object>>(uri, setIsLoading);
 

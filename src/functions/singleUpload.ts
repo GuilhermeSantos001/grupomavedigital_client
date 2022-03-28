@@ -1,5 +1,4 @@
 import Fetch from '@/src/utils/fetch';
-import { Variables } from '@/src/db/variables';
 import signURL from '@/src/functions/signURL'
 
 export interface File {

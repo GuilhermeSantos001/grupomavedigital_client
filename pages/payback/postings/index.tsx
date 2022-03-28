@@ -6,8 +6,6 @@ import { useGetUserInfoService } from '@/services/graphql/useGetUserInfoService'
 
 import { compressToEncodedURIComponent } from 'lz-string'
 
-import Link from 'next/link'
-
 import { useRouter } from 'next/router'
 
 import SkeletonLoader from 'tiny-skeleton-loader-react'
@@ -17,6 +15,8 @@ import Icon from '@/src/utils/fontAwesomeIcons'
 
 import NoPrivilege, { handleClickFunction } from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
+
+import { ModuleCardControl } from '@/components/cards/ModuleCardControl'
 
 import { PageProps } from '@/pages/_app'
 import { GetMenuMain } from '@/bin/GetMenuMain'
@@ -138,83 +138,63 @@ function compose_ready() {
                 FT/Freelancer
               </p>
             </div>
-            <div className='d-flex flex-column flex-md-row align-items-center border-bottom my-3'>
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'plus-square')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/postings/ft/register">Registrar</Link>
-              </p>
-              <hr />
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'certificate')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/postings/ft/check">Verificar</Link>
-              </p>
-              <hr />
+            <div className='d-flex flex-column flex-md-row align-items-center my-2'>
+              <ModuleCardControl
+                title='Registrar'
+                subtitle='Registre novos lançamentos de FT/FREE.'
+                link={"/payback/postings/ft/register"}
+              />
+              <ModuleCardControl
+                title='Verificar'
+                subtitle='Aprove e/ou reprove lançamentos de FT/FREE.'
+                link={"/payback/postings/ft/check"}
+              />
             </div>
             <div className='d-flex align-items-center justify-content-center col-12 bg-primary bg-gradient rounded p-2'>
               <p className='fs-5 my-auto text-secondary fw-bold text-center'>
                 B2
               </p>
             </div>
-            <div className='d-flex flex-column flex-md-row align-items-center border-bottom my-3'>
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'user-gear')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/postings/b2/manager">Controle</Link>
+            <div className='d-flex flex-column flex-md-row align-items-center my-2'>
+              <ModuleCardControl
+                title='Controle'
+                subtitle='Registre, atualize e remova pessoas do B2.'
+                link={"/payback/postings/b2/manager"}
+              />
+              <ModuleCardControl
+                title='Histórico de Pagamento'
+                subtitle='Confira os pagamentos realizados no B2.'
+                link={"/payback/postings/b2/paycheck"}
+              />
+            </div>
+            <div className='d-flex align-items-center justify-content-center col-12 bg-primary bg-gradient rounded p-2'>
+              <p className='fs-5 my-auto text-secondary fw-bold text-center'>
+                Pacote de Horas
               </p>
-              <hr />
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'money-bill-1-wave')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/postings/b2/paycheck">Histórico de Pagamento</Link>
-              </p>
-              <hr />
+            </div>
+            <div className='d-flex flex-column flex-md-row align-items-center my-2'>
+              <ModuleCardControl
+                title='Controle'
+                subtitle='Registre, atualize e remova pessoas do Pacote de Horas.'
+                link={"/payback/postings/ph/manager"}
+              />
+              <ModuleCardControl
+                title='Histórico de Pagamento'
+                subtitle='Confira os pagamentos realizados no Pacote de Horas.'
+                link={"/payback/postings/ph/paycheck"}
+              />
             </div>
             <div className='d-flex align-items-center justify-content-center col-12 bg-primary bg-gradient rounded p-2'>
               <p className='fs-5 my-auto text-secondary fw-bold text-center'>
                 Cartões Alelo
               </p>
             </div>
-            <div className='d-flex flex-column flex-md-row align-items-center border-bottom my-3'>
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'user-plus')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/cards/link">
-                  Associar
-                </Link>
-              </p>
-              <hr />
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'user-minus')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/cards/unlink">
-                  Desassociar
-                </Link>
-              </p>
-              <hr />
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'search')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/cards/links">
-                  Verificar Associações
-                </Link>
-              </p>
-              <hr />
+            <div className='d-flex flex-column flex-md-row align-items-center my-2'>
+              <ModuleCardControl
+                title='Controle'
+                subtitle='Associe/Dessaassocie os cartões dos colaboradores.'
+                link={"/payback/cards/manager"}
+              />
             </div>
           </div>
         </div>

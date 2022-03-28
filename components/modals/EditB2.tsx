@@ -30,7 +30,8 @@ import { WorkplaceType } from '@/types/WorkplaceType'
 import { DatabasePaymentMethodType } from '@/types/DatabasePaymentMethodType'
 
 import {
-  FunctionUpdateB2AllTypeof
+  FunctionUpdateB2AllTypeof,
+  FunctionDeleteB2AllTypeof,
 } from '@/types/B2ServiceType'
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
@@ -97,6 +98,8 @@ export type Props = {
   people: PersonType[]
   workplaces: WorkplaceType[]
   updatePosting: FunctionUpdateB2AllTypeof
+  deletePosting: FunctionDeleteB2AllTypeof
+  isPossibleHandleDelete: boolean
   open: boolean
   onClose: () => void
 }
@@ -221,6 +224,7 @@ export function EditB2(props: Props) {
         level,
         roleGratification,
         gratification,
+        onlyHistory: false,
         paymentMethod,
         paymentDatePayable: paymentDatePayable.toISOString(),
         paymentValue,
@@ -234,16 +238,66 @@ export function EditB2(props: Props) {
       Alerting.create('success', 'B2 atualizado com sucesso!');
 
       props.onClose();
+    },
+    handleDelete = async () => {
+      if (props.isPossibleHandleDelete) {
+        if (!props.deletePosting)
+          return Alerting.create('error', 'Não foi possível remover o B2. Tente novamente, mais tarde!');
+
+        const deleted = await props.deletePosting(props.id);
+
+        if (!deleted)
+          return Alerting.create('error', 'Não foi possível remover o B2. Tente novamente, mais tarde!');
+
+        Alerting.create('success', 'B2 removido com sucesso!');
+      } else {
+        if (!props.updatePosting)
+          return Alerting.create('error', 'Não foi possível encerrar o B2. Tente novamente, mais tarde!');
+
+        const update = await props.updatePosting(props.id, {
+          author: props.author,
+          periodStart: props.periodStart.toISOString(),
+          periodEnd: props.periodEnd.toISOString(),
+          costCenterId: props.costCenterId,
+          description: postingDescription,
+          personId: props.personB2Id,
+          workplaceOriginId,
+          workplaceDestinationId,
+          coverageStartedAt: coverageStartedAt.toISOString(),
+          entryTime: entryTime.toISOString(),
+          exitTime: exitTime.toISOString(),
+          valueClosed,
+          absences,
+          lawdays,
+          discountValue,
+          level,
+          roleGratification,
+          gratification,
+          onlyHistory: false,
+          paymentMethod,
+          paymentDatePayable: paymentDatePayable.toISOString(),
+          paymentValue,
+          paymentStatus: 'pending',
+          status: 'unavailable'
+        });
+
+        if (!update)
+          return Alerting.create('error', 'Não foi possível encerrar o B2. Tente novamente, mais tarde!');
+
+        Alerting.create('success', 'B2 encerrado com sucesso!');
+      }
+
+      props.onClose();
     }
 
   return (
     <BootstrapDialog
       fullWidth
       onClose={props.onClose}
-      aria-labelledby="dialog-registerB2-title"
+      aria-labelledby="dialog-editB2-title"
       open={props.open}
     >
-      <BootstrapDialogTitle id="dialog-registerB2-title" onClose={props.onClose}>
+      <BootstrapDialogTitle id="dialog-editB2-title" onClose={props.onClose}>
         Atualização de B2
       </BootstrapDialogTitle>
       <DialogContent dividers>
@@ -496,6 +550,13 @@ export function EditB2(props: Props) {
           disabled={!isPossibleHandleSubmit()}
         >
           Atualizar
+        </Button>
+        <Button
+          className="col-2"
+          variant="outlined"
+          onClick={handleDelete}
+        >
+          {props.isPossibleHandleDelete ? 'Excluir' : 'Encerrar'}
         </Button>
       </DialogActions>
     </BootstrapDialog >

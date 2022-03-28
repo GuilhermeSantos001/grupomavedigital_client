@@ -195,7 +195,7 @@ export function RegisterB2(props: Props) {
         && exitTime
         && valueClosed > 0
         && absences >= 0
-        && lawdays >= 0
+        && lawdays > 0
         && level >= 0
         && paymentMethod
         && paymentDatePayable
@@ -230,6 +230,7 @@ export function RegisterB2(props: Props) {
         level,
         roleGratification,
         gratification,
+        onlyHistory: false,
         paymentMethod,
         paymentDatePayable: paymentDatePayable.toISOString(),
         paymentValue,

@@ -36,6 +36,8 @@ import { ImpulseSpinner } from "react-spinners-kit"
 
 import { iconsFamily, iconsName } from '@/src/utils/fontAwesomeIcons'
 
+import { GetMenuHome } from '@/bin/GetMenuHome'
+
 export type MenuResponse = {
   disable: MenuDisable
   options: Menu[]
@@ -106,7 +108,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       props.description ??
       'Olá, venha conhecer o ambiente digital interativo do Grupo Mave. Tenha todas as informações a um clique. Acesse o link e saiba mais!',
     themeColor = props.themeColor ?? '#004a6e',
-    menu = props.menu ?? [],
+    menu = props.menu ?? GetMenuHome('mn-home'),
     fullwidth = props.fullwidth,
     persistor = persistStore(store);
 

@@ -265,6 +265,78 @@ const staticProps: PageProps = {
         },
       ],
     },
+    {
+      id: 'section-integration-system',
+      title: 'Integrações com nossa API',
+      docs: [
+        {
+          id: 'ps-integration-system',
+          title: 'Funcionamento da nossa API',
+          contents: [
+            {
+              id: 'integration-system-1',
+              type: 'p',
+              value: `
+              Nossa API utiliza o padrão REST, ou seja, você pode fazer requisições
+              para a nossa API utilizando o protocolo HTTP. A API possui uma estrutura
+              de rotas que são responsáveis por realizar as operações de CRUD. Além
+              disso, a API possui uma estrutura de autenticação que é responsável por
+              validar as chaves de acesso.
+              `,
+            },
+            {
+              id: 'integration-system-2',
+              type: 'p',
+              value: `
+              Geração das chaves de acesso: Para gerar uma chave de acesso, você
+              precisa ser um usuário com permissão de desenvolvedor e/ou administrador.
+              `,
+            },
+          ],
+          show: false,
+        },
+        {
+          id: 'ps-integration-system-bills',
+          title: 'Custos & Limites',
+          contents: [
+            {
+              id: 'integration-system-bills-1',
+              type: 'p',
+              value: `
+              Nossa API tem um custo de uso de R$ 15,00 por mês.
+              `,
+            },
+            {
+              id: 'integration-system-bills-2',
+              type: 'p',
+              value: `
+              Por enquanto não temos nenhum limite de uso.
+              `,
+            }
+          ],
+          show: false,
+        },
+        {
+          id: 'ps-integration-system-utilities',
+          title: 'Por que utilizar nossa API?',
+          contents: [
+            {
+              id: 'integration-system-utilities-1',
+              type: 'p',
+              value: `
+              Você poderá executar chamadas a API para efetuar interações
+              com o nosso sistema, como por exemplo: cadastrar um centro de custo,
+              listar todos os centros de custo, editar um centro de custo, etc.
+              A principal vantagem de se utilizar a API é que você pode usa-la
+              com outro sistema e ter acesso a todas as informações que precisa
+              de forma centralizada e integrada.
+              `,
+            }
+          ],
+          show: false,
+        },
+      ],
+    },
   ]
 
 export const getStaticProps = () => ({

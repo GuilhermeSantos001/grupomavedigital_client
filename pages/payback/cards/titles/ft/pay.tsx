@@ -37,20 +37,15 @@ import { ListWithCheckboxMUI } from '@/components/lists/ListWithCheckboxMUI'
 
 import { DatePicker } from '@/components/selects/DatePicker'
 
-import StringEx from '@/src/utils/stringEx'
 import DateEx from '@/src/utils/dateEx'
 import Alerting from '@/src/utils/alerting'
 
 import getPostingsForTable from '@/src/functions/getPostingsForTable'
-import {
-  SheetEx,
-  LayoutPayAlelo,
-  layoutPayAleloColumnNames
-} from "@/src/utils/SheetEx"
+import { LayoutPayAlelo } from "@/src/utils/SheetEx"
 
 const serverSideProps: PageProps = {
   title: 'Pagamentos/Cartões Benefício',
-  description: 'Cartões Benefício',
+  description: 'Administração dos pagamentos de FT/FREE',
   themeColor: '#004a6e',
   menu: GetMenuMain('mn-payback')
 }
@@ -161,7 +156,7 @@ function compose_ready(
   postings: PostingType[],
   updatePostings: FunctionUpdatePostingsTypeof,
   selectedPostings: string[],
-  handleChangeSelectedPostings: (selectedPostings: string[]) => void,
+  handleChangeSelectedPostings: (selectedPostings: string[]) => void
 ) {
   const
     postingsFiltered = postings.filter(posting => posting.paymentMethod === 'card'),
@@ -170,6 +165,7 @@ function compose_ready(
         postingsFiltered.filter(
           posting => posting.costCenterId === costCenterId &&
             posting.paymentStatus === 'pending' &&
+            posting.foremanApproval && posting.managerApproval &&
             DateEx.isWithinInterval(new Date(posting.originDate), {
               start: periodStart,
               end: periodEnd
@@ -244,7 +240,7 @@ function compose_ready(
             }}
           />
         </div>
-        <div className='d-flex flex-column p-2 border-top'>
+        <div className='d-flex flex-column p-2' style={{ marginBottom: '12vh' }}>
           <ListWithCheckboxMUI
             columns={postingsColumns}
             rows={postingsRows}
@@ -256,8 +252,8 @@ function compose_ready(
         </div>
         <button
           type="button"
-          className="btn btn-link"
-          disabled={selectedPostings.length <= 0}
+          className="btn btn-link ms-3"
+          disabled={selectedPostings.length <= 0 || selectedPostings.filter(id => postings.some(posting => posting.id === id && posting.paymentStatus === 'paid')).length > 0}
           onClick={() => {
             if (postingsFiltered.length > 0) {
               const rows: LayoutPayAlelo[] = [];
@@ -267,15 +263,15 @@ function compose_ready(
                   serialNumber: posting.coverage.person.cards.find(card => card.costCenterId === posting.costCenterId)?.serialNumber || '',
                   cpf: posting.coverage.person.cpf,
                   value: posting.paymentValue.toString().replace('.', ','),
-                  description: posting.description
+                  description: posting.description || `Crédito referente a data de origem ${DateEx.format(new Date(posting.originDate), 'dd/MM/yyyy')}`,
                 })
               }
 
-              SheetEx<LayoutPayAlelo>(rows, {
-                sheetName: 'Títulos a Pagar',
-                worksheetName: 'Títulos a Pagar',
-                columnNames: layoutPayAleloColumnNames
-              });
+              const
+                costCenterName = costCenters.find(_ => _.id === costCenterId)?.value || '???',
+                filename = `Pagamentos Alelo FT/FREE - ${costCenterName} (${periodStart.toLocaleDateString()} - ${periodEnd.toLocaleDateString()})`;
+
+              window.open(`/api/alelo/pay?periodStart=${periodStart.toLocaleDateString()}&periodEnd=${periodEnd.toLocaleDateString()}&filename=${filename}&rows=${JSON.stringify(rows)}`);
             }
           }}
         >
@@ -284,12 +280,44 @@ function compose_ready(
             className="me-1 flex-shrink-1 my-auto"
           /> Gerar arquivo de pagamento
         </button>
+        <button
+          type="button"
+          className="btn btn-link ms-3"
+          disabled={selectedPostings.length <= 0 || selectedPostings.filter(id => postings.some(posting => posting.id === id && posting.paymentStatus === 'paid')).length > 0}
+          onClick={async () => {
+            if (!updatePostings)
+              return Alerting.create('error', 'Não foi possível confirmar o(s) pagamento(s). Tente novamente, mais tarde!');
+
+            for (const postingId of selectedPostings) {
+              const posting = postings.find(_ => _.id === postingId);
+
+              if (!posting)
+                return Alerting.create('error', 'Não foi possível confirmar o(s) pagamento(s). Tente novamente, mais tarde!');
+
+              const paid = await updatePostings(postingId, {
+                ...posting,
+                paymentStatus: 'paid',
+                paymentDatePaid: new Date().toISOString()
+              });
+
+              if (!paid)
+                return Alerting.create('error', `Ocorreu um erro com o pagamento do dia ${new Date(posting.originDate).toLocaleDateString()} , ele não foi confirmado. Fale com o administrador do sistema.`);
+
+              Alerting.create('success', `Pagamento do dia ${new Date(posting.originDate).toLocaleDateString()} confirmado com sucesso!`);
+            }
+          }}
+        >
+          <FontAwesomeIcon
+            icon={Icon.render('fas', 'circle-check')}
+            className="me-1 flex-shrink-1 my-auto"
+          /> Confirmar Pagamento(s)
+        </button>
       </div>
     </div>
   )
 }
 
-export default function Paid(
+export default function Pay(
   {
     privileges,
     auth,

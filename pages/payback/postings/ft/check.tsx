@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 
 import { GetServerSidePropsContext } from 'next/types'
 
@@ -53,10 +53,9 @@ import { usePeopleCoverageService } from '@/services/usePeopleCoverageService'
 import { useUploadsService } from '@/services/useUploadsService'
 import { useCostCentersService } from '@/services/useCostCentersService'
 
-
 const serverSideProps: PageProps = {
-  title: 'Lançamentos/Apuração',
-  description: 'Apuração dos lançamentos operacionais',
+  title: 'Operacional/Lançamentos/Verificação',
+  description: 'Apuração das movimentações diárias de FT/FREE',
   themeColor: '#004a6e',
   menu: GetMenuMain('mn-payback')
 }
@@ -359,7 +358,8 @@ export default function Postings(
           costCenters
             .map(costCenter => costCenter.value)
             .includes(posting.costCenter.value) &&
-          posting.paymentStatus === 'pending'
+          posting.paymentStatus === 'pending' &&
+          !posting.foremanApproval || !posting.managerApproval
         ) {
           if (DateEx.isWithinInterval(new Date(posting.originDate), {
             start: periodStart,
@@ -394,6 +394,9 @@ export default function Postings(
         deleteMirrors = [];
 
       if (posting) {
+        if (posting.foremanApproval || posting.managerApproval)
+          return Alerting.create('warning', 'Não é possível remover um lançamento aprovado.');
+
         if (posting.covering && posting.covering.mirror) {
           deleteFiles.push(posting.covering.mirror.fileId);
           deleteMirrors.push(posting.covering.mirror.id);

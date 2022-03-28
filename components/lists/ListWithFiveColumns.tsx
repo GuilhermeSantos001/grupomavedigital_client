@@ -73,8 +73,7 @@ export function ListWithFiveColumns(props: Props) {
       setAllSelected(false);
     },
     actionMenu = (
-      // TODO: Criar componente de janela de ação, deve ser adicionado na camada de loading
-      <div className={`card w-50 bg-light-gray shadow rounded mt-5 mx-auto fixed-top fade-effect ${selected.length > 0 ? 'active' : 'deactivate'}`}>
+      <div className={`card w-50 bg-light-gray shadow rounded mt-5 mx-auto fade-effect fixed-bottom ${selected.length > 0 ? 'active' : 'deactivate'}`} style={{bottom: '50vh'}}>
         <div className="card-body p-0">
           <p className='bg-primary bg-gradient fw-bold fs-3 text-secondary text-center border-bottom p-2'>
             Ações
@@ -87,7 +86,7 @@ export function ListWithFiveColumns(props: Props) {
               return <p key={index} className='mx-2 fw-bold'>
                 <FontAwesomeIcon
                   icon={Icon.render(action.icon.prefix, action.icon.name)}
-                  className={`me-2 fs-3 flex-shrink-1 my-auto ${action.enabled ? 'hover-color' : 'text-muted'}`}
+                  className={`me-2 fs-3 flex-shrink-1 my-auto ${action.enabled ? 'hover-color' : 'text-muted opacity-25'}`}
                   onClick={() => {
                     if (action.enabled) {
                       action.handleClick(selected);
@@ -286,7 +285,7 @@ export function ListWithFiveColumns(props: Props) {
                           <Button variant="link">
                             <FontAwesomeIcon
                               icon={Icon.render(action.icon.prefix, action.icon.name)}
-                              className={`fs-3 flex-shrink-1 m-auto ${action.enabled ? 'hover-color' : 'text-muted'}`}
+                              className={`fs-3 flex-shrink-1 m-auto ${action.enabled ? 'hover-color' : 'text-muted opacity-25'}`}
                               onClick={() => {
                                 if (action.enabled)
                                   return action.handleClick();
@@ -313,7 +312,7 @@ export function ListWithFiveColumns(props: Props) {
             📌 <b className='text-primary fw-bold'>{props.lines.length}</b> itens disponíveis.
           </p>
           <ul className="pagination flex-shrink-1">
-            <li className={`page-item ${hasPreviousPage() ? '' : 'disabled'}`}>
+            <li className={`page-item ${hasPreviousPage() ? '' : 'disabled opacity-50'}`}>
               <a className="page-link hover-color" onClick={() => {
                 if (exceedPagination())
                   setCurrentJumpPaginationExceed(1);
@@ -323,7 +322,7 @@ export function ListWithFiveColumns(props: Props) {
                 ⏮
               </a>
             </li>
-            <li className={`page-item ${hasPreviousPage() ? '' : 'disabled'}`}>
+            <li className={`page-item ${hasPreviousPage() ? '' : 'disabled opacity-50'}`}>
               <a className="page-link hover-color" onClick={() => {
                 if (exceedPagination() && hasFirstPagination(currentPage))
                   handlePreviousPaginationExceed();
@@ -368,13 +367,13 @@ export function ListWithFiveColumns(props: Props) {
                 )
             })}
             {exceedPagination() ?
-              <li className={`page-item ${currentJumpPaginationExceed >= totalJumpPaginationExceed ? 'disabled' : ''}`}>
+              <li className={`page-item ${currentJumpPaginationExceed >= totalJumpPaginationExceed ? 'disabled opacity-50' : ''}`}>
                 <a className="page-link hover-color" onClick={() => handleNextPaginationExceed()}>
                   ...
                 </a>
               </li> : <></>
             }
-            <li className={`page-item ${hasNextPage() ? '' : 'disabled'}`}>
+            <li className={`page-item ${hasNextPage() ? '' : 'disabled opacity-50'}`}>
               <a className='page-link hover-color' onClick={() => {
                 if (exceedPagination() && hasLastPagination(currentPage))
                   handleNextPaginationExceed();
@@ -384,7 +383,7 @@ export function ListWithFiveColumns(props: Props) {
                 ➡
               </a>
             </li>
-            <li className={`page-item ${hasNextPage() ? '' : 'disabled'}`}>
+            <li className={`page-item ${hasNextPage() ? '' : 'disabled opacity-50'}`}>
               <a className='page-link hover-color' onClick={() => {
                 if (exceedPagination()) {
                   handleSetPaginationExceed(Math.ceil(totalJumpPaginationExceed));

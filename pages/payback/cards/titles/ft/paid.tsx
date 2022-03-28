@@ -6,14 +6,14 @@ import { useGetUserInfoService } from '@/services/graphql/useGetUserInfoService'
 
 import { compressToEncodedURIComponent } from 'lz-string'
 
-import Link from 'next/link'
-
 import { useRouter } from 'next/router'
 
 import SkeletonLoader from 'tiny-skeleton-loader-react'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
+
+import { BoxError } from '@/components/utils/BoxError'
 
 import NoPrivilege, { handleClickFunction } from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
@@ -22,9 +22,28 @@ import { PageProps } from '@/pages/_app'
 import { GetMenuMain } from '@/bin/GetMenuMain'
 import { PrivilegesSystem } from '@/types/UserType'
 
+import { CostCenterType } from '@/types/CostCenterType'
+import { PostingType } from '@/types/PostingType'
+
+import { FunctionCreateCostCenterTypeof, FunctionDeleteCostCentersTypeof, FunctionUpdateCostCentersTypeof } from '@/types/CostCenterServiceType'
+
+import { usePostingsService } from '@/services/usePostingsService'
+import { useCostCenterService } from '@/services/useCostCenterService'
+import { useCostCentersService } from '@/services/useCostCentersService'
+
+import { SelectCostCenter } from '@/components/selects/SelectCostCenter'
+import { ListWithCheckboxMUI } from '@/components/lists/ListWithCheckboxMUI'
+
+import { DatePicker } from '@/components/selects/DatePicker'
+
+import DateEx from '@/src/utils/dateEx'
+import Alerting from '@/src/utils/alerting'
+
+import getPostingsForTable from '@/src/functions/getPostingsForTable'
+
 const serverSideProps: PageProps = {
   title: 'Pagamentos/Cartões Benefício',
-  description: 'Cartões Benefício',
+  description: 'Histórico dos pagamentos de FT/FREE',
   themeColor: '#004a6e',
   menu: GetMenuMain('mn-payback')
 }
@@ -119,78 +138,119 @@ function compose_noAuth(handleClick: handleClickFunction) {
   return <NoAuth handleClick={handleClick} />
 }
 
-function compose_ready() {
+function compose_ready(
+  handleClickBackPage: () => void,
+  createCostCenter: FunctionCreateCostCenterTypeof,
+  costCenters: CostCenterType[],
+  isLoadingCostCenters: boolean,
+  updateCostCenters: FunctionUpdateCostCentersTypeof,
+  deleteCostCenters: FunctionDeleteCostCentersTypeof,
+  costCenterId: string,
+  handleChangeCostCenter: (id: string) => void,
+  periodStart: Date,
+  periodEnd: Date,
+  handleChangePeriodStart: (date: Date) => void,
+  handleChangePeriodEnd: (date: Date) => void,
+  postings: PostingType[],
+) {
+  const
+    postingsFiltered = postings.filter(posting => posting.paymentMethod === 'card'),
+    { columns: postingsColumns, rows: postingsRows } =
+      getPostingsForTable(
+        postingsFiltered.filter(
+          posting => posting.costCenterId === costCenterId &&
+            posting.paymentStatus === 'paid' &&
+            posting.foremanApproval && posting.managerApproval &&
+            DateEx.isWithinInterval(new Date(posting.originDate), {
+              start: periodStart,
+              end: periodEnd
+            })
+        )
+      );
+
   return (
     <div className="row g-2">
       <div className="col-12">
         <div className="p-3 bg-primary bg-gradient rounded">
           <p className="text-center text-secondary fw-bold fs-5 my-2">
             <FontAwesomeIcon
-              icon={Icon.render('fas', 'id-card')}
+              icon={Icon.render('fas', 'money-check-alt')}
               className="me-2 fs-3 flex-shrink-1 text-secondary my-auto"
-            /> Alelo - Cartões Benefício
+            /> Títulos Pagos
           </p>
         </div>
-        <div className="p-3 bg-light-gray rounded overflow-auto">
-          <div className="my-1 text-primary">
-            <div className='d-flex align-items-center justify-content-center col-12 bg-primary bg-gradient rounded p-2'>
-              <p className='fs-5 my-auto text-secondary fw-bold text-center'>
-                Cartões
-              </p>
-            </div>
-            <div className='d-flex flex-column flex-md-row align-items-center border-bottom my-3'>
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'plus-square')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/cards/register">Registrar</Link>
-              </p>
-              <hr />
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'minus-square')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/cards/remove">Remover</Link>
-              </p>
-              <hr />
-            </div>
-            <div className='d-flex align-items-center justify-content-center col-12 bg-primary bg-gradient rounded p-2'>
-              <p className='fs-5 my-auto text-secondary fw-bold text-center'>
-                Títulos
-              </p>
-            </div>
-            <div className='d-flex flex-column flex-md-row align-items-center border-bottom my-3'>
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'money-check')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/cards/titles/pay">
-                  Títulos a Pagar
-                </Link>
-              </p>
-              <hr />
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'money-check-alt')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/cards/titles/paid">
-                  Títulos Pagos
-                </Link>
-              </p>
-              <hr />
-            </div>
-          </div>
+        <button
+          type="button"
+          className="btn btn-link"
+          onClick={handleClickBackPage}
+        >
+          Voltar
+        </button>
+        <p className="fw-bold border-bottom text-center my-2">
+          Centro de Custo
+        </p>
+        <SelectCostCenter
+          createCostCenter={createCostCenter}
+          costCenter={undefined}
+          isLoadingCostCenter={false}
+          costCenters={costCenters}
+          isLoadingCostCenters={isLoadingCostCenters}
+          updateCostCenters={updateCostCenters}
+          deleteCostCenters={deleteCostCenters}
+          handleChangeId={handleChangeCostCenter}
+        />
+        <div className='d-flex flex-column flex-md-row my-2'>
+          <DatePicker
+            className="col px-2 my-2"
+            label="Período de Apuração (Inicial)"
+            value={periodStart}
+            maxDate={periodEnd}
+            minDate={DateEx.subDays(new Date(), 7)}
+            handleChangeValue={(value) => {
+              if (
+                DateEx.isEqual(value, periodEnd) ||
+                DateEx.isBefore(value, periodEnd)
+              ) {
+                handleChangePeriodStart(value);
+              } else {
+                Alerting.create('warning', `A data inicial não pode ser maior que a data final.`, 3600);
+              }
+            }}
+          />
+          <DatePicker
+            className="col px-2 my-2"
+            label="Período de Apuração (Final)"
+            value={periodEnd}
+            maxDate={DateEx.addYears(new Date(), 1)}
+            minDate={periodStart}
+            handleChangeValue={(value) => {
+              if (
+                DateEx.isEqual(value, periodStart) ||
+                DateEx.isAfter(value, periodStart)
+              ) {
+                handleChangePeriodEnd(value);
+              } else {
+                Alerting.create('warning', `A data final não pode ser menor que a data inicial.`, 3600);
+              }
+            }}
+          />
+        </div>
+        <div className='d-flex flex-column p-2' style={{ marginBottom: '12vh' }}>
+          <ListWithCheckboxMUI
+            columns={postingsColumns}
+            rows={postingsRows}
+            pageSize={5}
+            pageSizeOptions={[5, 10, 20]}
+            onChangeSelection={(items: string[]) => console.info(items)}
+            onPageSizeChange={(pageSize: number) => console.log(pageSize)}
+          />
         </div>
       </div>
     </div>
   )
 }
 
-export default function Cards(
+export default function Paid(
   {
     privileges,
     auth,
@@ -201,10 +261,16 @@ export default function Cards(
     getUserInfoAuthorization: string
   }
 ) {
+  const [syncData, setSyncData] = useState<boolean>(false)
+
   const [isReady, setReady] = useState<boolean>(false)
   const [notPrivilege, setNotPrivilege] = useState<boolean>(false)
   const [notAuth, setNotAuth] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(true)
+
+  const [costCenterId, setCostCenterId] = useState<string>('')
+  const [periodStart, setPeriodStart] = useState<Date>(new Date())
+  const [periodEnd, setPeriodEnd] = useState<Date>(new Date())
 
   const { success, data, error } = useGetUserInfoService(
     {
@@ -215,6 +281,11 @@ export default function Cards(
       encodeuri: 'true'
     }
   );
+
+  const
+    { data: postings, isLoading: isLoadingPostings } = usePostingsService(),
+    { create: CreateCostCenter } = useCostCenterService(),
+    { data: costCenters, isLoading: isLoadingCostCenters, update: UpdateCostCenters, delete: DeleteCostCenters } = useCostCentersService();
 
   const router = useRouter()
 
@@ -233,7 +304,11 @@ export default function Cards(
     ) => {
       event.preventDefault()
       router.push(path)
-    };
+    },
+    handleClickBackPage = () => router.push('/payback/cards'),
+    handleChangeCostCenter = (id: string) => setCostCenterId(id),
+    handleChangePeriodStart = (date: Date) => setPeriodStart(date),
+    handleChangePeriodEnd = (date: Date) => setPeriodEnd(date);
 
   if (error && !notAuth) {
     setNotAuth(true);
@@ -252,11 +327,46 @@ export default function Cards(
     setLoading(false);
   }
 
+  if (
+    isLoadingPostings && !syncData
+    || isLoadingCostCenters && !syncData
+  )
+    return compose_load();
+
+  if (
+    !syncData
+    && postings
+    && costCenters
+  ) {
+    setSyncData(true);
+  } else if (
+    !syncData && !postings
+    || !syncData && !costCenters
+    || !syncData && !UpdateCostCenters
+    || !syncData && !DeleteCostCenters
+  ) {
+    return <BoxError />
+  }
+
   if (loading) return compose_load()
 
   if (notPrivilege) return compose_noPrivilege(handleClickNoPrivilege)
 
   if (notAuth) return compose_noAuth(handleClickNoAuth)
 
-  if (isReady) return compose_ready()
+  if (isReady) return compose_ready(
+    handleClickBackPage,
+    CreateCostCenter,
+    costCenters,
+    isLoadingCostCenters,
+    UpdateCostCenters,
+    DeleteCostCenters,
+    costCenterId,
+    handleChangeCostCenter,
+    periodStart,
+    periodEnd,
+    handleChangePeriodStart,
+    handleChangePeriodEnd,
+    postings,
+  )
 }

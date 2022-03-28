@@ -48,7 +48,7 @@ export default function Home() {
             <hr data-testid="card-separator-1" className="text-white" />
             <p data-testid="card-text-1" className="card-text text-white fs-6">
               Graças as inovações tecnológicas agora podemos estar ainda mais
-              próximos de nosso clientes e colaboradores.
+              próximos de nossos clientes e colaboradores.
             </p>
           </div>
         </div>

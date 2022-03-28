@@ -192,8 +192,8 @@ import type {
 } from '@/types/UploadServiceType'
 
 const serverSideProps: PageProps = {
-  title: 'Lançamentos/Cadastro',
-  description: 'Cadastro de lançamentos operacionais',
+  title: 'Operacional/Lançamentos/Cadastro',
+  description: 'Registro das movimentações diárias de FT/FREE',
   themeColor: '#004a6e',
   menu: GetMenuMain('mn-payback')
 }
@@ -817,10 +817,8 @@ function compose_ready(
         periodStart={periodStart}
         periodEnd={periodEnd}
         handleFinish={(postings: PostingType[]) => {
-          if (postings.length > 0) {
-            Alerting.create('success', 'Cobertura(s) aplicada(s) com sucesso!');
-            setTimeout(() => searchPostingsDefined(), 2000);
-          }
+          if (postings.length > 0)
+            Alerting.create('success', 'Cobertura(s) registradas(s) com sucesso!');
         }}
         show={showModalAssistantCoverageDefine}
         handleClose={() => {
@@ -978,18 +976,20 @@ function compose_ready(
                       <p className="fw-bold border-bottom text-center my-2">
                         Disponíveis
                       </p>
-                      <ListWithCheckboxMUI
-                        columns={workPlaceColumns}
-                        rows={workPlaceRows}
-                        pageSize={pageSizeTableWorkplaces}
-                        pageSizeOptions={pageSizeOptionsTableWorkplaces}
-                        onChangeSelection={handleDefineSelectWorkplaces}
-                        onPageSizeChange={handleChangePageSizeTableWorkplaces}
-                      />
+                      <div className='d-flex flex-column p-2' style={{ marginBottom: '12vh' }}>
+                        <ListWithCheckboxMUI
+                          columns={workPlaceColumns}
+                          rows={workPlaceRows}
+                          pageSize={pageSizeTableWorkplaces}
+                          pageSizeOptions={pageSizeOptionsTableWorkplaces}
+                          onChangeSelection={handleDefineSelectWorkplaces}
+                          onPageSizeChange={handleChangePageSizeTableWorkplaces}
+                        />
+                      </div>
                       <div className='d-flex flex-column flex-md-row'>
                         <button
                           type="button"
-                          className="btn btn-link"
+                          className="btn btn-link ms-3"
                           disabled={selectWorkplaces.length <= 0}
                           onClick={() => {
                             const filtered = selectWorkplaces.filter(id => {
@@ -1010,7 +1010,7 @@ function compose_ready(
                         </button>
                         <button
                           type="button"
-                          className="btn btn-link"
+                          className="btn btn-link ms-3"
                           disabled={selectWorkplaces.length <= 0}
                           onClick={() => handleRemoveAppliedWorkplaces(workplaces.filter(workplace => selectWorkplaces.includes(workplace.id)))}
                         >
@@ -1021,7 +1021,7 @@ function compose_ready(
                         </button>
                         <button
                           type="button"
-                          className="btn btn-link"
+                          className="btn btn-link ms-3"
                           disabled={selectWorkplaces.length <= 0 || selectWorkplaces.length > 1}
                           onClick={handleShowModalEditWorkplace}
                         >
@@ -1032,7 +1032,7 @@ function compose_ready(
                         </button>
                         <button
                           type="button"
-                          className="btn btn-link"
+                          className="btn btn-link ms-3"
                           disabled={selectWorkplaces.length <= 0}
                           onClick={() => handleDeleteWorkplaces(selectWorkplaces)}
                         >
@@ -1043,7 +1043,7 @@ function compose_ready(
                         </button>
                         <button
                           type="button"
-                          className="btn btn-link"
+                          className="btn btn-link ms-3"
                           onClick={handleShowModalRegisterWorkplace}
                         >
                           <FontAwesomeIcon
@@ -1094,18 +1094,20 @@ function compose_ready(
                       <p className="fw-bold border-bottom text-center my-2">
                         Funcionários
                       </p>
-                      <ListWithCheckboxMUI
-                        columns={peopleColumns}
-                        rows={peopleRows}
-                        pageSize={pageSizeTablePeopleInWorkplaces}
-                        pageSizeOptions={pageSizeOptionsTablePeopleInWorkplaces}
-                        onChangeSelection={handleDefineSelectPeopleInWorkplaces}
-                        onPageSizeChange={handleChangePageSizeTablePeopleInWorkplaces}
-                      />
+                      <div className='d-flex flex-column p-2' style={{ marginBottom: '12vh' }}>
+                        <ListWithCheckboxMUI
+                          columns={peopleColumns}
+                          rows={peopleRows}
+                          pageSize={pageSizeTablePeopleInWorkplaces}
+                          pageSizeOptions={pageSizeOptionsTablePeopleInWorkplaces}
+                          onChangeSelection={handleDefineSelectPeopleInWorkplaces}
+                          onPageSizeChange={handleChangePageSizeTablePeopleInWorkplaces}
+                        />
+                      </div>
                       <div className='d-flex flex-column flex-md-row'>
                         <button
                           type="button"
-                          className="btn btn-link"
+                          className="btn btn-link ms-3"
                           disabled={assistantFinish || selectPeopleInWorkplaces.length <= 0 || selectPeopleInWorkplaces.length % 2 !== 0}
                           onClick={() => {
                             const filtered = selectPeopleInWorkplaces.filter(id => {
@@ -1128,7 +1130,7 @@ function compose_ready(
                         </button>
                         <button
                           type="button"
-                          className="btn btn-link"
+                          className="btn btn-link ms-3"
                           disabled={assistantFinish || selectPeopleInWorkplaces.length <= 0 || selectPeopleInWorkplaces.length > 1}
                           onClick={handleShowModalEditPeopleInWorkplace}
                         >
@@ -1139,7 +1141,7 @@ function compose_ready(
                         </button>
                         <button
                           type="button"
-                          className="btn btn-link"
+                          className="btn btn-link ms-3"
                           disabled={
                             assistantFinish ||
                             selectPeopleInWorkplaces.length <= 0
@@ -1153,7 +1155,7 @@ function compose_ready(
                         </button>
                         <button
                           type="button"
-                          className="btn btn-link"
+                          className="btn btn-link ms-3"
                           disabled={assistantFinish}
                           onClick={handleShowModalRegisterPeopleInWorkplace}
                         >
@@ -1434,6 +1436,9 @@ export default function Register(
         deleteMirrors = [];
 
       if (posting) {
+        if (posting.foremanApproval || posting.managerApproval)
+          return Alerting.create('warning', 'Não é possível remover um lançamento aprovado.');
+
         if (posting.covering && posting.covering.mirror) {
           deleteFiles.push(posting.covering.mirror.fileId);
           deleteMirrors.push(posting.covering.mirror.id);

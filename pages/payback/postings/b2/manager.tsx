@@ -42,6 +42,7 @@ import getB2ForTable from '@/src/functions/getB2ForTable'
 import { CostCenterType } from '@/types/CostCenterType'
 import { B2Type } from '@/types/B2Type'
 import { PersonB2Type } from '@/types/PersonB2Type'
+import { PersonPHType } from '@/types/PersonPHType'
 import { PersonType } from '@/types/PersonType'
 import { WorkplaceType } from '@/types/WorkplaceType'
 
@@ -50,6 +51,7 @@ import { useB2Service } from '@/services/useB2Service'
 import { useB2AllService } from '@/services/useB2AllService'
 import { usePersonB2Service } from '@/services/usePersonB2Service'
 import { usePeopleB2Service } from '@/services/usePeopleB2Service'
+import { usePeoplePHService } from '@/services/usePeoplePHService'
 import { usePeopleService } from '@/services/usePeopleService'
 import { useWorkplacesService } from '@/services/useWorkplacesService'
 
@@ -66,8 +68,8 @@ import {
 
 
 const serverSideProps: PageProps = {
-  title: 'Pagamentos/Lançamentos Operacionais',
-  description: 'Lançamentos Operacionais',
+  title: 'Operacional/B2',
+  description: 'Administração dos contratos de B2',
   themeColor: '#004a6e',
   menu: GetMenuMain('mn-payback')
 }
@@ -76,8 +78,7 @@ export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => 
   const privileges: PrivilegesSystem[] = [
     'administrador',
     'ope_gerente',
-    'ope_coordenador',
-    'ope_mesa'
+    'ope_coordenador'
   ]
 
   return {
@@ -178,6 +179,7 @@ function compose_ready(
   handleChangePeriodEnd: (value: Date) => void,
   postings: B2Type[],
   peopleB2: PersonB2Type[],
+  peoplePH: PersonPHType[],
   createPosting: FunctionCreateB2Typeof,
   createPersonB2: FunctionCreatePersonB2Typeof,
   updatePostings: FunctionUpdateB2AllTypeof,
@@ -198,10 +200,19 @@ function compose_ready(
     { columns: postingsColumns, rows: postingsRows } =
       getB2ForTable(
         postings
-          .filter(posting => posting.costCenterId === costCenter)
+          .filter(posting =>
+            posting.costCenterId === costCenter &&
+            !posting.onlyHistory
+          )
       );
 
-  const postingSelected = postingsSelected.length > 0 ? postings.find(posting => posting.id === postingsSelected[0]) : null;
+  const
+    postingSelected = postingsSelected.length > 0 ? postings.find(posting => posting.id === postingsSelected[0]) : null,
+    postingSelectedDeleted = postingsSelected.length > 0 ? postings.find(posting => posting.onlyHistory && posting.personId === postingSelected?.personId) : null,
+    peopleFiltered = people.filter(person =>
+      !peoplePH.find(peoplePH => peoplePH.personId === person.id) &&
+      !peopleB2.find(peopleB2 => peopleB2.personId === person.id)
+    )
 
   return (
     <>
@@ -210,7 +221,7 @@ function compose_ready(
         periodStart={periodStart}
         periodEnd={periodEnd}
         costCenterId={costCenter}
-        people={people.filter(person => !postings.find(posting => posting.personB2.person.id === person.id))}
+        people={peopleFiltered}
         workplaces={workplaces}
         createPosting={createPosting}
         createPersonB2={createPersonB2}
@@ -243,6 +254,8 @@ function compose_ready(
           people={people}
           workplaces={workplaces}
           updatePosting={updatePostings}
+          deletePosting={deletePostings}
+          isPossibleHandleDelete={postingSelectedDeleted ? true : false}
           open={openModalEditB2}
           onClose={handleCloseModalEditB2}
         />
@@ -354,20 +367,22 @@ function compose_ready(
           <p className="fw-bold border-bottom text-center my-2">
             Lançamentos
           </p>
-          <ListWithCheckboxMUI
-            columns={postingsColumns}
-            rows={postingsRows}
-            pageSize={pageSize}
-            pageSizeOptions={pageSizeOptions}
-            deepCompare={true}
-            onChangeSelection={handleChangePostingsSelected}
-            onPageSizeChange={handleChangePageSize}
-          />
+          <div className='d-flex flex-column p-2' style={{ marginBottom: '12vh' }}>
+            <ListWithCheckboxMUI
+              columns={postingsColumns}
+              rows={postingsRows}
+              pageSize={pageSize}
+              pageSizeOptions={pageSizeOptions}
+              deepCompare={true}
+              onChangeSelection={handleChangePostingsSelected}
+              onPageSizeChange={handleChangePageSize}
+            />
+          </div>
           <div className='d-flex flex-column flex-md-row'>
             <button
               type="button"
-              className="btn btn-link"
-              disabled={costCenter.length <= 0}
+              className="btn btn-link ms-3"
+              disabled={costCenter.length <= 0 || peopleFiltered.length <= 0}
               onClick={handleOpenModalRegisterB2}
             >
               <FontAwesomeIcon
@@ -377,7 +392,7 @@ function compose_ready(
             </button>
             <button
               type="button"
-              className="btn btn-link"
+              className="btn btn-link ms-3"
               disabled={postingsSelected.length <= 0 || postingsSelected.length > 1}
               onClick={handleOpenModalEditB2}
             >
@@ -388,7 +403,7 @@ function compose_ready(
             </button>
             <button
               type="button"
-              className="btn btn-link"
+              className="btn btn-link ms-3"
               disabled={postingsSelected.length <= 0}
               onClick={async () => {
                 postingsSelected.forEach(async (postingId) => {
@@ -397,11 +412,15 @@ function compose_ready(
 
                   const
                     person = postings.find(posting => posting.id === postingId)?.personB2.person,
-                    personId = postings.find(posting => posting.id === postingId)?.personId,
-                    deleted = await deletePostings(postingId);
+                    personId = postings.find(posting => posting.id === postingId)?.personId;
 
                   if (!personId || !person)
                     return Alerting.create('error', 'Não é possível remover a pessoa do B2. Tente novamente, mais tarde!');
+
+                  if (postings.find(posting => posting.personId === personId))
+                    return Alerting.create('error', 'Não é possível remover o B2 que contém histórico de pagamento.');
+
+                  const deleted = await deletePostings(postingId);
 
                   if (!deleted)
                     return Alerting.create('error', 'Não é possível remover o B2. Tente novamente, mais tarde!');
@@ -474,6 +493,7 @@ export default function Manager(
     { create: CreatePersonB2 } = usePersonB2Service(),
     { data: postings, isLoading: isLoadingB2, update: UpdateB2, delete: DeleteB2 } = useB2AllService(),
     { data: peopleB2, isLoading: isLoadingPeopleB2, delete: DeletePeopleB2 } = usePeopleB2Service(),
+    { data: peoplePH, isLoading: isLoadingPeoplePH } = usePeoplePHService(),
     { data: people, isLoading: isLoadingPeople } = usePeopleService(),
     { data: workplaces, isLoading: isLoadingWorkplaces } = useWorkplacesService()
 
@@ -527,6 +547,7 @@ export default function Manager(
     isLoadingCostCenters && !syncData
     || isLoadingB2 && !syncData
     || isLoadingPeopleB2 && !syncData
+    || isLoadingPeoplePH && !syncData
     || isLoadingPeople && !syncData
     || isLoadingWorkplaces && !syncData
   )
@@ -537,6 +558,7 @@ export default function Manager(
     && costCenters
     && postings
     && peopleB2
+    && peoplePH
     && people
     && workplaces
   ) {
@@ -548,6 +570,7 @@ export default function Manager(
     || !syncData && !DeleteB2
     || !syncData && !peopleB2
     || !syncData && !DeletePeopleB2
+    || !syncData && !peoplePH
     || !syncData && !people
     || !syncData && !workplaces
   ) {
@@ -576,6 +599,7 @@ export default function Manager(
     handleChangePeriodEnd,
     postings,
     peopleB2,
+    peoplePH,
     CreateB2,
     CreatePersonB2,
     UpdateB2,

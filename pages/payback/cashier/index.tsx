@@ -18,6 +18,8 @@ import Icon from '@/src/utils/fontAwesomeIcons'
 import NoPrivilege, { handleClickFunction } from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
 
+import { ModuleCardControl } from '@/components/cards/ModuleCardControl'
+
 import { PageProps } from '@/pages/_app'
 import { GetMenuMain } from '@/bin/GetMenuMain'
 import { PrivilegesSystem } from '@/types/UserType'
@@ -138,37 +140,29 @@ function compose_ready() {
                 Operacional
               </p>
             </div>
-            <div className='d-flex flex-column flex-md-row align-items-center border-bottom my-3'>
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'dollar')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/postings/cashier/payment/ft">
-                  Pagamento de FT/Free
-                </Link>
-              </p>
-              <hr />
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'dollar')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/postings/cashier/payment/b2">
-                  Pagamento de B2
-                </Link>
-              </p>
-              <hr />
-              <p className="text-center text-md-start px-2 fs-6 fw-bold">
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'dollar')}
-                  className="me-1 flex-shrink-1 my-auto"
-                />
-                <Link href="/payback/postings/cashier/payment/ph">
-                  Pagamento de Pacote de Horas
-                </Link>
-              </p>
-              <hr />
+            <div className='d-flex flex-column flex-md-row align-items-center my-2'>
+              <ModuleCardControl
+                title='Pagar FT/FREE'
+                subtitle='Gere a planilha de pagamento em dinheiro.'
+                link={"/payback/cashier/ft/pay"}
+              />
+              <ModuleCardControl
+                title='Pagos FT/FREE'
+                subtitle='Histórico dos pagamentos em dinheiro.'
+                link={"/payback/cashier/ft/paid"}
+              />
+            </div>
+            <div className='d-flex flex-column flex-md-row align-items-center my-2'>
+              <ModuleCardControl
+                title='Pagar B2'
+                subtitle='Efetue os pagamentos e veja o histórico dos itens pagos.'
+                link={"/payback/cashier/b2/manager"}
+              />
+              <ModuleCardControl
+                title='Pagar Pacote de Horas'
+                subtitle='Efetue os pagamentos e veja o histórico dos itens pagos.'
+                link={"/payback/cashier/ph/manager"}
+              />
             </div>
           </div>
         </div>
