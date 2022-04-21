@@ -1,9 +1,3 @@
-/**
- * @description Métodos essenciais para se trabalhar com datas
- * @author GuilhermeSantos001
- * @update 14/01/2022
- */
-
 import ptBRLocale from 'date-fns/locale/pt-BR';
 
 import {
@@ -11,6 +5,7 @@ import {
   formatDistance,
   formatRelative,
   differenceInCalendarDays,
+  intervalToDuration,
   addHours,
   subHours,
   addMinutes,
@@ -54,6 +49,13 @@ class DateEx {
   // ? Retorna a diferença entre as duas datas em dias
   differenceInCalendarDays(dateLeft: Date, dateRight: Date): number {
     return differenceInCalendarDays(dateLeft, dateRight);
+  }
+  // ? Retorna o intervalo entre as datas
+  interval(interval: { start: Date, end: Date }) {
+    return intervalToDuration({
+      start: interval.start,
+      end: interval.end
+    });
   }
   // ? Adiciona horas na data
   addHours(date: Date, hours: number): Date {
@@ -141,64 +143,68 @@ class DateEx {
   }
   // ? Verifica se a data é antes da data atual
   isBefore(date: Date, dateToCompare: Date, compareTime?: boolean): boolean {
+    date.setSeconds(0);
+    date.setMilliseconds(0);
+    dateToCompare.setSeconds(0);
+    dateToCompare.setMilliseconds(0);
+
     if (!compareTime) {
       date.setHours(0);
       date.setMinutes(0);
-      date.setSeconds(0);
-      date.setMilliseconds(0);
       dateToCompare.setHours(0);
       dateToCompare.setMinutes(0);
-      dateToCompare.setSeconds(0);
-      dateToCompare.setMilliseconds(0);
     }
 
     return isBefore(date, dateToCompare);
   }
   // ? Verifica se a data é depois da data atual
   isAfter(date: Date, dateToCompare: Date, compareTime?: boolean): boolean {
+    date.setSeconds(0);
+    date.setMilliseconds(0);
+    dateToCompare.setSeconds(0);
+    dateToCompare.setMilliseconds(0);
+
     if (!compareTime) {
       date.setHours(0);
       date.setMinutes(0);
-      date.setSeconds(0);
-      date.setMilliseconds(0);
       dateToCompare.setHours(0);
       dateToCompare.setMinutes(0);
-      dateToCompare.setSeconds(0);
-      dateToCompare.setMilliseconds(0);
     }
 
     return isAfter(date, dateToCompare);
   }
   // ? Verifica se a data é igual a data atual
   isEqual(date: Date, dateToCompare: Date, compareTime?: boolean): boolean {
+    date.setSeconds(0);
+    date.setMilliseconds(0);
+    dateToCompare.setSeconds(0);
+    dateToCompare.setMilliseconds(0);
+
     if (!compareTime) {
       date.setHours(0);
       date.setMinutes(0);
-      date.setSeconds(0);
-      date.setMilliseconds(0);
       dateToCompare.setHours(0);
       dateToCompare.setMinutes(0);
-      dateToCompare.setSeconds(0);
-      dateToCompare.setMilliseconds(0);
     }
 
     return isEqual(date, dateToCompare);
   }
   // ? Verifica se a data está dentro do intervalo
   isWithinInterval(date: Date, interval: { start: Date, end: Date }, compareTime?: boolean): boolean {
+    date.setSeconds(0);
+    date.setMilliseconds(0);
+    interval.start.setSeconds(0);
+    interval.start.setMilliseconds(0);
+    interval.end.setSeconds(0);
+    interval.end.setMilliseconds(0);
+
     if (!compareTime) {
       date.setHours(0);
       date.setMinutes(0);
-      date.setSeconds(0);
-      date.setMilliseconds(0);
       interval.start.setHours(0);
       interval.start.setMinutes(0);
-      interval.start.setSeconds(0);
-      interval.start.setMilliseconds(0);
       interval.end.setHours(0);
       interval.end.setMinutes(0);
-      interval.end.setSeconds(0);
-      interval.end.setMilliseconds(0);
     }
 
     return isWithinInterval(date, interval);

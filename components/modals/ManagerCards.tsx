@@ -84,6 +84,7 @@ export function ManagerCards(props: Props) {
                 <Button
                   color="error"
                   disabled={
+                    card.unlocked ||
                     props.postings.filter(posting =>
                       posting.paymentStatus === 'pending' &&
                       posting.paymentMethod === 'card' &&
@@ -140,7 +141,10 @@ export function ManagerCards(props: Props) {
                 <ListItemText primary={`Lote [${card.lotNum}], Número de Série [${card.serialNumber}], 4 Últimos Dígitos do Cartão [${card.lastCardNumber}]`} secondary={card.costCenter.value} />
                 <Button
                   color="success"
-                  disabled={props.person.cards.some(_ => _.costCenterId === card.costCenterId)}
+                  disabled={
+                    props.person.cards.some(_ => _.costCenterId === card.costCenterId) ||
+                    props.person.cards.length >= 1
+                  }
                   onClick={async () => {
                     if (!props.assignPersonCard)
                       return Alerting.create('error', 'Não foi possível associar o cartão. Por favor, tente novamente.');

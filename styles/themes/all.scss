@@ -1,6 +1,6 @@
 // ------------------------------------------------------------------------------
 // Author: GuilhermeSantos001
-// Updated: 28/08/2021
+// Updated: 01/04/2022
 //
 
 $primary: #004a6e;
@@ -46,10 +46,11 @@ $colors-custom: (
 
 $theme-colors: map-merge($theme-colors, $colors-custom);
 
-@import '../plugins/please-wait/margin.scss';
-
-// Themes
+// @Themes
 @import 'dark.scss';
 
-// Class
+// @Plugins
+@import '../plugins/please-wait/margin.scss';
+
+// @Classes
 @import '../class/all.scss';

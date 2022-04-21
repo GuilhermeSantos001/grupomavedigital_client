@@ -29,12 +29,12 @@ import { PrivilegesSystem } from '@/types/UserType'
 
 import { SocketConnection } from '@/components/socket-io'
 import {
-  PaybackSocketEvents
-} from '@/constants/socketEvents'
+  FilesSocketEvents,
+} from '@/constants/SocketEvents'
 import {
-  TYPEOF_EMITTER_PAYBACK_DELETE_MIRROR,
-  TYPEOF_LISTENER_PAYBACK_DELETE_MIRROR,
-} from '@/constants/SocketTypes'
+  TYPEOF_EMITTER_FILE_DELETE_ATTACHMENT,
+  TYPEOF_LISTENER_FILE_DELETE_ATTACHMENT,
+} from '@/constants/SocketFileType'
 
 import DateEx from '@/src/utils/dateEx'
 import Alerting from '@/src/utils/alerting'
@@ -430,8 +430,8 @@ export default function Postings(
     },
     handleRemoveUploadedFile = (filesId: string[], mirrorsId: string[]) =>
       window.socket.emit(
-        PaybackSocketEvents.PAYBACK_DELETE_MIRROR,
-        window.socket.compress<TYPEOF_EMITTER_PAYBACK_DELETE_MIRROR>({
+        FilesSocketEvents.FILE_DELETE_ATTACHMENT,
+        window.socket.compress<TYPEOF_EMITTER_FILE_DELETE_ATTACHMENT>({
           filesId,
           mirrorsId
         })
@@ -531,8 +531,8 @@ function onSocketEvents(
   if (socket) {
     const
       events = [
-        `${PaybackSocketEvents.PAYBACK_DELETE_MIRROR}-SUCCESS`,
-        `${PaybackSocketEvents.PAYBACK_DELETE_MIRROR}-FAILURE`,
+        `${FilesSocketEvents.FILE_DELETE_ATTACHMENT}-SUCCESS`,
+        `${FilesSocketEvents.FILE_DELETE_ATTACHMENT}-FAILURE`,
       ]
 
     events
@@ -543,20 +543,20 @@ function onSocketEvents(
 
     socket
       .on(
-        events[0], // * PAYBACK-DELETE-MIRROR-SUCCESS
+        events[0], // * FILE-DELETE-ATTACHMENT-SUCCESS
         (
           data: string
         ) => {
           const {
             mirrorsId
-          } = socket.decompress<TYPEOF_LISTENER_PAYBACK_DELETE_MIRROR>(data);
+          } = socket.decompress<TYPEOF_LISTENER_FILE_DELETE_ATTACHMENT>(data);
           mirrorsId.forEach(mirrorId => handleDeleteUpload(mirrorId));
         }
       )
 
     socket
       .on(
-        events[1], // * PAYBACK-DELETE-MIRROR-FAILURE
+        events[1], // * FILE-DELETE-ATTACHMENT-FAILURE
         (error: string) => console.error(error)
       )
   }

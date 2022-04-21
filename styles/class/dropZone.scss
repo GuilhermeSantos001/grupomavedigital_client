@@ -1,10 +1,10 @@
 // ------------------------------------------------------------------------------
 // Author: GuilhermeSantos001
-// Updated: 09/12/2021
+// Updated: 20/04/2022
 //
 
 .dropzone {
-  @extend .animation-delay;
+  @extend .animation-delay, .col-12;
   &.active {
     visibility: visible;
     opacity: 1;
@@ -31,7 +31,7 @@
 .drag-drop-zone {
   @extend .d-none,
     .d-md-flex,
-    .justify-content-center,
+    .flex-column,
     .bg-light-gray,
     .border,
     .rounded,
@@ -42,6 +42,16 @@
 
   p {
     @extend .animation-delay, .text-muted;
+  }
+
+  .content {
+    @extend .d-flex,
+      .flex-column,
+      .justify-content-center,
+      .p-2,
+      .col-12,
+      .mt-auto,
+      .mx-auto;
   }
 
   &.invalid-1 {

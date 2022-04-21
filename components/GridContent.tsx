@@ -1,5 +1,12 @@
 import React from 'react'
 
+import { CacheProvider, EmotionCache } from '@emotion/react';
+import { ThemeProvider, CssBaseline } from '@mui/material';
+
+import { Theme } from '@/styles/theme-material-ui';
+
+import { SnackbarProvider } from 'notistack';
+
 import { Dropdown } from 'react-bootstrap';
 
 import Link from 'next/link'
@@ -16,6 +23,7 @@ import type {
 
 type MyProps = {
   menu: MenuResponse
+  emotionCache: EmotionCache
   menuShow: boolean
   fullwidth: boolean
 }
@@ -203,29 +211,29 @@ export default class GridContent extends React.Component<MyProps, MyState> {
           className={`d-flex flex-column py-2 my-2 overflow-auto ${this.props.fullwidth ? 'fullwidth' : ''
             } ${this.props.menuShow ? 'fullwidth' : ''}`}
           style={{ height: '80vh' }}
-          transition={{ duration: 0.2}}
+          transition={{ duration: 0.2 }}
           children={(
             <ul className={`list-style-none px-2`}>
-            {menu}
-            <div
-              key='build-jully'
-              title={'Acesse a documentação da build atual'}
-              className={`d-flex flex-row p-2 mb-2 bg-primary border-bottom rounded`}
-            >
-              <a
-                className={`menuItem w-100 text-truncate animation-delay hover-color`}
-                href={'https://grupomavedigital-docs.vercel.app/docs/api/system/jully'}
-                target="_blank"
-                rel="noreferrer"
+              {menu}
+              <div
+                key='build-jully'
+                title={'Acesse a documentação da build atual'}
+                className={`d-flex flex-row p-2 mb-2 bg-primary border-bottom rounded`}
               >
-                {'Versão - Jully'}
-              </a>
-              <FontAwesomeIcon
-                icon={Icon.render('fas', 'code-branch')}
-                className="ms-2 flex-shrink-1 text-secondary my-auto"
-              />
-            </div>
-          </ul>
+                <a
+                  className={`menuItem w-100 text-truncate animation-delay hover-color`}
+                  href={'https://grupomavedigital-docs.vercel.app/docs/api/system/jully'}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {'Versão - Jully'}
+                </a>
+                <FontAwesomeIcon
+                  icon={Icon.render('fas', 'code-branch')}
+                  className="ms-2 flex-shrink-1 text-secondary my-auto"
+                />
+              </div>
+            </ul>
           )}
         />
         <div
@@ -233,7 +241,14 @@ export default class GridContent extends React.Component<MyProps, MyState> {
           className={`fade-effect active p-2 mb-5 border-start animation-delay ${this.props.fullwidth ? 'fullwidth' : ''
             }${this.props.menuShow ? 'fullwidth' : ''}`}
         >
-          {children}
+          <CacheProvider value={this.props.emotionCache}>
+            <ThemeProvider theme={Theme}>
+              <CssBaseline />
+              <SnackbarProvider maxSnack={3}>
+                {children}
+              </SnackbarProvider>
+            </ThemeProvider>
+          </CacheProvider>
         </div>
         <div
           className='fixed-bottom d-flex flex-row justify-content-center align-items-center bg-light-gray border-top p-2 shadow'

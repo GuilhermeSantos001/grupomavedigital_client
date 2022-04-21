@@ -14,6 +14,8 @@ import { BoxError } from '@/components/utils/BoxError';
 
 import type { CardType } from '@/types/CardType';
 
+import Alerting from '@/src/utils/alerting';
+
 export type Props = {
   selectCards?: string[]
   isLoadingCards: boolean
@@ -52,6 +54,9 @@ function Component(props: Props) {
 
   const
     handleChangeCard = (value: string | string[]) => {
+      if (value instanceof Array && value.length > 0 && selectCards.length >= 1)
+        return Alerting.create('warning', 'Só é possível selecionar um cartão de benefício');
+
       if (typeof value === 'string') {
         const newValue = [...selectCards, value];
 
@@ -114,7 +119,10 @@ function Component(props: Props) {
 
               return (
                 <MenuItem key={key} value={id}>
-                  <Checkbox checked={selectCards.includes(id)} />
+                  <Checkbox
+                    checked={selectCards.includes(id)}
+                    disabled={!selectCards.includes(id) && selectCards.length >= 1}
+                  />
                   <ListItemText primary={value} />
                 </MenuItem>
               )

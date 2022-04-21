@@ -80,12 +80,13 @@ export function ListCoverageDefined(props: Props) {
     return <BoxError />
   }
 
+  const postingsFiltered: PostingType[] = postings.filter(posting => props.postings.find(posting2 => posting2.id === posting.id));
+
   return (
     <List className='col-12 bg-light-gray border rounded m-2'>
       {
-        props.postings.length > 0 ?
-          props
-            .postings
+        postingsFiltered.length > 0 ?
+          postingsFiltered
             .filter(posting => !posting.managerApproval)
             .map(posting => {
               const

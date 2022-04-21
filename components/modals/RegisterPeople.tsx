@@ -161,6 +161,8 @@ function Component(props: Props) {
       }
     },
     canRegisterPerson = () => {
+      const checkMail = () => mail.length > 0 ? mail.length > 0 && StringEx.isValidEmail(mail) : true;
+
       return name.length > 0 &&
         matricule.length > 0 &&
         cpf.length >= 11 &&
@@ -168,8 +170,7 @@ function Component(props: Props) {
         motherName.length > 0 &&
         birthDate != null &&
         phone.length >= 11 &&
-        mail.length > 0 &&
-        StringEx.isValidEmail(mail) &&
+        checkMail() &&
         scaleId.length > 0 &&
         addressId.length > 0 &&
         appliedCards.length > 0 &&

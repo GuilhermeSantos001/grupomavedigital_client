@@ -298,7 +298,7 @@ function compose_ready(
                     const filter = items.filter(item => {
                       const card = cards.find(card => `${card.serialNumber} - ${card.lastCardNumber}` === item);
 
-                      if (card && !card.person && card.status === 'available')
+                      if (card && !card.unlocked && !card.person && card.status === 'available')
                         return true;
 
                       return false;
@@ -367,7 +367,6 @@ function compose_ready(
                       },
                       popover: {
                         title: 'Data de Criação',
-                        description: 'Informações sobre a data de criação do cartão.'
                       }
                     },
                     {
@@ -385,7 +384,6 @@ function compose_ready(
                       },
                       popover: {
                         title: 'Usuário Atribuído',
-                        description: 'Informações sobre o usuário atribuído ao cartão.'
                       }
                     },
                     {
@@ -395,14 +393,13 @@ function compose_ready(
                       },
                       enabled: item.status === 'available',
                       handleClick: () => {
-                        if (item.person || item.status !== 'available')
+                        if (item.unlocked || item.person || item.status !== 'available')
                           return Alerting.create('error', 'O cartão não pode ser removido.');
 
                         removeLotItem(item.id);
                       },
                       popover: {
                         title: 'Remova o cartão',
-                        description: 'Você pode remover cartões que ainda estão disponíveis e sem associações.'
                       }
                     }
                   ]
@@ -566,22 +563,22 @@ export default function CardsRemove(
     handleChangeTextNameCanvasUserInfo = (text: string) => setTextNameCanvasUserInfo(text),
     handleChangeTextMatriculeUserInfo = (text: string) => setTextMatriculeCanvasUserInfo(text);
 
-    if (error && !notAuth) {
-      setNotAuth(true);
-      setLoading(false);
-    }
+  if (error && !notAuth) {
+    setNotAuth(true);
+    setLoading(false);
+  }
 
-    if (success && data && !isReady) {
-      if (
-        privileges
-          .filter(privilege => data.privileges.indexOf(privilege) !== -1)
-          .length <= 0
-      )
-        setNotPrivilege(true);
+  if (success && data && !isReady) {
+    if (
+      privileges
+        .filter(privilege => data.privileges.indexOf(privilege) !== -1)
+        .length <= 0
+    )
+      setNotPrivilege(true);
 
-      setReady(true);
-      setLoading(false);
-    }
+    setReady(true);
+    setLoading(false);
+  }
 
   if (
     isLoadingCards && !syncData ||

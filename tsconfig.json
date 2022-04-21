@@ -1,19 +1,6 @@
 {
-  "extends": "@tsconfig/next/tsconfig.json",
+  "extends": "./node_modules/@tsconfig/next/tsconfig.json",
   "compilerOptions": {
-    "target": "ESNext",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
     "incremental": true,
     "baseUrl": ".",
     "paths": {
@@ -26,12 +13,15 @@
       "@/controllers/*": ["controllers/*"],
       "@/context/*": ["context/*"],
       "@/lib/*": ["lib/*"],
+      "@/utility/*": ["utility/*"],
       "@/components/*": ["components/*"],
       "@/pages/*": ["pages/*"],
       "@/src/*": ["src/*"],
-      "@/styles/*": ["styles/*"]
+      "@/styles/*": ["styles/*"],
+      "@/animations/*": ["animations/*"],
+      "@/modules/*": ["modules/*"],
     }
   },
   "exclude": ["node_modules", ".next", "out", "test", "**/*.spec.tsx"],
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"]
 }

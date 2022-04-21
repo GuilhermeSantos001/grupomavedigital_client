@@ -28,6 +28,46 @@ export async function SheetCSV<Row>(rows: Row[], options: Options) {
   return XLSX.utils.sheet_to_csv(worksheet, { FS: ';', RS: '\n' });
 }
 
+export type LayoutUnlockAlelo = {
+  serialNumber: string
+  cpf: string
+}
+
+export const layoutUnlockAleloColumnNames = [
+  'Número de Série',
+  'CPF',
+]
+
+export type LayoutAssignAlelo = {
+  serialNumber: string
+  name: string
+  birthDate: string
+  cpf: string
+  matricule: string
+  mail: string
+  motherName: string
+  ddd_phone: string
+  phone: string
+  ddd_cellphone: string
+  cellphone: string
+  costCenterCode: string
+}
+
+export const layoutAssignAleloColumnNames = [
+  'Número de Série',
+  'Nome Completo',
+  'Data de Nascimento',
+  'CPF',
+  'Matrícula',
+  'E-mail',
+  'Nome da Mãe',
+  'DDD Telefone Fixo',
+  'Telefone Fixo',
+  'DDD Telefone Celular',
+  'Telefone Celular',
+  'Centro de Custo',
+]
+
 export type LayoutPayAlelo = {
   serialNumber: string
   cpf: string
@@ -39,7 +79,7 @@ export const layoutPayAleloColumnNames = [
   'Número de Série',
   'CPF',
   'Valor da Carga',
-  'Observacao'
+  'Observacao',
 ]
 
 export type LayoutCashierPay = {

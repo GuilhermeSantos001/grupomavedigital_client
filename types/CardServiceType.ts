@@ -2,9 +2,11 @@ import { CardType } from '@/types/CardType';
 
 export type DataCard = Pick<CardType,
   | 'costCenterId'
+  | 'personId'
   | 'lotNum'
   | 'serialNumber'
   | 'lastCardNumber'
+  | 'unlocked'
   | 'status'
 >;
 

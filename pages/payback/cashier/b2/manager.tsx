@@ -38,7 +38,7 @@ import { useCostCenterService } from '@/services/useCostCenterService'
 import { useCostCentersService } from '@/services/useCostCentersService'
 
 import { SelectCostCenter } from '@/components/selects/SelectCostCenter'
-import { ListWithCheckboxMUI } from '@/components/lists/ListWithCheckboxMUI'
+import { ListWithCheckbox } from '@/components/lists/ListWithCheckbox'
 
 import { DatePicker } from '@/components/selects/DatePicker'
 
@@ -287,16 +287,15 @@ function compose_ready(
             />
           </FormGroup>
         </div>
-        <div className='d-flex flex-column p-2' style={{ marginBottom: '12vh' }}>
-          <ListWithCheckboxMUI
-            columns={postingsColumns}
-            rows={postingsRows}
-            pageSize={5}
-            pageSizeOptions={[5, 10, 20]}
-            onChangeSelection={handleChangeSelectedPostings}
-            onPageSizeChange={(pageSize: number) => console.log(pageSize)}
-          />
-        </div>
+        <ListWithCheckbox
+          title='Pagamentos em dinheiro (B2)'
+          messages={{
+            emptyDataSourceMessage: 'Nenhum pagamento encontrado.',
+          }}
+          columns={postingsColumns}
+          data={postingsRows}
+          onChangeSelection={handleChangeSelectedPostings}
+        />
         <button
           type="button"
           className="btn btn-link ms-3"

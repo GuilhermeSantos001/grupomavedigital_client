@@ -2,6 +2,8 @@ import * as React from 'react';
 
 import Link from 'next/link'
 
+import { useRouter } from 'next/router'
+
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -19,7 +21,6 @@ import Tooltip from '@mui/material/Tooltip';
 import LaunchIcon from '@mui/icons-material/Launch';
 import InfoRounded from '@mui/icons-material/InfoRounded';
 import IconButton from '@mui/material/IconButton';
-
 
 const Transition = React.forwardRef(function Transition(
   props: TransitionProps & {
@@ -46,9 +47,16 @@ export function ModuleCardControl(props: Props) {
   const [open, setOpen] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
 
+  const router = useRouter();
+
   const
     handleClickOpen = () => setOpen(true),
-    handleClose = () => setOpen(false);
+    handleClose = () => setOpen(false),
+    handleChangePage = (event: React.MouseEvent<HTMLAnchorElement, MouseEvent>, path: string) => {
+      event.preventDefault();
+      setLoading(true);
+      router.push(path);
+    };
 
   return (
     <>
@@ -80,22 +88,23 @@ export function ModuleCardControl(props: Props) {
                   </IconButton>
                 </Tooltip> : <></>
             }
-            <Tooltip title="Acessar">
-              <IconButton
-                color='secondary'
-                aria-label="enter"
-                onClick={() => setLoading(true)}
-              >
-                <Link href={props.link}>
-                  {
-                    loading ?
-                      <CircularProgress className="text-secondary" size={25} />
-                      :
-                      <LaunchIcon />
-                  }
-                </Link>
-              </IconButton>
-            </Tooltip>
+            <Link href={props.link}>
+              <Tooltip title="Acessar">
+                <a onClick={(e) => handleChangePage(e, props.link)}>
+                  <IconButton
+                    className='hover-color hover-light'
+                    aria-label="enter"
+                  >
+                    {
+                      loading ?
+                        <CircularProgress className="text-secondary" size={25} />
+                        :
+                        <LaunchIcon />
+                    }
+                  </IconButton>
+                </a>
+              </Tooltip>
+            </Link>
           </Box>
         </Box>
       </Card>
@@ -130,7 +139,7 @@ function HelpDialog(
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button className="col-6 mx-auto" variant={'outlined'} size="small"  onClick={handleClose}>Sair</Button>
+        <Button className="col-6 mx-auto" variant={'outlined'} size="small" onClick={handleClose}>Sair</Button>
       </DialogActions>
     </Dialog>
   ) : <></>

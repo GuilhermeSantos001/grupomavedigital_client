@@ -1,7 +1,10 @@
 const withPWA = require('next-pwa')
 const runtimeCaching = require('next-pwa/cache')
 const withSass = require('@zeit/next-sass');
+const withCSS = require('@zeit/next-css')
 const path = require("path");
+
+module.exports = withCSS()
 
 module.exports = withSass({
   /* bydefault config  option Read For More Optios
@@ -25,5 +28,5 @@ module.exports = withPWA({
     disable: process.env.NODE_ENV === 'development',
     register: true,
     runtimeCaching,
-  }
+  },
 })

@@ -16,7 +16,7 @@ import Icon from '@/src/utils/fontAwesomeIcons'
 import NoPrivilege, { handleClickFunction } from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
 
-import { ListWithCheckboxMUI } from '@/components/lists/ListWithCheckboxMUI'
+import { ListWithCheckbox } from '@/components/lists/ListWithCheckbox'
 
 import { BoxError } from '@/components/utils/BoxError'
 
@@ -147,12 +147,8 @@ function compose_ready(
   handleClickBackPage: () => void,
   privileges: PrivilegesSystem[],
   auth: string,
-  pageSize: number,
-  pageSizeOptions: number[],
   peopleSelected: string[],
-  handleChangePageSize: (size: number) => void,
   handleChangePeopleSelected: (items: string[]) => void,
-  handleChangePersonId: (id: string) => void,
   people: PersonType[],
   cards: CardType[],
   assignPersonCard: FunctionAssignPeopleCardTypeof,
@@ -175,7 +171,7 @@ function compose_ready(
         <ManagerCards
           open={showModalManagerCards}
           person={personSelected}
-          cards={cards}
+          cards={cards.filter(card => card.status === 'available')}
           postings={postings}
           postingsB2={postingsB2}
           assignPersonCard={assignPersonCard}
@@ -200,20 +196,16 @@ function compose_ready(
           >
             Voltar
           </button>
-          <p className="fw-bold border-bottom text-center my-2">
-            Colaboradores
-          </p>
-          <div className='d-flex flex-column p-2' style={{ marginBottom: '12vh' }}>
-            <ListWithCheckboxMUI
-              columns={peopleColumns}
-              rows={peopleRows}
-              pageSize={pageSize}
-              pageSizeOptions={pageSizeOptions}
-              deepCompare={true}
-              onChangeSelection={handleChangePeopleSelected}
-              onPageSizeChange={handleChangePageSize}
-            />
-          </div>
+          <ListWithCheckbox
+            title='Colaboradores'
+            messages={{
+              emptyDataSourceMessage: 'Nenhum colaborador encontrado',
+            }}
+            columns={peopleColumns}
+            data={peopleRows}
+            deepCompare={true}
+            onChangeSelection={handleChangePeopleSelected}
+          />
           <div className='d-flex flex-column flex-md-row'>
             <button
               type="button"
@@ -250,12 +242,6 @@ export default function Manager(
   const [notPrivilege, setNotPrivilege] = useState<boolean>(false)
   const [notAuth, setNotAuth] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(true)
-
-  const [personId, setPersonId] = useState<string>('')
-
-  const [pageSize, setPageSize] = useState<number>(10)
-
-  const pageSizeOptions = [10, 20, 50, 100];
 
   const [peopleSelected, setPeopleSelected] = useState<string[]>([]);
 
@@ -296,9 +282,7 @@ export default function Manager(
       router.push(path);
     },
     handleClickBackPage = () => router.push('/payback/postings'),
-    handleChangePageSize = (value: number) => setPageSize(value),
     handleChangePeopleSelected = (items: string[]) => setPeopleSelected(items),
-    handleChangePersonId = (id: string) => setPersonId(id),
     handleAssignPersonCard: FunctionAssignPeopleCardTypeof = async (id: string, dataPersonId: DataPersonId[]) => {
       if (!AssignPersonCard)
         return Alerting.create('error', 'Não é possível associar o(a) funcionario(a) ao cartão. Tente novamente, mais tarde!');
@@ -387,12 +371,8 @@ export default function Manager(
     handleClickBackPage,
     data?.privileges as PrivilegesSystem[],
     auth,
-    pageSize,
-    pageSizeOptions,
     peopleSelected,
-    handleChangePageSize,
     handleChangePeopleSelected,
-    handleChangePersonId,
     people,
     cards,
     handleAssignPersonCard,

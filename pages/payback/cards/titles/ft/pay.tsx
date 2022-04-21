@@ -33,7 +33,7 @@ import { useCostCenterService } from '@/services/useCostCenterService'
 import { useCostCentersService } from '@/services/useCostCentersService'
 
 import { SelectCostCenter } from '@/components/selects/SelectCostCenter'
-import { ListWithCheckboxMUI } from '@/components/lists/ListWithCheckboxMUI'
+import { ListWithCheckbox } from '@/components/lists/ListWithCheckbox'
 
 import { DatePicker } from '@/components/selects/DatePicker'
 
@@ -240,32 +240,43 @@ function compose_ready(
             }}
           />
         </div>
-        <div className='d-flex flex-column p-2' style={{ marginBottom: '12vh' }}>
-          <ListWithCheckboxMUI
-            columns={postingsColumns}
-            rows={postingsRows}
-            pageSize={5}
-            pageSizeOptions={[5, 10, 20]}
-            onChangeSelection={handleChangeSelectedPostings}
-            onPageSizeChange={(pageSize: number) => console.log(pageSize)}
-          />
-        </div>
+        <ListWithCheckbox
+          title='Pagamento Cartão Alelo (FT/FREE)'
+          messages={{
+            emptyDataSourceMessage: 'Nenhum lançamento encontrado.',
+          }}
+          columns={postingsColumns}
+          data={postingsRows}
+          onChangeSelection={handleChangeSelectedPostings}
+        />
         <button
           type="button"
           className="btn btn-link ms-3"
           disabled={selectedPostings.length <= 0 || selectedPostings.filter(id => postings.some(posting => posting.id === id && posting.paymentStatus === 'paid')).length > 0}
           onClick={() => {
             if (postingsFiltered.length > 0) {
-              const rows: LayoutPayAlelo[] = [];
+              const
+                rows: LayoutPayAlelo[] = [],
+                errors: string[] = [];
 
               for (const posting of postingsFiltered) {
-                rows.push({
-                  serialNumber: posting.coverage.person.cards.find(card => card.costCenterId === posting.costCenterId)?.serialNumber || '',
-                  cpf: posting.coverage.person.cpf,
-                  value: posting.paymentValue.toString().replace('.', ','),
-                  description: posting.description || `Crédito referente a data de origem ${DateEx.format(new Date(posting.originDate), 'dd/MM/yyyy')}`,
-                })
+                if (posting.coverage.person.cards[0].unlocked && posting.coverage.person.cards[0].status !== 'available') {
+                  rows.push({
+                    serialNumber: posting.coverage.person.cards[0].serialNumber,
+                    cpf: posting.coverage.person.cpf,
+                    value: posting.paymentValue.toString().replace('.', ','),
+                    description: posting.description || `Crédito referente a FT/FREE na data de origem ${DateEx.format(new Date(posting.originDate), 'dd/MM/yyyy')}`,
+                  })
+                } else {
+                  errors.push(`O cartão do(a) ${posting.coverage.person.name} não está desbloqueado.`);
+                }
               }
+
+              if (errors.length > 0)
+                errors.forEach(error => Alerting.create('warning', error, 3600));
+
+              if (rows.length <= 0)
+                return Alerting.create('warning', 'Nenhum pagamento foi gerado, verifique o desbloqueio dos cartões.', 3600);
 
               const
                 costCenterName = costCenters.find(_ => _.id === costCenterId)?.value || '???',
@@ -293,6 +304,12 @@ function compose_ready(
 
               if (!posting)
                 return Alerting.create('error', 'Não foi possível confirmar o(s) pagamento(s). Tente novamente, mais tarde!');
+
+              if (
+                posting.coverage.person.cards[0].status !== 'available' ||
+                !posting.coverage.person.cards[0].unlocked
+              )
+                return Alerting.create('error', 'Não foi possível confirmar o(s) pagamento(s). Existens cartões cancelados e/ou bloqueados!');
 
               const paid = await updatePostings(postingId, {
                 ...posting,

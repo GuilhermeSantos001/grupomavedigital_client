@@ -1,13 +1,16 @@
 import { useState, useCallback } from 'react'
 
-import { PaybackSocketEvents } from '@/constants/socketEvents'
+import {
+  FilesSocketEvents,
+  PaybackSocketEvents
+} from '@/constants/SocketEvents'
 
 import {
-  TYPEOF_EMITTER_PAYBACK_UPLOAD_MIRROR,
-  TYPEOF_LISTENER_PAYBACK_UPLOAD_MIRROR,
-  TYPEOF_EMITTER_PAYBACK_CHANGE_TYPE_MIRROR,
-  TYPEOF_LISTENER_PAYBACK_CHANGE_TYPE_MIRROR,
-} from '@/constants/SocketTypes'
+  TYPEOF_EMITTER_FILE_UPLOAD_ATTACHMENT,
+  TYPEOF_LISTENER_FILE_UPLOAD_ATTACHMENT,
+  TYPEOF_EMITTER_FILE_CHANGE_TYPE_ATTACHMENT,
+  TYPEOF_LISTENER_FILE_CHANGE_TYPE_ATTACHMENT,
+} from '@/constants/SocketFileType'
 
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -103,7 +106,7 @@ import type {
 import {
   FunctionCreateReasonForAbsenceTypeof,
   FunctionUpdateReasonForAbsencesTypeof,
-  FunctionDeleteReasonForAbsencesTypeof
+  FunctionDeleteReasonForAbsencesTypeof,
 } from '@/types/ReasonForAbsenceServiceType'
 
 export type Props = {
@@ -456,7 +459,7 @@ export function AssistantCoverageDefine(props: Props) {
             const {
               filesId,
               type,
-            } = window.socket.decompress<TYPEOF_LISTENER_PAYBACK_CHANGE_TYPE_MIRROR>(data);
+            } = window.socket.decompress<TYPEOF_LISTENER_FILE_CHANGE_TYPE_ATTACHMENT>(data);
 
             if (type === 'TEMPORARY') {
               filesId
@@ -549,8 +552,8 @@ export function AssistantCoverageDefine(props: Props) {
       // ! Confirma o anexo dos espelhos de ponto
       const timeout = setTimeout(() => {
         window.socket.emit(
-          PaybackSocketEvents.PAYBACK_CHANGE_TYPE_MIRROR,
-          window.socket.compress<TYPEOF_EMITTER_PAYBACK_CHANGE_TYPE_MIRROR>({
+          FilesSocketEvents.FILE_CHANGE_TYPE_ATTACHMENT,
+          window.socket.compress<TYPEOF_EMITTER_FILE_CHANGE_TYPE_ATTACHMENT>({
             filesId: [
               coveringMirrorFileId,
               coverageMirrorFileId,
@@ -561,21 +564,18 @@ export function AssistantCoverageDefine(props: Props) {
         clearTimeout(timeout);
       }, 1000);
 
-      if (window.socket.hasListeners(`${PaybackSocketEvents.PAYBACK_CHANGE_TYPE_MIRROR}-SUCCESS`))
-        window.socket.off(`${PaybackSocketEvents.PAYBACK_CHANGE_TYPE_MIRROR}-SUCCESS`);
-
-      if (window.socket.hasListeners(`${PaybackSocketEvents.PAYBACK_CHANGE_TYPE_MIRROR}-FAILURE`))
-        window.socket.off(`${PaybackSocketEvents.PAYBACK_CHANGE_TYPE_MIRROR}-FAILURE`);
+      if (window.socket.hasListeners(`${FilesSocketEvents.FILE_CHANGE_TYPE_ATTACHMENT}-SUCCESS`))
+        window.socket.off(`${FilesSocketEvents.FILE_CHANGE_TYPE_ATTACHMENT}-SUCCESS`);
 
       window
         .socket.
         on(
-          `${PaybackSocketEvents.PAYBACK_CHANGE_TYPE_MIRROR}-SUCCESS`,
+          `${FilesSocketEvents.FILE_CHANGE_TYPE_ATTACHMENT}-SUCCESS`,
           async (data: string) => success(data))
 
       window
         .socket.
-        on(`${PaybackSocketEvents.PAYBACK_CHANGE_TYPE_MIRROR}-FAILURE`, (error) => {
+        on(`${FilesSocketEvents.FILE_CHANGE_TYPE_ATTACHMENT}-FAILURE`, (error) => {
           Alerting.create('error', 'Não foi possível confirmar o anexo do espelho de ponto. Tente novamente, mais tarde!');
           window.loading = 'hide';
           console.error(error);
@@ -615,13 +615,12 @@ export function AssistantCoverageDefine(props: Props) {
         const cards = people.find(person => person.id === coveragePersonId)?.cards;
 
         if (
-          cards &&
-          cards.filter(card => card.costCenter.id === props.postingCostCenterId).length > 0
+          cards && cards.length > 0
         )
           return setPaymentMethod(event.target.value);
         else {
-          Alerting.create('warning', `${people.find(person => person.id === coveragePersonId)?.name} não possui um cartão benefício (Alelo) da ${costCenters.find(costCenter => costCenter.id === props.postingCostCenterId)?.value}`, 3600);
-          Alerting.create('info', `Adicione um cartão benefício (Alelo) da ${costCenters.find(costCenter => costCenter.id === props.postingCostCenterId)?.value} para ${people.find(person => person.id === coveragePersonId)?.name}`, 3600);
+          Alerting.create('warning', `${people.find(person => person.id === coveragePersonId)?.name} não possui um cartão benefício (Alelo) associado.`, 3600);
+          Alerting.create('info', `Associe um cartão benefício (Alelo) para o(a) ${people.find(person => person.id === coveragePersonId)?.name}`, 3600);
           setPaymentMethod("");
         }
       } else if (event.target.value === 'money') {
@@ -723,7 +722,6 @@ export function AssistantCoverageDefine(props: Props) {
             {
               workplaces
                 .filter(place => props.availableWorkplaces.includes(place.id))
-                .filter(place => place.id !== coverageWorkplace)
                 .map(place => (
                   <MenuItem
                     key={place.id}
@@ -809,17 +807,17 @@ export function AssistantCoverageDefine(props: Props) {
                   fileId: string,
                   version: number
                 ) => window.socket.emit(
-                  PaybackSocketEvents.PAYBACK_UPLOAD_MIRROR,
-                  window.socket.compress<TYPEOF_EMITTER_PAYBACK_UPLOAD_MIRROR>({
+                  FilesSocketEvents.FILE_UPLOAD_ATTACHMENT,
+                  window.socket.compress<TYPEOF_EMITTER_FILE_UPLOAD_ATTACHMENT>({
+                    channel: PaybackSocketEvents.PAYBACK_UPLOAD_COVERING_MIRROR,
                     authorId,
                     name,
                     description,
                     size,
                     compressedSize,
                     fileId,
-                    version,
-                    type: 'COVERING'
-                  }));
+                    version
+                  }))
 
               if (files instanceof Array) {
                 for (let i = 0; i < files.length; i++) {
@@ -916,7 +914,6 @@ export function AssistantCoverageDefine(props: Props) {
                     {
                       workplaces
                         .filter(place => props.availableWorkplaces.includes(place.id))
-                        .filter(place => place.id !== coveringWorkplace)
                         .map(place => (
                           <MenuItem
                             key={place.id}
@@ -973,17 +970,17 @@ export function AssistantCoverageDefine(props: Props) {
                         fileId: string,
                         version: number
                       ) => window.socket.emit(
-                        PaybackSocketEvents.PAYBACK_UPLOAD_MIRROR,
-                        window.socket.compress<TYPEOF_EMITTER_PAYBACK_UPLOAD_MIRROR>({
+                        FilesSocketEvents.FILE_UPLOAD_ATTACHMENT,
+                        window.socket.compress<TYPEOF_EMITTER_FILE_UPLOAD_ATTACHMENT>({
+                          channel: PaybackSocketEvents.PAYBACK_UPLOAD_COVERAGE_MIRROR,
                           authorId,
                           name,
                           description,
                           size,
                           compressedSize,
                           fileId,
-                          version,
-                          type: 'COVERAGE'
-                        }));
+                          version
+                        }))
 
                     if (files instanceof Array) {
                       for (let i = 0; i < files.length; i++) {
@@ -1315,7 +1312,7 @@ function onSocketEvents(
         `${PaybackSocketEvents.PAYBACK_UPLOAD_COVERING_MIRROR}-SUCCESS`,
         `${PaybackSocketEvents.PAYBACK_UPLOAD_COVERING_MIRROR}-FAILURE`,
         `${PaybackSocketEvents.PAYBACK_UPLOAD_COVERAGE_MIRROR}-SUCCESS`,
-        `${PaybackSocketEvents.PAYBACK_UPLOAD_COVERAGE_MIRROR}-FAILURE`
+        `${PaybackSocketEvents.PAYBACK_UPLOAD_COVERAGE_MIRROR}-FAILURE`,
       ]
 
     events
@@ -1326,7 +1323,7 @@ function onSocketEvents(
 
     socket
       .on(
-        events[0], // * PAYBACK-UPLOAD-COVERING-MIRROR-SUCCESS
+        events[0], // * PAYBACK-UPLOAD-COVERING-MIRROR
         async (
           data: string
         ) => {
@@ -1341,7 +1338,7 @@ function onSocketEvents(
             temporary,
             version,
             expiredAt,
-          } = window.socket.decompress<TYPEOF_LISTENER_PAYBACK_UPLOAD_MIRROR>(data);
+          } = window.socket.decompress<TYPEOF_LISTENER_FILE_UPLOAD_ATTACHMENT>(data);
 
           const id = await handleAppendUploads({
             authorId,
@@ -1389,7 +1386,7 @@ function onSocketEvents(
             temporary,
             version,
             expiredAt,
-          } = window.socket.decompress<TYPEOF_LISTENER_PAYBACK_UPLOAD_MIRROR>(data);
+          } = window.socket.decompress<TYPEOF_LISTENER_FILE_UPLOAD_ATTACHMENT>(data);
 
           const id = await handleAppendUploads({
             authorId,

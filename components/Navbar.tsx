@@ -10,6 +10,9 @@ import Image from 'next/image'
 
 import MobileMenu from '@/components/MobileMenu'
 
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import Icon from '@/src/utils/fontAwesomeIcons'
+
 type MyProps = {
   menuShow: boolean
   setMenuShow: () => void
@@ -38,13 +41,12 @@ export default class Navbar extends React.Component<MyProps, MyState> {
             {!this.props.fullwidth ? (
               <div className="col-1 d-none d-lg-flex justify-content-center">
                 <p className="my-auto">
-                  <span
+                  <FontAwesomeIcon
                     id="buttonMenu"
-                    className="material-icons fs-1"
+                    icon={Icon.render('fas', this.props.menuShow ? 'bars' : 'ellipsis')}
+                    className="me-2 fs-3 flex-shrink-1 text-secondary my-auto"
                     onClick={this.props.setMenuShow}
-                  >
-                    {`${this.props.menuShow ? 'menu' : 'menu_open'}`}
-                  </span>
+                  />
                 </p>
               </div>
             ) : (

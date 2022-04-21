@@ -9,11 +9,13 @@
       "@/controllers/*": ["controllers/*"],
       "@/context/*": ["context/*"],
       "@/lib/*": ["lib/*"],
+      "@/utility/*": ["utility/*"],
       "@/components/*": ["components/*"],
       "@/pages/*": ["pages/*"],
       "@/src/*": ["src/*"],
       "@/styles/*": ["styles/*"],
-      "@/modules/*": ["modules/*"]
+      "@/animations/*": ["animations/*"],
+      "@/modules/*": ["modules/*"],
     }
   }
 }

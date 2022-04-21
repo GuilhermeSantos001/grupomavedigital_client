@@ -26,7 +26,7 @@ import NoAuth from '@/components/noAuth'
 import { DatePicker } from '@/components/selects/DatePicker'
 import { AssistantPostingsRegister } from '@/components/assistants/AssistantPostingsRegister'
 import { AssistantCoverageDefine } from '@/components/assistants/AssistantCoverageDefine'
-import { ListWithCheckboxMUI } from '@/components/lists/ListWithCheckboxMUI'
+import { ListWithCheckbox } from '@/components/lists/ListWithCheckbox'
 import { ListWorkplacesSelected } from '@/components/lists/ListWorkplacesSelected'
 import { RegisterWorkplace } from '@/components/modals/RegisterWorkplace'
 import { RegisterAddress } from '@/components/modals/RegisterAddress'
@@ -45,12 +45,12 @@ import { PrivilegesSystem } from '@/types/UserType'
 
 import { SocketConnection } from '@/components/socket-io'
 import {
-  PaybackSocketEvents
-} from '@/constants/socketEvents'
+  FilesSocketEvents
+} from '@/constants/SocketEvents'
 import {
-  TYPEOF_EMITTER_PAYBACK_DELETE_MIRROR,
-  TYPEOF_LISTENER_PAYBACK_DELETE_MIRROR,
-} from '@/constants/SocketTypes'
+  TYPEOF_EMITTER_FILE_DELETE_ATTACHMENT,
+  TYPEOF_LISTENER_FILE_DELETE_ATTACHMENT,
+} from '@/constants/SocketFileType'
 
 import Alerting from '@/src/utils/alerting'
 import StringEx from '@/src/utils/stringEx'
@@ -915,7 +915,7 @@ function compose_ready(
                           label="Período de Apuração (Inicial)"
                           value={periodStart}
                           maxDate={periodEnd}
-                          minDate={DateEx.subDays(new Date(), 7)}
+                          minDate={DateEx.subDays(new Date(), 30)}
                           disabled={postingsDefined.length > 0}
                           handleChangeValue={(value) => {
                             if (
@@ -932,7 +932,7 @@ function compose_ready(
                           className="col px-2 my-2"
                           label="Período de Apuração (Final)"
                           value={periodEnd}
-                          maxDate={DateEx.addYears(new Date(), 1)}
+                          maxDate={DateEx.addDays(new Date(), 30)}
                           minDate={periodStart}
                           disabled={postingsDefined.length > 0}
                           handleChangeValue={(value) => {
@@ -973,19 +973,15 @@ function compose_ready(
                         Voce deve selecionar no minimo 2 postos de trabalho para
                         definir as coberturas.
                       </p>
-                      <p className="fw-bold border-bottom text-center my-2">
-                        Disponíveis
-                      </p>
-                      <div className='d-flex flex-column p-2' style={{ marginBottom: '12vh' }}>
-                        <ListWithCheckboxMUI
-                          columns={workPlaceColumns}
-                          rows={workPlaceRows}
-                          pageSize={pageSizeTableWorkplaces}
-                          pageSizeOptions={pageSizeOptionsTableWorkplaces}
-                          onChangeSelection={handleDefineSelectWorkplaces}
-                          onPageSizeChange={handleChangePageSizeTableWorkplaces}
-                        />
-                      </div>
+                      <ListWithCheckbox
+                        title='Disponíveis'
+                        messages={{
+                          emptyDataSourceMessage: 'Nenhum posto de trabalho disponível.',
+                        }}
+                        columns={workPlaceColumns}
+                        data={workPlaceRows}
+                        onChangeSelection={handleDefineSelectWorkplaces}
+                      />
                       <div className='d-flex flex-column flex-md-row'>
                         <button
                           type="button"
@@ -1091,24 +1087,20 @@ function compose_ready(
                         />
                         Limpar Coberturas Aplicadas
                       </Button>
-                      <p className="fw-bold border-bottom text-center my-2">
-                        Funcionários
-                      </p>
-                      <div className='d-flex flex-column p-2' style={{ marginBottom: '12vh' }}>
-                        <ListWithCheckboxMUI
-                          columns={peopleColumns}
-                          rows={peopleRows}
-                          pageSize={pageSizeTablePeopleInWorkplaces}
-                          pageSizeOptions={pageSizeOptionsTablePeopleInWorkplaces}
-                          onChangeSelection={handleDefineSelectPeopleInWorkplaces}
-                          onPageSizeChange={handleChangePageSizeTablePeopleInWorkplaces}
-                        />
-                      </div>
+                      <ListWithCheckbox
+                        title='Funcionários(as)'
+                        messages={{
+                          emptyDataSourceMessage: 'Nenhum funcionário(a) encontrado.',
+                        }}
+                        columns={peopleColumns}
+                        data={peopleRows}
+                        onChangeSelection={handleDefineSelectPeopleInWorkplaces}
+                      />
                       <div className='d-flex flex-column flex-md-row'>
                         <button
                           type="button"
                           className="btn btn-link ms-3"
-                          disabled={assistantFinish || selectPeopleInWorkplaces.length <= 0 || selectPeopleInWorkplaces.length % 2 !== 0}
+                          disabled={assistantFinish || selectPeopleInWorkplaces.length <= 0 || selectPeopleInWorkplaces.length <= 0}
                           onClick={() => {
                             const filtered = selectPeopleInWorkplaces.filter(id => {
                               if (appliedPeopleInWorkplaces.find(applied => applied.id === id))
@@ -1306,7 +1298,7 @@ export default function Register(
       switch (step) {
         case 0:
           return appliedWorkplaces.length > 0 &&
-            appliedWorkplaces.length % 2 == 0 &&
+            appliedWorkplaces.length >= 1 &&
             costCenter.length > 0 &&
             periodStart !== null &&
             periodEnd !== null
@@ -1472,8 +1464,8 @@ export default function Register(
     },
     handleRemoveUploadedFile = (filesId: string[], mirrorsId: string[]) =>
       window.socket.emit(
-        PaybackSocketEvents.PAYBACK_DELETE_MIRROR,
-        window.socket.compress<TYPEOF_EMITTER_PAYBACK_DELETE_MIRROR>({
+        FilesSocketEvents.FILE_DELETE_ATTACHMENT,
+        window.socket.compress<TYPEOF_EMITTER_FILE_DELETE_ATTACHMENT>({
           filesId,
           mirrorsId
         })
@@ -1799,8 +1791,8 @@ function onSocketEvents(
   if (socket) {
     const
       events = [
-        `${PaybackSocketEvents.PAYBACK_DELETE_MIRROR}-SUCCESS`,
-        `${PaybackSocketEvents.PAYBACK_DELETE_MIRROR}-FAILURE`,
+        `${FilesSocketEvents.FILE_DELETE_ATTACHMENT}-SUCCESS`,
+        `${FilesSocketEvents.FILE_DELETE_ATTACHMENT}-FAILURE`,
       ]
 
     events
@@ -1811,20 +1803,20 @@ function onSocketEvents(
 
     socket
       .on(
-        events[0], // * PAYBACK-DELETE-MIRROR-SUCCESS
+        events[0], // * FILE-DELETE-ATTACHMENT-SUCCESS
         (
           data: string
         ) => {
           const {
             mirrorsId
-          } = socket.decompress<TYPEOF_LISTENER_PAYBACK_DELETE_MIRROR>(data);
+          } = socket.decompress<TYPEOF_LISTENER_FILE_DELETE_ATTACHMENT>(data);
           mirrorsId.forEach(mirrorId => handleDeleteUpload(mirrorId));
         }
       )
 
     socket
       .on(
-        events[1], // * PAYBACK-DELETE-MIRROR-FAILURE
+        events[1], // * FILE-DELETE-ATTACHMENT-FAILURE
         (error: string) => console.error(error)
       )
   }

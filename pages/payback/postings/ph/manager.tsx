@@ -22,7 +22,7 @@ import NoPrivilege, { handleClickFunction } from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
 
 import { DatePicker } from '@/components/selects/DatePicker'
-import { ListWithCheckboxMUI } from '@/components/lists/ListWithCheckboxMUI'
+import { ListWithCheckbox } from '@/components/lists/ListWithCheckbox'
 
 import { BoxError } from '@/components/utils/BoxError'
 
@@ -167,9 +167,6 @@ function compose_ready(
   handleClickBackPage: () => void,
   privileges: PrivilegesSystem[],
   auth: string,
-  pageSize: number,
-  pageSizeOptions: number[],
-  handleChangePageSize: (size: number) => void,
   costCenter: string,
   costCenters: CostCenterType[],
   periodStart: Date,
@@ -362,20 +359,16 @@ function compose_ready(
               }}
             />
           </div>
-          <p className="fw-bold border-bottom text-center my-2">
-            Lançamentos
-          </p>
-          <div className='d-flex flex-column p-2' style={{ marginBottom: '12vh' }}>
-            <ListWithCheckboxMUI
-              columns={postingsColumns}
-              rows={postingsRows}
-              pageSize={pageSize}
-              pageSizeOptions={pageSizeOptions}
-              deepCompare={true}
-              onChangeSelection={handleChangePostingsSelected}
-              onPageSizeChange={handleChangePageSize}
-            />
-          </div>
+          <ListWithCheckbox
+            title='Pessoas no Pacote de Horas'
+            messages={{
+              emptyDataSourceMessage: 'Nenhuma pessoa encontrada.',
+            }}
+            columns={postingsColumns}
+            data={postingsRows}
+            deepCompare={true}
+            onChangeSelection={handleChangePostingsSelected}
+          />
           <div className='d-flex flex-column flex-md-row'>
             <button
               type="button"
@@ -466,10 +459,6 @@ export default function Manager(
   const [periodStart, setPeriodStart] = useState<Date>(new Date())
   const [periodEnd, setPeriodEnd] = useState<Date>(new Date())
 
-  const [pageSize, setPageSize] = useState<number>(10)
-
-  const pageSizeOptions = [10, 20, 50, 100];
-
   const [postingsSelected, setPostingsSelected] = useState<string[]>([]);
 
   const [openModalRegisterPH, setOpenModalRegisterPH] = useState<boolean>(false)
@@ -517,7 +506,6 @@ export default function Manager(
     handleChangeCostCenter = (id: string) => setCostCenter(id),
     handleChangePeriodStart = (value: Date) => setPeriodStart(value),
     handleChangePeriodEnd = (value: Date) => setPeriodEnd(value),
-    handleChangePageSize = (size: number) => setPageSize(size),
     handleChangePostingsSelected = (postings: string[]) => setPostingsSelected(postings),
     handleOpenModalRegisterPH = () => setOpenModalRegisterPH(true),
     handleCloseModalRegisterPH = () => setOpenModalRegisterPH(false),
@@ -585,9 +573,6 @@ export default function Manager(
     handleClickBackPage,
     data?.privileges as PrivilegesSystem[],
     auth,
-    pageSize,
-    pageSizeOptions,
-    handleChangePageSize,
     costCenter,
     costCenters,
     periodStart,

@@ -1,4 +1,4 @@
-import { GridColDef, GridRowsProp } from '@mui/x-data-grid';
+import { Columns, RowData } from '@/components/lists/ListWithCheckbox';
 
 import StringEx from '@/src/utils/stringEx';
 
@@ -8,66 +8,49 @@ export default function getWorkPlaceForTable(
   workplaces: WorkplaceType[]
 ) {
   const
-    columns: GridColDef[] = [
+    columns: Columns = [
       {
         field: 'id',
-        headerName: 'ID',
-        headerAlign: 'center',
         align: 'center',
-        hide: true
+        hidden: true
       },
       {
         field: 'item',
-        headerName: 'Item',
-        headerAlign: 'center',
+        title: 'Item',
         align: 'center'
       },
       {
         field: 'name',
-        headerName: 'Nome',
-        width: 200,
-        headerAlign: 'center',
+        title: 'Nome',
         align: 'center'
       },
       {
         field: 'scale',
-        headerName: 'Escala',
-        headerAlign: 'center',
+        title: 'Escala',
         align: 'center'
       },
       {
         field: 'entryTime',
-        headerName: 'horário de Entrada',
-        width: 150,
-        headerAlign: 'center',
+        title: 'horário de Entrada',
         align: 'center'
       },
       {
         field: 'exitTime',
-        headerName: 'horário de Saída',
-        width: 150,
-        headerAlign: 'center',
+        title: 'horário de Saída',
         align: 'center'
       },
       {
         field: 'services',
-        headerName: 'Serviços',
-        width: 300,
-        headerAlign: 'center',
+        title: 'Serviços',
         align: 'center'
       },
       {
         field: 'address',
-        headerName: 'Endereço',
-        width: 600,
-        headerAlign: 'center',
-        align: 'center',
-        valueGetter: (params) => {
-          return `${params.row.address.street.value}, ${params.row.address.number} - ${params.row.address.neighborhood.value}, ${params.row.address.city.value} - ${params.row.address.district.value}, ${StringEx.maskZipcode(params.row.address.zipCode)}`;
-        }
+        title: 'Endereço',
+        align: 'center'
       }
     ],
-    rows: GridRowsProp = workplaces.map((place, index) => {
+    rows: RowData[] = workplaces.map((place, index) => {
       return {
         id: place.id,
         item: index + 1,
@@ -76,7 +59,7 @@ export default function getWorkPlaceForTable(
         entryTime: new Date(place.entryTime).toLocaleTimeString().slice(0, 5),
         exitTime: new Date(place.exitTime).toLocaleTimeString().slice(0, 5),
         services: place.workplaceService.map(_ => _.service.value).join(', '),
-        address: place.address,
+        address: `${place.address.street.value}, ${place.address.number} - ${place.address.neighborhood.value}, ${place.address.city.value} - ${place.address.district.value}, ${StringEx.maskZipcode(place.address.zipCode)}`
       }
     })
 

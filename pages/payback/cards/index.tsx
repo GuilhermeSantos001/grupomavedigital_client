@@ -154,7 +154,7 @@ function compose_ready() {
               />
               <ModuleCardControl
                 title='Remover'
-                subtitle='Remova os cartões de benefício, caso não seja mais necessário.'
+                subtitle='Remova os cartões caso não seja mais necessário.'
                 link={"/payback/cards/remove"}
                 help={{
                   title: 'Remoção dos Cartões Alelo',
@@ -163,6 +163,33 @@ function compose_ready() {
                   a qualquer momento.
                   `,
                 }}
+              />
+            </div>
+            <div className='d-flex flex-column flex-md-row align-items-center my-2'>
+              <ModuleCardControl
+                title='Desbloqueio'
+                subtitle='Desbloqueie os cartões para efetuar os pagamentos.'
+                link={"/payback/cards/unlock"}
+              />
+              <ModuleCardControl
+                title='Cancelar'
+                subtitle='Cancele os cartões perdidos e/ou bloqueados.'
+                link={"/payback/cards/cancel"}
+                help={{
+                  title: 'Cancelamento dos Cartões Alelo',
+                  description: `
+                  Os cartões só poderão ser cancelados caso os mesmos não estejam
+                  sendo usados como forma de pagamento em algum lançamento em
+                  aberto.
+                  `,
+                }}
+              />
+            </div>
+            <div className='d-flex flex-column flex-md-row align-items-center my-2'>
+              <ModuleCardControl
+                title='Cancelados'
+                subtitle='Veja o histórico de cartões cancelados.'
+                link={"/payback/cards/canceled"}
               />
             </div>
             <div className='d-flex align-items-center justify-content-center col-12 bg-primary bg-gradient rounded p-2'>

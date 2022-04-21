@@ -1,12 +1,9 @@
-/**
- * @description Lista -> Lista com 5 colunas
- * @author GuilhermeSantos001
- * @update 10/02/2022
- */
-
 import { useState } from 'react'
 
-import { Button, OverlayTrigger, Popover } from 'react-bootstrap'
+import DeleteIcon from '@mui/icons-material/Delete';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
+import { Button } from 'react-bootstrap'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
@@ -34,7 +31,6 @@ declare type Action = {
   handleClick: (items?: string[]) => void
   popover?: {
     title: string
-    description: string
   }
 }
 
@@ -73,7 +69,7 @@ export function ListWithFiveColumns(props: Props) {
       setAllSelected(false);
     },
     actionMenu = (
-      <div className={`card w-50 bg-light-gray shadow rounded mt-5 mx-auto fade-effect fixed-bottom ${selected.length > 0 ? 'active' : 'deactivate'}`} style={{bottom: '50vh'}}>
+      <div className={`card w-50 bg-light-gray shadow rounded mt-5 mx-auto fade-effect fixed-bottom ${selected.length > 0 ? 'active' : 'deactivate'}`} style={{ bottom: '50vh' }}>
         <div className="card-body p-0">
           <p className='bg-primary bg-gradient fw-bold fs-3 text-secondary text-center border-bottom p-2'>
             Ações
@@ -272,16 +268,7 @@ export function ListWithFiveColumns(props: Props) {
                   <b className='col py-2 text-end mx-2 text-truncate'>
                     {line.actions.map((action: Action, index3) => {
                       return (
-                        <OverlayTrigger key={index3} trigger={['focus', 'hover']} placement="auto" overlay={
-                          <Popover id={`popover-action-buttom-${index3}`}>
-                            <Popover.Header as="h3">
-                              {action.popover?.title || "???"}
-                            </Popover.Header>
-                            <Popover.Body>
-                              {action.popover?.description || "???"}
-                            </Popover.Body>
-                          </Popover>
-                        }>
+                        <Tooltip key={index3} title={action.popover?.title || "???"}>
                           <Button variant="link">
                             <FontAwesomeIcon
                               icon={Icon.render(action.icon.prefix, action.icon.name)}
@@ -292,7 +279,7 @@ export function ListWithFiveColumns(props: Props) {
                               }}
                             />
                           </Button>
-                        </OverlayTrigger>
+                        </Tooltip>
                       )
                     })}
                   </b>

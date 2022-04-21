@@ -1,5 +1,8 @@
 // import App from "next/app";
-import type { AppProps /*, AppContext */ } from 'next/app'
+
+import PropTypes from 'prop-types';
+
+import createEmotionCache from '@/utility/createEmotionCache';
 
 import SSRProvider from 'react-bootstrap/SSRProvider';
 
@@ -48,7 +51,10 @@ export type MenuDisable = { [key in MenuOptions]: boolean | undefined }
 export type MenuOptions =
   | 'mn-home'
   | 'mn-admin'
-  | 'mn-login'
+  | 'mn-account'
+  | 'mn-account-profile'
+  | 'mn-account-separator-1'
+  | 'mn-account-cards'
   | 'mn-integration'
   | 'mn-security'
   | 'mn-dashboard'
@@ -101,15 +107,18 @@ interface MenuItemSeparator extends Pick<MenuItem, 'id'> {
   type: 'separator'
 }
 
-function MyApp({ Component, pageProps }: AppProps) {
-  const props: PageProps = pageProps,
-    title = props.title ?? 'Grupo Mave Digital',
+const clientSideEmotionCache = createEmotionCache();
+
+const MyApp = (props: any) => {
+  const
+    { Component, pageProps, emotionCache = clientSideEmotionCache, } = props,
+    title = pageProps.title ?? 'Grupo Mave Digital',
     description =
-      props.description ??
+      pageProps.description ??
       'Olá, venha conhecer o ambiente digital interativo do Grupo Mave. Tenha todas as informações a um clique. Acesse o link e saiba mais!',
-    themeColor = props.themeColor ?? '#004a6e',
-    menu = props.menu ?? GetMenuHome('mn-home'),
-    fullwidth = props.fullwidth,
+    themeColor = pageProps.themeColor ?? '#004a6e',
+    menu = pageProps.menu ?? GetMenuHome('mn-home'),
+    fullwidth = pageProps.fullwidth,
     persistor = persistStore(store);
 
   const reduxLoading = (
@@ -235,7 +244,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       <SSRProvider>
         <Provider store={store}>
           <PersistGate loading={reduxLoading} persistor={persistor}>
-            <Layout fullwidth={fullwidth !== undefined ? fullwidth : false} menu={menu}>
+            <Layout fullwidth={fullwidth !== undefined ? fullwidth : false} menu={menu} emotionCache={emotionCache}>
               <Component {...pageProps} />
             </Layout>
           </PersistGate>
@@ -246,3 +255,9 @@ function MyApp({ Component, pageProps }: AppProps) {
 }
 
 export default MyApp
+
+MyApp.propTypes = {
+  Component: PropTypes.elementType.isRequired,
+  emotionCache: PropTypes.object,
+  pageProps: PropTypes.object.isRequired,
+};

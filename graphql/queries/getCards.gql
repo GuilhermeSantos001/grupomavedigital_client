@@ -1,0 +1,87 @@
+query CardGet($lastIndex: String, $limit: Int!) {
+  cardGet(lastIndex: $lastIndex, limit: $limit) {
+    index
+    cid
+    version
+    photo {
+      name
+      type
+      id
+    }
+    name
+    jobtitle
+    phones
+    whatsapp {
+      phone
+      text
+      message
+    }
+    vcard {
+      firstname
+      lastname
+      organization
+      photo {
+        name
+        type
+        id
+      }
+      logo {
+        name
+        type
+        id
+      }
+      workPhone
+      birthday {
+        year
+        month
+        day
+      }
+      title
+      url
+      workUrl
+      email
+      label
+      countryRegion
+      street
+      city
+      stateProvince
+      postalCode
+      socialUrls {
+        media
+        url
+      }
+      metadata {
+        file {
+          path
+          name
+          type
+        }
+        logotipo {
+          path
+          name
+          type
+        }
+        photo {
+          path
+          name
+          type
+        }
+      }
+    }
+    footer {
+      email
+      location
+      website
+      attachment {
+        name
+        type
+        id
+      }
+      socialmedia {
+        name
+        value
+      }
+    }
+    createdAt
+  }
+}

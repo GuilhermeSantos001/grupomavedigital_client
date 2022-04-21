@@ -260,8 +260,7 @@ function compose_ready(
                         openModalLocationInfo();
                       },
                       popover: {
-                        title: 'Localização',
-                        description: 'Clique para ver a localização do usuário.'
+                        title: 'Localização'
                       }
                     },
                     {
@@ -278,7 +277,6 @@ function compose_ready(
                       },
                       popover: {
                         title: 'Deletar usuário',
-                        description: 'Você só poderá deletar os usuários que não forem administradores.'
                       }
                     }
                   ]

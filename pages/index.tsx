@@ -21,7 +21,7 @@ export default function Home() {
       className="p-2"
       style={{ fontFamily: 'Fira Code' }}
     >
-      <h1 data-testid="text-start" className="fw-bold">
+      <h1 data-testid="text-start" className="fw-bold text-primary">
         Bem-Vindo(a)
       </h1>
       <hr data-testid="separator" className="text-muted" />

@@ -1,10 +1,4 @@
-/**
- * @description Função usada para retornar a lista das pessoas
- * @author GuilhermeSantos001
- * @update 14/02/2022
- */
-
-import { GridColDef, GridRowsProp } from '@mui/x-data-grid';
+import { Columns, RowData } from '@/components/lists/ListWithCheckbox';
 
 import StringEx from '@/src/utils/stringEx';
 
@@ -14,73 +8,54 @@ export default function getPeopleForTable(
   people: PersonType[]
 ) {
   const
-    columns: GridColDef[] = [
+    columns: Columns = [
       {
         field: 'id',
-        headerName: 'ID',
-        headerAlign: 'center',
         align: 'center',
-        hide: true
+        hidden: true
       },
       {
         field: 'item',
-        headerName: 'Item',
-        headerAlign: 'center',
+        title: 'Item',
         align: 'center'
       },
       {
         field: 'name',
-        headerName: 'Nome',
-        width: 200,
-        headerAlign: 'center',
+        title: 'Nome',
         align: 'center'
       },
       {
         field: 'matricule',
-        headerName: 'Matrícula',
-        width: 100,
-        headerAlign: 'center',
+        title: 'Matrícula',
         align: 'center'
       },
       {
         field: 'cpf',
-        headerName: 'CPF',
-        width: 100,
-        headerAlign: 'center',
+        title: 'CPF',
         align: 'center'
       },
       {
         field: 'rg',
-        headerName: 'RG',
-        width: 100,
-        headerAlign: 'center',
+        title: 'RG',
         align: 'center'
       },
       {
         field: 'scale',
-        headerName: 'Escala',
-        headerAlign: 'center',
+        title: 'Escala',
         align: 'center'
       },
       {
         field: 'services',
-        headerName: 'Serviços',
-        width: 300,
-        headerAlign: 'center',
+        title: 'Serviços',
         align: 'center'
       },
       {
         field: 'address',
-        headerName: 'Endereço',
-        width: 600,
-        headerAlign: 'center',
-        align: 'center',
-        valueGetter: (params) => {
-          return `${params.row.address.street.value}, ${params.row.address.number} - ${params.row.address.neighborhood.value}, ${params.row.address.city.value} - ${params.row.address.district.value}, ${StringEx.maskZipcode(params.row.address.zipCode)}`;
-        }
+        title: 'Endereço',
+        align: 'center'
       }
     ],
-    rows: GridRowsProp = people.map((person, index) => {
+    rows: RowData[] = people.map((person, index) => {
       return {
         id: person.id,
         item: index + 1,
@@ -90,7 +65,7 @@ export default function getPeopleForTable(
         rg: StringEx.maskRG(person.rg),
         scale: person.scale.value,
         services: person.personService.map(_ => _.service.value).join(', '),
-        address: person.address,
+        address: `${person.address.street.value}, ${person.address.number} - ${person.address.neighborhood.value}, ${person.address.city.value} - ${person.address.district.value}, ${StringEx.maskZipcode(person.address.zipCode)}`
       }
     })
 

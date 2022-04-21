@@ -1,4 +1,4 @@
-import { GridColDef, GridRowsProp } from '@mui/x-data-grid';
+import { Columns, RowData } from '@/components/lists/ListWithCheckbox';
 
 import Sugar from 'sugar';
 import StringEx from '@/src/utils/stringEx';
@@ -9,154 +9,114 @@ export default function getB2ForTable(
   postings: B2Type[]
 ) {
   const
-    columns: GridColDef[] = [
+    columns: Columns = [
       {
         field: 'id',
-        headerName: 'ID',
-        headerAlign: 'center',
         align: 'center',
-        hide: true
+        hidden: true
       },
       {
         field: 'item',
-        headerName: 'Item',
-        headerAlign: 'center',
+        title: 'Item',
         align: 'center'
       },
       {
         field: 'costCenter',
-        headerName: 'Filial',
-        headerAlign: 'center',
+        title: 'Filial',
         align: 'center'
       },
       {
         field: 'matricule',
-        headerName: 'RE',
-        width: 250,
-        headerAlign: 'center',
+        title: 'RE',
         align: 'center'
       },
       {
         field: 'name',
-        headerName: 'Nome Completo',
-        width: 250,
-        headerAlign: 'center',
+        title: 'Nome Completo',
         align: 'center'
       },
       {
         field: 'service',
-        headerName: 'Função',
-        width: 250,
-        headerAlign: 'center',
+        title: 'Função',
         align: 'center'
       },
       {
         field: 'workplace_origin',
-        headerName: 'Posto de Origem',
-        width: 250,
-        headerAlign: 'center',
+        title: 'Posto de Origem',
         align: 'center'
       },
       {
         field: 'workplace_destination',
-        headerName: 'Posto de Origem',
-        width: 250,
-        headerAlign: 'center',
+        title: 'Posto de Destino',
         align: 'center'
       },
       {
         field: 'coverage_startedAt',
-        headerName: 'Inicio da Cobertura',
-        width: 250,
-        headerAlign: 'center',
+        title: 'Inicio da Cobertura',
         align: 'center'
       },
       {
         field: 'entryTime',
-        headerName: 'Horário de Entrada',
-        width: 250,
-        headerAlign: 'center',
+        title: 'Horário de Entrada',
         align: 'center'
       },
       {
         field: 'exitTime',
-        headerName: 'Horário de Saída',
-        width: 250,
-        headerAlign: 'center',
+        title: 'Horário de Saída',
         align: 'center'
       },
       {
         field: 'value_closed',
-        headerName: 'Valor Fechado',
-        width: 250,
-        headerAlign: 'center',
+        title: 'Valor Fechado',
         align: 'center'
       },
       {
         field: 'absences',
-        headerName: 'Faltas',
-        width: 250,
-        headerAlign: 'center',
+        title: 'Faltas',
         align: 'center'
       },
       {
         field: 'law_days',
-        headerName: 'Dias de Direito',
-        width: 250,
-        headerAlign: 'center',
+        title: 'Dias de Direito',
         align: 'center'
       },
       {
         field: 'discount_value',
-        headerName: 'Valor de Desconto',
-        width: 250,
-        headerAlign: 'center',
+        title: 'Valor de Desconto',
         align: 'center'
       },
       {
         field: 'level',
-        headerName: 'Nível',
-        width: 250,
-        headerAlign: 'center',
+        title: 'Nível',
         align: 'center'
       },
       {
         field: 'gratification',
-        headerName: 'Gratificação',
-        width: 250,
-        headerAlign: 'center',
+        title: 'Gratificação',
         align: 'center'
       },
       {
         field: 'payment_value',
-        headerName: 'Valor a Pagar',
-        width: 250,
-        headerAlign: 'center',
+        title: 'Valor a Pagar',
         align: 'center'
       },
       {
         field: 'payment_date',
-        headerName: 'Data de Pagamento',
-        width: 250,
-        headerAlign: 'center',
+        title: 'Data de Pagamento',
         align: 'center'
       },
       {
         field: 'payment_method',
-        headerName: 'Forma de Pagamento',
-        width: 250,
-        headerAlign: 'center',
+        title: 'Forma de Pagamento',
         align: 'center'
       },
       {
         field: 'payment_status',
-        headerName: 'Já foi Pago?',
-        width: 250,
-        headerAlign: 'center',
+        title: 'Já foi Pago?',
         align: 'center'
       }
     ],
-    rows: GridRowsProp = postings.map((posting, index) => {
+    rows: RowData[] = postings.map((posting, index) => {
       return {
         id: posting.id,
         item: index + 1,

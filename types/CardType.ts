@@ -10,7 +10,8 @@ export type CardType = {
   lotNum: string
   serialNumber: string
   lastCardNumber: string
-  personId?: string
+  personId: string | null
+  unlocked: boolean
   status: DatabaseStatusType
   createdAt: string
   updatedAt: string

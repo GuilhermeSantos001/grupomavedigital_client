@@ -38,7 +38,7 @@ import { useCostCenterService } from '@/services/useCostCenterService'
 import { useCostCentersService } from '@/services/useCostCentersService'
 
 import { SelectCostCenter } from '@/components/selects/SelectCostCenter'
-import { ListWithCheckboxMUI } from '@/components/lists/ListWithCheckboxMUI'
+import { ListWithCheckbox } from '@/components/lists/ListWithCheckbox'
 
 import { DatePicker } from '@/components/selects/DatePicker'
 
@@ -281,32 +281,43 @@ function compose_ready(
             />
           </FormGroup>
         </div>
-        <div className='d-flex flex-column p-2' style={{ marginBottom: '12vh' }}>
-          <ListWithCheckboxMUI
-            columns={postingsColumns}
-            rows={postingsRows}
-            pageSize={5}
-            pageSizeOptions={[5, 10, 20]}
-            onChangeSelection={handleChangeSelectedPostings}
-            onPageSizeChange={(pageSize: number) => console.log(pageSize)}
-          />
-        </div>
+        <ListWithCheckbox
+          title='Pagamentos no Cartão Alelo (B2)'
+          messages={{
+            emptyDataSourceMessage: 'Nenhum lançamento para pagamento encontrado.',
+          }}
+          columns={postingsColumns}
+          data={postingsRows}
+          onChangeSelection={handleChangeSelectedPostings}
+        />
         <button
           type="button"
           className="btn btn-link ms-3"
           disabled={selectedPostings.length <= 0 || selectedPostings.filter(id => postings.some(posting => posting.id === id && posting.paymentStatus === 'paid')).length > 0}
           onClick={() => {
             if (postingsFiltered.length > 0) {
-              const rows: LayoutPayAlelo[] = [];
+              const
+                rows: LayoutPayAlelo[] = [],
+                errors: string[] = [];
 
               for (const posting of postingsFiltered) {
-                rows.push({
-                  serialNumber: posting.personB2.person.cards.find(card => card.costCenterId === posting.costCenterId)?.serialNumber || '',
-                  cpf: posting.personB2.person.cpf,
-                  value: posting.paymentValue.toString().replace('.', ','),
-                  description: posting.description || `Crédito referente ao pagamento de B2 do(a) ${posting.personB2.person.name}`,
-                })
+                if (posting.personB2.person.cards[0].unlocked && posting.personB2.person.cards[0].status === 'available') {
+                  rows.push({
+                    serialNumber: posting.personB2.person.cards[0].serialNumber,
+                    cpf: posting.personB2.person.cpf,
+                    value: posting.paymentValue.toString().replace('.', ','),
+                    description: posting.description || `Crédito referente ao pagamento de B2 do periodo ${periodStart.toLocaleDateString()} a ${periodEnd.toLocaleDateString()}`,
+                  })
+                } else {
+                  errors.push(`O cartão do(a) ${posting.personB2.person.name} não está desbloqueado ou está cancelado.`);
+                }
               }
+
+              if (errors.length > 0)
+                errors.forEach(error => Alerting.create('warning', error, 3600));
+
+              if (rows.length <= 0)
+                return Alerting.create('warning', 'Nenhum pagamento foi gerado, verifique o desbloqueio dos cartões.', 3600);
 
               const
                 costCenterName = costCenters.find(_ => _.id === costCenterId)?.value || '???',
@@ -334,6 +345,12 @@ function compose_ready(
 
               if (!posting)
                 return Alerting.create('error', 'Não foi possível confirmar o(s) pagamento(s). Tente novamente, mais tarde!');
+
+              if (
+                posting.personB2.person.cards[0].status !== 'available' ||
+                !posting.personB2.person.cards[0].unlocked
+              )
+                return Alerting.create('error', 'Não foi possível confirmar o(s) pagamento(s). Existens cartões cancelados e/ou bloqueados!');
 
               const
                 newPosting: DataB2 = {

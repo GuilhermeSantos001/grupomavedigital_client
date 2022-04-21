@@ -8,7 +8,10 @@ export function GetMenuMain(firstId?: MenuOptions): MenuResponse {
     "mn-herculesStorage": true,
     "mn-home": false,
     "mn-integration": false,
-    "mn-login": false,
+    "mn-account": false,
+    "mn-account-profile": false,
+    "mn-account-separator-1": false,
+    "mn-account-cards": false,
     "mn-logout": false,
     "mn-payback": false,
     "mn-payback-separator-1": false,
@@ -48,15 +51,41 @@ export function GetMenuMain(firstId?: MenuOptions): MenuResponse {
         disabled: disable['mn-admin'] ? true : false,
       },
       {
-        id: 'mn-login',
-        active: firstId === 'mn-login' ? true : false,
+        id: 'mn-account',
+        active: firstId === 'mn-account' ? true : false,
         icon: {
           family: 'fas',
-          name: 'user',
+          name: 'id-card',
         },
-        name: 'Dashboard',
-        link: '/system',
-        disabled: disable['mn-login'] ? true : false,
+        type: 'dropdown',
+        name: 'Minha Conta',
+        dropdownId: 'navbarDropdown',
+        content: [
+          {
+            id: 'mn-account-profile',
+            icon: {
+              family: 'fas',
+              name: 'user-alt',
+            },
+            name: 'Perfil',
+            link: '/system',
+            disabled: disable['mn-account-profile'] ? true : false,
+          },
+          {
+            id: 'mn-account-separator-1',
+            type: 'separator',
+          },
+          {
+            id: 'mn-account-cards',
+            icon: {
+              family: 'far',
+              name: 'id-badge',
+            },
+            name: 'Cartão Digital',
+            link: '/system/cards',
+            disabled: disable['mn-account-cards'] ? true : false,
+          }
+        ]
       },
       {
         id: 'mn-security',
@@ -195,7 +224,7 @@ export function GetMenuMain(firstId?: MenuOptions): MenuResponse {
         active: firstId === 'mn-logout' ? true : false,
         icon: {
           family: 'fas',
-          name: 'power-off',
+          name: 'door-open',
         },
         name: 'Desconectar',
         link: '/auth/logout',

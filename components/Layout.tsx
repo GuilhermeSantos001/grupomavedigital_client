@@ -1,9 +1,6 @@
 import { useState, useEffect } from 'react'
 
-import { ThemeProvider } from '@mui/material/styles';
-import { Theme } from '@/styles/theme-material-ui';
-
-import { SnackbarProvider } from 'notistack';
+import { EmotionCache } from '@emotion/react';
 
 import { useRouter } from 'next/router'
 
@@ -25,6 +22,7 @@ declare global {
 
 export type Props = {
   menu: MenuResponse
+  emotionCache: EmotionCache
   fullwidth: boolean
   children: React.ReactElement
 }
@@ -147,17 +145,14 @@ export default function Layout(props: Props) {
           setMenuShow={handleFullWidth}
           fullwidth={props.fullwidth}
         />
-        <ThemeProvider theme={Theme}>
-          <SnackbarProvider maxSnack={3}>
-            <GridContent
-              menuShow={showFullWidth}
-              menu={props.menu}
-              fullwidth={props.fullwidth}
-            >
-              {props.children}
-            </GridContent>
-          </SnackbarProvider>
-        </ThemeProvider>
+          <GridContent
+            menuShow={showFullWidth}
+            emotionCache={props.emotionCache}
+            menu={props.menu}
+            fullwidth={props.fullwidth}
+          >
+            {props.children}
+          </GridContent>
       </>
       :
       loadingOverlay ?

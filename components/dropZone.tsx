@@ -120,7 +120,20 @@ export default class DropZone extends React.Component<MyProps, MyState> {
               onDragEnter={(e) => this.handleDragEnter(e)}
               onDragLeave={(e) => this.handleDragLeave(e)}
             >
-              <p className="my-auto fs-4">{this.state.message}</p>
+              <div className="content">
+                <p className="text-center my-auto fs-4">
+                  {this.state.message} <br />
+                </p>
+              </div>
+              <div className="content">
+                <h1 className="text-start text-muted fw-bold" style={{ fontSize: 12 }}>
+                  {
+                    this.totalBytes() > 0 ?
+                      `${Sugar.Number.bytes(this.totalBytes(), 2, true)} de ${Sugar.Number.bytes(this.props.maxSize)} permitidos.`
+                      : `${Sugar.Number.bytes(this.props.maxSize)} permitidos.`
+                  }
+                </h1>
+              </div>
             </div>
             {this.render_inputUploadFile()}
             {this.render_buttonUploadFiles()}

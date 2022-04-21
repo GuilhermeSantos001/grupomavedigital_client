@@ -34,7 +34,7 @@ const serverSideProps: PageProps = {
   title: 'System/Home',
   description: 'Grupo Mave Digital seu ambiente de trabalho integrado',
   themeColor: '#004a6e',
-  menu: GetMenuMain('mn-login')
+  menu: GetMenuMain('mn-account-profile')
 }
 
 export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => {
