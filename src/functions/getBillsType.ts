@@ -1,14 +1,14 @@
 /**
  * @description Efetuada uma chamada para a API para retornar os
  * tipos de titulos
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 13/10/2021
  */
 
 import { compressToEncodedURIComponent } from 'lz-string';
 
 import Fetch from '@/src/utils/fetch';
-import Variables from '@/src/db/variables';
+import { Variables } from '@/src/db/variables';
 
 export interface BillsType {
   filial: string

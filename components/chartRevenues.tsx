@@ -1,7 +1,7 @@
 /**
  * @description Componente do painel de "Faturamento"
- * @author @GuilhermeSantos001
- * @update 08/10/2021
+ * @author GuilhermeSantos001
+ * @update 24/01/2022
  */
 
 import React from 'react'
@@ -72,7 +72,7 @@ type optionFilters =
   | 'Por período, todas as empresas e todos os clientes'
 
 export default class ChartRevenues extends React.Component<MyProps, MyState> {
-  constructor(props) {
+  constructor(props: MyProps) {
     super(props)
 
     const optionsFilters: optionFilters[] = [
@@ -95,22 +95,27 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
           </option>
         )
       }),
-      optionsClients: undefined,
+      optionsClients: [],
       selectedFilter: 'Por empresa e cliente',
       selectedBranch: 'Selecionar',
       selectedClient: 'Selecionar',
       selectedClientStore: 'Selecionar',
       renderInfoIsReady: false,
       processInfo: false,
-      amount_sales: undefined,
-      total_sales: undefined,
-      chartData_loading: undefined,
-      chartData_filial: undefined,
-      chartData_client: undefined,
-      chartData_clientStore: undefined,
-      chartData_date: undefined,
-      chartDataset_monthlyValueLoading: undefined,
-      chartDataset_monthlyValue: undefined,
+      amount_sales: <></>,
+      total_sales: <></>,
+      chartData_loading: false,
+      chartData_filial: "",
+      chartData_client: "",
+      chartData_clientStore: "",
+      chartData_date: "",
+      chartDataset_monthlyValueLoading: false,
+      chartDataset_monthlyValue: {
+        dataset: {
+          data: { datasets: [], labels: [] },
+          options: {}
+        }
+      },
     }
   }
 
@@ -177,16 +182,16 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
 
   compose_ready() {
     const optionsBranch = this.state.filial.map((branch) => {
-        return (
-          <option key={branch.id} value={branch.id}>
-            {branch.name}
-          </option>
-        )
-      }),
-      handleFocusOrBlurInput = (status) => {
+      return (
+        <option key={branch.id} value={branch.id}>
+          {branch.name}
+        </option>
+      )
+    }),
+      handleFocusOrBlurInput = (status: boolean) => {
         this.setState({ userFocusInput: status })
       },
-      handleChangePeriodStart = (e) => {
+      handleChangePeriodStart = (e: React.ChangeEvent<HTMLInputElement>) => {
         this.setState({
           period: [e.target.value, this.state.period[1]],
         })
@@ -194,7 +199,7 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
         if (
           (this.state.processInfo &&
             this.state.selectedFilter ===
-              'Por período, todas as empresas e todos os clientes') ||
+            'Por período, todas as empresas e todos os clientes') ||
           (this.state.processInfo &&
             this.state.selectedFilter === 'Por empresa e todos os clientes')
         )
@@ -202,7 +207,7 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
             processInfo: false,
           })
       },
-      handleChangePeriodEnd = (e) => {
+      handleChangePeriodEnd = (e: React.ChangeEvent<HTMLInputElement>) => {
         this.setState({
           period: [this.state.period[0], e.target.value],
         })
@@ -210,7 +215,7 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
         if (
           (this.state.processInfo &&
             this.state.selectedFilter ===
-              'Por período, todas as empresas e todos os clientes') ||
+            'Por período, todas as empresas e todos os clientes') ||
           (this.state.processInfo &&
             this.state.selectedFilter === 'Por empresa e todos os clientes')
         )
@@ -218,7 +223,7 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
             processInfo: false,
           })
       },
-      handleSelectOptionFilters = async (e) => {
+      handleSelectOptionFilters = async (e: React.ChangeEvent<HTMLSelectElement>) => {
         if (
           this.state.processInfo &&
           this.state.selectedFilter !== e.target.value
@@ -227,9 +232,11 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
             processInfo: false,
           })
 
-        this.setState({ selectedFilter: e.target.value })
+        const value: any = e.target.value;
+
+        this.setState({ selectedFilter: value })
       },
-      handleSelectOptionBranch = async (e) => {
+      handleSelectOptionBranch = async (e: React.ChangeEvent<HTMLSelectElement>) => {
         const value = e.target.value
 
         if (value !== 'Selecionar') {
@@ -250,7 +257,7 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
               }),
             })
           } else {
-            Alerting.create(`Filial(${value}) não possui clientes ativos.`)
+            Alerting.create('warning', `Filial(${value}) não possui clientes ativos.`)
           }
         }
 
@@ -266,7 +273,7 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
             processInfo: false,
           })
       },
-      handleSelectOptionClient = (e) => {
+      handleSelectOptionClient = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const value: string = e.target.value
 
         let selectedClient = 'Selecionar',
@@ -304,7 +311,7 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
               id="select-filter"
               className="form-select"
               aria-label="Floating label select example"
-              onChange={handleSelectOptionFilters}
+              onChange={(e) => handleSelectOptionFilters(e)}
               disabled={this.state.chartData_loading}
               value={this.state.selectedFilter}
             >
@@ -321,7 +328,7 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
               className="form-control"
               aria-label="Selecione o período inicial"
               aria-describedby="date-addon"
-              onChange={handleChangePeriodStart}
+              onChange={(e) => handleChangePeriodStart(e)}
               onFocus={() => handleFocusOrBlurInput(true)}
               onBlur={() => handleFocusOrBlurInput(false)}
               value={this.state.period[0]}
@@ -343,7 +350,7 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
               className="form-control"
               aria-label="Selecione o período final"
               aria-describedby="date-addon"
-              onChange={handleChangePeriodEnd}
+              onChange={(e) => handleChangePeriodEnd(e)}
               onFocus={() => handleFocusOrBlurInput(true)}
               onBlur={() => handleFocusOrBlurInput(false)}
               value={this.state.period[1]}
@@ -358,7 +365,7 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
               id="select-filial"
               className="form-select"
               aria-label="Selecione a filial"
-              onChange={handleSelectOptionBranch}
+              onChange={(e) => handleSelectOptionBranch(e)}
               disabled={this.state.chartData_loading}
               value={this.state.selectedBranch}
             >
@@ -372,7 +379,7 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
               id="select-client"
               className="form-select"
               aria-label="Selecione o cliente"
-              onChange={handleSelectOptionClient}
+              onChange={(e) => handleSelectOptionClient(e)}
               disabled={
                 this.state.chartData_loading ||
                 this.state.selectedBranch === 'Selecionar'
@@ -393,10 +400,10 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
   compose_information() {
     setInterval(async () => {
       const start = {
-          year: this.state.period[0].split('-')[0],
-          month: this.state.period[0].split('-')[1],
-          day: this.state.period[0].split('-')[2],
-        },
+        year: this.state.period[0].split('-')[0],
+        month: this.state.period[0].split('-')[1],
+        day: this.state.period[0].split('-')[2],
+      },
         end = {
           year: this.state.period[1].split('-')[0],
           month: this.state.period[1].split('-')[1],
@@ -479,10 +486,10 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
               client.store === this.state.selectedClient.split('-')[2]
             ) {
               const start = moment({
-                  year: parseInt(this.state.period[0].split('-')[0]),
-                  month: parseInt(this.state.period[0].split('-')[1]) - 1,
-                  day: parseInt(this.state.period[0].split('-')[2]),
-                }),
+                year: parseInt(this.state.period[0].split('-')[0]),
+                month: parseInt(this.state.period[0].split('-')[1]) - 1,
+                day: parseInt(this.state.period[0].split('-')[2]),
+              }),
                 end = moment({
                   year: parseInt(this.state.period[1].split('-')[0]),
                   month: parseInt(this.state.period[1].split('-')[1]) - 1,
@@ -517,6 +524,7 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
           })
         } else {
           Alerting.create(
+            'warning',
             `Nenhuma nota encontrada na loja e período informados.`
           )
 
@@ -588,10 +596,10 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
           })
 
           const start = moment({
-              year: parseInt(this.state.period[0].split('-')[0]),
-              month: parseInt(this.state.period[0].split('-')[1]) - 1,
-              day: parseInt(this.state.period[0].split('-')[2]),
-            }),
+            year: parseInt(this.state.period[0].split('-')[0]),
+            month: parseInt(this.state.period[0].split('-')[1]) - 1,
+            day: parseInt(this.state.period[0].split('-')[2]),
+          }),
             end = moment({
               year: parseInt(this.state.period[1].split('-')[0]),
               month: parseInt(this.state.period[1].split('-')[1]) - 1,
@@ -623,6 +631,7 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
           })
         } else {
           Alerting.create(
+            'warning',
             `Nenhuma nota encontrada na filial e período informados.`
           )
 
@@ -635,7 +644,7 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
         }
       } else if (
         this.state.selectedFilter ===
-          'Por período, todas as empresas e todos os clientes' &&
+        'Por período, todas as empresas e todos os clientes' &&
         this.state.period[0].length >= 10 &&
         this.state.period[1].length >= 10
       ) {
@@ -689,10 +698,10 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
             chartData_date = '???'
 
           const start = moment({
-              year: parseInt(this.state.period[0].split('-')[0]),
-              month: parseInt(this.state.period[0].split('-')[1]) - 1,
-              day: parseInt(this.state.period[0].split('-')[2]),
-            }),
+            year: parseInt(this.state.period[0].split('-')[0]),
+            month: parseInt(this.state.period[0].split('-')[1]) - 1,
+            day: parseInt(this.state.period[0].split('-')[2]),
+          }),
             end = moment({
               year: parseInt(this.state.period[1].split('-')[0]),
               month: parseInt(this.state.period[1].split('-')[1]) - 1,
@@ -725,6 +734,7 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
           })
         } else {
           Alerting.create(
+            'warning',
             `Nenhuma nota encontrada na filial e período informados.`
           )
 
@@ -840,13 +850,14 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
       <div className="d-flex flex-column flex-md-row p-2">
         <div className="col-12">
           <Line
-            className={`chart ${
-              this.state.chartDataset_monthlyValueLoading
-                ? 'deactivate'
-                : 'active'
-            }`}
+            className={`chart ${this.state.chartDataset_monthlyValueLoading
+              ? 'deactivate'
+              : 'active'
+              }`}
             height={100}
-            data={this.state.chartDataset_monthlyValue.dataset.data}
+            data={{
+              datasets: [this.state.chartDataset_monthlyValue.dataset],
+            }}
             options={this.state.chartDataset_monthlyValue.dataset.options}
           />
         </div>
@@ -915,22 +926,22 @@ export default class ChartRevenues extends React.Component<MyProps, MyState> {
     })
 
     const data: Chart.ChartData = {
-        labels: [
-          'Janeiro',
-          'Fevereiro',
-          'Março',
-          'Abril',
-          'Maio',
-          'Junho',
-          'Julho',
-          'Agosto',
-          'Setembro',
-          'Outubro',
-          'Novembro',
-          'Dezembro',
-        ],
-        datasets: [],
-      },
+      labels: [
+        'Janeiro',
+        'Fevereiro',
+        'Março',
+        'Abril',
+        'Maio',
+        'Junho',
+        'Julho',
+        'Agosto',
+        'Setembro',
+        'Outubro',
+        'Novembro',
+        'Dezembro',
+      ],
+      datasets: [],
+    },
       options: Chart.ChartOptions = {
         plugins: {
           filler: {

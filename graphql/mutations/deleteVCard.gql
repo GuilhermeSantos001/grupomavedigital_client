@@ -1,0 +1,3 @@
+mutation VCardRemove($metadata: input_vcardmetadata!) {
+  vcardRemove(metadata: $metadata)
+}

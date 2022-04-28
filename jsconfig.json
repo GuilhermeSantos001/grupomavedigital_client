@@ -4,9 +4,18 @@
     "baseUrl": ".",
     "paths": {
       "@/bin/*": ["bin/*"],
+      "@/app/*": ["app/*"],
+      "@/constants/*": ["constants/*"],
+      "@/controllers/*": ["controllers/*"],
+      "@/context/*": ["context/*"],
+      "@/lib/*": ["lib/*"],
+      "@/utility/*": ["utility/*"],
       "@/components/*": ["components/*"],
+      "@/pages/*": ["pages/*"],
       "@/src/*": ["src/*"],
-      "@/modules/*": ["modules/*"]
+      "@/styles/*": ["styles/*"],
+      "@/animations/*": ["animations/*"],
+      "@/modules/*": ["modules/*"],
     }
   }
 }

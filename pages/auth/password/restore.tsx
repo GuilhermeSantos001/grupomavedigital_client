@@ -1,10 +1,6 @@
-/**
- * @description Pagina para confirmação do e-mail usuario
- * @author @GuilhermeSantos001
- * @update 05/10/2021
- */
+import { useEffect, useState } from 'react'
 
-import React, { useEffect, useState } from 'react'
+import { GetServerSidePropsContext } from 'next/types'
 
 import SkeletonLoader from 'tiny-skeleton-loader-react'
 
@@ -12,6 +8,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
 
 import { PageProps } from '@/pages/_app'
+import { GetMenuHome } from '@/bin/GetMenuHome'
 
 import Alerting from '@/src/utils/alerting'
 
@@ -23,52 +20,17 @@ const serverSideProps: PageProps = {
   title: 'Confirmação da conta',
   description: 'Confirme sua conta para acessar o ambiente digital interativo.',
   themeColor: '#004a6e',
-  menu: [
-    {
-      id: 'mn-helping',
-      active: false,
-      icon: {
-        family: 'fas',
-        name: 'question-circle',
-      },
-      type: 'dropdown',
-      name: 'Precisa de Ajuda?',
-      dropdownId: 'navbarDropdown',
-      content: [
-        {
-          id: 'md-helpdesk',
-          icon: {
-            family: 'fas',
-            name: 'headset',
-          },
-          name: 'HelpDesk',
-          link: '/help/helpdesk',
-        },
-        {
-          id: 'md-sp1',
-          type: 'separator',
-        },
-        {
-          id: 'md-docs',
-          icon: {
-            family: 'fas',
-            name: 'book-reader',
-          },
-          name: 'Documentação',
-          link: '/help/docs',
-        },
-      ],
-    },
-  ],
+  menu: GetMenuHome('mn-login')
 }
 
-export async function getServerSideProps(context) {
-  const { token } = context.query
+export async function getServerSideProps({ query }: GetServerSidePropsContext) {
+  const { token } = query;
 
   return {
     props: {
       ...serverSideProps,
       token,
+      processOrderForgotPasswordAuthorization: process.env.GRAPHQL_AUTHORIZATION_PROCESSORDERFORGOTPASSWORD!
     },
   }
 }
@@ -94,50 +56,54 @@ function compose_loading() {
   )
 }
 
-const PasswordRestore = ({ token }): JSX.Element => {
+export function PasswordRestore({
+  token,
+  processOrderForgotPasswordAuthorization,
+}: {
+  token: string,
+  processOrderForgotPasswordAuthorization: string
+}) {
   const [signature, setSignature] = useState<string>('')
   const [password, setPassword] = useState<string>('')
   const [passwordView, setPasswordView] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(true)
 
-  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
+  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST!)
 
-  const handleChangeSignature = (e) => {
-      setSignature(e.target.value)
-    },
-    handleChangePassword = (e) => {
-      setPassword(e.target.value)
-    },
-    handleClickPasswordView = () => {
-      setPasswordView(passwordView ? false : true)
-    },
+  const handleChangeSignature = (value: string) => setSignature(value),
+    handleChangePassword = (value: string) => setPassword(value),
+    handleClickPasswordView = () => setPasswordView(passwordView ? false : true),
     handleClickChangePassword = async () => {
       const test = checkPassword(password)
 
-      if (typeof test === 'string') return Alerting.create(test)
+      if (typeof test === 'string')
+        return Alerting.create('warning', test)
 
       if (test) {
         if (
-          await processOrderForgotPassword(_fetch, signature, token, password)
+          await processOrderForgotPassword(
+            _fetch,
+            signature,
+            token,
+            password,
+            processOrderForgotPasswordAuthorization
+          )
         ) {
-          Alerting.create('Senha alterada com sucesso!')
-          setSignature('')
-          setPassword('')
+          Alerting.create('info', 'Senha alterada com sucesso!');
+          setSignature('');
+          setPassword('');
         } else {
           Alerting.create(
+            'error',
             'Não foi possível alterar sua senha. Tente novamente!'
-          )
+          );
         }
       }
     }
 
   useEffect(() => {
-    const timer = setTimeout(async () => {
-      setIsLoading(false)
-    })
-
-    return () => clearTimeout(timer)
-  }, [])
+    setIsLoading(false);
+  }, []);
 
   if (isLoading) return compose_loading()
 
@@ -160,7 +126,7 @@ const PasswordRestore = ({ token }): JSX.Element => {
           aria-label="Code"
           aria-describedby="code-addon"
           value={signature}
-          onChange={handleChangeSignature}
+          onChange={(e) => handleChangeSignature(e.target.value)}
         />
       </div>
       <div className="input-group mb-2">
@@ -177,7 +143,7 @@ const PasswordRestore = ({ token }): JSX.Element => {
           aria-label="Password"
           aria-describedby="password-addon"
           value={password}
-          onChange={handleChangePassword}
+          onChange={(e) => handleChangePassword(e.target.value)}
         />
         <span className="input-group-text" id="passwordView-addon">
           <FontAwesomeIcon
@@ -198,5 +164,3 @@ const PasswordRestore = ({ token }): JSX.Element => {
     </div>
   )
 }
-
-export default PasswordRestore

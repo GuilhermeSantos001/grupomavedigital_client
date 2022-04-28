@@ -1,6 +1,6 @@
 /**
  * @description Classe global da aplicação
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 04/08/2021
  * @version 1.0.0
  */

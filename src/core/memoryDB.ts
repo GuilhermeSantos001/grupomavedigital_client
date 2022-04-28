@@ -1,6 +1,6 @@
 /**
  * @description Classe usada para armazenamento em memoria
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 27/09/2021
  */
 
@@ -53,7 +53,7 @@ export default class MemoryDB implements IDatabaseProvider {
                     .push(
                         Object
                             .assign({ [keyPath]: undefined }, data)
-                );
+                    );
 
                 return resolve();
             } catch (error) {
@@ -97,6 +97,22 @@ export default class MemoryDB implements IDatabaseProvider {
             try {
                 if (this.data[storeName])
                     return resolve(this.data[storeName].filter((data: Type) => data[keyPath] === key).at(0) || undefined);
+
+                return resolve(undefined);
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
+    /**
+     * @description Retorna todas as chaves da store
+     */
+    public storeGetAllKeys(storeName: string): Promise<string[]> {
+        return new Promise((resolve, reject) => {
+            try {
+                if (this.data[storeName])
+                    return resolve(Object.keys(this.data[storeName]) || undefined);
 
                 return resolve(undefined);
             } catch (error) {

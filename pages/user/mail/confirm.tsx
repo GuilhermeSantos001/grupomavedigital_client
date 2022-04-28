@@ -1,15 +1,11 @@
-/**
- * @description Pagina para confirmação do e-mail usuario
- * @author @GuilhermeSantos001
- * @update 13/10/2021
- */
-
 import React, { useEffect, useState } from 'react'
+
+import { GetServerSidePropsContext } from 'next/types'
 
 import SkeletonLoader from 'tiny-skeleton-loader-react'
 
 import { PageProps } from '@/pages/_app'
-import PageMenu from '@/bin/main_menu'
+import { GetMenuMain } from '@/bin/GetMenuMain'
 
 import Fetch from '@/src/utils/fetch'
 import mailConfirm from '@/src/functions/mailConfirm'
@@ -18,16 +14,17 @@ const serverSideProps: PageProps = {
   title: 'Confirmação da conta',
   description: 'Confirme sua conta para acessar o ambiente digital interativo.',
   themeColor: '#004a6e',
-  menu: PageMenu(),
+  menu: GetMenuMain()
 }
 
-export async function getServerSideProps(context) {
-  const { token } = context.query
+export async function getServerSideProps({ query }: GetServerSidePropsContext) {
+  const { token } = query;
 
   return {
     props: {
       ...serverSideProps,
       token,
+      mailConfirmAuthorization: process.env.GRAPHQL_AUTHORIZATION_MAILCONFIRM!
     },
   }
 }
@@ -53,20 +50,23 @@ function compose_loading() {
   )
 }
 
-const MailConfirm = ({ token }): JSX.Element => {
+const MailConfirm = ({
+  token,
+  mailConfirmAuthorization,
+}: {
+  token: string
+  mailConfirmAuthorization: string,
+}): JSX.Element => {
   const [isReady, setIsReady] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(true)
 
-  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
+  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST!)
 
   useEffect(() => {
-    const timer = setTimeout(async () => {
-      if (await mailConfirm(_fetch, token)) setIsReady(true)
-      setIsLoading(false)
-    })
-
-    return () => clearTimeout(timer)
-  }, [])
+    mailConfirm(_fetch, token, mailConfirmAuthorization)
+      .then(() => setIsReady(true))
+      .finally(() => setIsLoading(false))
+  }, []);
 
   return (
     <div data-testid="div-container" className="p-2">
@@ -76,7 +76,7 @@ const MailConfirm = ({ token }): JSX.Element => {
         ) : isReady ? (
           <p>Conta confirmada</p>
         ) : (
-          <p>Não foi possivel confirmar sua conta!</p>
+          <p>Não foi possível confirmar sua conta. Fale com o administrador do sistema.</p>
         )}
       </h1>
       {isReady ? (

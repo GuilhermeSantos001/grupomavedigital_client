@@ -1,12 +1,12 @@
 /**
  * @description Banco de dados das variáveis utilizadas no sistema
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @updated 27/09/2021
  */
 
 import CoreDB, { Technology } from '@/src/db/core';
 
-export default class Variables extends CoreDB {
+export  class Variables extends CoreDB {
   constructor(version: number, technology: Technology) {
     super('variables', version, technology);
   }
@@ -34,6 +34,13 @@ export default class Variables extends CoreDB {
    */
   public async get<Type>(name: string): Promise<Type> {
     return await this.store_get<Type>('variable', name);
+  }
+
+  /**
+   * @description Retorna o valor da variável
+   */
+  public async getAllKeys(): Promise<string[]> {
+    return await this.store_getAllKeys('variable');
   }
 
   /**

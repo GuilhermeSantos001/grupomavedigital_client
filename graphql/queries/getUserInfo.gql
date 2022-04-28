@@ -1,0 +1,21 @@
+query GetUserInfo($auth: String!) {
+  getUserInfo(auth: $auth) {
+    privileges
+    privilege
+    photoProfile
+    username
+    email
+    name
+    surname
+    cnpj
+    location {
+      street
+      number
+      complement
+      district
+      state
+      city
+      zipcode
+    }
+  }
+}

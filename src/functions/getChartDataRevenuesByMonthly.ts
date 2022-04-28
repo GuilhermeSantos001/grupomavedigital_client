@@ -1,7 +1,7 @@
 /**
  * @description Efetuada uma chamada para a API para retornar a data do grafico
  * de "Faturamento"
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 09/10/2021
  */
 

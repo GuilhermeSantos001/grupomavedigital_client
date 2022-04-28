@@ -1,6 +1,6 @@
 /**
  * @description Classe usada para interação com LocalStorage
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 27/09/2021
  */
 
@@ -129,6 +129,22 @@ export default class LocalStorageEx implements IDatabaseProvider {
       try {
         if (this.data[storeName])
           return resolve(this.data[storeName].filter((data: Type) => data[keyPath] === key).at(0) || undefined);
+
+        return resolve(undefined);
+      } catch {
+        return reject();
+      }
+    });
+  }
+
+  /**
+  * @description Retorna todas as chaves da store
+  */
+  public storeGetAllKeys(storeName: string): Promise<string[]> {
+    return new Promise((resolve, reject) => {
+      try {
+        if (this.data[storeName])
+          return resolve(Object.keys(this.data[storeName]) || undefined);
 
         return resolve(undefined);
       } catch {

@@ -1,9 +1,8 @@
 @import "../node_modules/bootstrap-icons/font/bootstrap-icons.css";
 @import '../node_modules/@fortawesome/fontawesome-svg-core/styles.css';
 @import "../node_modules/please-wait/build/please-wait.css";
-@import "../node_modules/jquery-contextmenu/dist/jquery.contextMenu.css";
 @import "../node_modules/plyr/dist/plyr.css";
 @import "../node_modules/animate.css/animate.css";
-@import "../node_modules/spinkit/spinkit.css";
 @import "../public/stylesheets/plugins/Chart.css";
 @import "../public/stylesheets/plugins/fira_code.css";
+@import "../public/stylesheets/plugins/bebas_regular.css";

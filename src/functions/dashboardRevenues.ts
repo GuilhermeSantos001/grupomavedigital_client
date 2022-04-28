@@ -1,14 +1,14 @@
 /**
  * @description Efetuada uma chamada para a API para retornar as
  * informações da dashboard: "Faturamento"
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 08/10/2021
  */
 
 import { compressToEncodedURIComponent } from 'lz-string';
 
 import Fetch from '@/src/utils/fetch';
-import Variables from '@/src/db/variables';
+import { Variables } from '@/src/db/variables';
 
 export interface Revenues {
   client: string

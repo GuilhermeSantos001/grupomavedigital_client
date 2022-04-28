@@ -1,0 +1,19 @@
+mutation VCardCreate($data: input_vcard!) {
+  vcardCreate(data: $data) {
+    file {
+      path
+      name
+      type
+    }
+    logotipo {
+      path
+      name
+      type
+    }
+    photo {
+      path
+      name
+      type
+    }
+  }
+}

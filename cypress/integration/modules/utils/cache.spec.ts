@@ -5,7 +5,7 @@ import Cache from '@/src/utils/cache'
 
 describe('Testando a manipulação de cache', () => {
     it('Cria um novo cache', () => {
-        cy.task('getConfiguration').then((config: any) => {
+        cy.task('getConfiguration', 'cache.spec').then((config: any) => {
             const cache = new Cache("test_1", config.browserDatabase);
 
             cache.initialize();
@@ -15,7 +15,7 @@ describe('Testando a manipulação de cache', () => {
     })
 
     it('Salva um novo valor', () => {
-        cy.task('getConfiguration').then(async (config: any) => {
+        cy.task('getConfiguration', 'cache.spec').then(async (config: any) => {
             const cache = new Cache("test_2", config.browserDatabase);
 
             await cache.initialize();
@@ -29,7 +29,7 @@ describe('Testando a manipulação de cache', () => {
     })
 
     it('Remove um valor existente', () => {
-        cy.task('getConfiguration').then(async (config: any) => {
+        cy.task('getConfiguration', 'cache.spec').then(async (config: any) => {
             const myCache = new Cache("test_3", config.browserDatabase);
 
             await myCache.initialize();

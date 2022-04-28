@@ -1,7 +1,7 @@
 /**
  * @description Painéis do sistema
- * @author @GuilhermeSantos001
- * @update 06/10/2021
+ * @author GuilhermeSantos001
+ * @update 15/02/2022
  */
 
 import React, { useEffect, useState } from 'react'
@@ -15,23 +15,20 @@ import SkeletonLoader from 'tiny-skeleton-loader-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
 
-import RenderPageError from '@/components/renderPageError'
-import NoPrivilege from '@/components/noPrivilege'
+import NoPrivilege, { handleClickFunction } from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
 
 import { PageProps } from '@/pages/_app'
-import PageMenu from '@/bin/main_menu'
+import { GetMenuMain } from '@/bin/GetMenuMain'
 
-import Fetch from '@/src/utils/fetch'
-import Variables from '@/src/db/variables'
-import tokenValidate from '@/src/functions/tokenValidate'
+import { Variables } from '@/src/db/variables'
 import hasPrivilege from '@/src/functions/hasPrivilege'
 
 const serverSideProps: PageProps = {
   title: 'System/Dashboard',
   description: 'Painéis de gestão do Grupo Mave',
   themeColor: '#004a6e',
-  menu: PageMenu('mn-dashboard'),
+  menu: GetMenuMain('mn-dashboard')
 }
 
 export const getServerSideProps = async () => {
@@ -105,15 +102,11 @@ function compose_load() {
   )
 }
 
-function compose_error() {
-  return <RenderPageError />
-}
-
-function compose_noPrivilege(handleClick) {
+function compose_noPrivilege(handleClick: handleClickFunction) {
   return <NoPrivilege handleClick={handleClick} />
 }
 
-function compose_noAuth(handleClick) {
+function compose_noAuth(handleClick: handleClickFunction) {
   return <NoAuth handleClick={handleClick} />
 }
 
@@ -180,18 +173,20 @@ function compose_ready() {
   )
 }
 
-const Dashboard = (): JSX.Element => {
+export default function Dashboard() {
   const [isReady, setReady] = useState<boolean>(false)
-  const [isError, setError] = useState<boolean>(false)
   const [notPrivilege, setNotPrivilege] = useState<boolean>(false)
   const [notAuth, setNotAuth] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(true)
 
   const router = useRouter()
-  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
 
-  const handleClickNoAuth = async (e, path) => {
-      e.preventDefault()
+  const
+    handleClickNoAuth: handleClickFunction = async (
+      event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+      path: string
+    ) => {
+      event.preventDefault()
 
       if (path === '/auth/login') {
         const variables = new Variables(1, 'IndexedDB')
@@ -200,37 +195,32 @@ const Dashboard = (): JSX.Element => {
         })
       }
     },
-    handleClickNoPrivilege = async (e, path) => {
-      e.preventDefault()
+    handleClickNoPrivilege: handleClickFunction = async (
+      event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+      path: string
+    ) => {
+      event.preventDefault()
       router.push(path)
-    }
+    };
 
-  useEffect(() => {
-    const timer = setTimeout(async () => {
-      const allowViewPage = await tokenValidate(_fetch)
+    useEffect(() => {
+      hasPrivilege('administrador')
+        .then((isAllowViewPage) => {
+          if (isAllowViewPage) {
+            setReady(true);
+          } else {
+            setNotPrivilege(true);
+          }
 
-      if (!allowViewPage) {
-        setNotAuth(true)
-        setLoading(false)
-      } else {
-        try {
-          if (!(await hasPrivilege('administrador'))) setNotPrivilege(true)
-
-          setReady(true)
+          return setLoading(false);
+        })
+        .catch(() => {
+          setNotAuth(true);
           return setLoading(false)
-        } catch {
-          setError(true)
-          return setLoading(false)
-        }
-      }
-    })
-
-    return () => clearTimeout(timer)
-  }, [])
+        });
+    }, [])
 
   if (loading) return compose_load()
-
-  if (isError) return compose_error()
 
   if (notPrivilege) return compose_noPrivilege(handleClickNoPrivilege)
 
@@ -238,5 +228,3 @@ const Dashboard = (): JSX.Element => {
 
   if (isReady) return compose_ready()
 }
-
-export default Dashboard
