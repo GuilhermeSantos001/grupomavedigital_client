@@ -1,5 +1,5 @@
-query GetCards($lastIndex: String, $limit: Int!) {
-  getCards(lastIndex: $lastIndex, limit: $limit) {
+query FindCard($cid: String!) {
+  findCard(cid: $cid) {
     index
     cid
     version
@@ -22,9 +22,10 @@ query GetCards($lastIndex: String, $limit: Int!) {
       lastname
       organization
       photo {
+        id
+        mirrorId
         name
         type
-        id
       }
       logo {
         id

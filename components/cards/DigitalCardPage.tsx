@@ -10,21 +10,31 @@ import { ZoomInDiv } from '@/animations/ZoomInAnimation';
 import { ZoomInDownDiv } from '@/animations/ZoomInDownAnimation';
 import { BounceInDiv } from '@/animations/BounceInAnimation';
 
-import Button from '@mui/material/Button';
-
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
 
 import {
+  ContactPhone,
   MailLock,
   LocationOn,
   Language,
-  StickyNote2
+  StickyNote2,
+  FacebookRounded,
+  YouTube,
+  LinkedIn,
+  Instagram,
+  Twitter,
 } from '@mui/icons-material';
 
+import IconButton from '@mui/material/IconButton';
+import Button from '@mui/material/Button';
+import Avatar from '@mui/material/Avatar';
 import Tooltip from '@mui/material/Tooltip';
 
 import StringEx from '@/src/utils/stringEx';
+import Alerting from '@/src/utils/alerting';
+
+import { uploadTempDownload } from '@/src/functions/getUploads'
 
 import {
   TelegramShareButton,
@@ -60,6 +70,20 @@ export type Props = {
   googleMapsLink: string
   website: string
   attachmentBusiness: string | { raw: string }
+  attachmentVCard: string | {
+    path: string
+    name: string
+    type: string
+  }
+  socialmedia: {
+    facebook?: string
+    youtube?: string
+    linkedin?: string
+    instagram?: string
+    twitter?: string
+    tiktok?: string
+    flickr?: string
+  }
 }
 
 export function DigitalCardPage(props: Props) {
@@ -67,24 +91,24 @@ export function DigitalCardPage(props: Props) {
     getBackgroundColor = () => {
       switch (props.version) {
         case '1.0':
-          return 'bg-primary';
+          return 'bg-primary bg-gradient';
         case '1.1':
-          return 'bg-dark';
+          return 'bg-dark bg-gradient';
         case '1.2':
-          return 'bg-danger';
+          return 'bg-danger bg-gradient';
         default:
-          return 'bg-primary';
+          return 'bg-primary bg-gradient';
       }
     },
     getDividerColor = () => {
       switch (props.version) {
         case '1.0':
         case '1.1':
-          return 'bg-secondary';
+          return 'bg-secondary bg-gradient';
         case '1.2':
-          return 'bg-warning';
+          return 'bg-warning bg-gradient';
         default:
-          return 'bg-secondary';
+          return 'bg-secondary bg-gradient';
       }
     },
     getColorText = () => {
@@ -123,7 +147,7 @@ export function DigitalCardPage(props: Props) {
     }
 
   return (
-    <Card className={`d-flex col-12 p-0 rounded ${getBackgroundColor()} bg-gradient`}>
+    <Card className={`digitalCard d-flex col-12 p-0 rounded ${getBackgroundColor()} bg-gradient`}>
       <Card.Body className="p-0 rounded">
         <ZoomInDiv duration='800ms'>
           <div className="d-flex mt-2 p-2 justify-content-center align-items-center">
@@ -146,12 +170,11 @@ export function DigitalCardPage(props: Props) {
           <div className={`col-12 ${getDividerColor()}`} style={{ height: '1vh' }} />
           <ZoomInDownDiv duration='750ms'>
             <div className="d-flex flex-column flex-md-row align-self-center justify-content-center rounded py-3">
-              <Image
-                src={typeof props.photoProfile !== 'string' && props.photoProfile.raw.length > 0 ? props.photoProfile.raw : `/uploads/${props.photoProfile}`}
+              <Avatar
                 alt={props.username}
-                className="rounded-circle"
-                width={150}
-                height={150}
+                className="mx-auto"
+                src={typeof props.photoProfile !== 'string' && props.photoProfile.raw.length > 0 ? props.photoProfile.raw : `/uploads/${props.photoProfile}`}
+                sx={{ width: 150, height: 150 }}
               />
             </div>
             <p className={`text-center fw-bold fst-italic ${getColorText()}`}>
@@ -162,10 +185,9 @@ export function DigitalCardPage(props: Props) {
           <BounceInDiv duration='1s'>
             <div className='d-flex justify-content-center align-items-center mb-2'>
               <Button
-                className="col-8 mx-auto"
+                className="col-8 mx-auto whatsapp"
                 variant={getColorButtons()}
                 color="success"
-                style={{ fontSize: 10 }}
                 onClick={() => {
                   window.open(`https://api.whatsapp.com/send?phone=55${props.whatsapp.phone}&text=${props.whatsapp.text}`, '_blank');
                 }}
@@ -180,24 +202,23 @@ export function DigitalCardPage(props: Props) {
               </Button>
             </div>
             <div className='d-flex justify-content-center align-items-center mb-2'>
-              <Button className="col-5 mx-2" variant={getColorButtons()} startIcon={
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'square-phone')}
-                  className="me-2 flex-shrink-1 my-auto"
-                />
-              }
-                style={{ fontSize: 10 }}
+              <Button className="col-5 mx-2 phone"
+                variant={getColorButtons()} startIcon={
+                  <FontAwesomeIcon
+                    icon={Icon.render('fas', 'square-phone')}
+                    className="me-2 flex-shrink-1 my-auto"
+                  />
+                }
                 onClick={() => window.open(`tel:55${props.workPhone}`)}
               >
                 {StringEx.maskPhone(props.workPhone)}
               </Button>
-              <Button className="col-5 mx-2" variant={getColorButtons()} startIcon={
+              <Button className="col-5 mx-2 phone" variant={getColorButtons()} startIcon={
                 <FontAwesomeIcon
                   icon={Icon.render('fas', 'square-phone')}
                   className="me-2 flex-shrink-1 my-auto"
                 />
               }
-                style={{ fontSize: 10 }}
                 onClick={() => window.open(`tel:55${props.cellPhone}`)}
               >
                 {StringEx.maskPhone(props.cellPhone)}
@@ -206,8 +227,124 @@ export function DigitalCardPage(props: Props) {
           </BounceInDiv>
           <div className={`col-12 ${getDividerColor()}`} style={{ height: '1vh' }} />
         </div>
-        <div className="d-flex flex-column my-3 justify-content-center align-items-center">
+        <div className="d-flex flex-column justify-content-center align-items-center">
+          {
+            Object.values(props.socialmedia).length > 0 &&
+            <BounceInDiv duration='1s'>
+              <div className="d-flex flex-row align-self-center justify-content-end my-2">
+                {
+                  props.socialmedia.facebook &&
+                  <Tooltip title="Acesse nossa pagina" arrow>
+                    <IconButton
+                      className={"hover-color hover-light"}
+                      aria-label="Facebook"
+                      onClick={() => window.open(props.socialmedia.facebook)}
+                    >
+                      <FacebookRounded />
+                    </IconButton>
+                  </Tooltip>
+                }
+                {
+                  props.socialmedia.youtube &&
+                  <Tooltip title="Inscreva-se em nosso canal" arrow>
+                    <IconButton
+                      className={"hover-color hover-light"}
+                      aria-label="Youtube"
+                      onClick={() => window.open(props.socialmedia.youtube)}
+                    >
+                      <YouTube />
+                    </IconButton>
+                  </Tooltip>
+                }
+                {
+                  props.socialmedia.linkedin &&
+                  <Tooltip title="Trabalhe conosco" arrow>
+                    <IconButton
+                      className={"hover-color hover-light"}
+                      aria-label="Linkedin"
+                      onClick={() => window.open(props.socialmedia.linkedin)}
+                    >
+                      <LinkedIn />
+                    </IconButton>
+                  </Tooltip>
+                }
+                {
+                  props.socialmedia.instagram &&
+                  <Tooltip title="Acompanhe nossa trajetória" arrow>
+                    <IconButton
+                      className={"hover-color hover-light"}
+                      aria-label="Instagram"
+                      onClick={() => window.open(props.socialmedia.instagram)}
+                    >
+                      <Instagram />
+                    </IconButton>
+                  </Tooltip>
+                }
+                {
+                  props.socialmedia.twitter &&
+                  <Tooltip title="Saiba o que estamos pensando" arrow>
+                    <IconButton
+                      className={"hover-color hover-light"}
+                      aria-label="Twitter"
+                      onClick={() => window.open(props.socialmedia.twitter)}
+                    >
+                      <Twitter />
+                    </IconButton>
+                  </Tooltip>
+                }
+                {
+                  props.socialmedia.tiktok &&
+                  <Tooltip title="Saiba o que estamos pensando" arrow>
+                    <IconButton
+                      className={"hover-color hover-light"}
+                      aria-label="TikTok"
+                      onClick={() => window.open(props.socialmedia.tiktok)}
+                    >
+                      <FontAwesomeIcon
+                        icon={Icon.render('fab', 'tiktok')}
+                        className="me-2 fs-6 flex-shrink-1 my-auto"
+                      />
+                    </IconButton>
+                  </Tooltip>
+                }
+                {
+                  props.socialmedia.flickr &&
+                  <Tooltip title="Veja o que nossos artistas estão compartilhando" arrow>
+                    <IconButton
+                      className={"hover-color hover-light"}
+                      aria-label="Flickr"
+                      onClick={() => window.open(props.socialmedia.flickr)}
+                    >
+                      <FontAwesomeIcon
+                        icon={Icon.render('fab', 'flickr')}
+                        className="me-2 fs-6 flex-shrink-1 my-auto"
+                      />
+                    </IconButton>
+                  </Tooltip>
+                }
+              </div>
+            </BounceInDiv>
+          }
           <div className="d-flex mb-2 justify-content-center align-items-center">
+            <ZoomInDiv duration='800ms'>
+              <Tooltip title="Salvar contato" arrow>
+                <Button
+                  className={`col mx-1 p-2 ${getColorFooterText()}`}
+                  variant="outlined"
+                  color="secondary"
+                  onClick={() => {
+                    if (typeof props.attachmentVCard !== 'string') {
+                      const { path, name, type } = props.attachmentVCard;
+                      uploadTempDownload(path, name, type);
+                    } else {
+                      Alerting.create('info', 'Cartão de contato ainda não está disponível');
+                    }
+                  }}
+                >
+                  <ContactPhone fontSize='small' />
+                </Button>
+              </Tooltip>
+            </ZoomInDiv>
             <ZoomInDiv duration='800ms'>
               <Tooltip title="Enviar mensagem por e-mail" arrow>
                 <Button
@@ -275,12 +412,12 @@ export function DigitalCardPage(props: Props) {
                     size={32}
                     round
                     className={`animation-delay ${css`
-                  cursor: pointer;
-                  &:hover {
-                    opacity: 0.75;
-                    transform: scale(1.1);
-                  }
-                `}`}
+                    cursor: pointer;
+                    &:hover {
+                      opacity: 0.75;
+                      transform: scale(1.1);
+                    }
+                  `}`}
                   />
                 </FacebookShareButton>
               </Tooltip>
@@ -295,12 +432,12 @@ export function DigitalCardPage(props: Props) {
                     size={32}
                     round
                     className={`animation-delay ${css`
-                  cursor: pointer;
-                  &:hover {
-                    opacity: 0.75;
-                    transform: scale(1.1);
-                  }
-                `}`}
+                    cursor: pointer;
+                    &:hover {
+                      opacity: 0.75;
+                      transform: scale(1.1);
+                    }
+                  `}`}
                   />
                 </TwitterShareButton>
               </Tooltip>
@@ -315,12 +452,12 @@ export function DigitalCardPage(props: Props) {
                     size={32}
                     round
                     className={`animation-delay ${css`
-                  cursor: pointer;
-                  &:hover {
-                    opacity: 0.75;
-                    transform: scale(1.1);
-                  }
-                `}`}
+                    cursor: pointer;
+                    &:hover {
+                      opacity: 0.75;
+                      transform: scale(1.1);
+                    }
+                  `}`}
                   />
                 </LinkedinShareButton>
               </Tooltip>
@@ -335,12 +472,12 @@ export function DigitalCardPage(props: Props) {
                     size={32}
                     round
                     className={`animation-delay ${css`
-                  cursor: pointer;
-                  &:hover {
-                    opacity: 0.75;
-                    transform: scale(1.1);
-                  }
-                `}`}
+                    cursor: pointer;
+                    &:hover {
+                      opacity: 0.75;
+                      transform: scale(1.1);
+                    }
+                  `}`}
                   />
                 </TelegramShareButton>
               </Tooltip>
@@ -355,12 +492,12 @@ export function DigitalCardPage(props: Props) {
                     size={32}
                     round
                     className={`animation-delay ${css`
-                  cursor: pointer;
-                  &:hover {
-                    opacity: 0.75;
-                    transform: scale(1.1);
-                  }
-                `}`}
+                    cursor: pointer;
+                    &:hover {
+                      opacity: 0.75;
+                      transform: scale(1.1);
+                    }
+                  `}`}
                   />
                 </WhatsappShareButton>
               </Tooltip>

@@ -64,6 +64,23 @@ export function usePeopleB2Service(take: number = 10) {
 
         setURI(`${process.env.NEXT_PUBLIC_API_HOST}/b2p${query}`);
       },
+      refreshPage: async () => {
+        const updateData = await fetcherAxiosGet(uri, setIsLoading);
+
+        if (!updateData.success) {
+          Alerting.create('error', updateData.message);
+          console.error(updateData);
+
+          return false;
+        } else {
+          mutate({
+            success: true,
+            data: updateData.data
+          });
+        }
+
+        return true;
+      },
       update: async (id: string, newData: DataPersonB2): Promise<boolean> => {
         const uri = `${process.env.NEXT_PUBLIC_API_HOST}/b2/people/${id}`;
 

@@ -64,6 +64,23 @@ export function useNeighborhoodsService(take: number = 10) {
 
         setURI(`${process.env.NEXT_PUBLIC_API_HOST}/neighborhoods${query}`);
       },
+      refreshPage: async () => {
+        const updateData = await fetcherAxiosGet(uri, setIsLoading);
+
+        if (!updateData.success) {
+          Alerting.create('error', updateData.message);
+          console.error(updateData);
+
+          return false;
+        } else {
+          mutate({
+            success: true,
+            data: updateData.data
+          });
+        }
+
+        return true;
+      },
       update: async (id: string, newData: DataNeighborhood): Promise<boolean> => {
         const uri = `${process.env.NEXT_PUBLIC_API_HOST}/neighborhood/${id}`;
 
@@ -79,7 +96,7 @@ export function useNeighborhoodsService(take: number = 10) {
             success: true,
             data: data.data.map(neighborhood => {
               if (neighborhood.id === id) {
-                neighborhood = {...neighborhood,...updateData.data};
+                neighborhood = { ...neighborhood, ...updateData.data };
               }
 
               return neighborhood;

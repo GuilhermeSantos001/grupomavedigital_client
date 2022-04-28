@@ -64,6 +64,23 @@ export function usePeopleCoveringService(take: number = 10) {
 
         setURI(`${process.env.NEXT_PUBLIC_API_HOST}/people_covering${query}`);
       },
+      refreshPage: async () => {
+        const updateData = await fetcherAxiosGet(uri, setIsLoading);
+
+        if (!updateData.success) {
+          Alerting.create('error', updateData.message);
+          console.error(updateData);
+
+          return false;
+        } else {
+          mutate({
+            success: true,
+            data: updateData.data
+          });
+        }
+
+        return true;
+      },
       update: async (id: string, newData: DataPersonCovering): Promise<boolean> => {
         const uri = `${process.env.NEXT_PUBLIC_API_HOST}/person_covering/${id}`;
 
@@ -79,7 +96,7 @@ export function usePeopleCoveringService(take: number = 10) {
             success: true,
             data: data.data.map(personCovering => {
               if (personCovering.id === id) {
-                personCovering = {...personCovering, ...updateData.data};
+                personCovering = { ...personCovering, ...updateData.data };
               }
 
               return personCovering;

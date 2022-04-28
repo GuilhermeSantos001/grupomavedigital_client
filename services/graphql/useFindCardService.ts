@@ -1,20 +1,20 @@
-import { GetCardsDocument, GetCardsQuery, GetCardsQueryVariables, CardInfo } from '@/src/generated/graphql'
+import { FindCardDocument, FindCardQuery, FindCardQueryVariables, CardInfo } from '@/src/generated/graphql'
 import { request, RequestDocument } from 'graphql-request'
 import { SWRConfig } from '@/services/config/SWRConfig';
 import useSWR from 'swr'
 
 import { GraphqlHeaders } from '@/types/GraphqlHeaders';
 
-declare type GetCards = Pick<GetCardsQuery, 'getCards'>;
+declare type GetCards = Pick<FindCardQuery, 'findCard'>;
 declare type QueryResponse = {
   success: boolean;
   isValidating: boolean
-  data: CardInfo[]
+  data?: CardInfo
   error?: unknown
 }
 
-export function useGetCardsService(variables: GetCardsQueryVariables, headers: GraphqlHeaders): QueryResponse {
-  const { data, error, isValidating } = useSWR<GetCards>(GetCardsDocument, (query: RequestDocument) => request<GetCards, GetCardsQueryVariables>(
+export function useFindCardService(variables: FindCardQueryVariables, headers: GraphqlHeaders): QueryResponse {
+  const { data, error, isValidating } = useSWR<GetCards>(FindCardDocument, (query: RequestDocument) => request<GetCards, FindCardQueryVariables>(
     process.env.NEXT_PUBLIC_GRAPHQL_HOST!,
     query,
     variables,
@@ -25,20 +25,18 @@ export function useGetCardsService(variables: GetCardsQueryVariables, headers: G
     return {
       success: false,
       error: error,
-      data: [],
       isValidating,
     }
 
-  if (data && data.getCards)
+  if (data && data.findCard)
     return {
       success: true,
       isValidating,
-      data: data.getCards,
+      data: data.findCard,
     }
 
   return {
     success: false,
-    data: [],
     isValidating
   }
 }

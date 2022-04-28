@@ -19,7 +19,7 @@ export function GetMenuMain(firstId?: MenuOptions): MenuResponse {
     "mn-payback-cashier": false,
     "mn-payback-cards": false,
     "mn-payback-postings": false,
-    "mn-helpdesk": true,
+    "mn-helpdesk": false,
     "mn-helpdesk-separator": false,
     "mn-docs": false,
     "mn-security": false
@@ -189,7 +189,7 @@ export function GetMenuMain(firstId?: MenuOptions): MenuResponse {
               name: 'headset',
             },
             name: 'HelpDesk',
-            link: '/help/helpdesk',
+            link: '/support',
             disabled: disable['mn-helpdesk'] ? true : false,
           },
           {

@@ -74,12 +74,22 @@ export type MenuOptions =
 export type Menu = MenuItem | MenuItemDropdown | MenuItemSeparator
 export type Content = Omit<MenuItem, 'active'> | MenuItemDropdown | MenuItemSeparator
 
+export type CustomHead = {
+  url: string
+  og_image: string
+  icon: string
+  apple_touch_icon: string
+  apple_touch_startup_image: string
+}
+
 export interface PageProps {
   title: string
   description: string
   themeColor: string
   menu: MenuResponse
   fullwidth?: boolean
+  cleanLayout?: boolean
+  customHead?: CustomHead
   socketIO?: {
     room: string[]
   }
@@ -119,6 +129,8 @@ const MyApp = (props: any) => {
     themeColor = pageProps.themeColor ?? '#004a6e',
     menu = pageProps.menu ?? GetMenuHome('mn-home'),
     fullwidth = pageProps.fullwidth,
+    cleanLayout = pageProps.cleanLayout,
+    customHead = pageProps.customHead,
     persistor = persistStore(store);
 
   const reduxLoading = (
@@ -156,17 +168,25 @@ const MyApp = (props: any) => {
         />
         <meta
           property="og:url"
-          content="https://grupomavedigital.com.br"
+          content={!customHead ?
+            "https://grupomavedigital.com.br"
+            :
+            customHead.url
+          }
           key="siteUrl"
         />
         <meta
           property="og:description"
-          content="Olá, venha conhecer o ambiente digital interativo do Grupo Mave. Tenha todas as informações a um clique. Acesse o link e saiba mais!"
+          content={description}
           key="siteDescription"
         />
         <meta
           property="og:image"
-          content="https://i.imgur.com/CK5gmRJ.png"
+          content={!customHead ?
+            "https://i.imgur.com/CK5gmRJ.png"
+            :
+            customHead.og_image
+          }
           key="siteLogo"
         />
         <meta property="og:type" content="website" key="siteType" />
@@ -196,10 +216,22 @@ const MyApp = (props: any) => {
         <link
           rel="icon"
           sizes="192x192"
-          href="/favicon/favicon256.png"
+          href={!customHead ?
+            "/favicon/favicon256.png"
+            :
+            customHead.icon
+          }
           key="icon192"
         />
-        <link rel="icon" href="/favicon/favicon256.png" key="icon256" />
+        <link
+          rel="icon"
+          href={!customHead ?
+            "/favicon/favicon256.png"
+            :
+            customHead.icon
+          }
+          key="icon256"
+        />
         <link
           rel="shortcut icon"
           href="/assets/favicon64x64.ico"
@@ -210,18 +242,30 @@ const MyApp = (props: any) => {
           rel="icon"
           type="image/png"
           sizes="32x30"
-          href="/favicon/favicon256.png"
+          href={!customHead ?
+            "/favicon/favicon256.png"
+            :
+            customHead.icon
+          }
           key="icon32"
         />
         <link
           rel="apple-touch-icon"
           sizes="128x128"
-          href="/favicon/favicon256.png"
+          href={!customHead ?
+            "/favicon/favicon256.png"
+            :
+            customHead.apple_touch_icon
+          }
           key="appleIcon128"
         />
         <link
           rel="apple-touch-startup-image"
-          href="/favicon/favicon256.png"
+          href={!customHead ?
+            "/favicon/favicon256.png"
+            :
+            customHead.apple_touch_startup_image
+          }
           key="appleIcon256"
         />
       </Head>
@@ -244,7 +288,12 @@ const MyApp = (props: any) => {
       <SSRProvider>
         <Provider store={store}>
           <PersistGate loading={reduxLoading} persistor={persistor}>
-            <Layout fullwidth={fullwidth !== undefined ? fullwidth : false} menu={menu} emotionCache={emotionCache}>
+            <Layout
+              fullwidth={fullwidth !== undefined ? fullwidth : false}
+              cleanLayout={cleanLayout !== undefined ? cleanLayout : false}
+              menu={menu}
+              emotionCache={emotionCache}
+            >
               <Component {...pageProps} />
             </Layout>
           </PersistGate>

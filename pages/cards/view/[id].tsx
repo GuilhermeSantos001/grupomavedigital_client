@@ -1,41 +1,65 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 
 import { GetServerSidePropsContext } from 'next/types'
-
-import { useRouter } from 'next/router'
 
 import SkeletonLoader from 'tiny-skeleton-loader-react'
 
 import { BoxError } from '@/components/utils/BoxError'
 
-import Fetch from '@/src/utils/fetch'
-
 import { PageProps } from '@/pages/_app'
 import { GetMenuHome } from '@/bin/GetMenuHome'
 
-import { uploadRaw } from '@/src/functions/getUploads'
+import { uploadStaticRaw } from '@/src/functions/getUploads'
 
 import { DigitalCardPage, LayoutVersions } from '@/components/cards/DigitalCardPage';
 
 import { CardInfo } from '@/src/generated/graphql'
 
-import { useGetCardsService } from '@/services/graphql/useGetCardsService'
-
+import { findCard } from '@/src/functions/graphql/findCard'
 
 const serverSideProps: PageProps = {
   title: 'Cartão Digital do Grupo Mave',
   description: 'Olá, este é o cartão de visita digital interativo do Grupo Mave. Tenha todas as informações a um clique. Acesse o link e saiba mais!',
   themeColor: '#004a6e',
   fullwidth: true,
+  cleanLayout: true,
   menu: GetMenuHome('mn-home'),
 }
 
 export const getServerSideProps = async ({ req, query }: GetServerSidePropsContext) => {
+  const { data: card } = await findCard({ cid: query.id as string }, {
+    authorization: process.env.GRAPHQL_AUTHORIZATION_FINDCARD!,
+    encodeuri: 'false'
+  });
+
+  let
+    photoRaw = '',
+    attachmentBusinessRaw = '';
+
+  if (card) {
+    if (await uploadStaticRaw(card.photo.name, card.photo.type, card.photo.id)) {
+      photoRaw = `${process.env.NEXT_PUBLIC_EXPRESS_HOST!}/temp/${card.photo.name}${card.photo.type}`;
+    }
+
+    if (await uploadStaticRaw(card.footer.attachment.name, card.footer.attachment.type, card.footer.attachment.id)) {
+      attachmentBusinessRaw = `${process.env.NEXT_PUBLIC_EXPRESS_HOST!}/temp/${card.footer.attachment.name}${card.footer.attachment.type}`;
+    }
+  }
+
   return {
     props: {
       ...serverSideProps,
-      card_id: query.id,
-      getCardsAuthorization: process.env.GRAPHQL_AUTHORIZATION_GETCARDS!,
+      customHead: {
+        url: `${process.env.NEXT_PUBLIC_HOST}/cards/view/${query.id}`,
+        og_image: photoRaw,
+        icon: photoRaw,
+        apple_touch_icon: photoRaw,
+        apple_touch_startup_image: photoRaw,
+        apple_mobile_web_app_title: `Cartão Digital do Grupo Mave - ${card && card.name || '???'}`
+      },
+      card,
+      photoRaw,
+      attachmentBusinessRaw
     },
   }
 }
@@ -175,7 +199,6 @@ function compose_load() {
 }
 
 function compose_ready(
-  _fetch: Fetch,
   card: CardInfo,
   photoRaw: string,
   attachmentBusinessRaw: string,
@@ -196,6 +219,9 @@ function compose_ready(
           raw: attachmentBusinessRaw,
         } : ''
       }
+      attachmentVCard={{
+        ...card.vcard.metadata.file
+      }}
       workPhone={card.phones[0]}
       cellPhone={card.phones[1]}
       whatsapp={{
@@ -206,81 +232,43 @@ function compose_ready(
       mail={card.footer.email}
       website={card.footer.website}
       googleMapsLink={card.footer.location}
+      socialmedia={{
+        facebook: card.footer.socialmedia.find(social => social.name === 'facebook')?.value,
+        youtube: card.footer.socialmedia.find(social => social.name === 'youtube')?.value,
+        linkedin: card.footer.socialmedia.find(social => social.name === 'linkedin')?.value,
+        instagram: card.footer.socialmedia.find(social => social.name === 'instagram')?.value,
+        twitter: card.footer.socialmedia.find(social => social.name === 'twitter')?.value,
+        tiktok: card.footer.socialmedia.find(social => social.name === 'tiktok')?.value,
+        flickr: card.footer.socialmedia.find(social => social.name === 'flickr')?.value,
+      }}
     />
   )
 }
 
-export default function Cards(
+export default function ViewCard(
   {
-    card_id,
-    getCardsAuthorization,
+    card,
+    photoRaw,
+    attachmentBusinessRaw,
   }: {
-    card_id: string,
-    getCardsAuthorization: string,
+    card: CardInfo,
+    photoRaw: string,
+    attachmentBusinessRaw: string
   }
 ) {
   const [syncData, setSyncData] = useState<boolean>(false)
 
-  const [loading, setLoading] = useState<boolean>(true)
-
-  const [photoRaw, setPhotoRaw] = useState<string>('');
-  const [attachmentBusinessRaw, setAttachmentBusinessRaw] = useState<string>('');
-
-  const router = useRouter()
-  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST!)
-
-  const
-    { data: cards, isValidating: isLoadingCards, success: successFetchCards, error: errorFetchCards } = useGetCardsService({
-      lastIndex: "",
-      limit: 100,
-    }, {
-      authorization: getCardsAuthorization,
-      encodeuri: 'false'
-    });
-
-  useEffect(() => {
-    const timer = setTimeout(async () => {
-      const
-        raw1 = await uploadRaw(card.photo.name, card.photo.type, card.photo.id),
-        raw2 = await uploadRaw(card.footer.attachment.name, card.footer.attachment.type, card.footer.attachment.id);
-
-      setPhotoRaw(raw1);
-      setAttachmentBusinessRaw(raw2);
-    });
-
-    return () => clearTimeout(timer);
-  })
-
-
   if (
-    isLoadingCards && !syncData
-  )
-    return compose_load();
-
-  if (
-    !syncData
-    && cards
-    && successFetchCards
-
+    !syncData && card
   ) {
     setSyncData(true);
-    setLoading(false);
   } else if (
-    !syncData && !cards
-    || !syncData && !errorFetchCards
+    !syncData && !card
   ) {
     return <BoxError />
   }
 
-  if (loading) return compose_load()
-
-  const card = cards.find(card => card.cid === card_id);
-
-  if (!card)
-    return <BoxError />
-
   return compose_ready(
-    _fetch,
     card,
     photoRaw,
     attachmentBusinessRaw

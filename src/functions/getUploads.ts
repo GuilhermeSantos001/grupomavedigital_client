@@ -56,7 +56,7 @@ export async function uploadTempDownload(filePath: string, filename: string, fil
       responseType: 'blob', // ! Important
     })
 
-  const { data, status,headers } = uploadResponse;
+  const { data, status, headers } = uploadResponse;
 
   if (status === 200) {
     let url = '';
@@ -107,6 +107,20 @@ export async function uploadRaw(filename: string, filetype: string, fileId: stri
     }
 
     return url;
+  } else {
+    throw new Error(`Não foi possível recuperar o arquivo. Tente novamente, mais tarde!`);
+  }
+}
+
+export async function uploadStaticRaw(filename: string, filetype: string, fileId: string): Promise<boolean> {
+  const
+    uri = process.env.NEXT_PUBLIC_EXPRESS_HOST!,
+    uploadResponse = await axios.get(`${uri}/files/uploads/static/raw/${filename}${filetype}?fileId=${fileId}`);
+
+  const { status } = uploadResponse;
+
+  if (status === 200) {
+    return true;
   } else {
     throw new Error(`Não foi possível recuperar o arquivo. Tente novamente, mais tarde!`);
   }

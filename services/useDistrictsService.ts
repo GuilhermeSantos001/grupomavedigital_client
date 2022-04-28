@@ -64,6 +64,23 @@ export function useDistrictsService(take: number = 10) {
 
         setURI(`${process.env.NEXT_PUBLIC_API_HOST}/districts${query}`);
       },
+      refreshPage: async () => {
+        const updateData = await fetcherAxiosGet(uri, setIsLoading);
+
+        if (!updateData.success) {
+          Alerting.create('error', updateData.message);
+          console.error(updateData);
+
+          return false;
+        } else {
+          mutate({
+            success: true,
+            data: updateData.data
+          });
+        }
+
+        return true;
+      },
       update: async (id: string, newData: DataDistrict): Promise<boolean> => {
         const uri = `${process.env.NEXT_PUBLIC_API_HOST}/district/${id}`;
 
@@ -79,7 +96,7 @@ export function useDistrictsService(take: number = 10) {
             success: true,
             data: data.data.map(district => {
               if (district.id === id) {
-                district = {...district, ...updateData.data};
+                district = { ...district, ...updateData.data };
               }
 
               return district;

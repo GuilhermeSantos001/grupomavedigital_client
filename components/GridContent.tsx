@@ -26,6 +26,8 @@ type MyProps = {
   emotionCache: EmotionCache
   menuShow: boolean
   fullwidth: boolean
+  cleanLayout: boolean
+  children: React.ReactNode
 }
 
 type MyState = Record<string, never>
@@ -204,41 +206,44 @@ export default class GridContent extends React.Component<MyProps, MyState> {
       menu = this.composeItemsMenu(this.props.menu.options);
 
     return (
-      <div className='p-2'>
-        <motion.div
-          layout
-          id="sidebar"
-          className={`d-flex flex-column py-2 my-2 overflow-auto ${this.props.fullwidth ? 'fullwidth' : ''
-            } ${this.props.menuShow ? 'fullwidth' : ''}`}
-          style={{ height: '80vh' }}
-          transition={{ duration: 0.2 }}
-          children={(
-            <ul className={`list-style-none px-2`}>
-              {menu}
-              <div
-                key='build-jully'
-                title={'Acesse a documentação da build atual'}
-                className={`d-flex flex-row p-2 mb-2 bg-primary border-bottom rounded`}
-              >
-                <a
-                  className={`menuItem w-100 text-truncate animation-delay hover-color`}
-                  href={'https://grupomavedigital-docs.vercel.app/docs/api/system/jully'}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {'Versão - Jully'}
-                </a>
-                <FontAwesomeIcon
-                  icon={Icon.render('fas', 'code-branch')}
-                  className="ms-2 flex-shrink-1 text-secondary my-auto"
-                />
-              </div>
-            </ul>
-          )}
-        />
+      <div className={`${!this.props.cleanLayout ? 'p-2' : ''}`}>
+        {
+          !this.props.cleanLayout ?
+            <motion.div
+              layout
+              id="sidebar"
+              className={`d-flex flex-column py-2 my-2 overflow-auto ${this.props.fullwidth ? 'fullwidth' : ''
+                } ${this.props.menuShow ? 'fullwidth' : ''}`}
+              style={{ height: '80vh' }}
+              transition={{ duration: 0.2 }}
+              children={(
+                <ul className={`list-style-none px-2`}>
+                  {menu}
+                  <div
+                    key='build-jully'
+                    title={'Acesse a documentação da build atual'}
+                    className={`d-flex flex-row p-2 mb-2 bg-primary border-bottom rounded`}
+                  >
+                    <a
+                      className={`menuItem w-100 text-truncate animation-delay hover-color`}
+                      href={'https://grupomavedigital-docs.vercel.app/docs/api/system/jully'}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {'Versão - Jully'}
+                    </a>
+                    <FontAwesomeIcon
+                      icon={Icon.render('fas', 'code-branch')}
+                      className="ms-2 flex-shrink-1 text-secondary my-auto"
+                    />
+                  </div>
+                </ul>
+              )}
+            /> : <></>
+        }
         <div
           id="content"
-          className={`fade-effect active p-2 mb-5 border-start animation-delay ${this.props.fullwidth ? 'fullwidth' : ''
+          className={`fade-effect active ${!this.props.cleanLayout ? 'p-2 mb-5' : ''} border-start animation-delay ${this.props.fullwidth ? 'fullwidth' : ''
             }${this.props.menuShow ? 'fullwidth' : ''}`}
         >
           <CacheProvider value={this.props.emotionCache}>
@@ -250,13 +255,16 @@ export default class GridContent extends React.Component<MyProps, MyState> {
             </ThemeProvider>
           </CacheProvider>
         </div>
-        <div
-          className='fixed-bottom d-flex flex-row justify-content-center align-items-center bg-light-gray border-top p-2 shadow'
-        >
-          <p className='text-muted my-auto'>
-            Grupo Mave 2020-2022 © Todos direitos reservados.
-          </p>
-        </div>
+        {
+          this.props.cleanLayout ??
+          <div
+            className='fixed-bottom d-flex flex-row justify-content-center align-items-center bg-light-gray border-top p-2 shadow'
+          >
+            <p className='text-muted my-auto'>
+              Grupo Mave 2020-2022 © Todos direitos reservados.
+            </p>
+          </div>
+        }
       </div>
     )
   }

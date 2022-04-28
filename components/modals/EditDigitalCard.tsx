@@ -1,10 +1,5 @@
 import * as React from 'react';
 import Image from 'next/image'
-import Radio from '@mui/material/Radio';
-import RadioGroup from '@mui/material/RadioGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import FormControl from '@mui/material/FormControl';
-import FormLabel from '@mui/material/FormLabel';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import List from '@mui/material/List';
@@ -49,7 +44,8 @@ import {
 } from '@/constants/SocketFileType'
 
 import type {
-  Input_Vcard
+  Input_Vcard,
+  Input_Vcardmetadata
 } from '@/src/generated/graphql'
 
 import type {
@@ -97,12 +93,16 @@ import type {
 } from '@/types/DistrictServiceType'
 
 import {
-  FunctionCreateCardTypeof,
-} from '@/services/graphql/useCreateCardsService'
+  FunctionUpdateCardTypeof,
+} from '@/services/graphql/useUpdateCardsService'
 
 import {
   FunctionCreateVCardTypeof,
 } from '@/services/graphql/useCreateVCardsService'
+
+import {
+  FunctionRemoveVCardTypeof
+} from '@/services/graphql/useRemoveVCardsService'
 
 import DropZone from '@/components/dropZone'
 
@@ -121,6 +121,8 @@ import StringEx from '@/src/utils/stringEx'
 import Alerting from '@/src/utils/alerting'
 import DateEx from '@/src/utils/dateEx'
 
+import { ISocialMedia, IVCardMetadata, SelectionLayout } from '@/components/modals/RegisterDigitalCard';
+
 const Transition = React.forwardRef(function Transition(
   props: TransitionProps & {
     children: React.ReactElement;
@@ -130,27 +132,50 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export interface ISocialMedia {
-  facebook: string
-  youtube: string
-  linkedin: string
-  instagram: string
-  twitter: string
-  tiktok: string
-  flickr: string
-}
-
-export type IVCardMetadata = string | { path: string, name: string, type: string }
-
-
 export type Props = {
   open: boolean
   fetch: Fetch
-  createCardsAuthorization: string
+  data: {
+    cid: string
+    version: LayoutVersions
+    username: string
+    jobtitle: string
+    whatsappPhone: string
+    whatsappText: string
+    whatsappMessage: string
+    workPhone: string
+    cellPhone: string
+    mail: string
+    googleMapsLink: string
+    website: string
+    firstName: string
+    lastName: string
+    organization: string
+    birthDay: Date
+    street: string
+    city: string
+    stateProvince: string
+    postalCode: string
+    socialUrls: ISocialMedia
+    userPhotoProfileMirrorFileId: string
+    userPhotoProfileMirrorId: string
+    userPhotoProfileMirrorFileRaw: string
+    userLogotipoMirrorFileId: string
+    userLogotipoMirrorId: string
+    userLogotipoMirrorFileRaw: string
+    attachmentBusinessMirrorFileId: string
+    attachmentBusinessMirrorId: string
+    attachmentBusinessMirrorFileRaw: string
+    attachmentVCardMetadata: IVCardMetadata
+    vcardMetadata: Input_Vcardmetadata
+  }
+  updateCardsAuthorization: string
   createVCardsAuthorization: string
+  removeVCardsAuthorization: string
   makePermanentUploadAuthorization: string
-  createCard: FunctionCreateCardTypeof
+  updateCard: FunctionUpdateCardTypeof
   createVCard: FunctionCreateVCardTypeof
+  removeVCard: FunctionRemoveVCardTypeof
   createUpload: FunctionCreateUploadTypeof
   uploads: UploadType[]
   isLoadingUploads: boolean
@@ -172,51 +197,38 @@ export type Props = {
   updateDistricts: FunctionUpdateDistrictsTypeof
   deleteDistricts: FunctionDeleteDistrictsTypeof
   auth: string
-  photoProfile: string
-  username: string
-  name: string
-  surname: string
-  jobtitle: string
   handleClose: () => void
 }
 
-export function RegisterDigitalCard(props: Props) {
+export function EditDigitalCard(props: Props) {
   const [syncData, setSyncData] = React.useState<boolean>(false)
-  const [isLoadingCreateCard, setIsLoadingCreateCard] = React.useState<boolean>(false);
+  const [isLoadingUpdateCard, setIsLoadingUpdateCard] = React.useState<boolean>(false);
 
-  const [cid, setCid] = React.useState<string>('');
-  const [version, setVersion] = React.useState<LayoutVersions>('1.0');
-  const [username, setUsername] = React.useState<string>(props.username);
-  const [jobtitle, setJobtitle] = React.useState<string>(props.jobtitle);
-  const [whatsappPhone, setWhatsappPhone] = React.useState<string>('11947841110');
-  const [whatsappText, setWhatsappText] = React.useState<string>('Olá tudo bem? como representante comercial do Grupo Mave, estou aqui para ajudar no que for possível. Qual sua dúvida?');
-  const [whatsappMessage, setWhatsappMessage] = React.useState<string>('Olá, este é o cartão de visita digital interativo do Grupo Mave. Tenha todas as informações a um clique. Acesse o link e saiba mais!');
-  const [workPhone, setWorkPhone] = React.useState<string>('1136833408');
-  const [cellPhone, setCellPhone] = React.useState<string>('11947841110');
-  const [mail, setMail] = React.useState<string>('suporte@grupomave.com.br');
-  const [googleMapsLink, setGoogleMapsLink] = React.useState<string>('https://goo.gl/maps/VqZi3rvmcbTtfqac7');
-  const [website, setWebsite] = React.useState<string>('www.grupomave.com.br');
+  const [cid, setCid] = React.useState<string>(props.data.cid);
+  const [version, setVersion] = React.useState<LayoutVersions>(props.data.version);
+  const [username, setUsername] = React.useState<string>(props.data.username);
+  const [jobtitle, setJobtitle] = React.useState<string>(props.data.jobtitle);
+  const [whatsappPhone, setWhatsappPhone] = React.useState<string>(props.data.whatsappPhone);
+  const [whatsappText, setWhatsappText] = React.useState<string>(props.data.whatsappText);
+  const [whatsappMessage, setWhatsappMessage] = React.useState<string>(props.data.whatsappMessage);
+  const [workPhone, setWorkPhone] = React.useState<string>(props.data.workPhone);
+  const [cellPhone, setCellPhone] = React.useState<string>(props.data.cellPhone);
+  const [mail, setMail] = React.useState<string>(props.data.mail);
+  const [googleMapsLink, setGoogleMapsLink] = React.useState<string>(props.data.googleMapsLink);
+  const [website, setWebsite] = React.useState<string>(props.data.website);
 
   const countryRegion = 'Brazil';
   const label = 'Work Address';
 
-  const [firstName, setFirstName] = React.useState<string>(props.name);
-  const [lastName, setLastName] = React.useState<string>(props.surname);
-  const [organization, setOrganization] = React.useState<string>('Grupo Mave');
-  const [birthDay, setBirthDay] = React.useState<Date>(DateEx.subYears(new Date(), 50));
-  const [street, setStreet] = React.useState<string>('');
-  const [city, setCity] = React.useState<string>('');
-  const [stateProvince, setStateProvince] = React.useState<string>('');
-  const [postalCode, setPostalCode] = React.useState<string>('');
-  const [socialUrls, setSocialUrls] = React.useState<ISocialMedia>({
-    facebook: 'https://www.facebook.com/grupomaveoficial/',
-    youtube: 'https://www.youtube.com/channel/UC5y4IOAlxQ4eictbudG785g',
-    linkedin: 'https://www.linkedin.com/company/grupo-mave/?originalSubdomain=pt',
-    instagram: 'https://www.instagram.com/grupo.mave/',
-    twitter: '',
-    tiktok: 'https://www.tiktok.com/@grupo.mave',
-    flickr: '',
-  });
+  const [firstName, setFirstName] = React.useState<string>(props.data.firstName);
+  const [lastName, setLastName] = React.useState<string>(props.data.lastName);
+  const [organization, setOrganization] = React.useState<string>(props.data.organization);
+  const [birthDay, setBirthDay] = React.useState<Date>(props.data.birthDay);
+  const [street, setStreet] = React.useState<string>(props.data.street);
+  const [city, setCity] = React.useState<string>(props.data.city);
+  const [stateProvince, setStateProvince] = React.useState<string>(props.data.stateProvince);
+  const [postalCode, setPostalCode] = React.useState<string>(props.data.postalCode);
+  const [socialUrls, setSocialUrls] = React.useState<ISocialMedia>(props.data.socialUrls);
 
   const [userPhotoProfileMirrorId, setUserPhotoProfileMirrorId] = React.useState<string>('');
   const [userPhotoProfileMirrorFileId, setUserPhotoProfileMirrorFileId] = React.useState<string>('');
@@ -236,7 +248,7 @@ export function RegisterDigitalCard(props: Props) {
   const [attachmentBusinessMirrorFileType, setAttachmentBusinessMirrorFileType] = React.useState<string>('');
   const [attachmentBusinessMirrorFileRaw, setAttachmentBusinessMirrorFileRaw] = React.useState<string>('');
 
-  const [attachmentVCardMetadata, setAttachmentVCardMetadata] = React.useState<IVCardMetadata>('');
+  const [attachmentVCardMetadata, setAttachmentVCardMetadata] = React.useState<IVCardMetadata>(props.data.attachmentVCardMetadata);
 
   const [currentTab, setCurrentTab] = React.useState<string>('1');
 
@@ -270,7 +282,7 @@ export function RegisterDigitalCard(props: Props) {
     || isLoadingDistricts && !syncData
   )
     return <ModalLoading
-      header='Criar Cartão Digital'
+      header='Atualizar Cartão Digital'
       message='Carregando...'
       show={props.open}
       handleClose={props.handleClose}
@@ -295,7 +307,7 @@ export function RegisterDigitalCard(props: Props) {
     || !syncData && !deleteDistricts
   ) {
     return <ModalError
-      header='Criar Cartão Digital'
+      header='Atualizar Cartão Digital'
       show={props.open}
       handleClose={props.handleClose}
     />
@@ -334,25 +346,32 @@ export function RegisterDigitalCard(props: Props) {
     handleAppendUploads = async (data: DataUpload, type: 'photoProfile' | 'logotipo' | 'attachmentBusiness') => {
       try {
         if (
-          type === 'photoProfile' &&
-          userPhotoProfileMirrorFileId.length > 0 &&
-          userPhotoProfileMirrorId.length > 0
+          type === 'photoProfile'
         ) {
-          handleRemoveUploadedFile([userPhotoProfileMirrorFileId], [userPhotoProfileMirrorId]);
+          if (
+            userPhotoProfileMirrorFileId.length > 0 &&
+            userPhotoProfileMirrorId.length > 0
+          )
+            handleRemoveUploadedFile([userPhotoProfileMirrorFileId], [userPhotoProfileMirrorId]);
         }
         else if (
-          type === 'logotipo' &&
-          userLogotipoMirrorFileId.length > 0 &&
-          userLogotipoMirrorId.length > 0
+          type === 'logotipo'
         ) {
-          handleRemoveUploadedFile([userLogotipoMirrorFileId], [userLogotipoMirrorId]);
+          if (
+            userLogotipoMirrorFileId.length > 0 &&
+            userLogotipoMirrorId.length > 0
+          )
+            handleRemoveUploadedFile([userLogotipoMirrorFileId], [userLogotipoMirrorId]);
         }
         else if (
-          type === 'attachmentBusiness' &&
-          attachmentBusinessMirrorFileId.length > 0 &&
-          attachmentBusinessMirrorId.length > 0
-        )
-          handleRemoveUploadedFile([attachmentBusinessMirrorFileId], [attachmentBusinessMirrorId]);
+          type === 'attachmentBusiness'
+        ) {
+          if (
+            attachmentBusinessMirrorFileId.length > 0 &&
+            attachmentBusinessMirrorId.length > 0
+          )
+            handleRemoveUploadedFile([attachmentBusinessMirrorFileId], [attachmentBusinessMirrorId]);
+        }
 
         const upload = await createUpload(data);
 
@@ -452,7 +471,7 @@ export function RegisterDigitalCard(props: Props) {
             <CloseIcon />
           </IconButton>
           <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
-            Novo Cartão Digital
+            Atualizar Cartão Digital
           </Typography>
           <Button autoFocus color="inherit" onClick={props.handleClose}>
             Sair
@@ -536,7 +555,7 @@ export function RegisterDigitalCard(props: Props) {
 
                         const
                           { authorId, name, size, compressedSize, fileId, version } = files as IUploadFile,
-                          description = `Arquivo enviado na "Criação do Cartão Digital". Foto de Perfil.`;
+                          description = `Arquivo enviado na "Atualização do Cartão Digital". Foto de Perfil.`;
 
                         emitCreateFile(authorId, name, description, size, compressedSize, fileId, version);
                       }}
@@ -592,7 +611,7 @@ export function RegisterDigitalCard(props: Props) {
 
                         const
                           { authorId, name, size, compressedSize, fileId, version } = files as IUploadFile,
-                          description = `Arquivo enviado na "Criação do Cartão Digital". Apresentação Comercial.`;
+                          description = `Arquivo enviado na "Atualização do Cartão Digital". Apresentação Comercial.`;
 
                         emitCreateFile(authorId, name, description, size, compressedSize, fileId, version);
                       }}
@@ -725,8 +744,8 @@ export function RegisterDigitalCard(props: Props) {
                   </div>
                   <div className="d-flex flex-column flex-md-row align-self-center justify-content-center rounded py-3">
                     <Image
-                      src={userLogotipoMirrorFileRaw.length > 0 ? userLogotipoMirrorFileRaw : `/favicon/favicon512.png`}
-                      alt={props.username}
+                      src={userLogotipoMirrorFileRaw.length > 0 || props.data.userLogotipoMirrorFileRaw.length > 0 ? userLogotipoMirrorFileRaw || props.data.userLogotipoMirrorFileRaw : `/favicon/favicon512.png`}
+                      alt={props.data.username}
                       className="rounded-circle"
                       width={150}
                       height={150}
@@ -765,7 +784,7 @@ export function RegisterDigitalCard(props: Props) {
 
                         const
                           { authorId, name, size, compressedSize, fileId, version } = files as IUploadFile,
-                          description = `Arquivo enviado na "Criação do Cartão Digital". Logotipo.`;
+                          description = `Arquivo enviado na "Atualização do Cartão Digital". Logotipo.`;
 
                         emitCreateFile(authorId, name, description, size, compressedSize, fileId, version);
                       }}
@@ -953,14 +972,35 @@ export function RegisterDigitalCard(props: Props) {
                 <Button
                   className="col-12"
                   variant="contained"
-                  disabled={canHandleConfirm() || isLoadingCreateCard}
-                  startIcon={isLoadingCreateCard ?
+                  disabled={canHandleConfirm() || isLoadingUpdateCard}
+                  startIcon={isLoadingUpdateCard ?
                     <CircularProgress size={24} /> :
                     <SaveAltRoundedIcon />
                   }
                   onClick={async () => {
                     try {
-                      setIsLoadingCreateCard(true);
+                      setIsLoadingUpdateCard(true);
+
+                      // * Deleta o upload da foto de perfil antiga
+                      if (
+                        props.data.userPhotoProfileMirrorFileId.length > 0 &&
+                        props.data.userPhotoProfileMirrorId.length > 0
+                      )
+                        handleRemoveUploadedFile([props.data.userPhotoProfileMirrorFileId], [props.data.userPhotoProfileMirrorId]);
+
+                      // * Deleta o upload do logotipo antigo
+                      if (
+                        props.data.userLogotipoMirrorFileId.length > 0 &&
+                        props.data.userLogotipoMirrorId.length > 0
+                      )
+                        handleRemoveUploadedFile([props.data.userLogotipoMirrorFileId], [props.data.userLogotipoMirrorId]);
+
+                      // * Deleta o upload da apresentação comercial antiga
+                      if (
+                        props.data.attachmentBusinessMirrorFileId.length > 0 &&
+                        props.data.attachmentBusinessMirrorId.length > 0
+                      )
+                        handleRemoveUploadedFile([props.data.attachmentBusinessMirrorFileId], [props.data.attachmentBusinessMirrorId]);
 
                       const vcard: Input_Vcard = {
                         firstname: firstName,
@@ -1007,6 +1047,16 @@ export function RegisterDigitalCard(props: Props) {
                           })
                       }
 
+                      // * Remove o arquivo antigo do Cartão de Contato (VCARD)
+                      await props.removeVCard({
+                        metadata: {
+                          ...props.data.vcardMetadata
+                        }
+                      }, {
+                        authorization: props.removeVCardsAuthorization,
+                        encodeuri: "false"
+                      })
+
                       // * Cria o arquivo do Cartão de Contato (VCARD)
                       const metadata = await props.createVCard({
                         data: vcard
@@ -1015,7 +1065,8 @@ export function RegisterDigitalCard(props: Props) {
                         encodeuri: "false"
                       });
 
-                      const cardId = await props.createCard({
+                      const cardId = await props.updateCard({
+                        id: props.data.cid,
                         data: {
                           name: username,
                           jobtitle,
@@ -1062,7 +1113,7 @@ export function RegisterDigitalCard(props: Props) {
                           }
                         }
                       }, {
-                        authorization: props.createCardsAuthorization,
+                        authorization: props.updateCardsAuthorization,
                         encodeuri: "false"
                       });
 
@@ -1104,7 +1155,7 @@ export function RegisterDigitalCard(props: Props) {
                       console.error(error);
                       Alerting.create('error', 'Não foi possível criar o seu cartão digital. Contacte o administrador.')
                     } finally {
-                      setIsLoadingCreateCard(false);
+                      setIsLoadingUpdateCard(false);
                       props.handleClose();
                     }
                   }}
@@ -1122,7 +1173,7 @@ export function RegisterDigitalCard(props: Props) {
                   username={username}
                   photoProfile={
                     userPhotoProfileMirrorFileId.length <= 0 ?
-                      props.photoProfile
+                      { id: props.data.userPhotoProfileMirrorFileId, raw: props.data.userPhotoProfileMirrorFileRaw }
                       : { id: userPhotoProfileMirrorFileId, raw: userPhotoProfileMirrorFileRaw }
                   }
                   jobtitle={jobtitle}
@@ -1137,7 +1188,10 @@ export function RegisterDigitalCard(props: Props) {
                   googleMapsLink={googleMapsLink}
                   website={website}
                   attachmentBusiness={
-                    attachmentBusinessMirrorFileId.length <= 0 ? "" : { raw: attachmentBusinessMirrorFileRaw }
+                    attachmentBusinessMirrorFileId.length <= 0 ? {
+                      raw: props.data.attachmentBusinessMirrorFileRaw
+                    } :
+                      { raw: attachmentBusinessMirrorFileRaw }
                   }
                   attachmentVCard={attachmentVCardMetadata}
                   socialmedia={{
@@ -1157,7 +1211,7 @@ export function RegisterDigitalCard(props: Props) {
                   username={username}
                   photoProfile={
                     userPhotoProfileMirrorFileId.length <= 0 ?
-                      props.photoProfile
+                      { id: props.data.userPhotoProfileMirrorFileId, raw: props.data.userPhotoProfileMirrorFileRaw }
                       : { id: userPhotoProfileMirrorFileId, raw: userPhotoProfileMirrorFileRaw }
                   }
                   jobtitle={jobtitle}
@@ -1172,7 +1226,10 @@ export function RegisterDigitalCard(props: Props) {
                   googleMapsLink={googleMapsLink}
                   website={website}
                   attachmentBusiness={
-                    attachmentBusinessMirrorFileId.length <= 0 ? "" : { raw: attachmentBusinessMirrorFileRaw }
+                    attachmentBusinessMirrorFileId.length <= 0 ? {
+                      raw: props.data.attachmentBusinessMirrorFileRaw
+                    } :
+                      { raw: attachmentBusinessMirrorFileRaw }
                   }
                   attachmentVCard={attachmentVCardMetadata}
                   socialmedia={{
@@ -1192,30 +1249,6 @@ export function RegisterDigitalCard(props: Props) {
       </List>
     </Dialog>
   );
-}
-
-export function SelectionLayout(
-  version: LayoutVersions,
-  handleVersion: (version: LayoutVersions) => void,
-) {
-  return (
-    <FormControl>
-      <FormLabel id="radio-selection-style-label">
-        Estilo
-      </FormLabel>
-      <RadioGroup
-        row
-        aria-labelledby="radio-selection-style-label"
-        name="radio-selection-style"
-        value={version}
-        onChange={(event) => handleVersion(event.target.value as LayoutVersions)}
-      >
-        <FormControlLabel value="1.0" control={<Radio />} label="Clássico" />
-        <FormControlLabel value="1.1" control={<Radio />} label="Elegante" />
-        <FormControlLabel value="1.2" control={<Radio />} label="Alternativo" />
-      </RadioGroup>
-    </FormControl>
-  )
 }
 
 /**

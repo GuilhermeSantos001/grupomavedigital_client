@@ -221,6 +221,8 @@ export type Mutation = {
    * Docs: https://grupomavedigital-wiki.vercel.app/#/graphql/users-mutations?id=hasconfiguredtwofactor
    */
   hasConfiguredTwoFactor: Scalars['Boolean'];
+  makePermanentUpload: Scalars['Boolean'];
+  makeTemporaryUpload: Scalars['Boolean'];
   multipleUpload: Array<UploadFIle>;
   /**
    * Registra um novo usuário
@@ -243,6 +245,11 @@ export type Mutation = {
    * Docs: https://grupomavedigital-wiki.vercel.app/#/graphql/cards-mutations?id=vcardcreate
    */
   vcardCreate: VCardMetadata;
+  /**
+   * Remove um vcard
+   * Docs: https://grupomavedigital-wiki.vercel.app/#/graphql/cards-mutations?id=vcardcreate
+   */
+  vcardRemove: Scalars['Boolean'];
 };
 
 
@@ -284,6 +291,7 @@ export type MutationCardRemoveArgs = {
 
 export type MutationCardUpdateArgs = {
   data: Input_Card;
+  id: Scalars['String'];
 };
 
 
@@ -296,6 +304,20 @@ export type MutationChangePasswordArgs = {
 
 export type MutationHasConfiguredTwoFactorArgs = {
   auth: Scalars['String'];
+};
+
+
+export type MutationMakePermanentUploadArgs = {
+  fileId: Scalars['String'];
+  signedUrl: Scalars['String'];
+  version?: InputMaybe<Scalars['Int']>;
+};
+
+
+export type MutationMakeTemporaryUploadArgs = {
+  fileId: Scalars['String'];
+  signedUrl: Scalars['String'];
+  version?: InputMaybe<Scalars['Int']>;
 };
 
 
@@ -352,9 +374,15 @@ export type MutationVcardCreateArgs = {
   data: Input_Vcard;
 };
 
+
+export type MutationVcardRemoveArgs = {
+  metadata: Input_Vcardmetadata;
+};
+
 export type Photo = {
   __typename?: 'Photo';
   id?: Maybe<Scalars['String']>;
+  mirrorId?: Maybe<Scalars['String']>;
   name?: Maybe<Scalars['String']>;
   type?: Maybe<Scalars['String']>;
 };
@@ -376,11 +404,6 @@ export type Query = {
    * Docs: https://grupomavedigital-wiki.vercel.app/#/graphql/users-query?id=authlogout
    */
   authLogout: Scalars['Boolean'];
-  /**
-   * Efetua o login do usuário
-   * Docs: https://grupomavedigital-wiki.vercel.app/#/graphql/cards-query?id=cardget
-   */
-  cardGet: Array<CardInfo>;
   /**
    * Dados do Painel de "Contas a Receber"
    * Docs: https://grupomavedigital-wiki.vercel.app/#/graphql/dashboards-query?id=dashboardreceive
@@ -422,6 +445,16 @@ export type Query = {
    */
   emailResendConfirm: Scalars['Boolean'];
   /**
+   * Busca por um cartão digital
+   * Docs: https://grupomavedigital-wiki.vercel.app/#/graphql/cards-query?id=cardget
+   */
+  findCard: CardInfo;
+  /**
+   * Retorna uma lista de cartões digitais
+   * Docs: https://grupomavedigital-wiki.vercel.app/#/graphql/cards-query?id=cardget
+   */
+  getCards: Array<CardInfo>;
+  /**
    * Retorna as informações do usuário
    * Docs: https://grupomavedigital-wiki.vercel.app/#/graphql/users-query?id=getuserinfo
    */
@@ -455,12 +488,6 @@ export type QueryAuthLogoutArgs = {
   auth: Scalars['String'];
   signature: Scalars['String'];
   token: Scalars['String'];
-};
-
-
-export type QueryCardGetArgs = {
-  lastIndex?: InputMaybe<Scalars['String']>;
-  limit: Scalars['Int'];
 };
 
 
@@ -513,6 +540,17 @@ export type QueryDataFilialArgs = {
 
 export type QueryEmailResendConfirmArgs = {
   auth: Scalars['String'];
+};
+
+
+export type QueryFindCardArgs = {
+  cid: Scalars['String'];
+};
+
+
+export type QueryGetCardsArgs = {
+  lastIndex?: InputMaybe<Scalars['String']>;
+  limit: Scalars['Int'];
 };
 
 
@@ -661,6 +699,7 @@ export type Input_CardFooter = {
 
 export type Input_File = {
   id: Scalars['String'];
+  mirrorId: Scalars['String'];
   name: Scalars['String'];
   type: Scalars['String'];
 };
@@ -730,13 +769,42 @@ export type VCardCreateMutationVariables = Exact<{
 
 export type VCardCreateMutation = { __typename?: 'Mutation', vcardCreate: { __typename?: 'VCardMetadata', file: { __typename?: 'VCardMetadataValues', path: string, name: string, type: string }, logotipo: { __typename?: 'VCardMetadataValues', path: string, name: string, type: string }, photo: { __typename?: 'VCardMetadataValues', path: string, name: string, type: string } } };
 
-export type CardGetQueryVariables = Exact<{
+export type CardRemoveMutationVariables = Exact<{
+  id: Scalars['String'];
+}>;
+
+
+export type CardRemoveMutation = { __typename?: 'Mutation', cardRemove: boolean };
+
+export type VCardRemoveMutationVariables = Exact<{
+  metadata: Input_Vcardmetadata;
+}>;
+
+
+export type VCardRemoveMutation = { __typename?: 'Mutation', vcardRemove: boolean };
+
+export type CardUpdateMutationVariables = Exact<{
+  id: Scalars['String'];
+  data: Input_Card;
+}>;
+
+
+export type CardUpdateMutation = { __typename?: 'Mutation', cardUpdate: string };
+
+export type FindCardQueryVariables = Exact<{
+  cid: Scalars['String'];
+}>;
+
+
+export type FindCardQuery = { __typename?: 'Query', findCard: { __typename?: 'CardInfo', index?: string | null, cid?: string | null, version?: string | null, name?: string | null, jobtitle?: string | null, phones?: Array<string | null> | null, createdAt?: string | null, photo?: { __typename?: 'Photo', id?: string | null, mirrorId?: string | null, name?: string | null, type?: string | null } | null, whatsapp?: { __typename?: 'Whatsapp', phone?: string | null, text?: string | null, message?: string | null } | null, vcard?: { __typename?: 'VCard', firstname?: string | null, lastname?: string | null, organization?: string | null, workPhone?: Array<string | null> | null, title?: string | null, url?: string | null, workUrl?: string | null, email?: string | null, label?: string | null, countryRegion?: string | null, street?: string | null, city?: string | null, stateProvince?: string | null, postalCode?: string | null, photo?: { __typename?: 'Photo', id?: string | null, mirrorId?: string | null, name?: string | null, type?: string | null } | null, logo?: { __typename?: 'Photo', id?: string | null, mirrorId?: string | null, name?: string | null, type?: string | null } | null, birthday?: { __typename?: 'Birthday', year?: number | null, month?: number | null, day?: number | null } | null, socialUrls?: Array<{ __typename?: 'SocialUrls', media?: string | null, url?: string | null } | null> | null, metadata?: { __typename?: 'VCardMetadata', file: { __typename?: 'VCardMetadataValues', path: string, name: string, type: string }, logotipo: { __typename?: 'VCardMetadataValues', path: string, name: string, type: string }, photo: { __typename?: 'VCardMetadataValues', path: string, name: string, type: string } } | null } | null, footer?: { __typename?: 'Footer', email?: string | null, location?: string | null, website?: string | null, attachment?: { __typename?: 'Photo', id?: string | null, mirrorId?: string | null, name?: string | null, type?: string | null } | null, socialmedia?: Array<{ __typename?: 'Socialmedia', name?: string | null, value?: string | null } | null> | null } | null } };
+
+export type GetCardsQueryVariables = Exact<{
   lastIndex?: InputMaybe<Scalars['String']>;
   limit: Scalars['Int'];
 }>;
 
 
-export type CardGetQuery = { __typename?: 'Query', cardGet: Array<{ __typename?: 'CardInfo', index?: string | null, cid?: string | null, version?: string | null, name?: string | null, jobtitle?: string | null, phones?: Array<string | null> | null, createdAt?: string | null, photo?: { __typename?: 'Photo', name?: string | null, type?: string | null, id?: string | null } | null, whatsapp?: { __typename?: 'Whatsapp', phone?: string | null, text?: string | null, message?: string | null } | null, vcard?: { __typename?: 'VCard', firstname?: string | null, lastname?: string | null, organization?: string | null, workPhone?: Array<string | null> | null, title?: string | null, url?: string | null, workUrl?: string | null, email?: string | null, label?: string | null, countryRegion?: string | null, street?: string | null, city?: string | null, stateProvince?: string | null, postalCode?: string | null, photo?: { __typename?: 'Photo', name?: string | null, type?: string | null, id?: string | null } | null, logo?: { __typename?: 'Photo', name?: string | null, type?: string | null, id?: string | null } | null, birthday?: { __typename?: 'Birthday', year?: number | null, month?: number | null, day?: number | null } | null, socialUrls?: Array<{ __typename?: 'SocialUrls', media?: string | null, url?: string | null } | null> | null, metadata?: { __typename?: 'VCardMetadata', file: { __typename?: 'VCardMetadataValues', path: string, name: string, type: string }, logotipo: { __typename?: 'VCardMetadataValues', path: string, name: string, type: string }, photo: { __typename?: 'VCardMetadataValues', path: string, name: string, type: string } } | null } | null, footer?: { __typename?: 'Footer', email?: string | null, location?: string | null, website?: string | null, attachment?: { __typename?: 'Photo', name?: string | null, type?: string | null, id?: string | null } | null, socialmedia?: Array<{ __typename?: 'Socialmedia', name?: string | null, value?: string | null } | null> | null } | null }> };
+export type GetCardsQuery = { __typename?: 'Query', getCards: Array<{ __typename?: 'CardInfo', index?: string | null, cid?: string | null, version?: string | null, name?: string | null, jobtitle?: string | null, phones?: Array<string | null> | null, createdAt?: string | null, photo?: { __typename?: 'Photo', id?: string | null, mirrorId?: string | null, name?: string | null, type?: string | null } | null, whatsapp?: { __typename?: 'Whatsapp', phone?: string | null, text?: string | null, message?: string | null } | null, vcard?: { __typename?: 'VCard', firstname?: string | null, lastname?: string | null, organization?: string | null, workPhone?: Array<string | null> | null, title?: string | null, url?: string | null, workUrl?: string | null, email?: string | null, label?: string | null, countryRegion?: string | null, street?: string | null, city?: string | null, stateProvince?: string | null, postalCode?: string | null, photo?: { __typename?: 'Photo', name?: string | null, type?: string | null, id?: string | null } | null, logo?: { __typename?: 'Photo', id?: string | null, mirrorId?: string | null, name?: string | null, type?: string | null } | null, birthday?: { __typename?: 'Birthday', year?: number | null, month?: number | null, day?: number | null } | null, socialUrls?: Array<{ __typename?: 'SocialUrls', media?: string | null, url?: string | null } | null> | null, metadata?: { __typename?: 'VCardMetadata', file: { __typename?: 'VCardMetadataValues', path: string, name: string, type: string }, logotipo: { __typename?: 'VCardMetadataValues', path: string, name: string, type: string }, photo: { __typename?: 'VCardMetadataValues', path: string, name: string, type: string } } | null } | null, footer?: { __typename?: 'Footer', email?: string | null, location?: string | null, website?: string | null, attachment?: { __typename?: 'Photo', id?: string | null, mirrorId?: string | null, name?: string | null, type?: string | null } | null, socialmedia?: Array<{ __typename?: 'Socialmedia', name?: string | null, value?: string | null } | null> | null } | null }> };
 
 export type GetUserInfoQueryVariables = Exact<{
   auth: Scalars['String'];
@@ -744,6 +812,24 @@ export type GetUserInfoQueryVariables = Exact<{
 
 
 export type GetUserInfoQuery = { __typename?: 'Query', getUserInfo: { __typename?: 'UserInfo', privileges: Array<string>, privilege: string, photoProfile: string, username: string, email: string, name: string, surname: string, cnpj: string, location: { __typename?: 'Location', street: string, number: number, complement: string, district: string, state: string, city: string, zipcode: string } } };
+
+export type MakePermanentUploadMutationVariables = Exact<{
+  fileId: Scalars['String'];
+  version?: InputMaybe<Scalars['Int']>;
+  signedUrl: Scalars['String'];
+}>;
+
+
+export type MakePermanentUploadMutation = { __typename?: 'Mutation', makePermanentUpload: boolean };
+
+export type MakeTemporaryUploadMutationVariables = Exact<{
+  fileId: Scalars['String'];
+  version?: InputMaybe<Scalars['Int']>;
+  signedUrl: Scalars['String'];
+}>;
+
+
+export type MakeTemporaryUploadMutation = { __typename?: 'Mutation', makeTemporaryUpload: boolean };
 
 
 export const CardCreateDocument = gql`
@@ -772,16 +858,32 @@ export const VCardCreateDocument = gql`
   }
 }
     `;
-export const CardGetDocument = gql`
-    query CardGet($lastIndex: String, $limit: Int!) {
-  cardGet(lastIndex: $lastIndex, limit: $limit) {
+export const CardRemoveDocument = gql`
+    mutation CardRemove($id: String!) {
+  cardRemove(id: $id)
+}
+    `;
+export const VCardRemoveDocument = gql`
+    mutation VCardRemove($metadata: input_vcardmetadata!) {
+  vcardRemove(metadata: $metadata)
+}
+    `;
+export const CardUpdateDocument = gql`
+    mutation CardUpdate($id: String!, $data: input_card!) {
+  cardUpdate(id: $id, data: $data)
+}
+    `;
+export const FindCardDocument = gql`
+    query FindCard($cid: String!) {
+  findCard(cid: $cid) {
     index
     cid
     version
     photo {
+      id
+      mirrorId
       name
       type
-      id
     }
     name
     jobtitle
@@ -796,14 +898,16 @@ export const CardGetDocument = gql`
       lastname
       organization
       photo {
+        id
+        mirrorId
         name
         type
-        id
       }
       logo {
+        id
+        mirrorId
         name
         type
-        id
       }
       workPhone
       birthday {
@@ -848,9 +952,102 @@ export const CardGetDocument = gql`
       location
       website
       attachment {
+        id
+        mirrorId
+        name
+        type
+      }
+      socialmedia {
+        name
+        value
+      }
+    }
+    createdAt
+  }
+}
+    `;
+export const GetCardsDocument = gql`
+    query GetCards($lastIndex: String, $limit: Int!) {
+  getCards(lastIndex: $lastIndex, limit: $limit) {
+    index
+    cid
+    version
+    photo {
+      id
+      mirrorId
+      name
+      type
+    }
+    name
+    jobtitle
+    phones
+    whatsapp {
+      phone
+      text
+      message
+    }
+    vcard {
+      firstname
+      lastname
+      organization
+      photo {
         name
         type
         id
+      }
+      logo {
+        id
+        mirrorId
+        name
+        type
+      }
+      workPhone
+      birthday {
+        year
+        month
+        day
+      }
+      title
+      url
+      workUrl
+      email
+      label
+      countryRegion
+      street
+      city
+      stateProvince
+      postalCode
+      socialUrls {
+        media
+        url
+      }
+      metadata {
+        file {
+          path
+          name
+          type
+        }
+        logotipo {
+          path
+          name
+          type
+        }
+        photo {
+          path
+          name
+          type
+        }
+      }
+    }
+    footer {
+      email
+      location
+      website
+      attachment {
+        id
+        mirrorId
+        name
+        type
       }
       socialmedia {
         name
@@ -882,5 +1079,15 @@ export const GetUserInfoDocument = gql`
       zipcode
     }
   }
+}
+    `;
+export const MakePermanentUploadDocument = gql`
+    mutation MakePermanentUpload($fileId: String!, $version: Int, $signedUrl: String!) {
+  makePermanentUpload(fileId: $fileId, version: $version, signedUrl: $signedUrl)
+}
+    `;
+export const MakeTemporaryUploadDocument = gql`
+    mutation MakeTemporaryUpload($fileId: String!, $version: Int, $signedUrl: String!) {
+  makeTemporaryUpload(fileId: $fileId, version: $version, signedUrl: $signedUrl)
 }
     `;

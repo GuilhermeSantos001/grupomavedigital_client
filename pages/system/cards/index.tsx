@@ -4,6 +4,8 @@ import { css } from '@emotion/css'
 
 import Button from '@mui/material/Button';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
+import UpdateRoundedIcon from '@mui/icons-material/UpdateRounded';
+import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
 
 import { GetServerSidePropsContext } from 'next/types'
 
@@ -26,7 +28,10 @@ import { BoxError } from '@/components/utils/BoxError'
 
 import { ListWithCheckbox } from '@/components/lists/ListWithCheckbox'
 import { OffcanvasInformation } from '@/components/offcanvas/OffcanvasInformation'
+import { LayoutVersions } from '@/components/cards/DigitalCardPage'
 import { RegisterDigitalCard } from '@/components/modals/RegisterDigitalCard'
+import { EditDigitalCard } from '@/components/modals/EditDigitalCard'
+import { ConfirmBox } from '@/components/ConfirmBox';
 
 import Fetch from '@/src/utils/fetch'
 
@@ -57,9 +62,24 @@ import {
 } from '@/services/graphql/useCreateCardsService'
 
 import {
+  FunctionUpdateCardTypeof,
+  useUpdateCardsService,
+} from '@/services/graphql/useUpdateCardsService'
+
+import {
+  FunctionRemoveCardTypeof,
+  useDeleteCardsService,
+} from '@/services/graphql/useDeleteCardsService'
+
+import {
   FunctionCreateVCardTypeof,
   useCreateVCardsService,
 } from '@/services/graphql/useCreateVCardsService'
+
+import {
+  FunctionRemoveVCardTypeof,
+  useRemoveVCardsService
+} from '@/services/graphql/useRemoveVCardsService'
 
 import type {
   UploadType
@@ -129,6 +149,7 @@ import { useUploadsService } from '@/services/useUploadsService'
 
 import Alerting from '@/src/utils/alerting'
 
+import { uploadRaw } from '@/src/functions/getUploads'
 interface PageData {
   photoProfile: string
   username: string
@@ -152,7 +173,11 @@ export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => 
       getUserInfoAuthorization: process.env.GRAPHQL_AUTHORIZATION_GETUSERINFO!,
       getCardsAuthorization: process.env.GRAPHQL_AUTHORIZATION_GETCARDS!,
       createCardsAuthorization: process.env.GRAPHQL_AUTHORIZATION_CREATECARDS!,
+      updateCardsAuthorization: process.env.GRAPHQL_AUTHORIZATION_UPDATECARDS!,
+      removeCardsAuthorization: process.env.GRAPHQL_AUTHORIZATION_REMOVECARDS!,
       createVCardsAuthorization: process.env.GRAPHQL_AUTHORIZATION_CREATEVCARDS!,
+      removeVCardsAuthorization: process.env.GRAPHQL_AUTHORIZATION_REMOVEVCARDS!,
+      makePermanentUploadAuthorization: process.env.GRAPHQL_AUTHORIZATION_MAKEPERMANENTUPLOAD!,
     },
   }
 }
@@ -300,7 +325,11 @@ function compose_ready(
   auth: string,
   _fetch: Fetch,
   createCardsAuthorization: string,
+  updateCardsAuthorization: string,
+  removeCardsAuthorization: string,
   createVCardsAuthorization: string,
+  removeVCardsAuthorization: string,
+  makePermanentUploadAuthorization: string,
   createUpload: FunctionCreateUploadTypeof,
   uploads: UploadType[],
   isLoadingUploads: boolean,
@@ -322,19 +351,38 @@ function compose_ready(
   updateDistricts: FunctionUpdateDistrictsTypeof,
   deleteDistricts: FunctionDeleteDistrictsTypeof,
   cards: CardInfo[],
+  cardsSelected: string[],
+  defineCardsSelected: (items: string[]) => void,
   showOffcanvasInfo: boolean,
+  openConfirmBox: boolean,
   handleShowOffcanvasInfo: () => void,
   handleCloseOffcanvasInfo: () => void,
+  handleOpenConfirmBox: () => void,
+  handleCloseConfirmBox: () => void,
   createCard: FunctionCreateCardTypeof,
+  updateCard: FunctionUpdateCardTypeof,
+  deleteCard: FunctionRemoveCardTypeof,
   createVCard: FunctionCreateVCardTypeof,
+  removeVCard: FunctionRemoveVCardTypeof,
   openModalRegisterDigitalCard: boolean,
+  openModalEditDigitalCard: boolean,
   handleOpenModalRegisterDigitalCard: () => void,
+  handleOpenModalEditDigitalCard: () => void,
   handleCloseModalRegisterDigitalCard: () => void,
+  handleCloseModalEditDigitalCard: () => void,
+  handleChangeUserPhotoProfileMirrorFileRaw: (raw: string) => void,
+  userPhotoProfileMirrorFileRaw: string,
+  handleChangeUserLogotipoMirrorFileRaw: (raw: string) => void,
+  userLogotipoMirrorFileRaw: string,
+  handleChangeAttachmentBusinessMirrorFileRaw: (raw: string) => void,
+  attachmentBusinessMirrorFileRaw: string,
 ) {
-  const {
-    columns: cardsColumns,
-    rows: cardsRows
-  } = getDigitalCardForTable(cards);
+  const
+    {
+      columns: cardsColumns,
+      rows: cardsRows
+    } = getDigitalCardForTable(cards),
+    card = cards.find(card => card.cid === cardsSelected[0]);
 
   return (
     <>
@@ -348,11 +396,54 @@ function compose_ready(
         show={showOffcanvasInfo}
         handleClose={handleCloseOffcanvasInfo}
       />
+      <ConfirmBox
+        open={openConfirmBox}
+        title='Deseja realmente excluir este(s) registro(s)?'
+        message='Os registros serão excluídos permanentemente.'
+        handleClose={handleCloseConfirmBox}
+        handleConfirm={async () => {
+          for (const id of cardsSelected) {
+            try {
+              handleRemoveUploadedFile([
+                card.photo.id,
+                card.vcard.logo.id,
+                card.footer.attachment.id,
+              ], [
+                card.photo.mirrorId,
+                card.vcard.logo.mirrorId,
+                card.footer.attachment.mirrorId,
+              ]);
+
+              await removeVCard({
+                metadata: {
+                  ...card.vcard.metadata
+                }
+              }, {
+                authorization: removeVCardsAuthorization,
+                encodeuri: "false"
+              });
+
+              await deleteCard({ id }, {
+                authorization: removeCardsAuthorization,
+                encodeuri: "false"
+              });
+
+              Alerting.create('success', `Cartão Digital(${id}) removido com sucesso.`);
+            } catch (error) {
+              Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
+            } finally {
+              handleCloseConfirmBox();
+              defineCardsSelected([]);
+            }
+          }
+        }}
+      />
       <RegisterDigitalCard
         open={openModalRegisterDigitalCard}
         fetch={_fetch}
         createCardsAuthorization={createCardsAuthorization}
         createVCardsAuthorization={createVCardsAuthorization}
+        makePermanentUploadAuthorization={makePermanentUploadAuthorization}
         createCard={createCard}
         createVCard={createVCard}
         createUpload={createUpload}
@@ -383,6 +474,111 @@ function compose_ready(
         jobtitle={Sugar.String.capitalize(privilege)}
         handleClose={handleCloseModalRegisterDigitalCard}
       />
+      {
+        cards.length > 0 && card &&
+        <EditDigitalCard
+          open={openModalEditDigitalCard}
+          fetch={_fetch}
+          data={{
+            cid: card.cid,
+            version: card.version as LayoutVersions,
+            username: card.name,
+            jobtitle: card.jobtitle,
+            whatsappPhone: card.whatsapp.phone,
+            whatsappText: card.whatsapp.text,
+            whatsappMessage: card.whatsapp.message,
+            workPhone: card.phones[0],
+            cellPhone: card.phones[1],
+            mail: card.footer.email,
+            googleMapsLink: card.footer.location,
+            website: card.footer.location,
+            firstName: card.vcard.firstname,
+            lastName: card.vcard.lastname,
+            organization: card.vcard.organization,
+            birthDay: new Date(card.vcard.birthday.year, card.vcard.birthday.month, card.vcard.birthday.day),
+            street: streets.find(street => street.value === card.vcard.street).id,
+            city: cities.find(city => city.value === card.vcard.city).id,
+            stateProvince: districts.find(district => district.value === card.vcard.stateProvince).id,
+            postalCode: card.vcard.postalCode,
+            socialUrls: {
+              'facebook': ((socialmedia, name) => {
+                const media = socialmedia.find(social => social.name === name);
+                return media ? media.value : '';
+              })(card.footer.socialmedia, 'facebook'),
+              'youtube': ((socialmedia, name) => {
+                const media = socialmedia.find(social => social.name === name);
+                return media ? media.value : '';
+              })(card.footer.socialmedia, 'youtube'),
+              'linkedin': ((socialmedia, name) => {
+                const media = socialmedia.find(social => social.name === name);
+                return media ? media.value : '';
+              })(card.footer.socialmedia, 'linkedin'),
+              'instagram': ((socialmedia, name) => {
+                const media = socialmedia.find(social => social.name === name);
+                return media ? media.value : '';
+              })(card.footer.socialmedia, 'instagram'),
+              'twitter': ((socialmedia, name) => {
+                const media = socialmedia.find(social => social.name === name);
+                return media ? media.value : '';
+              })(card.footer.socialmedia, 'twitter'),
+              'tiktok': ((socialmedia, name) => {
+                const media = socialmedia.find(social => social.name === name);
+                return media ? media.value : '';
+              })(card.footer.socialmedia, 'tiktok'),
+              'flickr': ((socialmedia, name) => {
+                const media = socialmedia.find(social => social.name === name);
+                return media ? media.value : '';
+              })(card.footer.socialmedia, 'flickr'),
+            },
+            userPhotoProfileMirrorFileId: card.photo.id,
+            userPhotoProfileMirrorId: card.photo.mirrorId,
+            userPhotoProfileMirrorFileRaw: userPhotoProfileMirrorFileRaw,
+            userLogotipoMirrorFileId: card.vcard.logo.id,
+            userLogotipoMirrorId: card.vcard.logo.mirrorId,
+            userLogotipoMirrorFileRaw: userLogotipoMirrorFileRaw,
+            attachmentBusinessMirrorFileId: card.footer.attachment.id,
+            attachmentBusinessMirrorId: card.footer.attachment.mirrorId,
+            attachmentBusinessMirrorFileRaw: attachmentBusinessMirrorFileRaw,
+            attachmentVCardMetadata: {
+              path: card.vcard.metadata.file.path,
+              name: card.vcard.metadata.file.name,
+              type: card.vcard.metadata.file.type,
+            },
+            vcardMetadata: {
+              ...card.vcard.metadata
+            }
+          }}
+          updateCardsAuthorization={updateCardsAuthorization}
+          createVCardsAuthorization={createVCardsAuthorization}
+          removeVCardsAuthorization={removeVCardsAuthorization}
+          makePermanentUploadAuthorization={makePermanentUploadAuthorization}
+          updateCard={updateCard}
+          createVCard={createVCard}
+          removeVCard={removeVCard}
+          createUpload={createUpload}
+          uploads={uploads}
+          isLoadingUploads={isLoadingUploads}
+          updateUploads={updateUploads}
+          handleRemoveUploadedFile={handleRemoveUploadedFile}
+          streets={streets}
+          isLoadingStreets={isLoadingStreets}
+          cities={cities}
+          isLoadingCities={isLoadingCities}
+          districts={districts}
+          isLoadingDistricts={isLoadingDistricts}
+          createStreet={createStreet}
+          updateStreets={updateStreets}
+          deleteStreets={deleteStreets}
+          createCity={createCity}
+          updateCities={updateCities}
+          deleteCities={deleteCities}
+          createDistrict={createDistrict}
+          updateDistricts={updateDistricts}
+          deleteDistricts={deleteDistricts}
+          auth={auth}
+          handleClose={handleCloseModalEditDigitalCard}
+        />
+      }
       <div className="d-flex flex-column p-2">
         <div
           className="d-flex flex-column flex-md-row p-2"
@@ -445,17 +641,47 @@ function compose_ready(
             }}
             columns={cardsColumns}
             data={cardsRows}
-            onChangeSelection={(items: string[]) => console.log(items)}
+            onChangeSelection={(items: string[]) => defineCardsSelected(items)}
           />
         </div>
-        <Button
-          className="p-2 mx-2 col-2"
-          variant="contained"
-          startIcon={<AddCircleIcon />}
-          onClick={handleOpenModalRegisterDigitalCard}
-        >
-          Adicionar
-        </Button>
+        <div className="d-flex flex-row">
+          <Button
+            className="p-2 mx-2 col-2"
+            variant="contained"
+            startIcon={<AddCircleIcon />}
+            onClick={handleOpenModalRegisterDigitalCard}
+          >
+            Adicionar
+          </Button>
+          <Button
+            className="p-2 mx-2 col-2"
+            variant="contained"
+            startIcon={<UpdateRoundedIcon />}
+            disabled={cardsSelected.length <= 0 || cardsSelected.length > 1}
+            onClick={async () => {
+              const
+                photoRaw = await uploadRaw(card.photo.name, card.photo.type, card.photo.id),
+                logoRaw = await uploadRaw(card.vcard.logo.name, card.vcard.logo.type, card.vcard.logo.id),
+                attachmentRaw = await uploadRaw(card.footer.attachment.name, card.footer.attachment.type, card.footer.attachment.id, { type: 'application/pdf' });
+
+              handleChangeUserPhotoProfileMirrorFileRaw(photoRaw);
+              handleChangeUserLogotipoMirrorFileRaw(logoRaw);
+              handleChangeAttachmentBusinessMirrorFileRaw(attachmentRaw);
+              handleOpenModalEditDigitalCard();
+            }}
+          >
+            Atualizar
+          </Button>
+          <Button
+            className="p-2 mx-2 col-2"
+            variant="contained"
+            startIcon={<RemoveCircleIcon />}
+            disabled={cardsSelected.length <= 0}
+            onClick={handleOpenConfirmBox}
+          >
+            Deletar
+          </Button>
+        </div>
       </div>
     </>
   )
@@ -467,13 +693,21 @@ export default function Cards(
     getUserInfoAuthorization,
     getCardsAuthorization,
     createCardsAuthorization,
-    createVCardsAuthorization
+    updateCardsAuthorization,
+    removeCardsAuthorization,
+    createVCardsAuthorization,
+    removeVCardsAuthorization,
+    makePermanentUploadAuthorization,
   }: {
     auth: string,
     getUserInfoAuthorization: string,
     getCardsAuthorization: string,
     createCardsAuthorization: string,
+    updateCardsAuthorization: string,
+    removeCardsAuthorization: string,
     createVCardsAuthorization: string,
+    removeVCardsAuthorization: string,
+    makePermanentUploadAuthorization: string,
   }
 ) {
   const [syncData, setSyncData] = useState<boolean>(false)
@@ -484,6 +718,14 @@ export default function Cards(
 
   const [showOffcanvasInfo, setShowOffcanvasInfo] = useState<boolean>(false)
   const [openModalRegisterDigitalCard, setOpenModalRegisterDigitalCard] = useState<boolean>(false)
+  const [openModalEditDigitalCard, setOpenModalEditDigitalCard] = useState<boolean>(false)
+  const [openConfirmBox, setOpenConfirmBox] = useState<boolean>(false)
+
+  const [cardsSelected, setCardsSelected] = useState<string[]>([])
+
+  const [userPhotoProfileMirrorFileRaw, setUserPhotoProfileMirrorRaw] = useState<string>('');
+  const [userLogotipoMirrorFileRaw, setUserLogotipoMirrorRaw] = useState<string>('');
+  const [attachmentBusinessMirrorFileRaw, setAttachmentBusinessMirrorFileRaw] = useState<string>('');
 
   const { success, data, error } = useGetUserInfoService(
     {
@@ -509,7 +751,10 @@ export default function Cards(
 
   const
     { create: CreateCards } = useCreateCardsService(),
+    { update: UpdateCards } = useUpdateCardsService(),
+    { remove: DeleteCards } = useDeleteCardsService(),
     { create: CreateVCards } = useCreateVCardsService(),
+    { remove: RemoveVCards } = useRemoveVCardsService(),
     { create: CreateUpload } = useUploadService(),
     { data: uploads, isLoading: isLoadingUploads, update: UpdateUploads, delete: DeleteUploads } = useUploadsService(),
     { create: CreateStreet } = useStreetService(),
@@ -530,8 +775,12 @@ export default function Cards(
     },
     handleShowOffcanvasInfo = () => setShowOffcanvasInfo(true),
     handleCloseOffcanvasInfo = () => setShowOffcanvasInfo(false),
+    handleOpenConfirmBox = () => setOpenConfirmBox(true),
+    handleCloseConfirmBox = () => setOpenConfirmBox(false),
     handleOpenModalRegisterDigitalCard = () => setOpenModalRegisterDigitalCard(true),
+    handleOpenModalEditDigitalCard = () => setOpenModalEditDigitalCard(true),
     handleCloseModalRegisterDigitalCard = () => setOpenModalRegisterDigitalCard(false),
+    handleCloseModalEditDigitalCard = () => setOpenModalEditDigitalCard(false),
     handleRemoveUploadedFile = (filesId: string[], mirrorsId: string[]) =>
       window.socket.emit(
         FilesSocketEvents.FILE_DELETE_ATTACHMENT,
@@ -551,7 +800,11 @@ export default function Cards(
       } else {
         Alerting.create('error', `Não foi possível deletar o arquivo. Tente novamente, mais tarde.`);
       }
-    };
+    },
+    defineCardsSelected = (items: string[]) => setCardsSelected(items),
+    handleChangeUserPhotoProfileMirrorFileRaw = (fileRaw: string) => setUserPhotoProfileMirrorRaw(fileRaw),
+    handleChangeUserLogotipoMirrorFileRaw = (fileRaw: string) => setUserLogotipoMirrorRaw(fileRaw),
+    handleChangeAttachmentBusinessMirrorFileRaw = (fileRaw: string) => setAttachmentBusinessMirrorFileRaw(fileRaw);
 
   if (error && !notAuth) {
     setNotAuth(true);
@@ -620,7 +873,11 @@ export default function Cards(
       auth,
       _fetch,
       createCardsAuthorization,
+      updateCardsAuthorization,
+      removeCardsAuthorization,
       createVCardsAuthorization,
+      removeVCardsAuthorization,
+      makePermanentUploadAuthorization,
       CreateUpload,
       uploads,
       isLoadingUploads,
@@ -642,14 +899,31 @@ export default function Cards(
       UpdateDistricts,
       DeleteDistricts,
       cards,
+      cardsSelected,
+      defineCardsSelected,
       showOffcanvasInfo,
+      openConfirmBox,
       handleShowOffcanvasInfo,
       handleCloseOffcanvasInfo,
+      handleOpenConfirmBox,
+      handleCloseConfirmBox,
       CreateCards,
+      UpdateCards,
+      DeleteCards,
       CreateVCards,
+      RemoveVCards,
       openModalRegisterDigitalCard,
+      openModalEditDigitalCard,
       handleOpenModalRegisterDigitalCard,
-      handleCloseModalRegisterDigitalCard
+      handleOpenModalEditDigitalCard,
+      handleCloseModalRegisterDigitalCard,
+      handleCloseModalEditDigitalCard,
+      handleChangeUserPhotoProfileMirrorFileRaw,
+      userPhotoProfileMirrorFileRaw,
+      handleChangeUserLogotipoMirrorFileRaw,
+      userLogotipoMirrorFileRaw,
+      handleChangeAttachmentBusinessMirrorFileRaw,
+      attachmentBusinessMirrorFileRaw,
     );
   }
 }

@@ -17,6 +17,7 @@ type MyProps = {
   menuShow: boolean
   setMenuShow: () => void
   fullwidth: boolean
+  cleanLayout: boolean
 }
 
 type MyState = Record<string, never>
@@ -34,6 +35,9 @@ export default class Navbar extends React.Component<MyProps, MyState> {
   }
 
   render() {
+    if (this.props.cleanLayout)
+      return <></>;
+
     return (
       <>
         <header className="navbar navbar-dark bg-primary bg-gradient sticky-top flex-md-nowrap p-2 shadow">

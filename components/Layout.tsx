@@ -23,8 +23,9 @@ declare global {
 export type Props = {
   menu: MenuResponse
   emotionCache: EmotionCache
-  fullwidth: boolean
   children: React.ReactElement
+  fullwidth: boolean
+  cleanLayout: boolean
 }
 
 export function LoadingOverlay(overlay: boolean) {
@@ -144,12 +145,14 @@ export default function Layout(props: Props) {
           menuShow={showFullWidth}
           setMenuShow={handleFullWidth}
           fullwidth={props.fullwidth}
+          cleanLayout={props.cleanLayout}
         />
           <GridContent
             menuShow={showFullWidth}
             emotionCache={props.emotionCache}
             menu={props.menu}
             fullwidth={props.fullwidth}
+            cleanLayout={props.cleanLayout}
           >
             {props.children}
           </GridContent>

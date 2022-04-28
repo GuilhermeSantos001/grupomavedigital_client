@@ -64,6 +64,23 @@ export function useWorkplacesService(take: number = 10) {
 
         setURI(`${process.env.NEXT_PUBLIC_API_HOST}/workplaces${query}`);
       },
+      refreshPage: async () => {
+        const updateData = await fetcherAxiosGet(uri, setIsLoading);
+
+        if (!updateData.success) {
+          Alerting.create('error', updateData.message);
+          console.error(updateData);
+
+          return false;
+        } else {
+          mutate({
+            success: true,
+            data: updateData.data
+          });
+        }
+
+        return true;
+      },
       update: async (id: string, newData: DataWorkplace): Promise<boolean> => {
         const uri = `${process.env.NEXT_PUBLIC_API_HOST}/workplace/${id}`;
 
@@ -79,7 +96,7 @@ export function useWorkplacesService(take: number = 10) {
             success: true,
             data: data.data.map(workplace => {
               if (workplace.id === id) {
-                workplace = {...workplace, ...updateData.data};
+                workplace = { ...workplace, ...updateData.data };
               }
 
               return workplace;

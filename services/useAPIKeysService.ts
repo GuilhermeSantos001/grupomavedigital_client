@@ -58,6 +58,23 @@ export function useAPIKeysService(take: number = 10) {
 
         setURI(`${process.env.NEXT_PUBLIC_API_HOST}/security/keys${query}`);
       },
+      refreshPage: async () => {
+        const updateData = await fetcherAxiosGet(uri, setIsLoading);
+
+        if (!updateData.success) {
+          Alerting.create('error', updateData.message);
+          console.error(updateData);
+
+          return false;
+        } else {
+          mutate({
+            success: true,
+            data: updateData.data
+          });
+        }
+
+        return true;
+      },
       delete: async (passphrase: string): Promise<boolean> => {
         const uri = `${process.env.NEXT_PUBLIC_API_HOST}/security/key/${passphrase}`;
 
