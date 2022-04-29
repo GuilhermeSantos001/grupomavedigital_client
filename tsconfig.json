@@ -1,26 +1,27 @@
 {
+  "extends": "./node_modules/@tsconfig/next/tsconfig.json",
   "compilerOptions": {
-    "target": "ESNext",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": false,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
+    "incremental": true,
     "baseUrl": ".",
     "paths": {
       "@/bin/*": ["bin/*"],
+      "@/app/*": ["app/*"],
+      "@/middlewares/*": ["middlewares/*"],
+      "@/services/*": ["services/*"],
+      "@/types/*": ["types/*"],
+      "@/constants/*": ["constants/*"],
+      "@/controllers/*": ["controllers/*"],
+      "@/context/*": ["context/*"],
+      "@/lib/*": ["lib/*"],
+      "@/utility/*": ["utility/*"],
       "@/components/*": ["components/*"],
       "@/pages/*": ["pages/*"],
-      "@/src/*": ["src/*"]
+      "@/src/*": ["src/*"],
+      "@/styles/*": ["styles/*"],
+      "@/animations/*": ["animations/*"],
+      "@/modules/*": ["modules/*"],
     }
   },
   "exclude": ["node_modules", ".next", "out", "test", "**/*.spec.tsx"],
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "**/*.js"]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"]
 }

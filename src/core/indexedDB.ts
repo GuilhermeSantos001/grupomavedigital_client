@@ -1,6 +1,6 @@
 /**
  * @description Classe usada para interação com indexedDB
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 25/09/2021
  */
 
@@ -158,6 +158,46 @@ export default class indexedDB implements IDatabaseProvider {
                 };
 
                 const request = objectStore.get(key);
+
+                request.onsuccess = function () {
+                    return resolve(request.result || undefined);
+                };
+
+                request.onerror = function () {
+                    return reject('Error when trying to access the ObjectStore.');
+                };
+            };
+        });
+    }
+
+    /**
+     * @description Retorna todas as chaves da store
+     */
+    public storeGetAllKeys(storeName: string, keyPath: string): Promise<string[]> {
+        return new Promise((resolve, reject) => {
+            const request_DB = window.indexedDB.open(this.getName(), this.getVersion());
+
+            request_DB.onerror = function () {
+                reject('Error when opening the database');
+            };
+
+            request_DB.onupgradeneeded = function (event) {
+                const target: any = event.target;
+
+                target.result.createObjectStore(storeName, { keyPath });
+            };
+
+            request_DB.onsuccess = function (event) {
+                const target: any = event.target,
+                    db = target.result,
+                    transaction = db.transaction([storeName], "readwrite"),
+                    objectStore = transaction.objectStore(storeName);
+
+                transaction.onerror = function () {
+                    return reject('Transaction not opened due to error. Duplicate items not allowed.');
+                };
+
+                const request = objectStore.getAllKeys();
 
                 request.onsuccess = function () {
                     return resolve(request.result || undefined);

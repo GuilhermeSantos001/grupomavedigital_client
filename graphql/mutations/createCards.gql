@@ -1,0 +1,3 @@
+mutation CardCreate($data: input_card!) {
+  cardCreate(data: $data)
+}

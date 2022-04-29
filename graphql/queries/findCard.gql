@@ -1,0 +1,91 @@
+query FindCard($cid: String!) {
+  findCard(cid: $cid) {
+    index
+    cid
+    version
+    photo {
+      id
+      mirrorId
+      name
+      type
+    }
+    name
+    jobtitle
+    phones
+    whatsapp {
+      phone
+      text
+      message
+    }
+    vcard {
+      firstname
+      lastname
+      organization
+      photo {
+        id
+        mirrorId
+        name
+        type
+      }
+      logo {
+        id
+        mirrorId
+        name
+        type
+      }
+      workPhone
+      birthday {
+        year
+        month
+        day
+      }
+      title
+      url
+      workUrl
+      email
+      label
+      countryRegion
+      street
+      city
+      stateProvince
+      postalCode
+      socialUrls {
+        media
+        url
+      }
+      metadata {
+        file {
+          path
+          name
+          type
+        }
+        logotipo {
+          path
+          name
+          type
+        }
+        photo {
+          path
+          name
+          type
+        }
+      }
+    }
+    footer {
+      email
+      location
+      website
+      attachment {
+        id
+        mirrorId
+        name
+        type
+      }
+      socialmedia {
+        name
+        value
+      }
+    }
+    createdAt
+  }
+}

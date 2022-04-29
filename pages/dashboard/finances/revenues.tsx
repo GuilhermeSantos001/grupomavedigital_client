@@ -1,7 +1,7 @@
 /**
  * @description Dashboard do "Faturamento"
- * @author @GuilhermeSantos001
- * @update 08/10/2021
+ * @author GuilhermeSantos001
+ * @update 21/01/2022
  */
 
 import React, { useEffect, useState } from 'react'
@@ -10,24 +10,22 @@ import { useRouter } from 'next/router'
 
 import SkeletonLoader from 'tiny-skeleton-loader-react'
 
-import RenderPageError from '@/components/renderPageError'
 import NoPrivilege from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
 import ChartRevenues from '@/components/chartRevenues'
 
 import { PageProps } from '@/pages/_app'
-import PageMenu from '@/bin/main_menu'
+import {GetMenuMain} from '@/bin/GetMenuMain'
 
 import Fetch from '@/src/utils/fetch'
-import Variables from '@/src/db/variables'
+import { Variables } from '@/src/db/variables'
 import hasPrivilege from '@/src/functions/hasPrivilege'
-import tokenValidate from '@/src/functions/tokenValidate'
 
 const serverSideProps: PageProps = {
   title: 'Dashboard/Faturamento',
   description: 'Gestão há vista do faturamento',
   themeColor: '#004a6e',
-  menu: PageMenu('mn-dashboard'),
+  menu: GetMenuMain('mn-dashboard')
 }
 
 export const getServerSideProps = async () => {
@@ -76,10 +74,6 @@ function compose_load() {
   )
 }
 
-function compose_error() {
-  return <RenderPageError />
-}
-
 function compose_noPrivilege(handleClick) {
   return <NoPrivilege handleClick={handleClick} />
 }
@@ -109,15 +103,14 @@ function compose_ready() {
 
 const Revenues = (): JSX.Element => {
   const [isReady, setReady] = useState<boolean>(false)
-  const [isError, setError] = useState<boolean>(false)
   const [notPrivilege, setNotPrivilege] = useState<boolean>(false)
   const [notAuth, setNotAuth] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(true)
 
   const router = useRouter()
-  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
 
-  const handleClickNoAuth = async (e, path) => {
+  const
+    handleClickNoAuth = async (e, path) => {
       e.preventDefault()
 
       if (path === '/auth/login') {
@@ -133,31 +126,23 @@ const Revenues = (): JSX.Element => {
     }
 
   useEffect(() => {
-    const timer = setTimeout(async () => {
-      const allowViewPage = await tokenValidate(_fetch)
-
-      if (!allowViewPage) {
-        setNotAuth(true)
-        setLoading(false)
-      } else {
-        try {
-          if (!(await hasPrivilege('administrador'))) setNotPrivilege(true)
-
-          setReady(true)
-          return setLoading(false)
-        } catch {
-          setError(true)
-          return setLoading(false)
+    hasPrivilege('administrador')
+      .then((isAllowViewPage) => {
+        if (isAllowViewPage) {
+          setReady(true);
+        } else {
+          setNotPrivilege(true);
         }
-      }
-    })
 
-    return () => clearTimeout(timer)
+        return setLoading(false);
+      })
+      .catch(() => {
+        setNotAuth(true);
+        return setLoading(false)
+      });
   }, [])
 
   if (loading) return compose_load()
-
-  if (isError) return compose_error()
 
   if (notPrivilege) return compose_noPrivilege(handleClickNoPrivilege)
 

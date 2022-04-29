@@ -1,6 +1,6 @@
 /**
  * @description Contrato das implementações que interagem com o banco de dados
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 25/09/2021
  */
 
@@ -49,5 +49,5 @@ export default interface IDatabaseProvider {
     /**
      * @description Limpa todos os valores da store
      */
-    storeClear(storeName, keyPath): Promise<void>
+    storeClear(storeName: string, keyPath: string): Promise<void>
 }

@@ -1,90 +1,122 @@
 /**
  * @description Gerenciador de alertas
- * @author @GuilhermeSantos001
- * @update 14/09/2021
- * @version 1.0.0
+ * @author GuilhermeSantos001
+ * @update 26/01/2022
  */
 
+type AlertType = 'question' | 'success' | 'warning' | 'error' | 'info'
+
 interface IAlert {
+  type: AlertType
   message: string;
   delay: number;
 }
 
+declare global {
+  interface Window {
+    Alerting: {
+      show: boolean
+      messageValue: string
+      messageDelay: number
+      typeValue: AlertType
+      type: AlertType
+      delay: NodeJS.Timeout | undefined
+    }
+  }
+}
+
 class Alert {
-  private show = false;
-  private delay: any = false;
   private timeout = 1500;
   private cache: IAlert[] = [];
-  private noCache = false;
-  private messageValue: string;
-  private messageDelay: number;
-
-  constructor() {
-    this.messageValue = "";
-    this.messageDelay = 0;
-  }
 
   /**
    * @description Verifica se o alerta está sendo exibido
    */
   isShowing(): boolean {
-    return this.show;
+    return window.Alerting && window.Alerting.show;
   }
 
   setMessage(msg: string): void {
-    this.messageValue = msg;
+    if (window.Alerting)
+      window.Alerting.messageValue = msg;
   }
 
   getMessage(): string {
-    return this.messageValue;
+    return window.Alerting && window.Alerting.messageValue;
   }
 
   setMessageDelay(delay: number): void {
-    this.messageDelay = delay;
+    if (window.Alerting)
+      window.Alerting.messageDelay = delay;
   }
 
   getMessageDelay(): number {
-    return this.messageDelay;
+    return window.Alerting && window.Alerting.messageDelay;
+  }
+
+  setTypeValue(type: AlertType): void {
+    if (window.Alerting)
+      window.Alerting.typeValue = type;
+  }
+
+  getType(): AlertType {
+    return window.Alerting ? window.Alerting.type : "question";
   }
 
   /**
    * @description Cria um novo alerta
    */
-  create(message: string, delay = 2500): void {
-    if (!this.noCache) {
-      this.cache.push({ message, delay });
-    } else {
-      this.noCache = false;
-    }
+  create(type: AlertType, message: string, delay = 3600): void {
+    if (!window.Alerting) {
+      window.Alerting = {
+        show: false,
+        delay: undefined,
+        type: type,
+        messageDelay: 0,
+        messageValue: '',
+        typeValue: 'question'
+      }
+    };
 
     if (!this.isShowing()) {
-      this.show = true;
       this.setMessage(message);
       this.setMessageDelay(delay);
+      this.setTypeValue(type);
+
+      window.Alerting.show = true;
+      window.Alerting.delay = setTimeout(this.close.bind(this), delay + this.timeout);
+    } else {
+      this.cache.push({ type, message, delay });
     }
+  }
 
-    if (!this.delay) {
-      this.delay = setTimeout(() => {
-        clearTimeout(this.delay),
-          this.delay = false,
-          this.show = false;
+  /**
+   * @description Fecha o alerta
+   */
+  close(): void {
+    if (window.Alerting.show) {
+      if (window.Alerting.delay)
+        clearTimeout(window.Alerting.delay);
 
-        this.cache.shift();
+      window.Alerting.delay = undefined;
+      window.Alerting.show = false;
+
+      if (this.cache.length > 0) {
+        const cache = this.cache.reverse();
 
         const data: IAlert = {
-          message: this.cache.at(0)?.message || "",
-          delay: this.cache.at(0)?.delay || 0
+          type: cache.at(0)?.type || "question",
+          message: cache.at(0)?.message || "",
+          delay: cache.at(0)?.delay || 0
         };
 
         if (data.message.length > 0 && data.delay > 0) {
-          this.noCache = true;
-          this.create(data.message, data.delay);
+          this.cache.splice(this.cache.length - 1, 1);
+          this.create(data.type, data.message, data.delay);
         }
-      }, delay + this.timeout);
+      }
     }
   }
 }
 
-const alerting = new Alert();
-
-export default alerting;
+export default new Alert();

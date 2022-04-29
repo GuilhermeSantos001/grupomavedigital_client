@@ -1,11 +1,11 @@
 const wp = require('@cypress/webpack-preprocessor')
 const { cypressBrowserPermissionsPlugin } = require('cypress-browser-permissions')
-const path = require('path');
-const fs = require('fs');
+const path = require('path')
+const fs = require('fs')
 
 function getConfigurationByFile(file) {
-    const pathToConfigFile = path.resolve('cypress/config', `${file}.json`);
-    return fs.readFileSync(pathToConfigFile, 'utf8');
+    const pathToConfigFile = path.resolve('cypress/config', `${file}.json`)
+    return fs.readFileSync(pathToConfigFile, 'utf8')
 }
 
 module.exports = (on, config) => {
@@ -30,6 +30,13 @@ module.exports = (on, config) => {
                                             "alias": {
                                                 "@/src": "./src"
                                             }
+                                        }
+                                    ],
+                                    [
+                                        "@babel/plugin-transform-runtime",
+                                        {
+                                            "regenerator": true,
+                                            "corejs": 3
                                         }
                                     ],
                                     '@babel/plugin-transform-typescript'

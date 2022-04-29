@@ -1,7 +1,7 @@
 /**
  * @description Documentação do sistema
- * @author @GuilhermeSantos001
- * @update 05/10/2021
+ * @author GuilhermeSantos001
+ * @update 25/01/2022
  */
 
 interface Section {
@@ -26,14 +26,15 @@ interface Content {
 import Sugar from 'sugar'
 
 import { PageProps } from '@/pages/_app'
-import PageMenu from '@/bin/main_menu'
+import {GetMenuMain} from '@/bin/GetMenuMain'
+import { Accordion } from 'react-bootstrap'
 
 const staticProps: PageProps = {
-    title: 'Documentação',
-    description: 'Saiba mais sobre o funcionamento da nossa plataforma',
-    themeColor: '#004a6e',
-    menu: PageMenu('mn-helping'),
-  },
+  title: 'Documentação',
+  description: 'Saiba mais sobre o funcionamento da nossa plataforma',
+  themeColor: '#004a6e',
+  menu: GetMenuMain('mn-helping')
+},
   sections: Section[] = [
     {
       id: 'section-ss',
@@ -264,6 +265,78 @@ const staticProps: PageProps = {
         },
       ],
     },
+    {
+      id: 'section-integration-system',
+      title: 'Integrações com nossa API',
+      docs: [
+        {
+          id: 'ps-integration-system',
+          title: 'Funcionamento da nossa API',
+          contents: [
+            {
+              id: 'integration-system-1',
+              type: 'p',
+              value: `
+              Nossa API utiliza o padrão REST, ou seja, você pode fazer requisições
+              para a nossa API utilizando o protocolo HTTP. A API possui uma estrutura
+              de rotas que são responsáveis por realizar as operações de CRUD. Além
+              disso, a API possui uma estrutura de autenticação que é responsável por
+              validar as chaves de acesso.
+              `,
+            },
+            {
+              id: 'integration-system-2',
+              type: 'p',
+              value: `
+              Geração das chaves de acesso: Para gerar uma chave de acesso, você
+              precisa ser um usuário com permissão de desenvolvedor e/ou administrador.
+              `,
+            },
+          ],
+          show: false,
+        },
+        {
+          id: 'ps-integration-system-bills',
+          title: 'Custos & Limites',
+          contents: [
+            {
+              id: 'integration-system-bills-1',
+              type: 'p',
+              value: `
+              Nossa API tem um custo de uso de R$ 15,00 por mês.
+              `,
+            },
+            {
+              id: 'integration-system-bills-2',
+              type: 'p',
+              value: `
+              Por enquanto não temos nenhum limite de uso.
+              `,
+            }
+          ],
+          show: false,
+        },
+        {
+          id: 'ps-integration-system-utilities',
+          title: 'Por que utilizar nossa API?',
+          contents: [
+            {
+              id: 'integration-system-utilities-1',
+              type: 'p',
+              value: `
+              Você poderá executar chamadas a API para efetuar interações
+              com o nosso sistema, como por exemplo: cadastrar um centro de custo,
+              listar todos os centros de custo, editar um centro de custo, etc.
+              A principal vantagem de se utilizar a API é que você pode usa-la
+              com outro sistema e ter acesso a todas as informações que precisa
+              de forma centralizada e integrada.
+              `,
+            }
+          ],
+          show: false,
+        },
+      ],
+    },
   ]
 
 export const getStaticProps = () => ({
@@ -274,10 +347,6 @@ export const getStaticProps = () => ({
 })
 
 function render_doc(index: number, parentID: string, doc: Doc) {
-  const identify_1 = parentID,
-    identify_2 = Sugar.String.camelize(`heading-${doc.id}`),
-    identify_3 = Sugar.String.camelize(`collapse-${doc.id}`)
-
   const body = doc.contents.map((content) => {
     if (content.type === 'p') {
       return (
@@ -289,44 +358,19 @@ function render_doc(index: number, parentID: string, doc: Doc) {
   })
 
   return (
-    <div key={doc.id} className="accordion-item">
-      <h2 className="accordion-header" id={identify_2}>
-        <button
-          className={`accordion-button fw-bold ${doc.show ? '' : 'collapsed'}`}
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target={`#${identify_3}`}
-          aria-expanded={doc.show ? 'true' : 'false'}
-          aria-controls={identify_3}
-        >
-          {`${index + 1}) ${Sugar.String.capitalize(doc.title)}`}
-        </button>
-      </h2>
-      <div
-        id={identify_3}
-        className={`accordion-collapse collapse ${doc.show ? 'show' : ''}`}
-        aria-labelledby={identify_3}
-        data-bs-parent={`#${identify_1}`}
-      >
-        <div className="accordion-body">{body}</div>
-      </div>
-    </div>
+    <Accordion.Item key={doc.id} eventKey={doc.id}>
+      <Accordion.Header>
+        {`${index + 1}) ${Sugar.String.capitalize(doc.title)}`}
+      </Accordion.Header>
+      <Accordion.Body>
+        {body}
+      </Accordion.Body>
+    </Accordion.Item>
   )
 }
 
-const Docs = ({ sections }): JSX.Element => {
-  const links = sections.map((section: Section, index: number) => {
-      return (
-        <a
-          key={section.id}
-          className="nav-link bg-transparent text-primary border-bottom my-1"
-          href={`#item-${index + 1}`}
-        >
-          {`${index + 1}. ${Sugar.String.capitalize(section.title)}`}
-        </a>
-      )
-    }),
-    docs = (section: Section, index: number) =>
+export default function Docs({ sections }: { sections: Section[] }) {
+   const docs = (section: Section, index: number) =>
       section.docs.map((doc: Doc, docIndex: number) =>
         render_doc(docIndex, `item-${index + 1}`, doc)
       ),
@@ -338,7 +382,9 @@ const Docs = ({ sections }): JSX.Element => {
               {Sugar.String.capitalize(section.title)}
             </p>
           </div>
-          <div className="accordion my-2">{docs(section, index)}</div>
+          <Accordion className="my-2" defaultActiveKey="0">
+            {docs(section, index)}
+          </Accordion>
         </div>
       )
     })
@@ -354,20 +400,9 @@ const Docs = ({ sections }): JSX.Element => {
           <p className="text-center text-secondary fs-3 fw-bold p-2 my-2">
             Documentação
           </p>
-          <span className="position-absolute top-50 start-100 translate-middle badge rounded-pill text-primary bg-secondary">
-            v1.0.0
-            <span className="visually-hidden">versão</span>
-          </span>
         </div>
       </div>
       <hr className="text-muted" />
-      <nav
-        id="navbar-summary"
-        className="navbar bg-transparent border flex-column align-items-stretch mx-2 p-3"
-      >
-        <a className="navbar-brand text-primary fw-bold">Sumário</a>
-        <nav className="nav nav-pills flex-column">{links}</nav>
-      </nav>
       <div
         data-bs-spy="scroll"
         data-bs-target="#navbar-summary"
@@ -379,5 +414,3 @@ const Docs = ({ sections }): JSX.Element => {
     </div>
   )
 }
-
-export default Docs

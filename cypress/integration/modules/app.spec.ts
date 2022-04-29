@@ -7,7 +7,7 @@ import App from '@/src/app'
 describe('Testando as propriedades do aplicativo', () => {
     it('Testa as propriedades', () => {
         assert.isOk(typeof App.version === 'string', 'propriedade version está com o tipo correto');
-        assert.equal(App.version, '1.0.0', 'propriedade version está com o valor correto');
+        assert.equal(App.version, '0.1.0', 'propriedade version está com o valor correto');
 
         assert.isOk(typeof App.license === 'string', 'propriedade license está com o tipo correto');
         assert.equal(App.license, 'MIT', 'propriedade license está com o valor correto');

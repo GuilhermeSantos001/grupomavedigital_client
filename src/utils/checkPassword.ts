@@ -1,7 +1,7 @@
 /**
  * @description Função usada para verificar se a variavel passa por todos
  * os criterios exigidos para aumentar a segurança
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 01/10/2021
  */
 

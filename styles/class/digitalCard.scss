@@ -1,0 +1,19 @@
+.digitalCard {
+  .whatsapp {
+    font-size: 12px;
+  }
+
+  .phone {
+    font-size: 10px;
+  }
+
+  @include media-breakpoint-up(sm) {
+    .whatsapp {
+      font-size: 14px;
+    }
+
+    .phone {
+      font-size: 14px;
+    }
+  }
+}

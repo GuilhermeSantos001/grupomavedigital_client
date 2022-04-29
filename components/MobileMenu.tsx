@@ -1,14 +1,15 @@
 /**
  * @description Componentes do menu mobile
- * @author @GuilhermeSantos001
- * @update 22/09/2021
- * @version 1.0.0
+ * @author GuilhermeSantos001
+ * @update 24/04/2022
  */
 
 import React from 'react'
 
+export type MyProps = {};
+
 export default class MobileMenu extends React.Component {
-  constructor(props) {
+  constructor(props: MyProps) {
     super(props)
 
     this.handleImageClick = this.handleImageClick.bind(this)

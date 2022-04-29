@@ -1,10 +1,10 @@
 /**
  * @description Estrutura de base para interação com o banco de dados
- * @author @GuilhermeSantos001
+ * @author GuilhermeSantos001
  * @update 27/09/2021
  */
 
-import { compressToBase64, decompressFromBase64 } from 'lz-string';
+import { compress, decompress } from 'lzutf8';
 import { parse, stringify } from 'flatted';
 
 import IndexedDB from '@/src/core/indexedDB';
@@ -12,7 +12,6 @@ import LocalStorageEx from '@/src/core/localStorageEx';
 import MemoryDB from '@/src/core/memoryDB';
 
 export type Technology = 'IndexedDB' | 'LocalStorageEx' | 'Memory';
-
 export interface Value {
   id: string;
   value: string;
@@ -47,14 +46,14 @@ export default class Core_Database {
    * @description Faz a compressão da variável
    */
   private compress(value: string): string {
-    return compressToBase64(stringify(value) || "");
+    return compress(stringify(value) || "");
   }
 
   /**
    * @description Faz a descompressão da variavel
    */
   private decompress(value: string): string {
-    return parse(decompressFromBase64(value) || "");
+    return parse(decompress(value) || "");
   }
 
   /**
@@ -137,6 +136,17 @@ export default class Core_Database {
       }
 
       return undefined;
+    } catch (error: any) {
+      throw new Error(error);
+    }
+  }
+
+  /**
+   * @description Retorna um valor da store
+   */
+  public async store_getAllKeys(store: string): Promise<string[]> {
+    try {
+      return await this.db.storeGetAllKeys(store, 'id');
     } catch (error: any) {
       throw new Error(error);
     }

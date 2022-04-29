@@ -3,6 +3,10 @@
  * https://jestjs.io/docs/configuration
  */
 
+const {
+  resolve
+} = require('path');
+
 module.exports = {
   roots: ['<rootDir>'],
   testEnvironment: 'jsdom',
@@ -19,9 +23,23 @@ module.exports = {
   moduleNameMapper: {
     '\\.(css|less|sass|scss)$': 'identity-obj-proxy',
     '\\.(gif|ttf|eot|svg|png)$': '<rootDir>/test/__mocks__/fileMock.js',
+    "^@/bin/(.+)$": "<rootDir>/bin/$1",
+    "^@/app/(.+)$": "<rootDir>/app/$1",
+    "^@/middlewares/(.+)$": "<rootDir>/middlewares/$1",
+    "^@/services/(.+)$": "<rootDir>/services/$1",
+    "^@/types/(.+)$": "<rootDir>/types/$1",
+    "^@/constants/(.+)$": "<rootDir>/constants/$1",
+    "^@/controllers/(.+)$": "<rootDir>/controllers/$1",
+    "^@/context/(.+)$": "<rootDir>/context/$1",
+    "^@/lib/(.+)$": "<rootDir>/lib/$1",
+    "^@/utility/(.+)$": "<rootDir>/utility/$1",
     "^@/components/(.+)$": "<rootDir>/components/$1",
     "^@/pages/(.+)$": "<rootDir>/pages/$1",
     "^@/src/(.+)$": "<rootDir>/src/$1",
+    "^@/styles/(.+)$": "<rootDir>/styles/$1",
+    "^@/animations/(.+)$": "<rootDir>/animations/$1",
+    "^@/modules/(.+)$": "<rootDir>/modules/$1",
   },
-  modulePathIgnorePatterns: ["<rootDir>/cypress/"]
+  modulePathIgnorePatterns: ["<rootDir>/cypress/"],
+  setupFiles: [resolve(__dirname, './test/setup-test.ts')],
 }

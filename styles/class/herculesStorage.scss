@@ -1,0 +1,82 @@
+// ------------------------------------------------------------------------------
+// Author: GuilhermeSantos001
+// Updated: 09/12/2021
+//
+
+.folder-container,
+.file-container {
+  @extend .animation-delay,
+    .d-flex,
+    .flex-row,
+    .col-12,
+    .bg-light-gray,
+    .border,
+    .border-bottom-0,
+    .rounded,
+    .overflow-auto,
+    .my-2,
+    .mh-100;
+
+  cursor: pointer;
+
+  &:hover {
+    @extend .shadow-sm;
+  }
+
+  .folder-item-action,
+  .file-item-action {
+    @extend .d-flex,
+      .flex-row,
+      .border-end,
+      .border-bottom,
+      .justify-content-center,
+      .col-1,
+      .align-items-center;
+  }
+
+  .folder-item,
+  .file-item {
+    @extend .d-flex,
+      .flex-row,
+      .col-11,
+      .col-md,
+      .border-bottom,
+      .ps-2,
+      .text-primary;
+
+    &:hover {
+      @extend .border-primary;
+    }
+
+    .folder-item-section-1,
+    .file-item-section-1 {
+      @extend .d-flex,
+        .flex-row,
+        .col-1,
+        .p-2,
+        .text-center,
+        .justify-content-center,
+        .align-items-center;
+    }
+
+    .folder-item-section-2,
+    .file-item-section-2 {
+      @extend .col-11, .d-flex, .ps-2;
+    }
+  }
+}
+
+.folder-icon-edit-property,
+.file-icon-edit-property {
+  @extend .animation-delay, .text-primary;
+
+  cursor: pointer;
+
+  &:hover {
+    @extend .fs-5, .text-secondary;
+  }
+  &.activate {
+    @extend .fs-5;
+    transform: scale(1.05);
+  }
+}

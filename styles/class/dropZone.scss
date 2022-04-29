@@ -1,0 +1,135 @@
+// ------------------------------------------------------------------------------
+// Author: GuilhermeSantos001
+// Updated: 20/04/2022
+//
+
+.dropzone {
+  @extend .animation-delay, .col-12;
+  &.active {
+    visibility: visible;
+    opacity: 1;
+    animation: fadeInUp;
+    animation-duration: 400ms;
+    animation-fill-mode: forwards;
+    transition: opacity 2s linear;
+  }
+  &.deactivate {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    animation: fadeOutUp;
+    animation-duration: 400ms;
+    animation-fill-mode: forwards;
+    transition: visibility 0s 2s, opacity 2s linear;
+  }
+}
+
+.drag-drop-zone {
+  @extend .d-none,
+    .d-md-flex,
+    .flex-column,
+    .bg-light-gray,
+    .border,
+    .rounded,
+    .shadow,
+    .animation-delay;
+
+  height: 20vh;
+
+  p {
+    @extend .animation-delay, .text-muted;
+  }
+
+  .content {
+    @extend .d-flex,
+      .flex-column,
+      .justify-content-center,
+      .p-2,
+      .col-12,
+      .mt-auto,
+      .mx-auto;
+  }
+
+  &.invalid-1 {
+    @extend .bg-danger;
+
+    p {
+      @extend .text-white;
+      transform: scale(1.2);
+    }
+  }
+  &.invalid-2 {
+    @extend .border-danger;
+  }
+  &.overlay {
+    @extend .opacity-50 !optional;
+  }
+}
+
+.dropbox-container {
+  @extend .col-12, .p-2, .h-100, .overflow-auto, .p-2;
+
+  &.active {
+    visibility: visible;
+    opacity: 1;
+    animation: zoomIn;
+    animation-duration: 400ms;
+    animation-fill-mode: forwards;
+    transition: opacity 2s linear;
+  }
+  &.deactivate {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    animation: zoomOut;
+    animation-duration: 400ms;
+    animation-fill-mode: forwards;
+    transition: visibility 0s 2s, opacity 2s linear;
+  }
+
+  .trash-icon {
+    @extend .animation-delay, .text-muted;
+
+    cursor: pointer;
+
+    &:hover {
+      @extend .fs-5, .text-danger;
+      transform: scale(1.05);
+    }
+  }
+}
+
+.dropbox-item {
+  @extend .d-flex, .border-bottom;
+
+  &.active {
+    visibility: visible;
+    opacity: 1;
+    animation: fadeIn;
+    animation-duration: 400ms;
+    animation-fill-mode: forwards;
+    transition: opacity 2s linear;
+  }
+  &.deactivate {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    animation: fadeOut;
+    animation-duration: 400ms;
+    animation-fill-mode: forwards;
+    transition: opacity 400ms;
+    transition: visibility 0s 2s, opacity 2s linear;
+  }
+}

@@ -1,10 +1,10 @@
-/**
- * @description Pagina principal do sistema
- * @author @GuilhermeSantos001
- * @update 05/10/2021
- */
+import { useState } from 'react'
 
-import React, { useEffect, useState } from 'react'
+import { GetServerSidePropsContext } from 'next/types'
+
+import { useGetUserInfoService } from '@/services/graphql/useGetUserInfoService'
+
+import { compressToEncodedURIComponent } from 'lz-string'
 
 import Image from 'next/image'
 import { useRouter } from 'next/router'
@@ -14,18 +14,15 @@ import SkeletonLoader from 'tiny-skeleton-loader-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
 
-import RenderPageError from '@/components/renderPageError'
+import { handleClickFunction } from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
 
 import Sugar from 'sugar'
+import DateEx from '@/src/utils/dateEx'
 
 import { PageProps } from '@/pages/_app'
-import PageMenu from '@/bin/main_menu'
-
-import Fetch from '@/src/utils/fetch'
-import Variables from '@/src/db/variables'
-import getUserInfo from '@/src/functions/getUserInfo'
-import tokenValidate from '@/src/functions/tokenValidate'
+import { GetMenuMain } from '@/bin/GetMenuMain'
+import { GetUpdates } from '@/bin/GetUpdates'
 
 interface PageData {
   photoProfile: string
@@ -37,13 +34,15 @@ const serverSideProps: PageProps = {
   title: 'System/Home',
   description: 'Grupo Mave Digital seu ambiente de trabalho integrado',
   themeColor: '#004a6e',
-  menu: PageMenu('mn-login'),
+  menu: GetMenuMain('mn-account-profile')
 }
 
-export const getServerSideProps = async () => {
+export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => {
   return {
     props: {
       ...serverSideProps,
+      auth: req.cookies.auth,
+      getUserInfoAuthorization: process.env.GRAPHQL_AUTHORIZATION_GETUSERINFO!,
     },
   }
 }
@@ -181,11 +180,7 @@ function compose_load() {
   )
 }
 
-function compose_error() {
-  return <RenderPageError />
-}
-
-function compose_noAuth(handleClick) {
+function compose_noAuth(handleClick: handleClickFunction) {
   return <NoAuth handleClick={handleClick} />
 }
 
@@ -239,16 +234,27 @@ function compose_user_view_1() {
           </p>
         </div>
         <div className="p-3 bg-light-gray rounded overflow-auto h-50">
-          <div className="my-1 text-primary">
-            <p className="text-center text-md-start px-2 fs-6 fw-bold">
-              <FontAwesomeIcon
-                icon={Icon.render('fas', 'paint-brush')}
-                className="me-1 flex-shrink-1 my-auto"
-              />
-              Estamos com um novo visual, o que você achou?
-            </p>
-            <hr />
-          </div>
+          {
+            GetUpdates().map(update => (
+              <div key={update.id} className="my-1 text-primary">
+                {
+                  update.title && update.title.length > 0 &&
+                  <h5 className='p-2 text-center fw-bold border-bottom'>{update.title}</h5>
+                }
+                <p className="px-2 fs-6 fw-bold" style={{ textAlign: 'justify' }}>
+                  <FontAwesomeIcon
+                    icon={Icon.render(update.iconFamily, update.iconName)}
+                    className="me-1 flex-shrink-1 my-auto"
+                  />
+                  {update.message}
+                </p>
+                <p className="px-2 fs-6 text-muted">
+                  {Sugar.String.capitalize(DateEx.formatDistance(new Date(), new Date(update.createdAt.year, update.createdAt.month, update.createdAt.day)))}
+                </p>
+                <hr />
+              </div>
+            ))
+          }
         </div>
       </div>
       <div className="col-12 col-md-6">
@@ -278,65 +284,58 @@ function compose_user_view_1() {
   )
 }
 
-const System = (): JSX.Element => {
+export default function System(
+  {
+    auth,
+    getUserInfoAuthorization,
+  }: {
+    auth: string,
+    getUserInfoAuthorization: string
+  }
+) {
   const [isReady, setReady] = useState<boolean>(false)
-  const [isError, setError] = useState<boolean>(false)
   const [notAuth, setNotAuth] = useState<boolean>(false)
-  const [data, setData] = useState<PageData>()
   const [loading, setLoading] = useState<boolean>(true)
 
-  const router = useRouter()
-  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
-
-  const handleClick = async (e, path) => {
-    e.preventDefault()
-
-    if (path === '/auth/login') {
-      const variables = new Variables(1, 'IndexedDB')
-      await Promise.all([await variables.clear()]).then(() => {
-        router.push(path)
-      })
+  const { success, data, error } = useGetUserInfoService(
+    {
+      auth: compressToEncodedURIComponent(auth),
+    },
+    {
+      authorization: getUserInfoAuthorization,
+      encodeuri: 'true'
     }
+  );
+
+  const router = useRouter()
+
+  const
+    handleClickNoAuth: handleClickFunction = async (
+      event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+      path: string
+    ) => {
+      event.preventDefault();
+      if (path === '/auth/login')
+        router.push(path);
+    }
+
+  if (error && !notAuth) {
+    setNotAuth(true);
+    setLoading(false);
   }
 
-  useEffect(() => {
-    const timer = setTimeout(async () => {
-      const allowViewPage = await tokenValidate(_fetch)
-
-      if (!allowViewPage) {
-        setNotAuth(true)
-        setLoading(false)
-      } else {
-        try {
-          const { photoProfile, username, privileges } = await getUserInfo(
-            _fetch
-          )
-
-          setData({
-            photoProfile,
-            username,
-            privilege: privileges[0],
-          })
-
-          setReady(true)
-          return setLoading(false)
-        } catch {
-          setError(true)
-          return setLoading(false)
-        }
-      }
-    })
-
-    return () => clearTimeout(timer)
-  }, [])
+  if (success && data && !isReady) {
+    setReady(true);
+    setLoading(false);
+  }
 
   if (loading) return compose_load()
 
-  if (isError) return compose_error()
+  if (notAuth) return compose_noAuth(handleClickNoAuth)
 
-  if (notAuth) return compose_noAuth(handleClick)
-
-  if (isReady) return compose_ready(data)
+  if (isReady) return compose_ready({
+    photoProfile: data?.photoProfile || '',
+    username: data?.username || '???',
+    privilege: data?.privilege || '???',
+  });
 }
-
-export default System

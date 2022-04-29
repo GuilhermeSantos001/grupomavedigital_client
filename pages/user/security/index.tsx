@@ -1,11 +1,12 @@
-/**
- * @description Pagina usada para alterar as informações de segurança do usuario
- * @author @GuilhermeSantos001
- * @update 05/10/2021
- */
-
 import React, { useEffect, useState } from 'react'
+
 import { Modal } from 'react-bootstrap'
+
+import { GetServerSidePropsContext } from 'next/types'
+
+import { useGetUserInfoService } from '@/services/graphql/useGetUserInfoService'
+
+import { compressToEncodedURIComponent } from 'lz-string'
 
 import Image from 'next/image'
 import { useRouter } from 'next/router'
@@ -17,17 +18,14 @@ import Icon from '@/src/utils/fontAwesomeIcons'
 
 import Sugar from 'sugar'
 
-import RenderPageError from '@/components/renderPageError'
+import { handleClickFunction } from '@/components/noPrivilege'
 import NoAuth from '@/components/noAuth'
 import Alerting from '@/src/utils/alerting'
 
 import { PageProps } from '@/pages/_app'
-import PageMenu from '@/bin/main_menu'
+import { GetMenuMain } from '@/bin/GetMenuMain'
 
 import Fetch from '@/src/utils/fetch'
-import Variables from '@/src/db/variables'
-import getUserInfo from '@/src/functions/getUserInfo'
-import tokenValidate from '@/src/functions/tokenValidate'
 import hasConfiguredTwoFactor from '@/src/functions/hasConfiguredTwoFactor'
 import authSignTwofactor from '@/src/functions/authSignTwofactor'
 import authVerifyTwofactor from '@/src/functions/authVerifyTwofactor'
@@ -46,13 +44,21 @@ const serverSideProps: PageProps = {
   title: 'Segurança',
   description: 'Configurações pessoais de segurança',
   themeColor: '#004a6e',
-  menu: PageMenu('mn-security'),
+  menu: GetMenuMain('mn-security')
 }
 
-export const getServerSideProps = async () => {
+export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => {
   return {
     props: {
       ...serverSideProps,
+      auth: req.cookies.auth,
+      getUserInfoAuthorization: process.env.GRAPHQL_AUTHORIZATION_GETUSERINFO!,
+      authSignTwofactorAuthorization: process.env.GRAPHQL_AUTHORIZATION_AUTHSIGNTWOFACTOR!,
+      authVerifyTwofactorAuthorization: process.env.GRAPHQL_AUTHORIZATION_AUTHVERIFYTWOFACTOR!,
+      authEnabledTwofactorAuthorization: process.env.GRAPHQL_AUTHORIZATION_AUTHENABLEDTWOFACTOR!,
+      authDisableTwofactorAuthorization: process.env.GRAPHQL_AUTHORIZATION_AUTHDISABLEDTWOFACTOR!,
+      changePasswordAuthorization: process.env.GRAPHQL_AUTHORIZATION_CHANGEPASSWORD!,
+      hasConfiguredTwoFactorAuthorization: process.env.GRAPHQL_AUTHORIZATION_HASCONFIGUREDTWOFACTOR!,
     },
   }
 }
@@ -206,11 +212,7 @@ function compose_load() {
   )
 }
 
-function compose_error() {
-  return <RenderPageError />
-}
-
-function compose_noAuth(handleClick) {
+function compose_noAuth(handleClick: handleClickFunction) {
   return <NoAuth handleClick={handleClick} />
 }
 
@@ -220,19 +222,19 @@ function compose_ready(
   passwordView: boolean,
   newPassword: string,
   newPasswordView: boolean,
-  handleChangePassword,
-  handleClickPasswordView,
-  handleChangeNewPassword,
-  handleClickNewPasswordView,
-  handleClickChangePassword,
+  handleChangePassword: (value: string) => Promise<void>,
+  handleClickPasswordView: () => Promise<void>,
+  handleChangeNewPassword: (value: string) => Promise<void>,
+  handleClickNewPasswordView: () => Promise<void>,
+  handleClickChangePassword: () => Promise<void>,
   twofactor: boolean,
-  twoFactorModalShow,
-  twoFactorQRCode,
-  handleTriggerTwoFactorModal,
+  twoFactorModalShow: boolean,
+  twoFactorQRCode: string,
+  handleTriggerTwoFactorModal: (show: boolean) => Promise<void>,
   twoFactorCode: string,
-  handleChangeTwoFactorCode,
-  handleClickTwoFactorVerify,
-  handleClickTwoFactorDisable
+  handleChangeTwoFactorCode: (value: string) => Promise<void>,
+  handleClickTwoFactorVerify: () => Promise<void>,
+  handleClickTwoFactorDisable: () => Promise<void>,
 ) {
   return (
     <div className="d-flex flex-column p-2">
@@ -291,19 +293,19 @@ function compose_user_view_1(
   passwordView: boolean,
   newPassword: string,
   newPasswordView: boolean,
-  handleChangePassword,
-  handleClickPasswordView,
-  handleChangeNewPassword,
-  handleClickNewPasswordView,
-  handleClickChangePassword,
+  handleChangePassword: (value: string) => Promise<void>,
+  handleClickPasswordView: () => Promise<void>,
+  handleChangeNewPassword: (value: string) => Promise<void>,
+  handleClickNewPasswordView: () => Promise<void>,
+  handleClickChangePassword: () => Promise<void>,
   twoFactorModalShow: boolean,
   twofactor: boolean,
   twoFactorQRCode: string,
   twoFactorCode: string,
-  handleTriggerTwoFactorModal,
-  handleChangeTwoFactorCode,
-  handleClickTwoFactorVerify,
-  handleClickTwoFactorDisable
+  handleTriggerTwoFactorModal: (show: boolean) => Promise<void>,
+  handleChangeTwoFactorCode: (value: string) => Promise<void>,
+  handleClickTwoFactorVerify: () => Promise<void>,
+  handleClickTwoFactorDisable: () => Promise<void>,
 ) {
   return (
     <div className="row gx-2">
@@ -377,10 +379,10 @@ function compose_password_1(
   passwordView: boolean,
   newPassword: string,
   newPasswordView: boolean,
-  handleChangePassword,
-  handleClickPasswordView,
-  handleChangeNewPassword,
-  handleClickNewPasswordView
+  handleChangePassword: (value: string) => Promise<void>,
+  handleClickPasswordView: () => Promise<void>,
+  handleChangeNewPassword: (value: string) => Promise<void>,
+  handleClickNewPasswordView: () => Promise<void>,
 ) {
   const newPasswordDisabled = () => {
     if (password.length <= 0) return true
@@ -405,7 +407,7 @@ function compose_password_1(
                 aria-label="Password"
                 aria-describedby="password-addon"
                 value={password}
-                onChange={handleChangePassword}
+                onChange={(e) => handleChangePassword(e.target.value)}
               />
               <span className="input-group-text" id="passwordView-addon">
                 <FontAwesomeIcon
@@ -451,7 +453,7 @@ function compose_password_1(
                 aria-label="New Password"
                 aria-describedby="newPassword-addon"
                 value={newPassword}
-                onChange={handleChangeNewPassword}
+                onChange={(e) => handleChangeNewPassword(e.target.value)}
                 disabled={newPasswordDisabled()}
               />
               <span className="input-group-text" id="newPasswordView-addon">
@@ -479,7 +481,10 @@ function compose_password_1(
   )
 }
 
-function compose_password_2(newPassword: string, handleClickChangePassword) {
+function compose_password_2(
+  newPassword: string,
+  handleClickChangePassword: () => Promise<void>
+) {
   return (
     <div className="col-12 text-primary px-2">
       <div className="row gx-5">
@@ -544,10 +549,10 @@ function compose_twoFactor(
   twofactor: boolean,
   twoFactorQRCode: string,
   twoFactorCode: string,
-  handleTriggerTwoFactorModal,
-  handleChangeTwoFactorCode,
-  handleClickTwoFactorVerify,
-  handleClickTwoFactorDisable
+  handleTriggerTwoFactorModal: (show: boolean) => Promise<void>,
+  handleChangeTwoFactorCode: (value: string) => Promise<void>,
+  handleClickTwoFactorVerify: () => Promise<void>,
+  handleClickTwoFactorDisable: () => Promise<void>
 ) {
   return (
     <div className="my-1 text-primary">
@@ -564,13 +569,13 @@ function compose_twoFactor(
           <button
             type="button"
             className="btn btn-outline-primary col-12"
-            onClick={handleTriggerTwoFactorModal.bind(this, true)}
+            onClick={() => handleTriggerTwoFactorModal(true)}
           >
             Ativar
           </button>
           <Modal
             show={twoFactorModalShow}
-            onHide={handleTriggerTwoFactorModal.bind(this, false)}
+            onHide={() => handleTriggerTwoFactorModal(false)}
           >
             <Modal.Header
               className="bg-primary bg-gradient"
@@ -582,62 +587,65 @@ function compose_twoFactor(
               </Modal.Title>
             </Modal.Header>
             <Modal.Body>
-              {twoFactorQRCode.length > 0 ? (
-                <>
-                  <div className="d-flex flex-column">
-                    <img
-                      src={twoFactorQRCode}
-                      alt="Escanei com seu aplicativo autenticador"
-                      className="col-6 align-self-center"
-                      height="100%"
+              <div className='overflow-auto' style={{ height: '65vh' }}>
+                {twoFactorQRCode.length > 0 ? (
+                  <>
+                    <div className="d-flex flex-column">
+                      <Image
+                        src={twoFactorQRCode}
+                        alt="Escanei com seu aplicativo autenticador"
+                        className="align-self-center"
+                        width="350"
+                        height="350"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <p className="fw-bold">
+                    Aguarde, enquanto geramos seu QRCode...
+                  </p>
+                )}
+                <hr />
+                <div className="input-group mb-3">
+                  <span className="input-group-text" id="codeSecret-addon">
+                    <FontAwesomeIcon
+                      icon={Icon.render('fab', 'keycdn')}
+                      className="ms-2 fs-3 flex-shrink-1 text-primary my-auto"
                     />
-                  </div>
-                </>
-              ) : (
-                <p className="fw-bold">
-                  Aguarde, enquanto geramos seu QRCode...
-                </p>
-              )}
-              <hr />
-              <div className="input-group mb-3">
-                <span className="input-group-text" id="codeSecret-addon">
-                  <FontAwesomeIcon
-                    icon={Icon.render('fab', 'keycdn')}
-                    className="ms-2 fs-3 flex-shrink-1 text-primary my-auto"
+                  </span>
+                  <input
+                    type="phone"
+                    className="form-control"
+                    placeholder="Código de senha de uso único"
+                    aria-label="Code Secret"
+                    aria-describedby="codeSecret-addon"
+                    value={twoFactorCode}
+                    onChange={(e) => handleChangeTwoFactorCode(e.target.value)}
                   />
-                </span>
-                <input
-                  type="phone"
-                  className="form-control"
-                  placeholder="Código de senha de uso único"
-                  aria-label="Code Secret"
-                  aria-describedby="codeSecret-addon"
-                  value={twoFactorCode}
-                  onChange={handleChangeTwoFactorCode}
-                />
+                </div>
+                <p className="fw-bold">
+                  Faça a leitura do seu QRCode usando um aplicativo autenticador.
+                </p>
+                <small>
+                  Microsoft Authenticator, recomendado.
+                  <br />
+                  <a
+                    href="https://play.google.com/store/apps/details?id=com.azure.authenticator&hl=pt_BR&gl=US"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Baixar pela Google Play
+                  </a>
+                  <br />
+                  <a
+                    href="https://apps.apple.com/br/app/microsoft-authenticator/id983156458"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Baixar pela Apple Store
+                  </a>
+                </small>
               </div>
-              <p className="fw-bold">
-                Faça a leitura do seu QRCode usando um aplicativo autenticador.
-              </p>
-              <small>
-                Microsoft Authenticator, recomendado.
-                <br />
-                <a
-                  href="https://play.google.com/store/apps/details?id=com.azure.authenticator&hl=pt_BR&gl=US"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Baixar pela Google Play
-                </a>
-                <br />
-                <a
-                  href="https://apps.apple.com/br/app/microsoft-authenticator/id983156458"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Baixar pela Apple Store
-                </a>
-              </small>
             </Modal.Body>
             <Modal.Footer>
               <button
@@ -656,11 +664,29 @@ function compose_twoFactor(
   )
 }
 
-const Security = (): JSX.Element => {
+export default function Security(
+  {
+    auth,
+    getUserInfoAuthorization,
+    authSignTwofactorAuthorization,
+    authVerifyTwofactorAuthorization,
+    authEnabledTwofactorAuthorization,
+    authDisableTwofactorAuthorization,
+    changePasswordAuthorization,
+    hasConfiguredTwoFactorAuthorization,
+  }: {
+    auth: string,
+    getUserInfoAuthorization: string,
+    authSignTwofactorAuthorization: string,
+    authVerifyTwofactorAuthorization: string,
+    authEnabledTwofactorAuthorization: string,
+    authDisableTwofactorAuthorization: string,
+    changePasswordAuthorization: string,
+    hasConfiguredTwoFactorAuthorization: string,
+  }
+) {
   const [isReady, setReady] = useState<boolean>(false)
-  const [isError, setError] = useState<boolean>(false)
   const [notAuth, setNotAuth] = useState<boolean>(false)
-  const [data, setData] = useState<PageData>()
   const [password, setPassword] = useState<string>('')
   const [passwordView, setPasswordView] = useState<boolean>(false)
   const [newPassword, setNewPassword] = useState<string>('')
@@ -671,131 +697,147 @@ const Security = (): JSX.Element => {
   const [twoFactorCode, setTwoFactorCode] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(true)
 
+  const { success, data, error } = useGetUserInfoService(
+    {
+      auth: compressToEncodedURIComponent(auth),
+    },
+    {
+      authorization: getUserInfoAuthorization,
+      encodeuri: 'true'
+    }
+  );
+
   const router = useRouter()
-  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST)
+  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST!)
 
-  const handleClick = async (e, path) => {
-      e.preventDefault()
-
-      if (path === '/auth/login') {
-        const variables = new Variables(1, 'IndexedDB')
-        await Promise.all([await variables.clear()]).then(() => {
-          router.push(path)
-        })
-      }
+  const
+    handleClickNoAuth: handleClickFunction = async (
+      event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+      path: string
+    ) => {
+      event.preventDefault();
+      if (path === '/auth/login')
+        router.push(path);
     },
-    handleChangePassword = async (e) => {
-      setPassword(e.target.value)
-    },
-    handleChangeNewPassword = async (e) => {
-      setNewPassword(e.target.value)
-    },
-    handleClickPasswordView = async () => {
-      setPasswordView(passwordView ? false : true)
-    },
-    handleClickNewPasswordView = async () => {
-      setNewPasswordView(newPasswordView ? false : true)
-    },
+    handleChangePassword = async (value: string) => setPassword(value),
+    handleChangeNewPassword = async (value: string) => setNewPassword(value),
+    handleClickPasswordView = async () => setPasswordView(passwordView ? false : true),
+    handleClickNewPasswordView = async () => setNewPasswordView(newPasswordView ? false : true),
     handleClickChangePassword = async () => {
       const test = checkPassword(newPassword)
 
-      if (typeof test === 'string') return Alerting.create(test)
+      if (typeof test === 'string')
+        return Alerting.create('warning', test)
 
       if (test) {
-        if (await changePassword(_fetch, password, newPassword)) {
-          Alerting.create('Senha alterada com sucesso!')
-          setPassword('')
-          setNewPassword('')
+        const success = await changePassword(
+          _fetch,
+          auth,
+          password,
+          newPassword,
+          changePasswordAuthorization
+        );
+
+        if (success) {
+          Alerting.create('info', 'Senha alterada com sucesso!');
+          setPassword('');
+          setNewPassword('');
         } else {
           Alerting.create(
+            'error',
             'Não foi possível alterar sua senha. Tente novamente!'
-          )
+          );
         }
       }
     },
     handleClickTwoFactorSign = async () => {
       try {
-        setTwoFactorQRCode(await authSignTwofactor(_fetch))
+        const { qrcode } = await authSignTwofactor(_fetch, auth, authSignTwofactorAuthorization);
+
+        setTwoFactorQRCode(qrcode);
+
+        return true;
       } catch (error) {
-        throw new Error(error)
+        return false;
       }
     },
-    handleChangeTwoFactorCode = async (e) => {
-      setTwoFactorCode(e.target.value)
-    },
+    handleChangeTwoFactorCode = async (value: string) => setTwoFactorCode(value),
     handleClickTwoFactorVerify = async () => {
-      if (await authVerifyTwofactor(_fetch, twoFactorCode)) {
-        if (await authEnabledTwofactor(_fetch)) {
-          Alerting.create('Sua autenticação de duas etapas está habilitada.')
-          handleTriggerTwoFactorModal(false)
-          setTwofactor(true)
+      const verifyTwofactor = await authVerifyTwofactor(
+        _fetch,
+        auth,
+        twoFactorCode,
+        authVerifyTwofactorAuthorization
+      );
+
+      if (verifyTwofactor) {
+        const enabledTwofactor = await authEnabledTwofactor(_fetch, auth, authEnabledTwofactorAuthorization);
+
+        if (enabledTwofactor) {
+          Alerting.create('info', 'Sua autenticação de duas etapas está habilitada.');
+          handleTriggerTwoFactorModal(false);
+          setTwofactor(true);
         } else {
           Alerting.create(
+            'error',
             'Não foi possível habilitar sua autenticação de duas etapas. Tente novamente!'
-          )
+          );
         }
       } else {
-        Alerting.create('Código invalido. Tente novamente!')
+        Alerting.create('error', 'Código invalido. Tente novamente!')
       }
     },
     handleClickTwoFactorDisable = async () => {
-      if (await authDisableTwofactor(_fetch)) {
-        Alerting.create('Sua autenticação de duas etapas foi desabilitada.')
-        setTwofactor(false)
+      const disableTwofactor = await authDisableTwofactor(_fetch, auth, authDisableTwofactorAuthorization);
+
+      if (disableTwofactor) {
+        Alerting.create('info', 'Sua autenticação de duas etapas foi desabilitada.');
+        setTwofactor(false);
       } else {
         Alerting.create(
+          'error',
           'Não foi possível desativar sua autenticação de duas etapas. Tente novamente!'
-        )
+        );
       }
     },
     handleTriggerTwoFactorModal = async (show: boolean) => {
-      if (show) await handleClickTwoFactorSign()
+      if (show) await handleClickTwoFactorSign();
 
-      setTwoFactorModalShow(show)
-    }
+      setTwoFactorModalShow(show);
+    };
 
   useEffect(() => {
-    const timer = setTimeout(async () => {
-      const allowViewPage = await tokenValidate(_fetch)
+    const timeout = setTimeout(async () => {
+      const configuredTwofactor = await hasConfiguredTwoFactor(
+        _fetch,
+        auth,
+        hasConfiguredTwoFactorAuthorization
+      );
 
-      if (!allowViewPage) {
-        setNotAuth(true)
-        setLoading(false)
-      } else {
-        try {
-          const { photoProfile, username, privileges } = await getUserInfo(
-            _fetch
-          )
+      if (configuredTwofactor)
+        setTwofactor(success);
+    });
 
-          setTwofactor(await hasConfiguredTwoFactor(_fetch))
+    return () => clearTimeout(timeout);
+  }, []);
 
-          setData({
-            photoProfile,
-            username,
-            privilege: privileges[0],
-          })
+  if (error && !notAuth) {
+    setNotAuth(true);
+    setLoading(false);
+  }
 
-          setReady(true)
-          return setLoading(false)
-        } catch {
-          setError(true)
-          setLoading(false)
-        }
-      }
-    })
-
-    return () => clearTimeout(timer)
-  }, [])
+  if (success && data && !isReady) {
+    setReady(true);
+    setLoading(false);
+  }
 
   if (loading) return compose_load()
 
-  if (isError) return compose_error()
+  if (notAuth) return compose_noAuth(handleClickNoAuth)
 
-  if (notAuth) return compose_noAuth(handleClick)
-
-  if (isReady)
+  if (isReady && data)
     return compose_ready(
-      data,
+      { photoProfile: data.photoProfile, privilege: data.privilege, username: data.username },
       password,
       passwordView,
       newPassword,
@@ -815,5 +857,3 @@ const Security = (): JSX.Element => {
       handleClickTwoFactorDisable
     )
 }
-
-export default Security
