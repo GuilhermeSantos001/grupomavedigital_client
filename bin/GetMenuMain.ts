@@ -189,7 +189,7 @@ export function GetMenuMain(firstId?: MenuOptions): MenuResponse {
               name: 'headset',
             },
             name: 'HelpDesk',
-            link: '/support',
+            link: '/glpi',
             disabled: disable['mn-helpdesk'] ? true : false,
           },
           {
