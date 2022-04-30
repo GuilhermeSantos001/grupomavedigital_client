@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 
 import { Modal } from 'react-bootstrap'
 
@@ -708,7 +708,7 @@ export default function Security(
   );
 
   const router = useRouter()
-  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST!)
+  const _fetch = useMemo(() => new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST!), []);
 
   const
     handleClickNoAuth: handleClickFunction = async (
@@ -819,7 +819,7 @@ export default function Security(
     });
 
     return () => clearTimeout(timeout);
-  }, []);
+  }, [_fetch, auth, hasConfiguredTwoFactorAuthorization, success]);
 
   if (error && !notAuth) {
     setNotAuth(true);

@@ -81,24 +81,24 @@ export function RegisterUsers(props: Props) {
       return addressId.length > 0
     },
     handleRegisterUser = async () => {
-      const user = await CreateUser({
-        authorization,
-        name,
-        surname,
-        username,
-        email,
-        password,
-        cnpj,
-        location,
-        photoProfile,
-        privileges
-      })
+      // const user = await CreateUser({
+      //   authorization,
+      //   name,
+      //   surname,
+      //   username,
+      //   email,
+      //   password,
+      //   cnpj,
+      //   location,
+      //   photoProfile,
+      //   privileges
+      // })
 
-      if (!user)
-        return Alerting.create('error', 'Não foi possível registrar o usuário. Tente novamente com outros dados.');
+      // if (!user)
+        // return Alerting.create('error', 'Não foi possível registrar o usuário. Tente novamente com outros dados.');
 
       Alerting.create('success', 'Usuário registrado com sucesso.');
-      props.handleClose();
+      // props.handleClose();
     };
 
   return (
@@ -135,44 +135,7 @@ export function RegisterUsers(props: Props) {
           <ListItem>
             <ListItemText primary="Informações Básicas" />
           </ListItem>
-          <ListItem>
-            <TextField
-              className='col'
-              label="Matrícula"
-              variant="standard"
-              value={StringEx.maskMatricule(matricule)}
-              onChange={(e) => handleChangeMatricule(StringEx.removeMaskNum(e.target.value))}
-            />
-          </ListItem>
         </List>
-        <List>
-          <ListItem>
-            <ListItemText primary="Localização" />
-          </ListItem>
-          <ListItem>
-            <SelectAddress
-              handleChangeId={(id) => handleChangeAddressId(id)}
-              handleChangeData={(data) => handleChangeAddressData(data)}
-            />
-          </ListItem>
-        </List>
-        <Button
-          className='col-10 mx-auto my-2'
-          variant="contained"
-          color="primary"
-          disabled={!canRegisterUser()}
-          onClick={handleRegisterUser}
-        >
-          Registrar
-        </Button>
-        <Button
-          className='col-10 mx-auto my-2'
-          variant="contained"
-          color="error"
-          onClick={props.handleClose}
-        >
-          Cancelar
-        </Button>
       </Dialog>
     </div>
   );

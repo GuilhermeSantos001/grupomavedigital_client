@@ -31,7 +31,7 @@ export default function getDigitalCardForTable(
         align: 'center',
         render: (rowData: RowData) => {
           return (
-            <NextLink href={`/cards/view/${rowData.id}`}>
+            <NextLink href={`/cards/view/${rowData.id}`} passHref={true}>
               <Link href={`/cards/view/${rowData.id}`} target="_blank">
                 <PreviewIcon />
               </Link>

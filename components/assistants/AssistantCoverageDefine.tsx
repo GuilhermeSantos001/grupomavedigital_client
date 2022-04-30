@@ -190,6 +190,47 @@ export function AssistantCoverageDefine(props: Props) {
     isLoadingReasonForAbsences
   } = props;
 
+  const
+    periodStart = props.periodStart,
+    periodEnd = props.periodEnd,
+    handleClearInputs = useCallback(() => {
+      setActiveStep(0);
+
+      setOriginDate(periodStart);
+      setPaymentMethod('');
+      setPaymentValue(0);
+      setPaymentDatePayable(periodEnd);
+
+      setCoveringWorkplace('');
+      setCoveringPersonId('');
+      setCoveringReasonForAbsenceId('');
+      setCoveringMirrorId('');
+      setCoveringMirrorFileId('');
+      setCoveringMirrorFileName('');
+      setCoveringMirrorFileType('');
+      setCoveringModality('');
+
+      setCoverageWorkplace('');
+      setCoveragePersonId('');
+      setCoverageMirrorId('');
+      setCoverageMirrorFileId('');
+      setCoverageMirrorFileName('');
+      setCoverageMirrorFileType('');
+
+      setPostings([]);
+      setPostingModality('');
+      setPostingDescription('');
+    }, [periodStart, periodEnd]);
+
+  const
+    handleFinishAssistant = props.handleFinish,
+    handleClose = props.handleClose,
+    ModalStepperClose = useCallback(() => {
+      handleClearInputs();
+      handleFinishAssistant(postings);
+      handleClose();
+    }, [postings, handleClearInputs, handleFinishAssistant, handleClose]);
+
   if (
     isLoadingUploads && !syncData
     || isLoadingCostCenters && !syncData
@@ -275,34 +316,6 @@ export function AssistantCoverageDefine(props: Props) {
       } catch (error) {
         Alerting.create('error', error instanceof Error ? error.message : JSON.stringify(error));
       }
-    },
-    clearInputs = () => {
-      setActiveStep(0);
-
-      setOriginDate(props.periodStart);
-      setPaymentMethod('');
-      setPaymentValue(0);
-      setPaymentDatePayable(props.periodEnd);
-
-      setCoveringWorkplace('');
-      setCoveringPersonId('');
-      setCoveringReasonForAbsenceId('');
-      setCoveringMirrorId('');
-      setCoveringMirrorFileId('');
-      setCoveringMirrorFileName('');
-      setCoveringMirrorFileType('');
-      setCoveringModality('');
-
-      setCoverageWorkplace('');
-      setCoveragePersonId('');
-      setCoverageMirrorId('');
-      setCoverageMirrorFileId('');
-      setCoverageMirrorFileName('');
-      setCoverageMirrorFileType('');
-
-      setPostings([]);
-      setPostingModality('');
-      setPostingDescription('');
     },
     hasChangeStep = (step: number) => {
       // ? Passo 1° -> Data de Origem
@@ -515,7 +528,7 @@ export function AssistantCoverageDefine(props: Props) {
           if (!posting)
             throw new Error(`Não é possível salvar a movimentação operacional. Tente novamente, mais tarde!`);
 
-          clearInputs();
+          handleClearInputs();
           setPostings([...postings, posting.data]);
 
           window.loading = 'hide';
@@ -630,7 +643,7 @@ export function AssistantCoverageDefine(props: Props) {
     handleChangePaymentValue = (value: number) => setPaymentValue(value),
     handleChangePostingType = (type: PostingModality) => {
       const _backup_originDate = originDate;
-      clearInputs();
+      handleClearInputs();
       setPostingModality(type);
       setOriginDate(_backup_originDate);
       setActiveStep(1);
@@ -1142,12 +1155,6 @@ export function AssistantCoverageDefine(props: Props) {
     height: '100%',
     boxShadow: 24
   }
-
-  const ModalStepperClose = useCallback(() => {
-    clearInputs();
-    props.handleFinish(postings);
-    props.handleClose();
-  }, [postings]);
 
   return (
     <>

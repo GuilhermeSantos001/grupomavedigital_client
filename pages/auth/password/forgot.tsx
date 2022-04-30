@@ -17,7 +17,7 @@ const serverSideProps: PageProps = {
   description:
     'Esqueceu sua senha? Iremos lhe enviar um e-mail, para que você possa alterar sua senha',
   themeColor: '#004a6e',
-  menu: GetMenuHome('mn-login')
+  menu: GetMenuHome('mn-home')
 }
 
 export const getServerSideProps = async () => ({
