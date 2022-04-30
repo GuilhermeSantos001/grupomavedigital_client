@@ -375,7 +375,7 @@ export function DigitalCardPage(props: Props) {
                   className={`col mx-1 p-2 ${getColorFooterText()}`}
                   variant="outlined"
                   color="secondary"
-                  onClick={() => window.open(props.website.slice(0, 4).includes('http') ? props.website : `http://${props.website}`)}
+                  onClick={() => window.open(props.website.slice(0, 4).includes('http') ? props.website : `https://${props.website}`)}
                 >
                   <Language fontSize='small' />
                 </Button>
