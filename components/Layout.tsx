@@ -128,6 +128,7 @@ export default function Layout(props: Props) {
     }
 
     return () => { }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadedAPI, router.pathname])
 
   if (lastRouterPathVisited && lastRouterPathVisited != router.pathname) {
