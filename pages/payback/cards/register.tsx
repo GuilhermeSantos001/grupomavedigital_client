@@ -473,6 +473,8 @@ function compose_ready(
                     lotNum: String(lotNum).padStart(9, '0'),
                     serialNumber: String(numSerialNumber).padStart(15, '0'),
                     lastCardNumber: String(numLastCardNumber).padStart(4, '0'),
+                    personId: null,
+                    unlocked: null,
                     status: 'available'
                   })
 

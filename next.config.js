@@ -7,13 +7,13 @@ const path = require("path");
 module.exports = withCSS()
 
 module.exports = withSass({
-  /* bydefault config  option Read For More Optios
+  /* by default config  option Read For More Options
   here https://github.com/vercel/next-plugins/tree/master/packages/next-sass*/
   cssModules: true
 })
 
 module.exports = withPWA({
-  swcMinify: true,
+  swcMinify: process.env.NODE_ENV === 'development',
   reactStrictMode: true,
   sassOptions: {
     includePaths: [path.join(__dirname, 'styles')],
@@ -25,6 +25,7 @@ module.exports = withPWA({
   },
   pwa: {
     dest: 'public',
+    maximumFileSizeToCacheInBytes: 5000000, // 5MB of cache for all files (default: 2000000 // 2MB)
     disable: process.env.NODE_ENV === 'development',
     register: true,
     runtimeCaching,

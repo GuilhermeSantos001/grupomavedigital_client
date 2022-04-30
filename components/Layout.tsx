@@ -129,7 +129,7 @@ export default function Layout(props: Props) {
         clearTimeout(fetchAPI);
       }
     }
-  }, [loadedAPI])
+  }, [loadedAPI, fetchAPI, router.pathname])
 
   if (lastRouterPathVisited && lastRouterPathVisited != router.pathname) {
     setLastRouterPathVisited(router.pathname);

@@ -151,7 +151,7 @@ export function DigitalCardPage(props: Props) {
       <Card.Body className="p-0 rounded">
         <ZoomInDiv duration='800ms'>
           <div className="d-flex mt-2 p-2 justify-content-center align-items-center">
-            <a href="https://grupomave.com.br" target={'_blank'}>
+            <a href="https://grupomave.com.br" rel="noreferrer" target={'_blank'}>
               <Image
                 className="cursor-pointer"
                 src="/assets/logo.png"

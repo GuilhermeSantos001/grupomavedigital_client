@@ -88,7 +88,7 @@ export function ModuleCardControl(props: Props) {
                   </IconButton>
                 </Tooltip> : <></>
             }
-            <Link href={props.link}>
+            <Link href={props.link} passHref={true}>
               <Tooltip title="Acessar">
                 <a onClick={(e) => handleChangePage(e, props.link)}>
                   <IconButton

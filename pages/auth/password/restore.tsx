@@ -20,7 +20,7 @@ const serverSideProps: PageProps = {
   title: 'Confirmação da conta',
   description: 'Confirme sua conta para acessar o ambiente digital interativo.',
   themeColor: '#004a6e',
-  menu: GetMenuHome('mn-login')
+  menu: GetMenuHome('mn-home')
 }
 
 export async function getServerSideProps({ query }: GetServerSidePropsContext) {
@@ -56,7 +56,7 @@ function compose_loading() {
   )
 }
 
-export function PasswordRestore({
+export default function PasswordRestore({
   token,
   processOrderForgotPasswordAuthorization,
 }: {
