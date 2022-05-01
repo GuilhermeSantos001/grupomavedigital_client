@@ -6,7 +6,7 @@ export  class SocketConnectionController {
     socket: Socket
 
     constructor(ip: string) {
-        this.socket = io(ip, { transports: ['websocket'] });
+        this.socket = io(ip, { secure: process.env.NODE_ENV === 'production' });
     }
 
     public compress<DataType>(data: DataType) {
