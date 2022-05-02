@@ -183,17 +183,23 @@ class StringEx {
   /**
    * @description Retorna o texto com a mascara de telefone aplicada
    */
-  maskPhone(value: string): string {
-    const
-      formatter =
-        value
+  maskPhone(value: string, type: 'cell' | 'tel'): string {
+    switch (type) {
+      case 'cell':
+        return value
           .toString()
           .replace(/[\D]/g, '')
           .replace(/(\d{2})(\d)/, '($1) $2')
           .replace(/(\d{5})(\d)/, '$1-$2')
           .replace(/(-\d{4})(\d+?)/, '$1');
-
-    return formatter;
+      case 'tel':
+        return value
+          .toString()
+          .replace(/[\D]/g, '')
+          .replace(/(\d{2})(\d)/, '($1) $2')
+          .replace(/(\d{4})(\d)/, '$1-$2')
+          .replace(/(-\d{4})(\d+?)/, '$1');
+    }
   }
 
   /**

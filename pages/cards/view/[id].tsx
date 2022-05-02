@@ -205,6 +205,7 @@ function compose_ready(
 ) {
   return (
     <DigitalCardPage
+      cid={card.cid}
       version={card.version as LayoutVersions}
       username={card.name}
       jobtitle={card.jobtitle}
