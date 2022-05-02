@@ -8,7 +8,7 @@ declare global {
   }
 }
 
-const socket = new SocketConnectionController(String(process.env.NEXT_PUBLIC_WEBSOCKET_HOST));
+const socket = new SocketConnectionController();
 
 export function SocketConnection() {
   useEffect(() => {

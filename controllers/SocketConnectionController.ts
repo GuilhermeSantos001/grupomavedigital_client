@@ -5,16 +5,8 @@ import { compressToBase64, decompressFromBase64 } from 'lz-string';
 export class SocketConnectionController {
     socket: Socket
 
-    constructor(ip: string) {
-        this.socket = io(ip, {
-            path: '/socket.io',
-            transports: ['websocket'],
-        });
-        this.socket.io.on("error", (error) => console.log(`Socket.io error ->`, error));
-        this.socket.io.on("close", (reason) => console.log(`Socket.io close ->`, reason));
-        this.socket.on("connect", () => console.log("Socket.io connect"));
-        this.socket.on("connect_error", (error) => console.log(`Socket error ->`, error));
-        this.socket.on("disconnect", (reason) => console.log(`Socket disconnect ->`, reason));
+    constructor() {
+        this.socket = io('', { secure: true });
     }
 
     public compress<DataType>(data: DataType) {
