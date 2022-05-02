@@ -7,7 +7,7 @@ export class SocketConnectionController {
 
     constructor(ip: string) {
         this.socket = io(ip, {
-            path: '/seacher',
+            path: '/socket.io',
             transports: ['websocket'],
         });
         this.socket.io.on("error", (error) => console.log(`Socket.io error ->`, error));
