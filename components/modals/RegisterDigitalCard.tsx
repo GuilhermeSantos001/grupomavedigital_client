@@ -1118,6 +1118,7 @@ export function RegisterDigitalCard(props: Props) {
             <ListItem className="d-flex flex-column p-2">
               <div className="d-flex d-md-none rounded shadow mx-auto">
                 <DigitalCardPage
+                  cid={cid}
                   version={version}
                   username={username}
                   photoProfile={
@@ -1153,6 +1154,7 @@ export function RegisterDigitalCard(props: Props) {
               </div>
               <div className="d-none d-md-flex rounded shadow mx-auto position-fixed" style={{ marginTop: -50, width: 430, transform: 'scale(.90)' }}>
                 <DigitalCardPage
+                  cid={cid}
                   version={version}
                   username={username}
                   photoProfile={

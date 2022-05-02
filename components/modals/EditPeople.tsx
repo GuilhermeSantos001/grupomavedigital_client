@@ -394,7 +394,7 @@ function Component(props: Props) {
             className='col'
             label="Celular"
             variant="standard"
-            value={StringEx.maskPhone(phone)}
+            value={StringEx.maskPhone(phone, 'cell')}
             onChange={(e) => handleChangePhone(StringEx.removeMaskNumToString(e.target.value))}
           />
         </ListItem>
