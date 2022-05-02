@@ -55,6 +55,7 @@ export type LayoutVersions =
   | '1.2'
 
 export type Props = {
+  cid: string
   version: LayoutVersions
   photoProfile: string | { raw: string, id: string }
   username: string
@@ -211,7 +212,7 @@ export function DigitalCardPage(props: Props) {
                 }
                 onClick={() => window.open(`tel:55${props.workPhone}`)}
               >
-                {StringEx.maskPhone(props.workPhone)}
+                {StringEx.maskPhone(props.workPhone, 'tel')}
               </Button>
               <Button className="col-5 mx-2 phone" variant={getColorButtons()} startIcon={
                 <FontAwesomeIcon
@@ -221,7 +222,7 @@ export function DigitalCardPage(props: Props) {
               }
                 onClick={() => window.open(`tel:55${props.cellPhone}`)}
               >
-                {StringEx.maskPhone(props.cellPhone)}
+                {StringEx.maskPhone(props.cellPhone, 'cell')}
               </Button>
             </div>
           </BounceInDiv>
@@ -334,8 +335,8 @@ export function DigitalCardPage(props: Props) {
                   color="secondary"
                   onClick={() => {
                     if (typeof props.attachmentVCard !== 'string') {
-                      const { path, name, type } = props.attachmentVCard;
-                      uploadTempDownload(path, name, type);
+                      const { name, type } = props.attachmentVCard;
+                      window.open(`${process.env.NEXT_PUBLIC_EXPRESS_HOST!}/temp/${name}${type}`);
                     } else {
                       Alerting.create('info', 'Cartão de contato ainda não está disponível');
                     }
@@ -405,7 +406,7 @@ export function DigitalCardPage(props: Props) {
             <BounceInDiv duration='1s'>
               <Tooltip title="Compartilhe no Facebook" arrow>
                 <FacebookShareButton
-                  url={`${process.env.NEXT_PUBLIC_HOST}/cards/${props.username}\n\r${props.whatsapp.message}`}
+                  url={`${process.env.NEXT_PUBLIC_HOST}/cards/view/${props.cid}\n\r${props.whatsapp.message}`}
                   className="mx-1"
                 >
                   <FacebookIcon
@@ -425,7 +426,7 @@ export function DigitalCardPage(props: Props) {
             <BounceInDiv duration='1s'>
               <Tooltip title="Compartilhe no Twitter" arrow>
                 <TwitterShareButton
-                  url={`${process.env.NEXT_PUBLIC_HOST}/cards/${props.username}\n\r${props.whatsapp.message}`}
+                  url={`${process.env.NEXT_PUBLIC_HOST}/cards/view/${props.cid}\n\r${props.whatsapp.message}`}
                   className="mx-1"
                 >
                   <TwitterIcon
@@ -445,7 +446,7 @@ export function DigitalCardPage(props: Props) {
             <BounceInDiv duration='1s'>
               <Tooltip title="Compartilhe no Linkedin" arrow>
                 <LinkedinShareButton
-                  url={`${process.env.NEXT_PUBLIC_HOST}/cards/${props.username}\n\r${props.whatsapp.message}`}
+                  url={`${process.env.NEXT_PUBLIC_HOST}/cards/view/${props.cid}\n\r${props.whatsapp.message}`}
                   className="mx-1"
                 >
                   <LinkedinIcon
@@ -465,7 +466,7 @@ export function DigitalCardPage(props: Props) {
             <BounceInDiv duration='1s'>
               <Tooltip title="Compartilhe no Telegram" arrow>
                 <TelegramShareButton
-                  url={`${process.env.NEXT_PUBLIC_HOST}/cards/${props.username}\n\r${props.whatsapp.message}`}
+                  url={`${process.env.NEXT_PUBLIC_HOST}/cards/view/${props.cid}\n\r${props.whatsapp.message}`}
                   className="mx-1"
                 >
                   <TelegramIcon
@@ -485,7 +486,7 @@ export function DigitalCardPage(props: Props) {
             <BounceInDiv duration='1s'>
               <Tooltip title="Compartilhe no Whatsapp" arrow>
                 <WhatsappShareButton
-                  url={`${process.env.NEXT_PUBLIC_HOST}/cards/${props.username}\n\r${props.whatsapp.message}`}
+                  url={`${process.env.NEXT_PUBLIC_HOST}/cards/view/${props.cid}\n\r${props.whatsapp.message}`}
                   className="mx-1"
                 >
                   <WhatsappIcon

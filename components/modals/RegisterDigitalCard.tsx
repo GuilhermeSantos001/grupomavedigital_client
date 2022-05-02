@@ -624,7 +624,7 @@ export function RegisterDigitalCard(props: Props) {
                       label="Número do Whatsapp"
                       variant="standard"
                       className="col-12"
-                      value={StringEx.maskPhone(whatsappPhone)}
+                      value={StringEx.maskPhone(whatsappPhone, 'cell')}
                       onChange={(e) => handleWhatsappPhone(StringEx.removeMaskNumToString(e.target.value))}
                     />
                   </ListItem>
@@ -656,7 +656,7 @@ export function RegisterDigitalCard(props: Props) {
                       label="Telefone de Trabalho"
                       variant="standard"
                       className="col-12"
-                      value={StringEx.maskPhone(workPhone)}
+                      value={StringEx.maskPhone(workPhone, 'tel')}
                       onChange={(e) => handleWorkPhone(StringEx.removeMaskNumToString(e.target.value))}
                     />
                   </ListItem>
@@ -666,7 +666,7 @@ export function RegisterDigitalCard(props: Props) {
                       label="Celular"
                       variant="standard"
                       className="col-12"
-                      value={StringEx.maskPhone(cellPhone)}
+                      value={StringEx.maskPhone(cellPhone, 'cell')}
                       onChange={(e) => handleCellPhone(StringEx.removeMaskNumToString(e.target.value))}
                     />
                   </ListItem>
