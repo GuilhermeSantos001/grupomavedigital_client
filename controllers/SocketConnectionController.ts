@@ -10,12 +10,11 @@ export class SocketConnectionController {
             path: '/seacher',
             transports: ['websocket'],
         });
-        this.socket.io.on("error", (error) => console.log(`Socket.io error: ${error}`));
-        this.socket.io.on("close", (reason) => console.log(`Socket.io close: ${reason}`));
+        this.socket.io.on("error", (error) => console.log(`Socket.io error ->`, error));
+        this.socket.io.on("close", (reason) => console.log(`Socket.io close ->`, reason));
         this.socket.on("connect", () => console.log("Socket.io connect"));
-        this.socket.on("error", (error) => console.log(`Socket error: ${error}`));
-        this.socket.on("disconnect", (reason) => console.log(`Socket disconnect: ${reason}`));
-        this.socket.on("reconnect", () => console.log("Socket reconnect"));
+        this.socket.on("connect_error", (error) => console.log(`Socket error ->`, error));
+        this.socket.on("disconnect", (reason) => console.log(`Socket disconnect ->`, reason));
     }
 
     public compress<DataType>(data: DataType) {
