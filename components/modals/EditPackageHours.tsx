@@ -330,7 +330,7 @@ export function EditPackageHours(props: Props) {
           label="Valor Fechado"
           value={StringEx.maskMoney(valueClosed)}
           disabled={true}
-          onChange={(e) => handleChangeValueClosed(getValueMoney(StringEx.removeMaskNum(e.target.value)))}
+          onChange={(e) => handleChangeValueClosed(getValueMoney(StringEx.removeMaskNum(e.target.value, 'infinity')))}
         />
         <TextField
           className='col-12 mb-3'
@@ -338,7 +338,7 @@ export function EditPackageHours(props: Props) {
           inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
           value={lawdays}
           onChange={(e) => {
-            let value = StringEx.removeMaskNum(e.target.value || '0');
+            let value = StringEx.removeMaskNum(e.target.value || '0', 'infinity');
 
             if (value < 0)
               value = 0;

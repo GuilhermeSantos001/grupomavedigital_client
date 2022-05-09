@@ -1100,7 +1100,7 @@ export function AssistantCoverageDefine(props: Props) {
             label="Valor"
             variant="standard"
             value={StringEx.maskMoney(paymentValue)}
-            onChange={(e) => handleChangePaymentValue(getValueMoney(StringEx.removeMaskNum(e.target.value)))}
+            onChange={(e) => handleChangePaymentValue(getValueMoney(StringEx.removeMaskNum(e.target.value, 'infinity')))}
           />
         </FormControl>
       )
