@@ -157,12 +157,12 @@ export function DigitalCardPage(props: Props) {
     onCloseChoiceInputDialog = () => setOpenChoiceInputDialog(false),
     onSubmitChoiceInputDialog = (value: string) => {
       setOpenChoiceInputDialog(false);
-      window.open(`https://wa.me/55${value}?text=${process.env.NEXT_PUBLIC_HOST}/cards/view/${props.cid}\n\r${props.whatsapp.message}`, '_blank');
+      window.open(`https://wa.me/55${value}?text=${process.env.NEXT_PUBLIC_HOST}/cards/view/${props.cid} \n\r ${props.whatsapp.message}`, '_blank');
     };
 
   return (
-    <Card className={`digitalCard d-flex col-12 p-0 rounded ${getBackgroundColor()} bg-gradient`}>
-      <Card.Body className="p-0 rounded">
+    <Card className={`digitalCard d-flex col-12 ${getBackgroundColor()} bg-gradient`} style={{ height: '100vh' }}>
+      <Card.Body style={{ height: '100vh' }}>
         <ZoomInDiv duration='800ms'>
           <div className="d-flex mt-2 p-2 justify-content-center align-items-center">
             <a href="https://grupomave.com.br" rel="noreferrer" target={'_blank'}>
@@ -183,7 +183,7 @@ export function DigitalCardPage(props: Props) {
         <div className={`col-12 bg-light-gray`}>
           <div className={`col-12 ${getDividerColor()}`} style={{ height: '1vh' }} />
           <ZoomInDownDiv duration='750ms'>
-            <div className="d-flex flex-column flex-md-row align-self-center justify-content-center rounded py-3">
+            <div className="d-flex flex-column flex-md-row align-self-center justify-content-center py-3">
               <Avatar
                 alt={props.username}
                 className="mx-auto"
@@ -444,7 +444,7 @@ export function DigitalCardPage(props: Props) {
             <BounceInDiv duration='1s'>
               <Tooltip title="Compartilhe no Facebook" arrow>
                 <FacebookShareButton
-                  url={`${process.env.NEXT_PUBLIC_HOST}/cards/view/${props.cid}\n\r${props.whatsapp.message}`}
+                  url={`${process.env.NEXT_PUBLIC_HOST}/cards/view/${props.cid} \n\r ${props.whatsapp.message}`}
                   className="mx-1"
                 >
                   <FacebookIcon
@@ -464,7 +464,7 @@ export function DigitalCardPage(props: Props) {
             <BounceInDiv duration='1s'>
               <Tooltip title="Compartilhe no Twitter" arrow>
                 <TwitterShareButton
-                  url={`${process.env.NEXT_PUBLIC_HOST}/cards/view/${props.cid}\n\r${props.whatsapp.message}`}
+                  url={`${process.env.NEXT_PUBLIC_HOST}/cards/view/${props.cid} \n\r ${props.whatsapp.message}`}
                   className="mx-1"
                 >
                   <TwitterIcon
@@ -484,7 +484,7 @@ export function DigitalCardPage(props: Props) {
             <BounceInDiv duration='1s'>
               <Tooltip title="Compartilhe no Linkedin" arrow>
                 <LinkedinShareButton
-                  url={`${process.env.NEXT_PUBLIC_HOST}/cards/view/${props.cid}\n\r${props.whatsapp.message}`}
+                  url={`${process.env.NEXT_PUBLIC_HOST}/cards/view/${props.cid} \n\r ${props.whatsapp.message}`}
                   className="mx-1"
                 >
                   <LinkedinIcon
@@ -504,7 +504,7 @@ export function DigitalCardPage(props: Props) {
             <BounceInDiv duration='1s'>
               <Tooltip title="Compartilhe no Telegram" arrow>
                 <TelegramShareButton
-                  url={`${process.env.NEXT_PUBLIC_HOST}/cards/view/${props.cid}\n\r${props.whatsapp.message}`}
+                  url={`${process.env.NEXT_PUBLIC_HOST}/cards/view/${props.cid} \n\r ${props.whatsapp.message}`}
                   className="mx-1"
                 >
                   <TelegramIcon
@@ -524,7 +524,7 @@ export function DigitalCardPage(props: Props) {
             <BounceInDiv duration='1s'>
               <Tooltip title="Compartilhe no Whatsapp" arrow>
                 <WhatsappShareButton
-                  url={`${process.env.NEXT_PUBLIC_HOST}/cards/view/${props.cid}\n\r${props.whatsapp.message}`}
+                  url={`${process.env.NEXT_PUBLIC_HOST}/cards/view/${props.cid} \n\r ${props.whatsapp.message}`}
                   className="mx-1"
                 >
                   <WhatsappIcon
@@ -541,15 +541,6 @@ export function DigitalCardPage(props: Props) {
                 </WhatsappShareButton>
               </Tooltip>
             </BounceInDiv>
-          </div>
-          <div className="d-flex justify-content-center align-items-center">
-            <ZoomInDownDiv duration='750ms'>
-              <p className={`text-center my-2 px-2 ${getColorFooterText()} ${css`
-                font-size: 0.8rem;
-              `}`}>
-                {`Grupo Mave 2020-${new Date().getFullYear()} © Todos direitos reservados.`}
-              </p>
-            </ZoomInDownDiv>
           </div>
         </div>
       </Card.Body>
