@@ -108,6 +108,7 @@ export type Birthday = {
 
 export type CardInfo = {
   __typename?: 'CardInfo';
+  author?: Maybe<Scalars['String']>;
   cid?: Maybe<Scalars['String']>;
   createdAt?: Maybe<Scalars['String']>;
   footer?: Maybe<Footer>;
@@ -453,7 +454,7 @@ export type Query = {
    * Retorna uma lista de cartões digitais
    * Docs: https://grupomavedigital-wiki.vercel.app/#/graphql/cards-query?id=cardget
    */
-  getCards: Array<CardInfo>;
+  getCardsByAuthor: Array<CardInfo>;
   /**
    * Retorna as informações do usuário
    * Docs: https://grupomavedigital-wiki.vercel.app/#/graphql/users-query?id=getuserinfo
@@ -548,8 +549,8 @@ export type QueryFindCardArgs = {
 };
 
 
-export type QueryGetCardsArgs = {
-  lastIndex?: InputMaybe<Scalars['String']>;
+export type QueryGetCardsByAuthorArgs = {
+  author?: InputMaybe<Scalars['String']>;
   limit: Scalars['Int'];
 };
 
@@ -678,6 +679,7 @@ export type Input_Birthday = {
 };
 
 export type Input_Card = {
+  author: Scalars['String'];
   footer: Input_CardFooter;
   id?: InputMaybe<Scalars['String']>;
   jobtitle: Scalars['String'];
@@ -796,15 +798,15 @@ export type FindCardQueryVariables = Exact<{
 }>;
 
 
-export type FindCardQuery = { __typename?: 'Query', findCard: { __typename?: 'CardInfo', index?: string | null, cid?: string | null, version?: string | null, name?: string | null, jobtitle?: string | null, phones?: Array<string | null> | null, createdAt?: string | null, photo?: { __typename?: 'Photo', id?: string | null, mirrorId?: string | null, name?: string | null, type?: string | null } | null, whatsapp?: { __typename?: 'Whatsapp', phone?: string | null, text?: string | null, message?: string | null } | null, vcard?: { __typename?: 'VCard', firstname?: string | null, lastname?: string | null, organization?: string | null, workPhone?: Array<string | null> | null, title?: string | null, url?: string | null, workUrl?: string | null, email?: string | null, label?: string | null, countryRegion?: string | null, street?: string | null, city?: string | null, stateProvince?: string | null, postalCode?: string | null, photo?: { __typename?: 'Photo', id?: string | null, mirrorId?: string | null, name?: string | null, type?: string | null } | null, logo?: { __typename?: 'Photo', id?: string | null, mirrorId?: string | null, name?: string | null, type?: string | null } | null, birthday?: { __typename?: 'Birthday', year?: number | null, month?: number | null, day?: number | null } | null, socialUrls?: Array<{ __typename?: 'SocialUrls', media?: string | null, url?: string | null } | null> | null, metadata?: { __typename?: 'VCardMetadata', file: { __typename?: 'VCardMetadataValues', path: string, name: string, type: string }, logotipo: { __typename?: 'VCardMetadataValues', path: string, name: string, type: string }, photo: { __typename?: 'VCardMetadataValues', path: string, name: string, type: string } } | null } | null, footer?: { __typename?: 'Footer', email?: string | null, location?: string | null, website?: string | null, attachment?: { __typename?: 'Photo', id?: string | null, mirrorId?: string | null, name?: string | null, type?: string | null } | null, socialmedia?: Array<{ __typename?: 'Socialmedia', name?: string | null, value?: string | null } | null> | null } | null } };
+export type FindCardQuery = { __typename?: 'Query', findCard: { __typename?: 'CardInfo', index?: string | null, cid?: string | null, author?: string | null, version?: string | null, name?: string | null, jobtitle?: string | null, phones?: Array<string | null> | null, createdAt?: string | null, photo?: { __typename?: 'Photo', id?: string | null, mirrorId?: string | null, name?: string | null, type?: string | null } | null, whatsapp?: { __typename?: 'Whatsapp', phone?: string | null, text?: string | null, message?: string | null } | null, vcard?: { __typename?: 'VCard', firstname?: string | null, lastname?: string | null, organization?: string | null, workPhone?: Array<string | null> | null, title?: string | null, url?: string | null, workUrl?: string | null, email?: string | null, label?: string | null, countryRegion?: string | null, street?: string | null, city?: string | null, stateProvince?: string | null, postalCode?: string | null, photo?: { __typename?: 'Photo', id?: string | null, mirrorId?: string | null, name?: string | null, type?: string | null } | null, logo?: { __typename?: 'Photo', id?: string | null, mirrorId?: string | null, name?: string | null, type?: string | null } | null, birthday?: { __typename?: 'Birthday', year?: number | null, month?: number | null, day?: number | null } | null, socialUrls?: Array<{ __typename?: 'SocialUrls', media?: string | null, url?: string | null } | null> | null, metadata?: { __typename?: 'VCardMetadata', file: { __typename?: 'VCardMetadataValues', path: string, name: string, type: string }, logotipo: { __typename?: 'VCardMetadataValues', path: string, name: string, type: string }, photo: { __typename?: 'VCardMetadataValues', path: string, name: string, type: string } } | null } | null, footer?: { __typename?: 'Footer', email?: string | null, location?: string | null, website?: string | null, attachment?: { __typename?: 'Photo', id?: string | null, mirrorId?: string | null, name?: string | null, type?: string | null } | null, socialmedia?: Array<{ __typename?: 'Socialmedia', name?: string | null, value?: string | null } | null> | null } | null } };
 
-export type GetCardsQueryVariables = Exact<{
-  lastIndex?: InputMaybe<Scalars['String']>;
+export type GetCardsByAuthorQueryVariables = Exact<{
+  author?: InputMaybe<Scalars['String']>;
   limit: Scalars['Int'];
 }>;
 
 
-export type GetCardsQuery = { __typename?: 'Query', getCards: Array<{ __typename?: 'CardInfo', index?: string | null, cid?: string | null, version?: string | null, name?: string | null, jobtitle?: string | null, phones?: Array<string | null> | null, createdAt?: string | null, photo?: { __typename?: 'Photo', id?: string | null, mirrorId?: string | null, name?: string | null, type?: string | null } | null, whatsapp?: { __typename?: 'Whatsapp', phone?: string | null, text?: string | null, message?: string | null } | null, vcard?: { __typename?: 'VCard', firstname?: string | null, lastname?: string | null, organization?: string | null, workPhone?: Array<string | null> | null, title?: string | null, url?: string | null, workUrl?: string | null, email?: string | null, label?: string | null, countryRegion?: string | null, street?: string | null, city?: string | null, stateProvince?: string | null, postalCode?: string | null, photo?: { __typename?: 'Photo', name?: string | null, type?: string | null, id?: string | null } | null, logo?: { __typename?: 'Photo', id?: string | null, mirrorId?: string | null, name?: string | null, type?: string | null } | null, birthday?: { __typename?: 'Birthday', year?: number | null, month?: number | null, day?: number | null } | null, socialUrls?: Array<{ __typename?: 'SocialUrls', media?: string | null, url?: string | null } | null> | null, metadata?: { __typename?: 'VCardMetadata', file: { __typename?: 'VCardMetadataValues', path: string, name: string, type: string }, logotipo: { __typename?: 'VCardMetadataValues', path: string, name: string, type: string }, photo: { __typename?: 'VCardMetadataValues', path: string, name: string, type: string } } | null } | null, footer?: { __typename?: 'Footer', email?: string | null, location?: string | null, website?: string | null, attachment?: { __typename?: 'Photo', id?: string | null, mirrorId?: string | null, name?: string | null, type?: string | null } | null, socialmedia?: Array<{ __typename?: 'Socialmedia', name?: string | null, value?: string | null } | null> | null } | null }> };
+export type GetCardsByAuthorQuery = { __typename?: 'Query', getCardsByAuthor: Array<{ __typename?: 'CardInfo', index?: string | null, cid?: string | null, author?: string | null, version?: string | null, name?: string | null, jobtitle?: string | null, phones?: Array<string | null> | null, createdAt?: string | null, photo?: { __typename?: 'Photo', id?: string | null, mirrorId?: string | null, name?: string | null, type?: string | null } | null, whatsapp?: { __typename?: 'Whatsapp', phone?: string | null, text?: string | null, message?: string | null } | null, vcard?: { __typename?: 'VCard', firstname?: string | null, lastname?: string | null, organization?: string | null, workPhone?: Array<string | null> | null, title?: string | null, url?: string | null, workUrl?: string | null, email?: string | null, label?: string | null, countryRegion?: string | null, street?: string | null, city?: string | null, stateProvince?: string | null, postalCode?: string | null, photo?: { __typename?: 'Photo', name?: string | null, type?: string | null, id?: string | null } | null, logo?: { __typename?: 'Photo', id?: string | null, mirrorId?: string | null, name?: string | null, type?: string | null } | null, birthday?: { __typename?: 'Birthday', year?: number | null, month?: number | null, day?: number | null } | null, socialUrls?: Array<{ __typename?: 'SocialUrls', media?: string | null, url?: string | null } | null> | null, metadata?: { __typename?: 'VCardMetadata', file: { __typename?: 'VCardMetadataValues', path: string, name: string, type: string }, logotipo: { __typename?: 'VCardMetadataValues', path: string, name: string, type: string }, photo: { __typename?: 'VCardMetadataValues', path: string, name: string, type: string } } | null } | null, footer?: { __typename?: 'Footer', email?: string | null, location?: string | null, website?: string | null, attachment?: { __typename?: 'Photo', id?: string | null, mirrorId?: string | null, name?: string | null, type?: string | null } | null, socialmedia?: Array<{ __typename?: 'Socialmedia', name?: string | null, value?: string | null } | null> | null } | null }> };
 
 export type GetUserInfoQueryVariables = Exact<{
   auth: Scalars['String'];
@@ -878,6 +880,7 @@ export const FindCardDocument = gql`
   findCard(cid: $cid) {
     index
     cid
+    author
     version
     photo {
       id
@@ -966,11 +969,12 @@ export const FindCardDocument = gql`
   }
 }
     `;
-export const GetCardsDocument = gql`
-    query GetCards($lastIndex: String, $limit: Int!) {
-  getCards(lastIndex: $lastIndex, limit: $limit) {
+export const GetCardsByAuthorDocument = gql`
+    query GetCardsByAuthor($author: String, $limit: Int!) {
+  getCardsByAuthor(author: $author, limit: $limit) {
     index
     cid
+    author
     version
     photo {
       id

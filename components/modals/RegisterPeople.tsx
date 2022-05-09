@@ -287,7 +287,7 @@ function Component(props: Props) {
             label="Matrícula"
             variant="standard"
             value={StringEx.maskMatricule(matricule)}
-            onChange={(e) => handleChangeMatricule(StringEx.removeMaskNumToString(e.target.value))}
+            onChange={(e) => handleChangeMatricule(StringEx.removeMaskNumToString(e.target.value, 'matricule'))}
           />
         </ListItem>
         <ListItem>
@@ -305,7 +305,7 @@ function Component(props: Props) {
             label="CPF"
             variant="standard"
             value={StringEx.maskCPF(cpf)}
-            onChange={(e) => handleChangeCPF(StringEx.removeMaskNumToString(e.target.value))}
+            onChange={(e) => handleChangeCPF(StringEx.removeMaskNumToString(e.target.value, 'cpf'))}
           />
         </ListItem>
         <ListItem>
@@ -314,7 +314,7 @@ function Component(props: Props) {
             label="RG"
             variant="standard"
             value={StringEx.maskRG(rg)}
-            onChange={(e) => handleChangeRG(StringEx.removeMaskNumToString(e.target.value))}
+            onChange={(e) => handleChangeRG(StringEx.removeMaskNumToString(e.target.value, 'rg'))}
           />
         </ListItem>
         <ListItem>
@@ -332,7 +332,7 @@ function Component(props: Props) {
             label="Celular"
             variant="standard"
             value={StringEx.maskPhone(phone, 'cell')}
-            onChange={(e) => handleChangePhone(StringEx.removeMaskNumToString(e.target.value))}
+            onChange={(e) => handleChangePhone(StringEx.removeMaskNumToString(e.target.value, 'cell'))}
           />
         </ListItem>
         <ListItem>

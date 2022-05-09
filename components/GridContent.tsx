@@ -255,12 +255,12 @@ export default class GridContent extends React.Component<MyProps, MyState> {
           </CacheProvider>
         </div>
         {
-          this.props.cleanLayout ??
+          !this.props.cleanLayout &&
           <div
             className='fixed-bottom d-flex flex-row justify-content-center align-items-center bg-light-gray border-top p-2 shadow'
           >
             <p className='text-muted my-auto'>
-              Grupo Mave 2020-2022 © Todos direitos reservados.
+              {`Grupo Mave 2020-${new Date().getFullYear()} © Todos direitos reservados.`}
             </p>
           </div>
         }

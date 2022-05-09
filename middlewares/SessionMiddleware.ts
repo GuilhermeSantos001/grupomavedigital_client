@@ -15,6 +15,9 @@ export async function SessionMiddleware(req: NextRequest, res: NextResponse) {
       pageName = req.page.name,
       url = req.nextUrl.clone();
 
+    if (pageName === '/auth/password/forgot' || pageName === '/auth/password/restore')
+      return NextResponse.next();
+
     if (!auth || !signature || !refreshTokenValue || !refreshTokenSignature) {
       if (pageName === '/auth/login')
         return NextResponse.next();

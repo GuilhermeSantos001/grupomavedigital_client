@@ -1,20 +1,21 @@
-import * as React from 'react';
+import * as React from 'react'
 
 import Image from 'next/image'
 
 import { css } from '@emotion/css'
 
-import { Card } from 'react-bootstrap';
+import { Card } from 'react-bootstrap'
 
-import { ZoomInDiv } from '@/animations/ZoomInAnimation';
-import { ZoomInDownDiv } from '@/animations/ZoomInDownAnimation';
-import { BounceInDiv } from '@/animations/BounceInAnimation';
+import { ZoomInDiv } from '@/animations/ZoomInAnimation'
+import { ZoomInDownDiv } from '@/animations/ZoomInDownAnimation'
+import { BounceInDiv } from '@/animations/BounceInAnimation'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
 
 import {
   ContactPhone,
+  Send,
   MailLock,
   LocationOn,
   Language,
@@ -24,15 +25,15 @@ import {
   LinkedIn,
   Instagram,
   Twitter,
-} from '@mui/icons-material';
+} from '@mui/icons-material'
 
-import IconButton from '@mui/material/IconButton';
-import Button from '@mui/material/Button';
-import Avatar from '@mui/material/Avatar';
-import Tooltip from '@mui/material/Tooltip';
+import IconButton from '@mui/material/IconButton'
+import Button from '@mui/material/Button'
+import Avatar from '@mui/material/Avatar'
+import Tooltip from '@mui/material/Tooltip'
 
-import StringEx from '@/src/utils/stringEx';
-import Alerting from '@/src/utils/alerting';
+import StringEx from '@/src/utils/stringEx'
+import Alerting from '@/src/utils/alerting'
 
 import { uploadTempDownload } from '@/src/functions/getUploads'
 
@@ -48,6 +49,8 @@ import {
   LinkedinShareButton,
   LinkedinIcon
 } from "react-share";
+
+import { InputDialog } from '@/components/dialogs/InputDialog'
 
 export type LayoutVersions =
   | '1.0'
@@ -88,6 +91,9 @@ export type Props = {
 }
 
 export function DigitalCardPage(props: Props) {
+  const [openChoiceInputDialog, setOpenChoiceInputDialog] = React.useState(false);
+  const [inputtedValueChiceInputDialog, setInputtedValueChoiceInputDialog] = React.useState('');
+
   const
     getBackgroundColor = () => {
       switch (props.version) {
@@ -145,7 +151,14 @@ export function DigitalCardPage(props: Props) {
         default:
           return 'contained';
       }
-    }
+    },
+    handleOpenChoiceInputDialog = () => setOpenChoiceInputDialog(true),
+    onChangeChoiceInputDialog = (value: string) => setInputtedValueChoiceInputDialog(value),
+    onCloseChoiceInputDialog = () => setOpenChoiceInputDialog(false),
+    onSubmitChoiceInputDialog = (value: string) => {
+      setOpenChoiceInputDialog(false);
+      window.open(`https://wa.me/55${value}?text=${process.env.NEXT_PUBLIC_HOST}/cards/view/${props.cid}\n\r${props.whatsapp.message}`, '_blank');
+    };
 
   return (
     <Card className={`digitalCard d-flex col-12 p-0 rounded ${getBackgroundColor()} bg-gradient`}>
@@ -184,9 +197,9 @@ export function DigitalCardPage(props: Props) {
             </p>
           </ZoomInDownDiv>
           <BounceInDiv duration='1s'>
-            <div className='d-flex justify-content-center align-items-center mb-2'>
+            <div className='d-flex justify-content-center align-items-center my-3'>
               <Button
-                className="col-8 mx-auto whatsapp"
+                className="col-6 col-md-8 mx-auto whatsapp"
                 variant={getColorButtons()}
                 color="success"
                 onClick={() => {
@@ -202,7 +215,7 @@ export function DigitalCardPage(props: Props) {
                 Entrar em Contato
               </Button>
             </div>
-            <div className='d-flex justify-content-center align-items-center mb-2'>
+            <div className='d-flex justify-content-center align-items-center my-3'>
               <Button className="col-5 mx-2 phone"
                 variant={getColorButtons()} startIcon={
                   <FontAwesomeIcon
@@ -223,6 +236,50 @@ export function DigitalCardPage(props: Props) {
                 onClick={() => window.open(`tel:55${props.cellPhone}`)}
               >
                 {StringEx.maskPhone(props.cellPhone, 'cell')}
+              </Button>
+            </div>
+          </BounceInDiv>
+          <BounceInDiv duration='1s'>
+            <InputDialog
+              title='Compartilhamento instantâneo via WhatsApp'
+              message='Digite o número do seu WhatsApp para compartilhar o conteúdo da página.'
+              open={openChoiceInputDialog}
+              inputtedValue={inputtedValueChiceInputDialog}
+              onChange={onChangeChoiceInputDialog}
+              onSubmit={onSubmitChoiceInputDialog}
+              onClose={onCloseChoiceInputDialog}
+              input={{
+                id: 'inputChoiceInputDialog',
+                label: 'Número do Celular com +DDD',
+                type: 'phone',
+                length: 11,
+              }}
+            />
+            <div className='d-flex justify-content-center align-items-center my-3'>
+              <Button
+                className={`col-5 col-md-4 mx-2  text-primary fw-bold actions`}
+                variant={getColorButtons()}
+                color="inherit"
+                startIcon={<ContactPhone fontSize='small' />}
+                onClick={() => {
+                  if (typeof props.attachmentVCard !== 'string') {
+                    const { name, type } = props.attachmentVCard;
+                    window.open(`${process.env.NEXT_PUBLIC_EXPRESS_HOST!}/temp/${name}${type}`);
+                  } else {
+                    Alerting.create('info', 'Cartão de contato ainda não está disponível');
+                  }
+                }}
+              >
+                Salvar em Contatos
+              </Button>
+              <Button
+                className={`col-5 col-md-4 mx-2 text-primary fw-bold actions`}
+                variant={getColorButtons()}
+                color="inherit"
+                startIcon={<Send fontSize="small" />}
+                onClick={handleOpenChoiceInputDialog}
+              >
+                Envie por WhatsApp
               </Button>
             </div>
           </BounceInDiv>
@@ -327,25 +384,6 @@ export function DigitalCardPage(props: Props) {
             </BounceInDiv>
           }
           <div className="d-flex mb-2 justify-content-center align-items-center">
-            <ZoomInDiv duration='800ms'>
-              <Tooltip title="Salvar contato" arrow>
-                <Button
-                  className={`col mx-1 p-2 ${getColorFooterText()}`}
-                  variant="outlined"
-                  color="secondary"
-                  onClick={() => {
-                    if (typeof props.attachmentVCard !== 'string') {
-                      const { name, type } = props.attachmentVCard;
-                      window.open(`${process.env.NEXT_PUBLIC_EXPRESS_HOST!}/temp/${name}${type}`);
-                    } else {
-                      Alerting.create('info', 'Cartão de contato ainda não está disponível');
-                    }
-                  }}
-                >
-                  <ContactPhone fontSize='small' />
-                </Button>
-              </Tooltip>
-            </ZoomInDiv>
             <ZoomInDiv duration='800ms'>
               <Tooltip title="Enviar mensagem por e-mail" arrow>
                 <Button
@@ -509,7 +547,7 @@ export function DigitalCardPage(props: Props) {
               <p className={`text-center my-2 px-2 ${getColorFooterText()} ${css`
                 font-size: 0.8rem;
               `}`}>
-                Grupo Mave 2020-2022 © Todos direitos reservados.
+                {`Grupo Mave 2020-${new Date().getFullYear()} © Todos direitos reservados.`}
               </p>
             </ZoomInDownDiv>
           </div>
