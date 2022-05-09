@@ -416,7 +416,7 @@ export function EditB2(props: Props) {
           label="Valor Fechado"
           value={StringEx.maskMoney(valueClosed)}
           disabled={true}
-          onChange={(e) => handleChangeValueClosed(getValueMoney(StringEx.removeMaskNum(e.target.value)))}
+          onChange={(e) => handleChangeValueClosed(getValueMoney(StringEx.removeMaskNum(e.target.value, 'infinity')))}
         />
         <TextField
           className='col-12 mb-3'
@@ -424,7 +424,7 @@ export function EditB2(props: Props) {
           inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
           value={absences}
           onChange={(e) => {
-            let value = StringEx.removeMaskNum(e.target.value || '0');
+            let value = StringEx.removeMaskNum(e.target.value || '0', 'infinity');
 
             if (value < 0)
               value = 0;
@@ -441,7 +441,7 @@ export function EditB2(props: Props) {
           inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
           value={lawdays}
           onChange={(e) => {
-            let value = StringEx.removeMaskNum(e.target.value || '0');
+            let value = StringEx.removeMaskNum(e.target.value || '0', 'infinity');
 
             if (value < 0)
               value = 0;
