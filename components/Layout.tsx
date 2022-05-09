@@ -119,17 +119,17 @@ export default function Layout(props: Props) {
 
   useEffect(() => {
     if (!loadedAPI['loaded']) {
-      setFetchAPI(setTimeout(async () => setLoadedAPI({ loaded: true }), 1000));
+      setFetchAPI(setTimeout(async () => {
+        setLoadedAPI({ loaded: true })
+        clearTimeout(fetchAPI);
+      }, 1000));
     } else {
       setLastRouterPathVisited(router.pathname);
     }
 
-    return () => {
-      if (fetchAPI) {
-        clearTimeout(fetchAPI);
-      }
-    }
-  }, [loadedAPI])
+    return () => { }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadedAPI, router.pathname])
 
   if (lastRouterPathVisited && lastRouterPathVisited != router.pathname) {
     setLastRouterPathVisited(router.pathname);
@@ -147,15 +147,15 @@ export default function Layout(props: Props) {
           fullwidth={props.fullwidth}
           cleanLayout={props.cleanLayout}
         />
-          <GridContent
-            menuShow={showFullWidth}
-            emotionCache={props.emotionCache}
-            menu={props.menu}
-            fullwidth={props.fullwidth}
-            cleanLayout={props.cleanLayout}
-          >
-            {props.children}
-          </GridContent>
+        <GridContent
+          menuShow={showFullWidth}
+          emotionCache={props.emotionCache}
+          menu={props.menu}
+          fullwidth={props.fullwidth}
+          cleanLayout={props.cleanLayout}
+        >
+          {props.children}
+        </GridContent>
       </>
       :
       loadingOverlay ?

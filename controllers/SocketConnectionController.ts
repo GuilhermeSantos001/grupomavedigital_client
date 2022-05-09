@@ -2,11 +2,11 @@ import { io, Socket } from 'socket.io-client';
 
 import { compressToBase64, decompressFromBase64 } from 'lz-string';
 
-export  class SocketConnectionController {
+export class SocketConnectionController {
     socket: Socket
 
-    constructor(ip: string) {
-        this.socket = io(ip, { transports: ['websocket'] });
+    constructor() {
+        this.socket = io('', { secure: true });
     }
 
     public compress<DataType>(data: DataType) {

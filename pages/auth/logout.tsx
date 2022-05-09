@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo } from 'react'
 
 import { GetServerSidePropsContext } from 'next/types'
 import { useRouter } from 'next/router'
@@ -39,7 +39,7 @@ export default function Logout({
   authLogoutAuthorization: string
 }) {
   const router = useRouter()
-  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST!)
+  const _fetch = useMemo(()=> new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST!), [])
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -60,7 +60,7 @@ export default function Logout({
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [])
+  }, [_fetch,router, auth, token, signature, authLogoutAuthorization]);
 
   return (
     <div

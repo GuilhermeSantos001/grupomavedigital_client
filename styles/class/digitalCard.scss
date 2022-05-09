@@ -1,10 +1,16 @@
 .digitalCard {
+  height: 100vh;
+
   .whatsapp {
     font-size: 12px;
   }
 
   .phone {
-    font-size: 10px;
+    font-size: 12px;
+  }
+
+  .actions {
+    font-size: 9px;
   }
 
   @include media-breakpoint-up(sm) {
@@ -14,6 +20,10 @@
 
     .phone {
       font-size: 14px;
+    }
+
+    .actions {
+      font-size: 11px;
     }
   }
 }

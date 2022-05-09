@@ -1,7 +1,8 @@
-query GetCards($lastIndex: String, $limit: Int!) {
-  getCards(lastIndex: $lastIndex, limit: $limit) {
+query GetCardsByAuthor($author: String, $limit: Int!) {
+  getCardsByAuthor(author: $author, limit: $limit) {
     index
     cid
+    author
     version
     photo {
       id

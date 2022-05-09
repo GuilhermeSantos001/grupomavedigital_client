@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect,useMemo, useState } from 'react'
 
 import { GetServerSidePropsContext } from 'next/types'
 
@@ -60,13 +60,13 @@ const MailConfirm = ({
   const [isReady, setIsReady] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(true)
 
-  const _fetch = new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST!)
+  const _fetch = useMemo(()=> new Fetch(process.env.NEXT_PUBLIC_GRAPHQL_HOST!), [])
 
   useEffect(() => {
     mailConfirm(_fetch, token, mailConfirmAuthorization)
       .then(() => setIsReady(true))
       .finally(() => setIsLoading(false))
-  }, []);
+  }, [_fetch, token, mailConfirmAuthorization]);
 
   return (
     <div data-testid="div-container" className="p-2">

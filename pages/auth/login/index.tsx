@@ -21,7 +21,7 @@ const staticProps: PageProps = {
   title: 'Entrar',
   description: 'Para acessar o portar primeiro conecte-se!',
   themeColor: '#004a6e',
-  menu: GetMenuHome('mn-login'),
+  menu: GetMenuHome('mn-home'),
 }
 
 export const getStaticProps = () => {
@@ -107,7 +107,7 @@ export default function Login({
     })
 
     return () => clearTimeout(timer)
-  }, []);
+  }, [router]);
 
   if (loading) return compose_load()
 

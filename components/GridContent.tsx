@@ -216,30 +216,29 @@ export default class GridContent extends React.Component<MyProps, MyState> {
                 } ${this.props.menuShow ? 'fullwidth' : ''}`}
               style={{ height: '80vh' }}
               transition={{ duration: 0.2 }}
-              children={(
-                <ul className={`list-style-none px-2`}>
-                  {menu}
-                  <div
-                    key='build-jully'
-                    title={'Acesse a documentação da build atual'}
-                    className={`d-flex flex-row p-2 mb-2 bg-primary border-bottom rounded`}
+            >
+              <ul className={`list-style-none px-2`}>
+                {menu}
+                <div
+                  key='build-jully'
+                  title={'Acesse a documentação da build atual'}
+                  className={`d-flex flex-row p-2 mb-2 bg-primary border-bottom rounded`}
+                >
+                  <a
+                    className={`menuItem w-100 text-truncate animation-delay hover-color`}
+                    href={'https://grupomavedigital-docs.vercel.app/docs/api/system/jully'}
+                    target="_blank"
+                    rel="noreferrer"
                   >
-                    <a
-                      className={`menuItem w-100 text-truncate animation-delay hover-color`}
-                      href={'https://grupomavedigital-docs.vercel.app/docs/api/system/jully'}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      {'Versão - Jully'}
-                    </a>
-                    <FontAwesomeIcon
-                      icon={Icon.render('fas', 'code-branch')}
-                      className="ms-2 flex-shrink-1 text-secondary my-auto"
-                    />
-                  </div>
-                </ul>
-              )}
-            /> : <></>
+                    {'Versão - Jully'}
+                  </a>
+                  <FontAwesomeIcon
+                    icon={Icon.render('fas', 'code-branch')}
+                    className="ms-2 flex-shrink-1 text-secondary my-auto"
+                  />
+                </div>
+              </ul>
+            </motion.div> : <></>
         }
         <div
           id="content"
@@ -256,12 +255,12 @@ export default class GridContent extends React.Component<MyProps, MyState> {
           </CacheProvider>
         </div>
         {
-          this.props.cleanLayout ??
+          !this.props.cleanLayout &&
           <div
             className='fixed-bottom d-flex flex-row justify-content-center align-items-center bg-light-gray border-top p-2 shadow'
           >
             <p className='text-muted my-auto'>
-              Grupo Mave 2020-2022 © Todos direitos reservados.
+              {`Grupo Mave 2020-${new Date().getFullYear()} © Todos direitos reservados.`}
             </p>
           </div>
         }

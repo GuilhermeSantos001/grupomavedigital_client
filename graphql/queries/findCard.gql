@@ -2,6 +2,7 @@ query FindCard($cid: String!) {
   findCard(cid: $cid) {
     index
     cid
+    author
     version
     photo {
       id

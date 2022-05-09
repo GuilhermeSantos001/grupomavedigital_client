@@ -1,20 +1,21 @@
-import * as React from 'react';
+import * as React from 'react'
 
 import Image from 'next/image'
 
 import { css } from '@emotion/css'
 
-import { Card } from 'react-bootstrap';
+import { Card } from 'react-bootstrap'
 
-import { ZoomInDiv } from '@/animations/ZoomInAnimation';
-import { ZoomInDownDiv } from '@/animations/ZoomInDownAnimation';
-import { BounceInDiv } from '@/animations/BounceInAnimation';
+import { ZoomInDiv } from '@/animations/ZoomInAnimation'
+import { ZoomInDownDiv } from '@/animations/ZoomInDownAnimation'
+import { BounceInDiv } from '@/animations/BounceInAnimation'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon from '@/src/utils/fontAwesomeIcons'
 
 import {
   ContactPhone,
+  Send,
   MailLock,
   LocationOn,
   Language,
@@ -24,15 +25,15 @@ import {
   LinkedIn,
   Instagram,
   Twitter,
-} from '@mui/icons-material';
+} from '@mui/icons-material'
 
-import IconButton from '@mui/material/IconButton';
-import Button from '@mui/material/Button';
-import Avatar from '@mui/material/Avatar';
-import Tooltip from '@mui/material/Tooltip';
+import IconButton from '@mui/material/IconButton'
+import Button from '@mui/material/Button'
+import Avatar from '@mui/material/Avatar'
+import Tooltip from '@mui/material/Tooltip'
 
-import StringEx from '@/src/utils/stringEx';
-import Alerting from '@/src/utils/alerting';
+import StringEx from '@/src/utils/stringEx'
+import Alerting from '@/src/utils/alerting'
 
 import { uploadTempDownload } from '@/src/functions/getUploads'
 
@@ -49,12 +50,15 @@ import {
   LinkedinIcon
 } from "react-share";
 
+import { InputDialog } from '@/components/dialogs/InputDialog'
+
 export type LayoutVersions =
   | '1.0'
   | '1.1'
   | '1.2'
 
 export type Props = {
+  cid: string
   version: LayoutVersions
   photoProfile: string | { raw: string, id: string }
   username: string
@@ -87,6 +91,9 @@ export type Props = {
 }
 
 export function DigitalCardPage(props: Props) {
+  const [openChoiceInputDialog, setOpenChoiceInputDialog] = React.useState(false);
+  const [inputtedValueChiceInputDialog, setInputtedValueChoiceInputDialog] = React.useState('');
+
   const
     getBackgroundColor = () => {
       switch (props.version) {
@@ -144,14 +151,21 @@ export function DigitalCardPage(props: Props) {
         default:
           return 'contained';
       }
-    }
+    },
+    handleOpenChoiceInputDialog = () => setOpenChoiceInputDialog(true),
+    onChangeChoiceInputDialog = (value: string) => setInputtedValueChoiceInputDialog(value),
+    onCloseChoiceInputDialog = () => setOpenChoiceInputDialog(false),
+    onSubmitChoiceInputDialog = (value: string) => {
+      setOpenChoiceInputDialog(false);
+      window.open(`https://wa.me/55${value}?text=${process.env.NEXT_PUBLIC_HOST}/cards/view/${props.cid}\n\r${props.whatsapp.message}`, '_blank');
+    };
 
   return (
     <Card className={`digitalCard d-flex col-12 p-0 rounded ${getBackgroundColor()} bg-gradient`}>
       <Card.Body className="p-0 rounded">
         <ZoomInDiv duration='800ms'>
           <div className="d-flex mt-2 p-2 justify-content-center align-items-center">
-            <a href="https://grupomave.com.br" target={'_blank'}>
+            <a href="https://grupomave.com.br" rel="noreferrer" target={'_blank'}>
               <Image
                 className="cursor-pointer"
                 src="/assets/logo.png"
@@ -183,9 +197,9 @@ export function DigitalCardPage(props: Props) {
             </p>
           </ZoomInDownDiv>
           <BounceInDiv duration='1s'>
-            <div className='d-flex justify-content-center align-items-center mb-2'>
+            <div className='d-flex justify-content-center align-items-center my-3'>
               <Button
-                className="col-8 mx-auto whatsapp"
+                className="col-6 col-md-8 mx-auto whatsapp"
                 variant={getColorButtons()}
                 color="success"
                 onClick={() => {
@@ -201,7 +215,7 @@ export function DigitalCardPage(props: Props) {
                 Entrar em Contato
               </Button>
             </div>
-            <div className='d-flex justify-content-center align-items-center mb-2'>
+            <div className='d-flex justify-content-center align-items-center my-3'>
               <Button className="col-5 mx-2 phone"
                 variant={getColorButtons()} startIcon={
                   <FontAwesomeIcon
@@ -211,7 +225,7 @@ export function DigitalCardPage(props: Props) {
                 }
                 onClick={() => window.open(`tel:55${props.workPhone}`)}
               >
-                {StringEx.maskPhone(props.workPhone)}
+                {StringEx.maskPhone(props.workPhone, 'tel')}
               </Button>
               <Button className="col-5 mx-2 phone" variant={getColorButtons()} startIcon={
                 <FontAwesomeIcon
@@ -221,7 +235,51 @@ export function DigitalCardPage(props: Props) {
               }
                 onClick={() => window.open(`tel:55${props.cellPhone}`)}
               >
-                {StringEx.maskPhone(props.cellPhone)}
+                {StringEx.maskPhone(props.cellPhone, 'cell')}
+              </Button>
+            </div>
+          </BounceInDiv>
+          <BounceInDiv duration='1s'>
+            <InputDialog
+              title='Compartilhamento instantâneo via WhatsApp'
+              message='Digite o número do seu WhatsApp para compartilhar o conteúdo da página.'
+              open={openChoiceInputDialog}
+              inputtedValue={inputtedValueChiceInputDialog}
+              onChange={onChangeChoiceInputDialog}
+              onSubmit={onSubmitChoiceInputDialog}
+              onClose={onCloseChoiceInputDialog}
+              input={{
+                id: 'inputChoiceInputDialog',
+                label: 'Número do Celular com +DDD',
+                type: 'phone',
+                length: 11,
+              }}
+            />
+            <div className='d-flex justify-content-center align-items-center my-3'>
+              <Button
+                className={`col-5 col-md-4 mx-2  text-primary fw-bold actions`}
+                variant={getColorButtons()}
+                color="inherit"
+                startIcon={<ContactPhone fontSize='small' />}
+                onClick={() => {
+                  if (typeof props.attachmentVCard !== 'string') {
+                    const { name, type } = props.attachmentVCard;
+                    window.open(`${process.env.NEXT_PUBLIC_EXPRESS_HOST!}/temp/${name}${type}`);
+                  } else {
+                    Alerting.create('info', 'Cartão de contato ainda não está disponível');
+                  }
+                }}
+              >
+                Salvar em Contatos
+              </Button>
+              <Button
+                className={`col-5 col-md-4 mx-2 text-primary fw-bold actions`}
+                variant={getColorButtons()}
+                color="inherit"
+                startIcon={<Send fontSize="small" />}
+                onClick={handleOpenChoiceInputDialog}
+              >
+                Envie por WhatsApp
               </Button>
             </div>
           </BounceInDiv>
@@ -327,25 +385,6 @@ export function DigitalCardPage(props: Props) {
           }
           <div className="d-flex mb-2 justify-content-center align-items-center">
             <ZoomInDiv duration='800ms'>
-              <Tooltip title="Salvar contato" arrow>
-                <Button
-                  className={`col mx-1 p-2 ${getColorFooterText()}`}
-                  variant="outlined"
-                  color="secondary"
-                  onClick={() => {
-                    if (typeof props.attachmentVCard !== 'string') {
-                      const { path, name, type } = props.attachmentVCard;
-                      uploadTempDownload(path, name, type);
-                    } else {
-                      Alerting.create('info', 'Cartão de contato ainda não está disponível');
-                    }
-                  }}
-                >
-                  <ContactPhone fontSize='small' />
-                </Button>
-              </Tooltip>
-            </ZoomInDiv>
-            <ZoomInDiv duration='800ms'>
               <Tooltip title="Enviar mensagem por e-mail" arrow>
                 <Button
                   className={`col mx-1 p-2 ${getColorFooterText()}`}
@@ -375,7 +414,7 @@ export function DigitalCardPage(props: Props) {
                   className={`col mx-1 p-2 ${getColorFooterText()}`}
                   variant="outlined"
                   color="secondary"
-                  onClick={() => window.open(props.website.slice(0, 4).includes('http') ? props.website : `http://${props.website}`)}
+                  onClick={() => window.open(props.website.slice(0, 4).includes('http') ? props.website : `https://${props.website}`)}
                 >
                   <Language fontSize='small' />
                 </Button>
@@ -405,7 +444,7 @@ export function DigitalCardPage(props: Props) {
             <BounceInDiv duration='1s'>
               <Tooltip title="Compartilhe no Facebook" arrow>
                 <FacebookShareButton
-                  url={`${process.env.NEXT_PUBLIC_HOST}/cards/${props.username}\n\r${props.whatsapp.message}`}
+                  url={`${process.env.NEXT_PUBLIC_HOST}/cards/view/${props.cid}\n\r${props.whatsapp.message}`}
                   className="mx-1"
                 >
                   <FacebookIcon
@@ -425,7 +464,7 @@ export function DigitalCardPage(props: Props) {
             <BounceInDiv duration='1s'>
               <Tooltip title="Compartilhe no Twitter" arrow>
                 <TwitterShareButton
-                  url={`${process.env.NEXT_PUBLIC_HOST}/cards/${props.username}\n\r${props.whatsapp.message}`}
+                  url={`${process.env.NEXT_PUBLIC_HOST}/cards/view/${props.cid}\n\r${props.whatsapp.message}`}
                   className="mx-1"
                 >
                   <TwitterIcon
@@ -445,7 +484,7 @@ export function DigitalCardPage(props: Props) {
             <BounceInDiv duration='1s'>
               <Tooltip title="Compartilhe no Linkedin" arrow>
                 <LinkedinShareButton
-                  url={`${process.env.NEXT_PUBLIC_HOST}/cards/${props.username}\n\r${props.whatsapp.message}`}
+                  url={`${process.env.NEXT_PUBLIC_HOST}/cards/view/${props.cid}\n\r${props.whatsapp.message}`}
                   className="mx-1"
                 >
                   <LinkedinIcon
@@ -465,7 +504,7 @@ export function DigitalCardPage(props: Props) {
             <BounceInDiv duration='1s'>
               <Tooltip title="Compartilhe no Telegram" arrow>
                 <TelegramShareButton
-                  url={`${process.env.NEXT_PUBLIC_HOST}/cards/${props.username}\n\r${props.whatsapp.message}`}
+                  url={`${process.env.NEXT_PUBLIC_HOST}/cards/view/${props.cid}\n\r${props.whatsapp.message}`}
                   className="mx-1"
                 >
                   <TelegramIcon
@@ -485,7 +524,7 @@ export function DigitalCardPage(props: Props) {
             <BounceInDiv duration='1s'>
               <Tooltip title="Compartilhe no Whatsapp" arrow>
                 <WhatsappShareButton
-                  url={`${process.env.NEXT_PUBLIC_HOST}/cards/${props.username}\n\r${props.whatsapp.message}`}
+                  url={`${process.env.NEXT_PUBLIC_HOST}/cards/view/${props.cid}\n\r${props.whatsapp.message}`}
                   className="mx-1"
                 >
                   <WhatsappIcon
@@ -508,7 +547,7 @@ export function DigitalCardPage(props: Props) {
               <p className={`text-center my-2 px-2 ${getColorFooterText()} ${css`
                 font-size: 0.8rem;
               `}`}>
-                Grupo Mave 2020-2022 © Todos direitos reservados.
+                {`Grupo Mave 2020-${new Date().getFullYear()} © Todos direitos reservados.`}
               </p>
             </ZoomInDownDiv>
           </div>

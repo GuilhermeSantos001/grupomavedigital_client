@@ -171,7 +171,7 @@ export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => 
       ...serverSideProps,
       auth: req.cookies.auth,
       getUserInfoAuthorization: process.env.GRAPHQL_AUTHORIZATION_GETUSERINFO!,
-      getCardsAuthorization: process.env.GRAPHQL_AUTHORIZATION_GETCARDS!,
+      getCardsByAuthorAuthorization: process.env.GRAPHQL_AUTHORIZATION_GETCARDSBYAUTHOR!,
       createCardsAuthorization: process.env.GRAPHQL_AUTHORIZATION_CREATECARDS!,
       updateCardsAuthorization: process.env.GRAPHQL_AUTHORIZATION_UPDATECARDS!,
       removeCardsAuthorization: process.env.GRAPHQL_AUTHORIZATION_REMOVECARDS!,
@@ -691,7 +691,7 @@ export default function Cards(
   {
     auth,
     getUserInfoAuthorization,
-    getCardsAuthorization,
+    getCardsByAuthorAuthorization,
     createCardsAuthorization,
     updateCardsAuthorization,
     removeCardsAuthorization,
@@ -701,7 +701,7 @@ export default function Cards(
   }: {
     auth: string,
     getUserInfoAuthorization: string,
-    getCardsAuthorization: string,
+    getCardsByAuthorAuthorization: string,
     createCardsAuthorization: string,
     updateCardsAuthorization: string,
     removeCardsAuthorization: string,
@@ -742,10 +742,10 @@ export default function Cards(
 
   const
     { data: cards, isValidating: isLoadingCards, success: successFetchCards, error: errorFetchCards } = useGetCardsService({
-      lastIndex: "",
+      author: auth,
       limit: 100,
     }, {
-      authorization: getCardsAuthorization,
+      authorization: getCardsByAuthorAuthorization,
       encodeuri: 'false'
     });
 
