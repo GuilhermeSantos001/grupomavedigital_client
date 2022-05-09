@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Icon, { iconsName } from '@/src/utils/fontAwesomeIcons'
@@ -157,8 +157,26 @@ export default function InputLogin(props: Props) {
         })
     };
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Enter') {
+        if (username.length > 0 && password.length > 0)
+          handleClickAccess();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [username, password]);
+
   return (
-    <div data-testid="container-input-login" className="col-12 p-2">
+    <div
+      data-testid="container-input-login"
+      className="col-12 p-2"
+    >
       <div
         data-testid="input-container-username"
         className="input-group mb-3"

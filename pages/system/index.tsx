@@ -233,7 +233,7 @@ function compose_user_view_1() {
             Novidades
           </p>
         </div>
-        <div className="p-3 bg-light-gray rounded overflow-auto h-50">
+        <div className="p-3 bg-light-gray rounded overflow-auto h-75">
           {
             GetUpdates().map(update => (
               <div key={update.id} className="my-1 text-primary">
@@ -267,7 +267,7 @@ function compose_user_view_1() {
             Meus Cursos
           </p>
         </div>
-        <div className="p-3 bg-light-gray rounded overflow-auto h-50">
+        <div className="p-3 bg-light-gray rounded overflow-auto h-75">
           <div className="my-1 text-muted">
             <p className="text-center text-md-start px-2 fs-6 fw-bold">
               <FontAwesomeIcon

@@ -307,7 +307,7 @@ function Component(props: Props) {
             label="Número"
             variant="standard"
             value={StringEx.maskHouseNumber(houseNumber)}
-            onChange={(e) => handleChangehouseNumber(StringEx.removeMaskNumToString(e.target.value))}
+            onChange={(e) => handleChangehouseNumber(StringEx.removeMaskNumToString(e.target.value, 'housenumber'))}
           />
         </ListItem>
         <ListItem>
@@ -361,7 +361,7 @@ function Component(props: Props) {
             label="CEP"
             variant="standard"
             value={StringEx.maskZipcode(zipCode)}
-            onChange={(e) => handleChangeZipCode(StringEx.removeMaskNumToString(e.target.value))}
+            onChange={(e) => handleChangeZipCode(StringEx.removeMaskNumToString(e.target.value, 'zipcode'))}
           />
         </ListItem>
       </List>

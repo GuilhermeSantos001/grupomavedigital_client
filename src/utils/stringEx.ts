@@ -1,6 +1,9 @@
 import { v4 as uuidv4 } from 'uuid';
 import { compressToBase64 } from 'lz-string';
 
+
+declare type DelimiterType = 'infinity' | 'cell' | 'tel' | 'cnpj' | 'cpf' | 'rg' | 'zipcode' | 'housenumber' | 'matricule';
+
 class StringEx {
   /**
    * @description Retorna um texto representando um identificador único
@@ -147,24 +150,58 @@ class StringEx {
   }
 
   /**
+   * @description Retorna a quantidade de dígitos do delimitador informado
+   */
+  private _delimiterLength(delimiter: DelimiterType): number {
+    switch (delimiter) {
+      case 'cell':
+        return 11;
+      case 'tel':
+        return 10;
+      case 'cnpj':
+        return 14;
+      case 'cpf':
+        return 11;
+      case 'zipcode':
+        return 8;
+      case 'housenumber':
+        return 4;
+      case 'matricule':
+        return 5;
+      case 'infinity':
+      default:
+        return Infinity;
+    }
+  }
+
+  /**
    * @description Retorna somente os numeros da mascara em formato numero
    */
-  removeMaskNum(value: string): number {
-    return parseInt(value.replace(/\D/g, ''));
+  removeMaskNum(
+    value: string,
+    limiterLength: 'infinity' | 'cell' | 'tel' | 'cnpj' | 'cpf' | 'rg' | 'zipcode' | 'housenumber' | 'matricule'
+  ): number {
+    return parseInt(value.replace(/\D/g, '').slice(0, this._delimiterLength(limiterLength)));
   }
 
   /**
    * @description Retorna somente o texto da mascara em formato texto
    */
-  removeMaskLetter(value: string): string {
-    return value.replace(/[^a-zA-Z]/g, '');
+  removeMaskLetter(
+    value: string,
+    limiterLength: 'infinity' | 'cell' | 'tel' | 'cnpj' | 'cpf' | 'rg' | 'zipcode' | 'housenumber' | 'matricule'
+  ): string {
+    return value.replace(/[^a-zA-Z]/g, '').slice(0, this._delimiterLength(limiterLength));
   }
 
   /**
    * @description Retorna somente os numeros da mascara em formato texto
    */
-  removeMaskNumToString(value: string): string {
-    return value.replace(/\D/g, '');
+  removeMaskNumToString(
+    value: string,
+    limiterLength: 'infinity' | 'cell' | 'tel' | 'cnpj' | 'cpf' | 'rg' | 'zipcode' | 'housenumber' | 'matricule'
+  ): string {
+    return value.replace(/\D/g, '').slice(0, this._delimiterLength(limiterLength));
   }
 
   /**

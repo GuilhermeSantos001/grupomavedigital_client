@@ -644,7 +644,7 @@ export function EditDigitalCard(props: Props) {
                       variant="standard"
                       className="col-12"
                       value={StringEx.maskPhone(whatsappPhone, 'cell')}
-                      onChange={(e) => handleWhatsappPhone(StringEx.removeMaskNumToString(e.target.value))}
+                      onChange={(e) => handleWhatsappPhone(StringEx.removeMaskNumToString(e.target.value, 'cell'))}
                     />
                   </ListItem>
                   <Divider />
@@ -676,7 +676,7 @@ export function EditDigitalCard(props: Props) {
                       variant="standard"
                       className="col-12"
                       value={StringEx.maskPhone(workPhone, 'tel')}
-                      onChange={(e) => handleWorkPhone(StringEx.removeMaskNumToString(e.target.value))}
+                      onChange={(e) => handleWorkPhone(StringEx.removeMaskNumToString(e.target.value, 'tel'))}
                     />
                   </ListItem>
                   <Divider />
@@ -686,7 +686,7 @@ export function EditDigitalCard(props: Props) {
                       variant="standard"
                       className="col-12"
                       value={StringEx.maskPhone(cellPhone, 'cell')}
-                      onChange={(e) => handleCellPhone(StringEx.removeMaskNumToString(e.target.value))}
+                      onChange={(e) => handleCellPhone(StringEx.removeMaskNumToString(e.target.value, 'cell'))}
                     />
                   </ListItem>
                   <Divider />
@@ -878,7 +878,7 @@ export function EditDigitalCard(props: Props) {
                       variant="standard"
                       className="col-12"
                       value={StringEx.maskZipcode(postalCode)}
-                      onChange={(e) => handleChangePostalCode(StringEx.removeMaskNumToString(e.target.value))}
+                      onChange={(e) => handleChangePostalCode(StringEx.removeMaskNumToString(e.target.value, 'zipcode'))}
                     />
                   </ListItem>
                   <Divider />
@@ -1068,6 +1068,7 @@ export function EditDigitalCard(props: Props) {
                       const cardId = await props.updateCard({
                         id: props.data.cid,
                         data: {
+                          author: props.auth,
                           name: username,
                           jobtitle,
                           whatsapp: {
