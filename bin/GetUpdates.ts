@@ -16,48 +16,23 @@ declare type Update = {
 export function GetUpdates(): Update[] {
   return [
     {
-      id: '_update_2022_03_29',
-      iconFamily: 'fas',
-      iconName: 'wrench',
-      title: 'Dê as boas-vindas aos seus contatos com os novos cartões digitais!',
-      message: `
-      Agora você pode adicionar um cartão digital e divulgar para seus contatos.
-      Pensados para facilitar a divulgação dos seus meios de contato e divulgacão,
-      o cartão digital foi desenvolvido com um layout moderno e personalizável.
-      `,
-      createdAt: {
-        year: 2022,
-        month: 2,
-        day: 29
-      }
-    },
-    {
-      id: '_update_2022_03_20',
+      id: '_update_2022_05_09',
       iconFamily: 'fas',
       iconName: 'bug',
-      title: 'Grande Atualização de Segurança',
+      title: 'v1.0.5',
       message: `
-      Essa atualização muda completamente o mecanismo de segurança do
-      sistema. Buscamos sempre a melhor forma de segurança possível,
-      e isso é uma tarefa extremamente difícil, por isso a cada
-      atualização, tentamos implementar melhores práticas de segurança
-      e melhorar a segurança já existente.
+      - Alterado o tamanho das caixas "Novidades" e "Meus Cursso" da "Tela Inicial" do usuário.
+      - Adicionado opção de mandar o cartão digital por whatsapp via número de telefone.
+      - adicionado suporte a tecla enter na tela de login.
+      - Corrigido problema de redirecionamento das paginas dentro da pasta password.
+      - Corrigido bug onde não estava sendo exibido os direitos autorais da plataforma.
+      - Mudança na rota de retorno dos cartões do autor.
+      - Pacotes atualizados.
       `,
       createdAt: {
         year: 2022,
-        month: 2,
-        day: 2
-      }
-    },
-    {
-      id: '_update_2021_05_20',
-      iconFamily: 'fas',
-      iconName: 'paint-brush',
-      message: 'Estamos com um novo visual, o que você achou?',
-      createdAt: {
-        year: 2021,
-        day: 4,
-        month: 20
+        month: 4,
+        day: 9
       }
     },
   ]
