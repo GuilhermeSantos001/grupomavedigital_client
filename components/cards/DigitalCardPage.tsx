@@ -161,8 +161,8 @@ export function DigitalCardPage(props: Props) {
     };
 
   return (
-    <Card className={`digitalCard d-flex col-12 p-0 rounded ${getBackgroundColor()} bg-gradient`}>
-      <Card.Body className="p-0 rounded">
+    <Card className={`digitalCard d-flex col-12 ${getBackgroundColor()} bg-gradient`} style={{ height: '100vh' }}>
+      <Card.Body style={{ height: '100vh' }}>
         <ZoomInDiv duration='800ms'>
           <div className="d-flex mt-2 p-2 justify-content-center align-items-center">
             <a href="https://grupomave.com.br" rel="noreferrer" target={'_blank'}>
@@ -183,7 +183,7 @@ export function DigitalCardPage(props: Props) {
         <div className={`col-12 bg-light-gray`}>
           <div className={`col-12 ${getDividerColor()}`} style={{ height: '1vh' }} />
           <ZoomInDownDiv duration='750ms'>
-            <div className="d-flex flex-column flex-md-row align-self-center justify-content-center rounded py-3">
+            <div className="d-flex flex-column flex-md-row align-self-center justify-content-center py-3">
               <Avatar
                 alt={props.username}
                 className="mx-auto"
@@ -541,15 +541,6 @@ export function DigitalCardPage(props: Props) {
                 </WhatsappShareButton>
               </Tooltip>
             </BounceInDiv>
-          </div>
-          <div className="d-flex justify-content-center align-items-center">
-            <ZoomInDownDiv duration='750ms'>
-              <p className={`text-center my-2 px-2 ${getColorFooterText()} ${css`
-                font-size: 0.8rem;
-              `}`}>
-                {`Grupo Mave 2020-${new Date().getFullYear()} © Todos direitos reservados.`}
-              </p>
-            </ZoomInDownDiv>
           </div>
         </div>
       </Card.Body>
