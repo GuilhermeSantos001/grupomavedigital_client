@@ -1,1 +1,0 @@
-export type AnimationDurationType = `${number}${'s' | 'ms'}`;

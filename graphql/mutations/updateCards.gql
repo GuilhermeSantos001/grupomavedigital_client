@@ -1,3 +1,0 @@
-mutation CardUpdate($id: String!, $data: input_card!) {
-  cardUpdate(id: $id, data: $data)
-}

@@ -1,3 +1,0 @@
-mutation MakeTemporaryUpload($fileId: String!, $version: Int, $signedUrl: String!) {
-  makeTemporaryUpload(fileId: $fileId, version: $version, signedUrl: $signedUrl)
-}

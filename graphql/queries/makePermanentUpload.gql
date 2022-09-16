@@ -1,3 +1,0 @@
-mutation MakePermanentUpload($fileId: String!, $version: Int, $signedUrl: String!) {
-  makePermanentUpload(fileId: $fileId, version: $version, signedUrl: $signedUrl)
-}
